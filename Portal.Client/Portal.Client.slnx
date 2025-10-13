@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="../Portal.Server/Portal.Server.csproj" />
+  <Project Path="../Portal.Shared/Portal.Shared.csproj" />
   <Project Path="Portal.Client.csproj" />
 </Solution>
