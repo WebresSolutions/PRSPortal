@@ -1,23 +1,59 @@
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.AspNetCore.HttpOverrides;
+using Portal.Server;
 
-// Add services to the container.
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls();
+Console.WriteLine("Adding databases and identity services");
+builder.AddDatabases();
+builder.AddIdentityServices();
 
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+builder.AddOtherServices();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    app.MapOpenApi();
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
+WebApplication? app = builder.Build();
+
+app.Use((context, next) =>
+{
+    if (context.Request.Scheme != "https")
+    {
+        context.Request.Scheme = "https";
+    }
+    return next(context);
+});
+app.UseForwardedHeaders();
+
+// Configure the HTTP request pipeline
+if (!app.Environment.IsDevelopment())
+{
+    _ = app.UseExceptionHandler("/Error");
+    _ = app.UseHsts();
+}
+else
+{
+    _ = app.UseDeveloperExceptionPage();
+    app.UseWebAssemblyDebugging();
 }
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection in development or when not behind a proxy
+if (!app.Environment.IsDevelopment())
+{
+    _ = app.UseHttpsRedirection();
+}
 
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
+
+app.UseRouting();
+app.UseCors("CorsPolicy");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapRazorPages();
 app.MapControllers();
+app.MapFallbackToFile("index.html");
 
 app.Run();
