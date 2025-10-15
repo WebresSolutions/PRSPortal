@@ -1,10 +1,11 @@
 ﻿@page "/counter"
 
-<PageTitle>Counter</PageTitle>
+@* The authorize attribute in Blazor WASM pages is executed on client-side only, thus it can be bypassed *@
+@attribute [Authorize(Roles = "Admin")]
 
 <h1>Counter</h1>
 
-<p role="status">Current count: @currentCount</p>
+<p>Current count: @currentCount</p>
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 

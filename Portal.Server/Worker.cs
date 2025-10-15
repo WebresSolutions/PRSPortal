@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
-using Portal.Server.ApiData;
-using Portal.Server.Database.Identity;
+using Portal.Server.Data;
+using Portal.Server.Options;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Portal.Server;

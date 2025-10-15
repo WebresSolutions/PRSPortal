@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Portal.Server.ApiData;
-using Portal.Server.Database.Identity;
+using Portal.Server.Data;
+using Portal.Server.Models;
+using Portal.Server.Options;
 using Quartz;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
