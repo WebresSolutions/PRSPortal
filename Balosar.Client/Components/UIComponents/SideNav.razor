@@ -1,0 +1,35 @@
+﻿<nav class="ps-3">
+	<ul class="nav flex-column mt-3 ">
+		<li class="nav-item mb-3">
+			<NavLink href="/">
+				<img alt="PRS" src="/images/PRS-Primary-Logo.svg" style="width: 120px" />
+			</NavLink>
+		</li>
+		<li class="nav-item">
+			<NavLink href="Contacts"><MudIcon Icon="@Icons.Material.Filled.People" Title="Home" />Contacts</NavLink>
+		</li>
+		<li class="nav-item">
+			<NavLink href="Jobs"><MudIcon Icon="@Icons.Material.Filled.Home" Title="Home" />Jobs</NavLink>
+		</li>
+		<li class="nav-item">
+			<NavLink href="Quotes">Quotes</NavLink>
+		</li>
+		<li class="nav-item">
+			<NavLink href="Councils">Councils</NavLink>
+		</li>
+		<li class="nav-item">
+			<NavLink href="Tools">Tools</NavLink>
+		</li>
+		<li class="nav-item">
+			<NavLink href="Admin">Admin</NavLink>
+		</li>
+		<li class="nav-item">
+			<NavLink href="Schedule">Schedule</NavLink>
+		</li>
+	</ul>
+</nav>
+
+@code {
+	[Parameter]
+	public required Action ToggleNav { get; set; }
+}

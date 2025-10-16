@@ -1,0 +1,29 @@
+﻿ul > li {
+    list-style: none;
+}
+
+.nav-item {
+}
+
+    .nav-item:first-of-type {
+    }
+
+    .nav-item:last-of-type {
+    }
+
+    .nav-item ::deep a {
+        align-items: center;
+        line-height: 3rem;
+        transition: all ease-in-out 0.2s;
+    }
+
+        .nav-item ::deep a.active {
+            color: var(--color-primary) !important;
+            /*font-weight: bold;*/
+        }
+
+        .nav-item ::deep a:hover {
+            color: var(--color-primary) !important;
+            transition: all ease-in-out 0.2s;
+            transform: translateY(-3px);
+        }

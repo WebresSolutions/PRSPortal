@@ -1,26 +1,106 @@
 ﻿<!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PRS</title>
     <base href="/" />
-    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
-    <link href="css/app.css" rel="stylesheet" />
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="icon" type="image/png" href="/images/PRS-Primary-Logo.svg" />
     <link href="Portal.Client.styles.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 </head>
-
 <body>
-    <app id="app">Loading...</app>
+    <div id="app">
+        <div class="position-relative vh-100">
+            <div class="position-absolute top-50 start-50 translate-middle w-25 text-center">
+                <div class="loading">
+                    <img src="images/PRS-Primary-Logo.svg" style="height: 150px" />
 
+                    <div class="progress mt-2" style="height: 2em;">
+                        <div id="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
+                             style="width: 0; background-color: var(--color-primary);">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
     <div id="blazor-error-ui">
         An unhandled error has occurred.
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">🗙</a>
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
     </div>
     <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
-    <script src="_framework/blazor.webassembly.js"></script>
-</body>
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="js/BlazorEnvironment.js"></script>
+    <script>
+        const originalFetch = fetch;
+        fetch = async (url, options) => {
+            const response = await originalFetch(url, options);
+            return url.endsWith('/blazor.boot.json')
+                ? new Response(await response.blob(), { headers: { 'blazor-environment': window.BlazorEnvironment } })
+                : response;
+        };
+    </script>
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script src="_content/BlazorGoogleMaps/js/objectManager.js"></script>
+    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+    <script src="js/customMapInterop.js"></script>
+    <script>
+        function StartBlazor() {
+            let loadedCount = 0;
+            let allRessources = 0;
+            let env = "";
 
+            // Set the correct app settings based on the env that the project is loading in
+            if (window.location.hostname.includes("localhost")) {
+                env = "Development"
+            }
+            else if (window.location.hostname.includes("staging")) {
+                env = "Staging"
+            }
+            else {
+                env = "Production"
+            }
+
+            Blazor.start({
+                // This function gets called by the Blazor pipeline
+                environment: env,
+                loadBootResource:
+                    function (type, filename, defaultUri, integrity) {
+                        if (type === "dotnetjs")
+                            return defaultUri;
+
+                        // As "fetchResources" is a promise we don't block
+                        const fetchResources = fetch(defaultUri, {
+                            cache: 'no-cache',
+                            integrity: integrity
+                        });
+
+                        // Add one to the total amount of stuff we have to fetch
+                        allRessources++;
+
+                        // That promise is fulfilled once one resource is done fetching
+                        // When this happens we update the progress bar
+                        fetchResources.then((_) => {
+                            // When fetching is done, indicate this in our loading bar
+                            loadedCount++;
+                            const percentLoaded = 100 * loadedCount / allRessources;
+                            const progressbar = document.getElementById('progressbar');
+                            progressbar.style.width = percentLoaded + '%';
+                        });
+
+                        return fetchResources;
+                    }
+            });
+        }
+        // Invoke the pipeline
+        StartBlazor();
+    </script>
+</body>
 </html>

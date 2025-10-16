@@ -1,0 +1,42 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject NavigationManager Navigation
+<nav class="w-100 d-flex justify-content-between">
+	<div>
+		<MudTextField @bind-Value="SearchValue" Variant="Variant.Outlined" Placeholder="Search..." Style="width: 200px"></MudTextField>
+	</div>
+	<div class="mt-4 d-flex flex-row pe-4">
+		<div class="auth-controls">
+			<AuthorizeView>
+				<Authorized>
+					<a href="authentication/profile">Hello, @context.User!.Identity!.Name!</a>
+					<button class="nav-link btn btn-link" @onclick="BeginSignOut">Log out</button>
+				</Authorized>
+				<NotAuthorized>
+					<div class="d-flex flex-row gap-2">
+						<a href="authentication/register">Register</a>
+						<a href="authentication/login">Log in</a>
+					</div>
+				</NotAuthorized>
+			</AuthorizeView>
+		</div>
+	</div>
+</nav>
+
+
+
+@code {
+	[Parameter]
+	public bool ShowNav { get; set; }
+
+	[Parameter]
+	public required Action ToggleNav { get; set; }
+
+	public string SearchValue { get; set; } = "";
+
+	private void BeginSignOut(MouseEventArgs args)
+	{
+		Navigation.NavigateToLogout("authentication/logout");
+	}
+}

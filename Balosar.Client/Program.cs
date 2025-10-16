@@ -1,11 +1,16 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor;
+using MudBlazor.Services;
 using Portal.Client;
 
 WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 
-builder.Services.AddHttpClient("Portal.ServerAPI")
+string httpClient = builder.Configuration.GetValue<string>("HttpClient")
+    ?? throw new Exception("Failed to load the http client settings");
+
+builder.Services.AddHttpClient(httpClient)
     .ConfigureHttpClient(client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
@@ -13,13 +18,14 @@ builder.Services.AddHttpClient("Portal.ServerAPI")
 builder.Services.AddScoped(provider =>
 {
     IHttpClientFactory factory = provider.GetRequiredService<IHttpClientFactory>();
-    return factory.CreateClient("Portal.ServerAPI");
+    return factory.CreateClient(httpClient);
 });
 
 builder.Services.AddOidcAuthentication(options =>
 {
-    options.ProviderOptions.ClientId = "PRS_DEV";
-    options.ProviderOptions.Authority = "https://localhost:44310/";
+    string baseAddress = builder.HostEnvironment.BaseAddress;
+    options.ProviderOptions.ClientId = builder.Configuration.GetValue<string>("ClientId");
+    options.ProviderOptions.Authority = baseAddress;
     options.ProviderOptions.ResponseType = "code";
 
     // Note: response_mode=fragment is the best option for a SPA. Unfortunately, the Blazor WASM
@@ -28,7 +34,9 @@ builder.Services.AddOidcAuthentication(options =>
     // For more information about this bug, visit https://github.com/dotnet/aspnetcore/issues/28344.
     //
     options.ProviderOptions.ResponseMode = "query";
-    options.AuthenticationPaths.RemoteRegisterPath = "https://localhost:44310/Identity/Account/Register";
+
+    // Use dynamic base URL for authentication paths instead of hardcoded configuration
+    options.AuthenticationPaths.RemoteRegisterPath = $"{baseAddress}Identity/Account/Register";
 
     // Add the "roles" (OpenIddictConstants.Scopes.Roles) scope and the "role" (OpenIddictConstants.Claims.Role) claim
     // (the same ones used in the Startup class of the Server) in order for the roles to be validated.
@@ -36,6 +44,21 @@ builder.Services.AddOidcAuthentication(options =>
     options.ProviderOptions.DefaultScopes.Add("roles");
     options.UserOptions.RoleClaim = "role";
 });
+
+//builder.Services.AddScoped<IApiService, ApiService>();
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+
+    config.SnackbarConfiguration.PreventDuplicates = true;
+    config.SnackbarConfiguration.NewestOnTop = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 8000;
+    config.SnackbarConfiguration.HideTransitionDuration = 500;
+    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+});
+
 
 WebAssemblyHost host = builder.Build();
 await host.RunAsync();

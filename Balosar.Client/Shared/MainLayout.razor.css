@@ -1,0 +1,56 @@
+﻿.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar {
+    margin: 0;
+    padding: 0;
+    width: 200px;
+    position: fixed;
+    height: 100%;
+    overflow: auto;
+    background-color: var(--color-white);
+}
+
+.main {
+    margin-left: 200px; /* Same as the width of the sidenav */
+    margin-top: 75px;
+}
+
+.main-full {
+    margin-left: 0;
+}
+
+.content {
+    min-height: 100vh;
+}
+
+.top-row {
+    background-color: var(--color-white);
+    justify-content: flex-end;
+    height: 5rem;
+    display: flex;
+    align-items: center;
+    position: fixed;
+    width: calc(100% - 200px);
+    margin-left: 200px;
+}
+
+    .top-row ::deep a, .top-row .btn-link {
+        white-space: nowrap;
+        margin-left: 1.5rem;
+    }
+
+    .top-row a:first-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+footer {
+    text-align: center;
+    padding: 1rem 0;
+    width: 100%;
+    margin-top: 2rem;
+}
