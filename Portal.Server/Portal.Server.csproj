@@ -7,8 +7,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Balosar.Client\Portal.Client.csproj" />
-		<ProjectReference Include="..\Balosar.Shared\Portal.Shared.csproj" />
+		<ProjectReference Include="..\Portal.Client\Portal.Client.csproj" />
+		<ProjectReference Include="..\Portal.Shared\Portal.Shared.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
