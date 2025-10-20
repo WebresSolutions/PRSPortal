@@ -3,9 +3,7 @@
 
 @inject NavigationManager Navigation
 <nav class="w-100 d-flex justify-content-between">
-	<div>
-		<MudTextField @bind-Value="SearchValue" Variant="Variant.Outlined" Placeholder="Search..." Style="width: 200px"></MudTextField>
-	</div>
+	<MudTextField @bind-Value="SearchValue" Variant="Variant.Outlined" Placeholder="Search..." Style="width: 250px"></MudTextField>
 	<div class="mt-4 d-flex flex-row pe-4">
 		<div class="auth-controls">
 			<AuthorizeView>
@@ -15,7 +13,6 @@
 				</Authorized>
 				<NotAuthorized>
 					<div class="d-flex flex-row gap-2">
-						<a href="authentication/register">Register</a>
 						<a href="authentication/login">Log in</a>
 					</div>
 				</NotAuthorized>

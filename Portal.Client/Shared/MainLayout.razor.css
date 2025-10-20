@@ -7,7 +7,7 @@
 .sidebar {
     margin: 0;
     padding: 0;
-    width: 200px;
+    width: 150px;
     position: fixed;
     height: 100%;
     overflow: auto;
@@ -15,7 +15,7 @@
 }
 
 .main {
-    margin-left: 200px; /* Same as the width of the sidenav */
+    margin-left: 150px; /* Same as the width of the sidenav */
     margin-top: 75px;
 }
 
@@ -28,14 +28,15 @@
 }
 
 .top-row {
-    background-color: var(--color-white);
+    background-color: none;
     justify-content: flex-end;
     height: 5rem;
     display: flex;
     align-items: center;
     position: fixed;
-    width: calc(100% - 200px);
-    margin-left: 200px;
+    width: calc(100% - 150px);
+    margin-left: 150px;
+    padding-left: 50px;
 }
 
     .top-row ::deep a, .top-row .btn-link {
@@ -53,4 +54,8 @@ footer {
     padding: 1rem 0;
     width: 100%;
     margin-top: 2rem;
+    
 }
+    footer > a {
+        font-size: 0.9rem;
+    }
