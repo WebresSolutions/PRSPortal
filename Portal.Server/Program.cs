@@ -1,4 +1,5 @@
-﻿using Portal.Server.Models;
+using Portal.Server.Helpers;
+using Portal.Server.Models;
 
 namespace Portal.Server;
 
@@ -12,7 +13,6 @@ public class Program
     private static async Task Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        _ = builder.WebHost.UseUrls();
 
         Console.WriteLine($"Environment Name: '{builder.Environment.EnvironmentName}'");
 
@@ -67,39 +67,10 @@ public class Program
         _ = app.MapControllers();
         _ = app.MapFallbackToFile("index.html");
 
-        _ = app.MapGroup("/api/account").MapIdentityApi<ApplicationUser>();
+        _ = app.MapGroup("/api/identity")
+            .MapIdentityApi<ApplicationUser>();
 
-
-        //if (app.Environment.EnvironmentName is not StaticStrings.IntegrationEnvName)
-        //{
-        //    // Validata the connection
-        //    using (IServiceScope scope = app.Services.CreateScope())
-        //    {
-        //        AuthDBContext? authDB = scope.ServiceProvider.GetRequiredService<AuthDBContext>();
-        //        CasimoDbContext? casimoDB = scope.ServiceProvider.GetRequiredService<CasimoDbContext>();
-
-        //        if (!casimoDB.IsConnected())
-        //        {
-        //            throw new Exception("Connection to the Casimo DB failed");
-        //        }
-        //        if (!authDB.IsConnected())
-        //        {
-        //            throw new Exception("Connection to the Identity DB failed");
-        //        }
-        //    }
-
-        //    // Seed database with an initial client application and test user
-        //    using (IServiceScope scope = app.Services.CreateScope())
-        //    {
-        //        AuthDBContext? authDB = scope.ServiceProvider.GetRequiredService<AuthDBContext>();
-        //        CasimoDbContext? casimoDB = scope.ServiceProvider.GetRequiredService<CasimoDbContext>();
-        //        RoleManager<IdentityRole>? roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        //        UserManager<ApplicationUser>? userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-        //        // Call the database seeder (made this awaitable)
-        //        await Seeder.SeedDatabase(roleManager, userManager, casimoDB);
-        //    }
-        //}
+        app.Seed();
 
         app.Run();
     }

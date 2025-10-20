@@ -1,25 +1,31 @@
-﻿using System;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using OpenIddict.Client.AspNetCore;
+using System.Security.Claims;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace Portal.Server.Controllers;
 
+/// <summary>
+/// Controller for handling OAuth authentication callbacks and external login processing
+/// Manages the authentication flow for external providers like GitHub
+/// </summary>
 public class AuthenticationController : Controller
 {
     // Note: this controller uses the same callback action for all providers
     // but for users who prefer using a different action per provider,
     // the following action can be split into separate actions.
+    /// <summary>
+    /// Handles OAuth callback responses from external authentication providers
+    /// Processes external claims and creates authentication cookies for the user
+    /// </summary>
+    /// <returns>Redirects to the appropriate page after successful authentication</returns>
     [HttpGet("~/callback/login/{provider}"), HttpPost("~/callback/login/{provider}"), IgnoreAntiforgeryToken]
     public async Task<ActionResult> LogInCallback()
     {
         // Retrieve the authorization data validated by OpenIddict as part of the callback handling.
-        var result = await HttpContext.AuthenticateAsync(OpenIddictClientAspNetCoreDefaults.AuthenticationScheme);
+        AuthenticateResult? result = await HttpContext.AuthenticateAsync(OpenIddictClientAspNetCoreDefaults.AuthenticationScheme);
 
         // Multiple strategies exist to handle OAuth 2.0/OpenID Connect callbacks, each with their pros and cons:
         //
@@ -54,7 +60,7 @@ public class AuthenticationController : Controller
         }
 
         // Build an identity based on the external claims and that will be used to create the authentication cookie.
-        var identity = new ClaimsIdentity(
+        ClaimsIdentity? identity = new(
             authenticationType: "ExternalLogin",
             nameType: ClaimTypes.Name,
             roleType: ClaimTypes.Role);
@@ -62,12 +68,12 @@ public class AuthenticationController : Controller
         // By default, OpenIddict will automatically try to map the email/name and name identifier claims from
         // their standard OpenID Connect or provider-specific equivalent, if available. If needed, additional
         // claims can be resolved from the external identity and copied to the final authentication cookie.
-        identity.SetClaim(ClaimTypes.Email, result.Principal.GetClaim(ClaimTypes.Email))
+        _ = identity.SetClaim(ClaimTypes.Email, result.Principal.GetClaim(ClaimTypes.Email))
                 .SetClaim(ClaimTypes.Name, result.Principal.GetClaim(ClaimTypes.Name))
                 .SetClaim(ClaimTypes.NameIdentifier, result.Principal.GetClaim(ClaimTypes.NameIdentifier));
 
         // Preserve the registration details to be able to resolve them later.
-        identity.SetClaim(Claims.Private.RegistrationId, result.Principal.GetClaim(Claims.Private.RegistrationId))
+        _ = identity.SetClaim(Claims.Private.RegistrationId, result.Principal.GetClaim(Claims.Private.RegistrationId))
                 .SetClaim(Claims.Private.ProviderName, result.Principal.GetClaim(Claims.Private.ProviderName));
 
         // Important: when using ASP.NET Core Identity and its default UI, the identity created in this action is
@@ -91,9 +97,9 @@ public class AuthenticationController : Controller
         // https://stackoverflow.com/questions/42660568/asp-net-core-identity-extract-and-save-external-login-tokens-and-add-claims-to-l/42670559#42670559.
 
         // Build the authentication properties based on the properties that were added when the challenge was triggered.
-        var properties = new AuthenticationProperties(result.Properties.Items)
+        AuthenticationProperties? properties = new(result.Properties?.Items)
         {
-            RedirectUri = result.Properties.RedirectUri ?? "/"
+            RedirectUri = result?.Properties?.RedirectUri ?? "/"
         };
 
         // If needed, the tokens returned by the authorization server can be stored in the authentication cookie.

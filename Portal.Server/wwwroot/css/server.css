@@ -1,0 +1,101 @@
+:root {
+    --color-primary: #ff5020;
+    --color-primary-light: #ff957d;
+    --color-secondary: #f2ecee;
+    --color-background: #f5f5ff;
+    --color-success: #63a46c;
+    --color-grey-dark: #808080;
+    --color-grey: #f5f3f5;
+    --color-white: #ffffff;
+    --color-yellow: #a16207;
+    --border-rad: 12px;
+    --padding: 10px;
+}
+
+html,
+body {
+    background-color: var(--color-background) !important;
+    transition:
+        color 0.5s,
+        background-color 0.5s;
+    line-height: 1.6;
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Oxygen,
+        Ubuntu,
+        Cantarell,
+        "Fira Sans",
+        "Droid Sans",
+        "Helvetica Neue",
+        sans-serif !important;
+    font-size: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    background-color: var(--color-background) !important;
+    transition:
+        color 0.5s,
+        background-color 0.5s;
+    line-height: 1.6;
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Oxygen,
+        Ubuntu,
+        Cantarell,
+        "Fira Sans",
+        "Droid Sans",
+        "Helvetica Neue",
+        sans-serif;
+    font-size: 15px;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.content {
+    display: flex;
+    justify-content: center;
+    margin-top: 200px;
+}
+
+.container-background {
+    background-color: var(--color-white);
+    padding: 3rem;
+    min-height: 450px;
+    min-width: 350px;
+    box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px !important;
+    border-radius: 15px;
+}
+
+.container-card {
+    background-color: var(--color-white);
+    padding: 3rem;
+    min-height: 450px;
+    min-width: 350px;
+    max-width: 350px;
+    box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px !important;
+    border-radius: 15px;
+}
+
+.active {
+    background-color: var(--color-primary) !important;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-secondary {
+    background-color: var(--color-secondary);
+}

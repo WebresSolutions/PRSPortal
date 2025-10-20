@@ -7,7 +7,7 @@
 .sidebar {
     margin: 0;
     padding: 0;
-    width: 150px;
+    width: 150px !important;
     position: fixed;
     height: 100%;
     overflow: auto;
@@ -28,7 +28,7 @@
 }
 
 .top-row {
-    background-color: none;
+    background-color: var(--color-white);
     justify-content: flex-end;
     height: 5rem;
     display: flex;
