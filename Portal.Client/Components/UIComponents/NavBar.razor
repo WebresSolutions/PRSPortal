@@ -3,17 +3,18 @@
 
 @inject NavigationManager Navigation
 <nav class="w-100 d-flex justify-content-between">
-	<MudTextField @bind-Value="SearchValue" Variant="Variant.Outlined" Placeholder="Search..." Style="width: 250px"></MudTextField>
+	<MudTextField @bind-Value="SearchValue" Variant="Variant.Outlined" Placeholder="Search..." Style="width: 250px">
+	</MudTextField>
 	<div class="mt-4 d-flex flex-row pe-4">
 		<div class="auth-controls">
 			<AuthorizeView>
 				<Authorized>
-					<a href="authentication/profile">Hello, @context.User!.Identity!.Name!</a>
-					<button class="nav-link btn btn-link" @onclick="BeginSignOut">Log out</button>
+					<i class="bi bi-person-vcard btn" href="authentication/profile"></i>
+					<i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
 				</Authorized>
 				<NotAuthorized>
 					<div class="d-flex flex-row gap-2">
-						<a href="authentication/login">Log in</a>
+						<a href="authentication/login" class="btn">Log in</a>
 					</div>
 				</NotAuthorized>
 			</AuthorizeView>

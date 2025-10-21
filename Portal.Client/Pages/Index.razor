@@ -1,9 +1,14 @@
 ﻿@page "/"
 
-
-<h1>Index</h1>
-
-
-<p>
-	This is the home page
-</p>
+<AuthorizeView>
+	<Authorized>
+		<Card Title="Index">
+			<ChildContent>
+				<div class="">
+					<a>Hello, @context.User!.Identity!.Name!</a>
+				</div>
+				<User />
+			</ChildContent>
+		</Card>
+	</Authorized>
+</AuthorizeView>

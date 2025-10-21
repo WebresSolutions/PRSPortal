@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JSRuntime
 
 <div class="page">
 	@if (!hideSidebar)
@@ -7,7 +8,7 @@
 			<SideNav ToggleNav=ToggleNav />
 		</div>
 	}
-	<div class="top-row">
+	<div class="top-row @(headerVisible ? "header-visible" : "header-hidden")">
 		<NavBar ShowNav="hideSidebar" ToggleNav=ToggleNav />
 	</div>
 	<div class="@MainClass ">
@@ -22,11 +23,20 @@
 <MudThemeProvider />
 <MudPopoverProvider />
 <MudDialogProvider MaxWidth="MaxWidth.Large" />
-<MudSnackbarProvider />s
+<MudSnackbarProvider />
 @code {
 	private bool hideSidebar = false;
+	private bool headerVisible = true;
 
 	private void ToggleNav() => hideSidebar = !hideSidebar;
 
 	private string MainClass => hideSidebar ? "main-full" : "main";
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await JSRuntime.InvokeVoidAsync("initializeScrollHeader");
+		}
+	}
 }

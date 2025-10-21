@@ -30,13 +30,30 @@
 .top-row {
     background-color: var(--color-white);
     justify-content: flex-end;
-    height: 5rem;
+    height: fit-content;
     display: flex;
     align-items: center;
     position: fixed;
     width: calc(100% - 150px);
     margin-left: 150px;
     padding-left: 50px;
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+    /* box-shadow: 0 2px 4px rgba(0,0,0,0.1); */
+}
+
+.top-row.header-hidden {
+    transform: translateY(-100%);
+}
+
+.top-row.header-visible {
+    transform: translateY(0);
+}
+
+/* When sidebar is hidden, adjust header width */
+.main-full + .top-row {
+    width: 100%;
+    margin-left: 0;
 }
 
     .top-row ::deep a, .top-row .btn-link {

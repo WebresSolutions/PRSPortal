@@ -1,37 +1,40 @@
-﻿
-<NavLink href="@Link.Link">
-	@if (Link.Icon is not null)
-	{
-		<i class="@Link.Icon me-2 fw-bold"></i>
-	}
-	@Link.Title
+﻿<li class="nav-item">
+	<NavLink href="@Link.Link">
+		@if (Link.Icon is not null)
+		{
+			<i class="@Link.Icon me-2 fw-bold"></i>
+		}
+		@Link.Title
 
-</NavLink>
-@if (Link.SubLinks.Length is not 0)
-{
-	@if (showSublinks)
-	{
-		<i class="bi bi-chevron-compact-up ms-2" role="button" @onclick="ToggleSublinks"></i>
-	}
-	else
-	{
-		<i class="bi bi-chevron-compact-down ms-2" role="button" @onclick="ToggleSublinks"></i>
-	}
-}
-<section class=@(showSublinks ? "sublinks show" : "sublinks hide")>
-	@foreach (var sublink in Link.SubLinks)
-	{
-		<div>
-			<NavLink href="@sublink.Link" class="">
-				@if (sublink.Icon is not null)
-				{
-					<i class="@sublink.Icon me-2 fw-bold"></i>
-				}
-				@sublink.Title
-			</NavLink>
-		</div>
-	}
-</section>
+		@if (Link.SubLinks.Length is not 0)
+		{
+			@if (showSublinks)
+			{
+				<i class="bi bi-chevron-compact-up ms-2" role="button" @onclick="ToggleSublinks"></i>
+			}
+			else
+			{
+				<i class="bi bi-chevron-compact-down ms-2" role="button" @onclick="ToggleSublinks"></i>
+			}
+		}
+	</NavLink>
+</li>
+<li>
+	<ul class=@(showSublinks ? "sublinks show" : "sublinks hide")>
+		@foreach (var sublink in Link.SubLinks)
+		{
+			<li>
+				<NavLink href="@sublink.Link" class="nav-item">
+					@if (sublink.Icon is not null)
+					{
+						<i class="@sublink.Icon me-2 fw-bold"></i>
+					}
+					@sublink.Title
+				</NavLink>
+			</li>
+		}
+	</ul>
+</li>
 
 @code {
 	[Parameter]
@@ -46,7 +49,7 @@
 	.sublinks {
 		margin-left: 1rem;
 		border-left: solid 2px var(--color-primary);
-		padding: 1px;
+		padding: 3px;
 	}
 
 		.sublinks.hide {
@@ -57,5 +60,4 @@
 			display: block;
 			transition: ease-in-out 50ms;
 		}
-
 </style>

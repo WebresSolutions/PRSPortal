@@ -1,4 +1,3 @@
-using Portal.Server.Helpers;
 using Portal.Server.Models;
 
 namespace Portal.Server;
@@ -18,7 +17,6 @@ public class Program
 
         Console.WriteLine("Adding databases and identity services");
         builder.AddDatabases();
-        builder.AddIdentityServices();
 
         Console.WriteLine("Skipping databases and identity services for IntegrationTests");
 
@@ -66,11 +64,6 @@ public class Program
         _ = app.MapRazorPages();
         _ = app.MapControllers();
         _ = app.MapFallbackToFile("index.html");
-
-        _ = app.MapGroup("/api/identity")
-            .MapIdentityApi<ApplicationUser>();
-
-        app.Seed();
 
         app.Run();
     }
