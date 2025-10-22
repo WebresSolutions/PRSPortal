@@ -6,25 +6,25 @@
 		}
 		@Link.Title
 
-		@if (Link.SubLinks.Length is not 0)
-		{
-			@if (showSublinks)
-			{
-				<i class="bi bi-chevron-compact-up ms-2" role="button" @onclick="ToggleSublinks"></i>
-			}
-			else
-			{
-				<i class="bi bi-chevron-compact-down ms-2" role="button" @onclick="ToggleSublinks"></i>
-			}
-		}
 	</NavLink>
+	@if (Link.SubLinks.Length is not 0)
+	{
+		@if (showSublinks)
+		{
+			<i class="bi bi-chevron-compact-up ms-2" role="button" @onclick="ToggleSublinks"></i>
+		}
+		else
+		{
+			<i class="bi bi-chevron-compact-down ms-2" role="button" @onclick="ToggleSublinks"></i>
+		}
+	}
 </li>
 <li>
 	<ul class=@(showSublinks ? "sublinks show" : "sublinks hide")>
-		@foreach (var sublink in Link.SubLinks)
+		@foreach (NavigationLink sublink in Link.SubLinks)
 		{
-			<li>
-				<NavLink href="@sublink.Link" class="nav-item">
+			<li class="sublink-item nav-item">
+				<NavLink href="@sublink.Link" class="">
 					@if (sublink.Icon is not null)
 					{
 						<i class="@sublink.Icon me-2 fw-bold"></i>
@@ -52,12 +52,16 @@
 		padding: 3px;
 	}
 
-		.sublinks.hide {
-			display: none;
-		}
+	.sublinks.hide {
+		display: none;
+	}
 
-		.sublinks.show {
-			display: block;
-			transition: ease-in-out 50ms;
-		}
+	.sublinks.show {
+		display: block;
+		transition: ease-in-out 50ms;
+	}
+
+	.sublink-item {
+		margin-left: 2px;
+	}
 </style>
