@@ -1,67 +1,73 @@
 ﻿<li class="nav-item">
-	<NavLink href="@Link.Link">
-		@if (Link.Icon is not null)
-		{
-			<i class="@Link.Icon me-2 fw-bold"></i>
-		}
-		@Link.Title
+    <NavLink href="@Link.Link">
+        @if (Link.Icon is not null)
+        {
+            <i class="@Link.Icon me-2 fw-bold"></i>
+        }
+        @if (!Minimize)
+        {
+            @Link.Title
+        }
 
-	</NavLink>
-	@if (Link.SubLinks.Length is not 0)
-	{
-		@if (showSublinks)
-		{
-			<i class="bi bi-chevron-compact-up ms-2" role="button" @onclick="ToggleSublinks"></i>
-		}
-		else
-		{
-			<i class="bi bi-chevron-compact-down ms-2" role="button" @onclick="ToggleSublinks"></i>
-		}
-	}
+    </NavLink>
+    @if (Link.SubLinks.Length is not 0 && !Minimize)
+    {
+        @if (showSublinks)
+        {
+            <i class="bi bi-chevron-compact-up ms-2" role="button" @onclick="ToggleSublinks"></i>
+        }
+        else
+        {
+            <i class="bi bi-chevron-compact-down ms-2" role="button" @onclick="ToggleSublinks"></i>
+        }
+    }
 </li>
 <li>
-	<ul class=@(showSublinks ? "sublinks show" : "sublinks hide")>
-		@foreach (NavigationLink sublink in Link.SubLinks)
-		{
-			<li class="sublink-item nav-item">
-				<NavLink href="@sublink.Link" class="">
-					@if (sublink.Icon is not null)
-					{
-						<i class="@sublink.Icon me-2 fw-bold"></i>
-					}
-					@sublink.Title
-				</NavLink>
-			</li>
-		}
-	</ul>
+    <ul class=@(showSublinks ? "sublinks show" : "sublinks hide")>
+        @foreach (NavigationLink sublink in Link.SubLinks)
+        {
+            <li class="sublink-item nav-item">
+                <NavLink href="@sublink.Link" class="">
+                    @if (sublink.Icon is not null)
+                    {
+                        <i class="@sublink.Icon me-2 fw-bold"></i>
+                    }
+                    @sublink.Title
+                </NavLink>
+            </li>
+        }
+    </ul>
 </li>
 
 @code {
-	[Parameter]
-	public required NavigationLink Link { get; set; }
+    [Parameter]
+    public required NavigationLink Link { get; set; }
 
-	private bool showSublinks = false;
+    [Parameter]
+    public required bool Minimize { get; set; }
 
-	private void ToggleSublinks() => showSublinks = !showSublinks;
+    private bool showSublinks = false;
+
+    private void ToggleSublinks() => showSublinks = !showSublinks;
 }
 
 <style>
-	.sublinks {
-		margin-left: 1rem;
-		border-left: solid 2px var(--color-primary);
-		padding: 3px;
-	}
+    .sublinks {
+        margin-left: 1rem;
+        border-left: solid 2px var(--color-primary);
+        padding: 3px;
+    }
 
-	.sublinks.hide {
-		display: none;
-	}
+        .sublinks.hide {
+            display: none;
+        }
 
-	.sublinks.show {
-		display: block;
-		transition: ease-in-out 50ms;
-	}
+        .sublinks.show {
+            display: block;
+            transition: ease-in-out 50ms;
+        }
 
-	.sublink-item {
-		margin-left: 2px;
-	}
+    .sublink-item {
+        margin-left: 2px;
+    }
 </style>

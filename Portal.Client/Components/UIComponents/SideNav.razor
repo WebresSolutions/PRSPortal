@@ -1,42 +1,57 @@
 ﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-<nav class="d-flex ps-2">
-	<ul class="nav flex-column mt-3">
-		<li class="mb-3">
-			<NavLink href="/">
-				<img alt="PRS" src="/images/PRS-Primary-Logo.svg" style="width: 120px" />
-			</NavLink>
-		</li>
-		@foreach (KeyValuePair<string, NavigationLink> link in links)
-		{
-			<NavElement Link=@link.Value />
-		}
-	</ul>
+<nav class="sidebar d-flex ps-2">
+    <ul class="nav flex-column mt-3">
+        <li class="mb-3">
+            <NavLink href="/">
+                <img alt="PRS" src="/images/PRS-Primary-Logo.svg" style="@width()" />
+            </NavLink>
+        </li>
+        <li class="ms-2">
+            <button @onclick="@(MinimizeSidebar)"><i class="bi bi-list"></i></button>
+        </li>
+        @foreach (KeyValuePair<string, NavigationLink> link in links)
+        {
+            <NavElement Link=@link.Value Minimize="minimize" />
+        }
+    </ul>
 </nav>
 
 @code {
-	[Parameter]
-	public required Action ToggleNav { get; set; }
+    [Parameter]
+    public required Action ToggleNav { get; set; }
 
+    [Parameter]
+    public required EventCallback Hide { get; set; }
 
-	private readonly Dictionary<string, NavigationLink> links = new()
-	{	
+    private bool minimize = false;
+
+    private async Task MinimizeSidebar()
+    {
+        minimize = !minimize;
+        await Hide.InvokeAsync();
+    }
+
+    private string width() => minimize ? "width: 40px" : "width: 120px";
+
+    private readonly Dictionary<string, NavigationLink> links = new()
+    {
 		// { "Home", new NavigationLink(){Link = "", Title = "Home", Icon = MudBlazor.Icons.Material.Filled.Home } },
 		{ "Jobs", new NavigationLink(){Link = "jobs", Title = "Jobs", Icon = "bi bi-wrench",
-		SubLinks = [
-		new NavigationLink() { Link = "tasks", Title = "Tasks", Icon = "bi bi-list-task"},
-		new NavigationLink() { Link = "notes", Title = "Notes", Icon = "bi bi-journal"},
-		new NavigationLink() { Link = "invoices", Title = "Invoices", Icon = "bi bi-card-text" }
-		]}
-		},
-		{ "Quotes", new NavigationLink(){Link = "quotes", Title = "Quotes", Icon = "bi bi-receipt" } },
-		{ "Councils", new NavigationLink(){Link = "councils", Title = "Councils",Icon = "bi bi-people-fill"} },
-		{ "Tools", new NavigationLink(){Link = "tools", Title = "Tools",Icon = "bi bi-hammer"} },
-		{ "Admin", new NavigationLink(){Link = "admin", Title = "Admin",Icon = "bi bi-sliders"} },
-		{ "Schedule", new NavigationLink(){Link = "schedule", Title = "Schedule", Icon = "bi bi-calendar"} }
-	};
+        SubLinks = [
+        new NavigationLink() { Link = "tasks", Title = "Tasks", Icon = "bi bi-list-task"},
+        new NavigationLink() { Link = "notes", Title = "Notes", Icon = "bi bi-journal"},
+        new NavigationLink() { Link = "invoices", Title = "Invoices", Icon = "bi bi-card-text" }
+        ]}
+        },
+        { "Quotes", new NavigationLink(){Link = "quotes", Title = "Quotes", Icon = "bi bi-receipt" } },
+        { "Councils", new NavigationLink(){Link = "councils", Title = "Councils",Icon = "bi bi-people-fill"} },
+        { "Tools", new NavigationLink(){Link = "tools", Title = "Tools",Icon = "bi bi-hammer"} },
+        { "Admin", new NavigationLink(){Link = "admin", Title = "Admin",Icon = "bi bi-sliders"} },
+        { "Schedule", new NavigationLink(){Link = "schedule", Title = "Schedule", Icon = "bi bi-calendar"} }
+    };
 
-	private void BeginSignOut(MouseEventArgs args)
-	{
-		_navigationManager.NavigateToLogout("authentication/logout");
-	}
+    private void BeginSignOut(MouseEventArgs args)
+    {
+        _navigationManager.NavigateToLogout("authentication/logout");
+    }
 }

@@ -2,41 +2,40 @@
 @inject IJSRuntime JSRuntime
 
 <div class="page">
-	@if (!hideSidebar)
-	{
-		<div class="sidebar">
-			<SideNav ToggleNav=ToggleNav />
-		</div>
-	}
-	<div class="top-row @(headerVisible ? "header-visible" : "header-hidden")">
-		<NavBar ShowNav="hideSidebar" ToggleNav=ToggleNav />
-	</div>
-	<div class="@MainClass ">
-		<div class="content px-4">
-			@Body
-		</div>
-	</div>
-	<footer>
-		Built by <a href="https://webres.solutions" target="_blank" style="color: #b2424d;">Webres Solutions</a>
-	</footer>
+    <SideNav ToggleNav=ToggleNav  Hide="@ToggleNav"/>
+
+    <div class="top-row @(headerVisible ? "header-visible" : "header-hidden")">
+        <NavBar ShowNav="hideSidebar" ToggleNav=ToggleNav />
+    </div>
+    <div class="@MainClass">
+        <div class="content px-4 @FullWidth">
+            @Body
+        </div>
+    </div>
+    <footer>
+        Built by <a href="https://webres.solutions" target="_blank" style="color: #b2424d;">Webres Solutions</a>
+    </footer>
 </div>
+
 <MudThemeProvider />
 <MudPopoverProvider />
 <MudDialogProvider MaxWidth="MaxWidth.Large" />
 <MudSnackbarProvider />
 @code {
-	private bool hideSidebar = false;
-	private bool headerVisible = true;
+    private bool hideSidebar = false;
+    private bool headerVisible = true;
 
-	private void ToggleNav() => hideSidebar = !hideSidebar;
+    private void ToggleNav() => hideSidebar = !hideSidebar;
 
-	private string MainClass => hideSidebar ? "main-full" : "main";
+    private string MainClass => hideSidebar ? "main-full" : "main";
 
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (firstRender)
-		{
-			await JSRuntime.InvokeVoidAsync("initializeScrollHeader");
-		}
-	}
+    private string FullWidth => hideSidebar ? "full" : "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeScrollHeader");
+        }
+    }
 }

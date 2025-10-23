@@ -1,1 +1,10 @@
-﻿
+﻿.sidebar {
+    margin: 0;
+    padding: 0 10px;
+    width:fit-content;
+    position: fixed;
+    height: 100%;
+    overflow: auto;
+    background-color: var(--color-white);
+    z-index : 11;
+}
