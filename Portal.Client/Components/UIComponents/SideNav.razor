@@ -19,21 +19,22 @@
 
 
 	private readonly Dictionary<string, NavigationLink> links = new()
-{
-// { "Home", new NavigationLink(){Link = "", Title = "Home", Icon = MudBlazor.Icons.Material.Filled.Home } },
-{ "Jobs", new NavigationLink(){Link = "jobs", Title = "Jobs", Icon = "bi bi-wrench",
-SubLinks = [
-new NavigationLink() { Link = "tasks", Title = "Tasks", Icon = "bi bi-list-task"},
-new NavigationLink() { Link = "notes", Title = "Notes", Icon = "bi bi-journal"},
-new NavigationLink() { Link = "invoices", Title = "Invoices", Icon = "bi bi-card-text" }
-]}
-},
-{ "Quotes", new NavigationLink(){Link = "quotes", Title = "Quotes", Icon = "bi bi-receipt" } },
-{ "Councils", new NavigationLink(){Link = "councils", Title = "Councils",Icon = "bi bi-people-fill"} },
-{ "Tools", new NavigationLink(){Link = "tools", Title = "Tools",Icon = "bi bi-hammer"} },
-{ "Admin", new NavigationLink(){Link = "admin", Title = "Admin",Icon = "bi bi-sliders"} },
-{ "Schedule", new NavigationLink(){Link = "schedule", Title = "Schedule", Icon = "bi bi-calendar"} }
-};
+	{	
+		// { "Home", new NavigationLink(){Link = "", Title = "Home", Icon = MudBlazor.Icons.Material.Filled.Home } },
+		{ "Jobs", new NavigationLink(){Link = "jobs", Title = "Jobs", Icon = "bi bi-wrench",
+		SubLinks = [
+		new NavigationLink() { Link = "tasks", Title = "Tasks", Icon = "bi bi-list-task"},
+		new NavigationLink() { Link = "notes", Title = "Notes", Icon = "bi bi-journal"},
+		new NavigationLink() { Link = "invoices", Title = "Invoices", Icon = "bi bi-card-text" }
+		]}
+		},
+		{ "Quotes", new NavigationLink(){Link = "quotes", Title = "Quotes", Icon = "bi bi-receipt" } },
+		{ "Councils", new NavigationLink(){Link = "councils", Title = "Councils",Icon = "bi bi-people-fill"} },
+		{ "Tools", new NavigationLink(){Link = "tools", Title = "Tools",Icon = "bi bi-hammer"} },
+		{ "Admin", new NavigationLink(){Link = "admin", Title = "Admin",Icon = "bi bi-sliders"} },
+		{ "Schedule", new NavigationLink(){Link = "schedule", Title = "Schedule", Icon = "bi bi-calendar"} }
+	};
+
 	private void BeginSignOut(MouseEventArgs args)
 	{
 		_navigationManager.NavigateToLogout("authentication/logout");

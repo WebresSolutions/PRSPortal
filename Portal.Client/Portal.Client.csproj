@@ -8,6 +8,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Portal.Shared\Portal.Shared.csproj" />
+		<ProjectReference Include="..\Portal.ShareUI\Portal.SharedUI.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
