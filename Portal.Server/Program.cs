@@ -1,4 +1,5 @@
-using Portal.Server.Models;
+using Portal.Server.Endpoints;
+using Scalar.AspNetCore;
 
 namespace Portal.Server;
 
@@ -15,11 +16,7 @@ public class Program
 
         Console.WriteLine($"Environment Name: '{builder.Environment.EnvironmentName}'");
 
-        Console.WriteLine("Adding databases and identity services");
         builder.AddDatabases();
-
-        Console.WriteLine("Skipping databases and identity services for IntegrationTests");
-
         builder.AddOtherServices();
 
         WebApplication? app = builder.Build();
@@ -38,7 +35,6 @@ public class Program
         if (app.Environment.IsDevelopment())
         {
             _ = app.UseDeveloperExceptionPage();
-            app.UseWebAssemblyDebugging();
             //_ = app.MapOpenApi();
         }
         else
@@ -48,12 +44,16 @@ public class Program
         }
 
         // Only use HTTPS redirection in development or when not behind a proxy
-        if (!app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment())
         {
-            _ = app.UseHttpsRedirection();
+            _ = app.MapOpenApi();
+            _ = app.MapScalarApiReference(options =>
+            {
+                options.Title = "PRS API";
+                options.Theme = ScalarTheme.Purple;
+            });
         }
 
-        _ = app.UseBlazorFrameworkFiles();
         _ = app.UseStaticFiles();
         _ = app.UseRouting();
         _ = app.UseCors("CorsPolicy");
@@ -61,9 +61,11 @@ public class Program
         _ = app.UseAuthentication();
         _ = app.UseAuthorization();
 
-        _ = app.MapRazorPages();
         _ = app.MapControllers();
         _ = app.MapFallbackToFile("index.html");
+
+        _ = app.MapGet(app.Environment.ApplicationName, () => "Portal Server is running.");
+        app.MapWeatherForecastEndpoints();
 
         app.Run();
     }

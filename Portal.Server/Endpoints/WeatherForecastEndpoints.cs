@@ -1,18 +1,23 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Portal.Shared;
+﻿using Portal.Shared;
 
-namespace Portal.Server.Controllers;
+namespace Portal.Server.Endpoints;
 
-[ApiController, Route("[controller]")]
-public class WeatherForecastController : ControllerBase
+
+public static class WeatherForecastEndpoints
 {
     private static readonly string[] Summaries =
     [
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
     ];
 
-    [HttpGet]
-    public IEnumerable<WeatherForecast> Get()
+    public static void MapWeatherForecastEndpoints(this WebApplication app)
+    {
+        _ = app.MapGet("/weatherforecast", Get)
+            .WithName("GetWeatherForecast")
+            .WithTags("WeatherForecast");
+    }
+
+    public static IEnumerable<WeatherForecast> Get()
     {
         Random random = new();
         return [.. Enumerable.Range(1, 5).Select(index => new WeatherForecast

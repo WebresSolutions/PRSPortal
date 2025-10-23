@@ -11,7 +11,6 @@ namespace Portal.Server;
 /// </summary>
 public static class Dependencies
 {
-
     public static void AddDatabases(this WebApplicationBuilder builder)
     {
         Console.WriteLine("Using ENV: " + builder.Environment.EnvironmentName);
@@ -29,16 +28,16 @@ public static class Dependencies
             .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
         _ = builder.WebHost.UseStaticWebAssets();
-        _ = builder.Services.AddControllersWithViews();
+        _ = builder.Services.AddOpenApi();
         _ = builder.Services.AddRazorPages();
         _ = builder.Services.AddCors(options =>
         {
             options.AddPolicy("CorsPolicy",
                 builder => builder.WithOrigins(
-                        "http://localhost:44310",      //Local port
-                        "https://localhost:44310",
-                        "https://casimo-portal-staging", // Staging environment
-                        "https://casimo-portal.casimo.cloud" // Production environment
+                        "http://localhost:5173",      // Local web Port
+                        "https://localhost:5173",
+                        "http://localhost:44309",
+                        "https://localhost:44309"
                     )
                     .AllowAnyHeader()
                     .AllowAnyMethod()
