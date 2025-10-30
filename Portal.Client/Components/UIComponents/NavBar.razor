@@ -3,20 +3,23 @@
 
 @inject NavigationManager Navigation
 <nav class="w-100 d-flex justify-content-between py-2">
-	<MudTextField @bind-Value="SearchValue" Variant="Variant.Outlined" Placeholder="Search..." Style="width: 250px">
-	</MudTextField>
+	<NavLink href="/">
+		<img alt="PRS" src="/images/PRS-Primary-Logo.svg" style="width: 120px" />
+	</NavLink>
+	<div>
+		<FluentTextField @bind-Value=SearchValue Placeholder="Search PRS DB"></FluentTextField>
+	</div>
 	<div class="mt-4 d-flex flex-row pe-4">
 		<div class="auth-controls">
 			<AuthorizeView>
-				<Authorized>
-					<i class="bi bi-person-vcard btn" href="authentication/profile"></i>
-					<i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
-				</Authorized>
 				<NotAuthorized>
 					<div class="d-flex flex-row gap-2">
 						<a href="authentication/login" class="btn">Log in</a>
 					</div>
 				</NotAuthorized>
+				<Authorized>
+                    <div/>
+				</Authorized>
 			</AuthorizeView>
 		</div>
 	</div>

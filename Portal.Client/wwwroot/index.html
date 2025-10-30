@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="/images/PRS-Primary-Logo.svg" />
     <link href="Portal.Client.styles.css" rel="stylesheet" />
-    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="_content/Microsoft.FluentUI.AspNetCore.Components/css/reboot.css" rel="stylesheet" />
 </head>
 <body>
     <div id="app">
@@ -34,10 +34,9 @@
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
+    <script src="_content/Microsoft.FluentUI.AspNetCore.Components/Microsoft.FluentUI.AspNetCore.Components.lib.module.js" type="module" async></script>
     <script src="_content/Microsoft.Authentication.WebAssembly.Msal/AuthenticationService.js"></script>
     <!--<script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>-->
-    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="js/BlazorEnvironment.js"></script>
     <script>
         const originalFetch = fetch;
@@ -49,8 +48,6 @@
         };
     </script>
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
-    <script src="_content/BlazorGoogleMaps/js/objectManager.js"></script>
-    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
     <script src="js/customMapInterop.js"></script>
     <script>
         function StartBlazor() {
@@ -68,7 +65,7 @@
             else {
                 env = "Production"
             }
-
+            console.log("Using ENV:" + env);
             Blazor.start({
                 // This function gets called by the Blazor pipeline
                 environment: env,
@@ -103,7 +100,7 @@
         // Invoke the pipeline
         StartBlazor();
     </script>
-    
+
     <script>
         window.initializeScrollHeader = () => {
             let lastScrollY = window.scrollY;
@@ -112,7 +109,7 @@
             function updateHeader() {
                 const currentScrollY = window.scrollY;
                 const header = document.querySelector('.top-row');
-                
+
                 if (header) {
                     if (currentScrollY > lastScrollY && currentScrollY > 100) {
                         // Scrolling down - hide header
@@ -124,7 +121,7 @@
                         header.classList.add('header-visible');
                     }
                 }
-                
+
                 lastScrollY = currentScrollY;
                 ticking = false;
             }

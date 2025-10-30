@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-
 using Microsoft.Identity.Web;
 
 
@@ -31,12 +30,32 @@ public static class Dependencies
         _ = builder.WebHost.UseStaticWebAssets();
         _ = builder.Services.AddControllersWithViews();
         _ = builder.Services.AddRazorPages();
+        
+        // Add Swagger/OpenAPI services for API debugging
+        var enableSwagger = builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");
+        if (enableSwagger)
+        {
+            _ = builder.Services.AddEndpointsApiExplorer();
+            _ = builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "Portal API",
+                    Version = "v1",
+                    Description = "API for Portal application debugging"
+                });
+            });
+        }
         _ = builder.Services.AddCors(options =>
         {
             options.AddPolicy("CorsPolicy",
                 builder => builder.WithOrigins(
                         "http://localhost:44310",      //Local port
                         "https://localhost:44310",
+                        "https://localhost:44331",
+                        "https://localhost:3000",
+                        "http://localhost:5000",       //API Standalone HTTP
+                        "https://localhost:5001",      //API Standalone HTTPS
                         "https://casimo-portal-staging", // Staging environment
                         "https://casimo-portal.casimo.cloud" // Production environment
                     )

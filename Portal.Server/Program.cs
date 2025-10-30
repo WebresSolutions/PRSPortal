@@ -1,5 +1,3 @@
-using Portal.Server.Models;
-
 namespace Portal.Server;
 
 /// <summary>
@@ -39,7 +37,18 @@ public class Program
         {
             _ = app.UseDeveloperExceptionPage();
             app.UseWebAssemblyDebugging();
-            //_ = app.MapOpenApi();
+
+            // Enable Swagger/OpenAPI for API debugging
+            bool enableSwagger = app.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");
+            if (enableSwagger)
+            {
+                _ = app.UseSwagger();
+                _ = app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Portal API v1");
+                    c.RoutePrefix = "swagger";
+                });
+            }
         }
         else
         {

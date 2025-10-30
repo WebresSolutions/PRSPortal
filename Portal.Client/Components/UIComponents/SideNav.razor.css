@@ -2,9 +2,21 @@
     margin: 0;
     padding: 0 10px;
     width:fit-content;
+    padding-top: 80px;
     position: fixed;
     height: 100%;
     overflow: auto;
     background-color: var(--color-white);
-    z-index : 11;
+    z-index : 1;
+    justify-content: space-between;
+}
+.sidebar-top {
+    flex: 1;
+}
+.auth-controls{
+    border-top: 1px solid black;
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+    padding-bottom: 20px;
 }

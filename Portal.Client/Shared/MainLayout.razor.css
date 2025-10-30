@@ -13,12 +13,12 @@
 
 .main-full {
     margin-top: 75px;
-    margin-left: 40px;
+    margin-left: 45px;
 }
 
 .content {
     min-height: 100vh;
-        margin-left: 40px;
+        margin-left: 0px;
 }
     .content .full {
         margin-left: 0px;
@@ -32,9 +32,9 @@
     align-items: center;
     position: fixed;
     width: 100vw;
-    padding-left: 150px;
+    padding-left: 0px;
     transition: transform 0.3s ease-in-out;
-    z-index: 10;
+    z-index: 11;
     /* box-shadow: 0 2px 4px rgba(0,0,0,0.1); */
 }
 
@@ -72,3 +72,16 @@ footer {
     footer > a {
         font-size: 0.9rem;
     }
+
+
+@media (max-width: 450px){
+    .main-full {
+        margin-top: 75px;
+        margin-left: 45px;
+    }
+
+    .main {
+        margin-left: 110px; /* Same as the width of the sidenav */
+        margin-top: 75px;
+    }
+}

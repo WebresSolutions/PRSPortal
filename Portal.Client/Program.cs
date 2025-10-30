@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using MudBlazor;
-using MudBlazor.Services;
+using Microsoft.FluentUI.AspNetCore.Components;
 
 namespace Portal.Client;
 
@@ -15,9 +14,13 @@ public class Program
         string httpClient = builder.Configuration.GetValue<string>("HttpClient")
             ?? throw new Exception("Failed to load the http client settings");
 
+        string? baseUri = builder.Configuration.GetValue<string>("APIUrl");
+        if (string.IsNullOrEmpty(baseUri))
+            baseUri = builder.HostEnvironment.BaseAddress;
+
         // 1. Register the HttpClient with the AuthorizationMessageHandler
         _ = builder.Services.AddHttpClient(httpClient)
-            .ConfigureHttpClient(client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+            .ConfigureHttpClient(client => client.BaseAddress = new Uri(baseUri))
             .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
         // 2. Register the authorized HttpClient as the default
@@ -42,20 +45,7 @@ public class Program
             options.ProviderOptions.DefaultAccessTokenScopes.Add("offline_access");
             options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://{builder.Configuration.GetValue<string>("AzureAd:ClientId")}/read_as_user");
         });
-
-        //builder.Services.AddScoped<IApiService, ApiService>();
-        _ = builder.Services.AddMudServices(config =>
-        {
-            config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
-
-            config.SnackbarConfiguration.PreventDuplicates = true;
-            config.SnackbarConfiguration.NewestOnTop = false;
-            config.SnackbarConfiguration.ShowCloseIcon = true;
-            config.SnackbarConfiguration.VisibleStateDuration = 8000;
-            config.SnackbarConfiguration.HideTransitionDuration = 500;
-            config.SnackbarConfiguration.ShowTransitionDuration = 500;
-            config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
-        });
+        _ = builder.Services.AddFluentUIComponents();
 
 
         WebAssemblyHost host = builder.Build();
