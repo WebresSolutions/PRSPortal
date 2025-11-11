@@ -12,6 +12,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Portal.Maui", "Portal.Maui\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Portal.SharedUI", "Portal.ShareUI\Portal.SharedUI.csproj", "{3D9F8646-C8E8-492A-97FF-866C4FD20FFC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration", "Migration\Migration.csproj", "{01EEBBD1-2A51-4347-93FB-259BF3B95307}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Portal.Data", "Portal.Data\Portal.Data.csproj", "{AC86260A-7C16-48B5-A25E-F064B219AD84}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{3D9F8646-C8E8-492A-97FF-866C4FD20FFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D9F8646-C8E8-492A-97FF-866C4FD20FFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D9F8646-C8E8-492A-97FF-866C4FD20FFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01EEBBD1-2A51-4347-93FB-259BF3B95307}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01EEBBD1-2A51-4347-93FB-259BF3B95307}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01EEBBD1-2A51-4347-93FB-259BF3B95307}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01EEBBD1-2A51-4347-93FB-259BF3B95307}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC86260A-7C16-48B5-A25E-F064B219AD84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC86260A-7C16-48B5-A25E-F064B219AD84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC86260A-7C16-48B5-A25E-F064B219AD84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC86260A-7C16-48B5-A25E-F064B219AD84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

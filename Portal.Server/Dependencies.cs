@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
-
+using Portal.Data;
 
 namespace Portal.Server;
 
@@ -14,6 +15,7 @@ public static class Dependencies
     public static void AddDatabases(this WebApplicationBuilder builder)
     {
         Console.WriteLine("Using ENV: " + builder.Environment.EnvironmentName);
+        _ = builder.Services.AddDbContextPool<PrsDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("PrsConnection")));
     }
 
     /// <summary>
@@ -30,9 +32,9 @@ public static class Dependencies
         _ = builder.WebHost.UseStaticWebAssets();
         _ = builder.Services.AddControllersWithViews();
         _ = builder.Services.AddRazorPages();
-        
+
         // Add Swagger/OpenAPI services for API debugging
-        var enableSwagger = builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");
+        bool enableSwagger = builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");
         if (enableSwagger)
         {
             _ = builder.Services.AddEndpointsApiExplorer();
@@ -55,9 +57,7 @@ public static class Dependencies
                         "https://localhost:44331",
                         "https://localhost:3000",
                         "http://localhost:5000",       //API Standalone HTTP
-                        "https://localhost:5001",      //API Standalone HTTPS
-                        "https://casimo-portal-staging", // Staging environment
-                        "https://casimo-portal.casimo.cloud" // Production environment
+                        "https://localhost:5001"     //API Standalone HTTPS
                     )
                     .AllowAnyHeader()
                     .AllowAnyMethod()

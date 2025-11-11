@@ -1,0 +1,2 @@
+dotnet ef dbcontext scaffold Name=MySQLConnection Pomelo.EntityFrameworkCore.MySql --output-dir OldDB --context OldDBContext
+dotnet ef dbcontext scaffold 'Server=localhost;port=3306;Database=prs_database;User Id=adminuser;Password=j4clas&P+e@4lv@zwvtB;' Pomelo.EntityFrameworkCore.MySql --output-dir SourceDb --context SourceDBContext
