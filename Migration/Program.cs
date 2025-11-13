@@ -14,7 +14,6 @@ internal class Program
     {
         try
         {
-
             Console.WriteLine("Connecting to databases and loading the configuration.");
             bool initSuccess = InitMigration();
             if (!initSuccess || _destinationContext is null || _sourceContext is null)

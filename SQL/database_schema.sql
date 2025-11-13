@@ -1,6 +1,7 @@
 -- Tier 1: Tables with FKs pointing to other tables (Junction/Child tables)
 DROP TABLE IF EXISTS timesheet_entry;
 DROP TABLE IF EXISTS quote_note;
+DROP TABLE IF EXISTS council_contact;
 DROP TABLE IF EXISTS job_quote;
 DROP TABLE IF EXISTS job_note;
 DROP TABLE IF EXISTS job_file;
@@ -11,9 +12,11 @@ DROP TABLE IF EXISTS job;
 DROP TABLE IF EXISTS quote;
 DROP TABLE IF EXISTS contact;
 DROP TABLE IF EXISTS app_file;
+DROP TABLE IF EXISTS council;
 DROP TABLE IF EXISTS address;
 
 -- Tier 3: Lookup/Type tables
+DROP TABLE IF EXISTS job_colour
 DROP TABLE IF EXISTS note_type;
 DROP TABLE IF EXISTS file_type;
 DROP TABLE IF EXISTS state;
@@ -70,7 +73,7 @@ COMMENT ON TABLE state IS 'States or territories for address management';
 CREATE TABLE address (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     street VARCHAR(255) NOT NULL,
-    city VARCHAR(100) NOT NULL,
+    suburb VARCHAR(100) NOT NULL,
     state_id INT NOT NULL REFERENCES state(id),
     post_code VARCHAR(10) NOT NULL,
     country VARCHAR(100) NOT NULL,
@@ -115,6 +118,46 @@ CREATE INDEX idx_contact_address_id ON contact(address_id);
 CREATE INDEX idx_contact_deleted_at ON contact(deleted_at);
 CREATE INDEX idx_contact_created_by ON contact(created_by_user_id);
 
+-- ============================================================================
+-- COUNCIL TABLE
+-- ============================================================================
+
+CREATE TABLE council(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    address_id int references address(id),
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) NULL,
+    fax VARCHAR(20)  NULL,
+    email VARCHAR(255) NULL,
+    website VARCHAR(255),
+    created_by_user_id INT NOT NULL REFERENCES app_user(id),
+    created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_by_user_id INT REFERENCES app_user(id),
+    modified_on TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL
+);
+
+COMMENT ON TABLE council IS 'Council information';
+Create index idx_council_address_id on council(address_id);
+
+-- ============================================================================
+-- COUNCIL CONTACT TABLE
+-- ============================================================================
+
+CREATE TABLE council_contact(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    council_id INT NOT NULL REFERENCES council(id),
+    contact_id INT NOT NULL REFERENCES contact(id),
+    address_id INT NOT NULL REFERENCES address(id),
+    created_by_user_id INT NOT NULL REFERENCES app_user(id),
+    created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_by_user_id INT REFERENCES app_user(id),
+    modified_on TIMESTAMP
+);
+
+create index idx_council_conact_council_id on council(id);
+create index idx_council_contact_contact_id on contact(id);
+create index idx_council_contact_address_id on address(id);
 -- ============================================================================
 -- FILE TYPE TABLE
 -- ============================================================================
@@ -172,14 +215,28 @@ CREATE TABLE note_type (
 COMMENT ON TABLE note_type IS 'Type of note';
 
 -- ============================================================================
+-- JOB COLOUR TABLE
+-- ============================================================================
+
+CREATE TABLE job_colour (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    color VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE job_colour IS 'Colour of job';
+
+-- ============================================================================
 -- JOB TABLE
 -- ============================================================================
 
 CREATE TABLE job (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    invoice_number VARCHAR(255) UNIQUE,
     contact_id INT REFERENCES contact(id),
     address_id INT REFERENCES address(id),
+    council_id INT REFERENCES council(id),
+    job_colour_id INT REFERENCES job_colour(id),
+    invoice_number VARCHAR(255) UNIQUE,
     total_price NUMERIC(10, 2),
     date_sent TIMESTAMP,
     payment_received TIMESTAMP,
@@ -197,6 +254,8 @@ COMMENT ON COLUMN job.deleted_at IS 'Soft delete timestamp - NULL means active';
 CREATE INDEX idx_job_invoice_number ON job(invoice_number);
 CREATE INDEX idx_job_contact_id ON job(contact_id);
 CREATE INDEX idx_job_address_id ON job(address_id);
+CREATE INDEX idx_job_council_id ON job(council_id);
+CREATE INDEX idx_job_colour_id ON job(job_colour_id);
 CREATE INDEX idx_job_created_on ON job(created_on);
 CREATE INDEX idx_job_deleted_at ON job(deleted_at);
 CREATE INDEX idx_job_created_by ON job(created_by_user_id);
