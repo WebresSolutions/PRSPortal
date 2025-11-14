@@ -1,0 +1,83 @@
+﻿<section class="container card-wrapper shadow">
+    @if (TitleContent is not null)
+    {
+        @TitleContent
+    }
+    @if (Title != string.Empty)
+    {
+        <h3 class="text-center mb-4">@Title</h3>
+    }
+    @if (IsLoading)
+    {
+    }
+    else
+    {
+        <div class="container">
+            @ChildContent
+        </div>
+    }
+    @if (Reload is not null)
+    {
+    }
+</section>
+@code {
+    /// <summary>
+    /// Gets or sets the child content to be displayed within the card
+    /// </summary>
+    [Parameter]
+    public required RenderFragment ChildContent { get; set; }
+    /// <summary>
+    /// Gets or sets a value indicating whether the card is in a loading state
+    /// When true, displays a skeleton loader instead of content
+    /// </summary>
+    [Parameter]
+    public bool IsLoading { get; set; } = false;
+    /// <summary>
+    /// Gets or sets the title displayed at the top of the card
+    /// If empty, no title is shown
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The height of the card in pixels. Default is 300.  
+    /// </summary>
+    [Parameter]
+    public int Height { get; set; } = 300;
+
+	private string _heightString => Height > 0 ? $"{Height}px" : "300px";
+
+    /// <summary>
+    /// Gets or sets the title content to be displayed within the card
+    /// </summary>
+    [Parameter]
+    public RenderFragment? TitleContent { get; set; }
+    /// <summary>
+    /// Optionally pass a function to reload the card content
+    /// </summary>
+    [Parameter]
+    public Func<Task>? Reload { get; set; }
+}
+<style>
+    .card-wrapper {
+        position: relative;
+    }
+
+    .refresh-button {
+        position: absolute !important;
+        bottom: 0px !important;
+        right: 0 !important;
+    }
+
+    .card-container {
+        max-width: 1000px;
+        overflow: scroll;
+    }
+
+    @@media (max-width: 1270px) {
+        .card-container {
+            max-width: 800px;
+            overflow: scroll;
+        }
+    }
+</style>

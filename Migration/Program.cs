@@ -23,8 +23,8 @@ internal class Program
             }
 
             Users userMigration = new(_destinationContext, _sourceContext);
-            FrozenDictionary<int, int> userResult = userMigration.MigrateUsers();
-            Jobs jobMigration = new(_destinationContext, _sourceContext);
+            FrozenDictionary<int, int> users = userMigration.MigrateUsers();
+            Jobs jobMigration = new(_destinationContext, _sourceContext, users);
             jobMigration.MigrateJobs();
         }
         catch (Exception ex)

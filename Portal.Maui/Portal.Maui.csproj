@@ -67,8 +67,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Portal.Shared\Portal.Shared.csproj" />
-      <ProjectReference Include="..\Portal.ShareUI\Portal.SharedUI.csproj" />
+      <ProjectReference Include="..\Portal.Shared\Portal.Shared.csproj">
+        <TreatAsUsed>true</TreatAsUsed>
+      </ProjectReference>
     </ItemGroup>
 
 </Project>
