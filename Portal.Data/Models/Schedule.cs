@@ -4,15 +4,27 @@ using System.Collections.Generic;
 namespace Portal.Data.Models;
 
 /// <summary>
-/// Many-to-many relationship between users and jobs
+/// User schedules for work hours.
 /// </summary>
-public partial class UserJob
+public partial class Schedule
 {
-    public int UserId { get; set; }
-
-    public int JobId { get; set; }
+    public int Id { get; set; }
 
     public int? LegacyId { get; set; }
+
+    /// <summary>
+    /// Start time of the schedule
+    /// </summary>
+    public DateTime StartTime { get; set; }
+
+    /// <summary>
+    /// End time of the schedule
+    /// </summary>
+    public DateTime EndTime { get; set; }
+
+    public int? JobId { get; set; }
+
+    public string? Notes { get; set; }
 
     public int CreatedByUserId { get; set; }
 
@@ -22,16 +34,9 @@ public partial class UserJob
 
     public DateTime? ModifiedOn { get; set; }
 
-    /// <summary>
-    /// Soft delete TIMESTAMPTZ - NULL means active assignment
-    /// </summary>
-    public DateTime? DeletedAt { get; set; }
-
     public virtual AppUser CreatedByUser { get; set; } = null!;
 
-    public virtual Job Job { get; set; } = null!;
+    public virtual Job? Job { get; set; }
 
     public virtual AppUser? ModifiedByUser { get; set; }
-
-    public virtual AppUser User { get; set; } = null!;
 }

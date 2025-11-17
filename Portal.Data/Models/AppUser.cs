@@ -25,7 +25,7 @@ public partial class AppUser
     public DateTime? ModifiedOn { get; set; }
 
     /// <summary>
-    /// NULL = active user, timestamp = deactivated user
+    /// NULL = active user, TIMESTAMPTZ = deactivated user
     /// </summary>
     public DateTime? DeactivatedAt { get; set; }
 
@@ -42,6 +42,14 @@ public partial class AppUser
     public virtual ICollection<Contact> ContactCreatedByUsers { get; set; } = new List<Contact>();
 
     public virtual ICollection<Contact> ContactModifiedByUsers { get; set; } = new List<Contact>();
+
+    public virtual ICollection<CouncilContact> CouncilContactCreatedByUsers { get; set; } = new List<CouncilContact>();
+
+    public virtual ICollection<CouncilContact> CouncilContactModifiedByUsers { get; set; } = new List<CouncilContact>();
+
+    public virtual ICollection<Council> CouncilCreatedByUsers { get; set; } = new List<Council>();
+
+    public virtual ICollection<Council> CouncilModifiedByUsers { get; set; } = new List<Council>();
 
     public virtual ICollection<AppUser> InverseModifiedByUser { get; set; } = new List<AppUser>();
 
@@ -66,6 +74,18 @@ public partial class AppUser
     public virtual ICollection<QuoteNote> QuoteNoteCreatedByUsers { get; set; } = new List<QuoteNote>();
 
     public virtual ICollection<QuoteNote> QuoteNoteModifiedByUsers { get; set; } = new List<QuoteNote>();
+
+    public virtual ICollection<Schedule> ScheduleCreatedByUsers { get; set; } = new List<Schedule>();
+
+    public virtual ICollection<Schedule> ScheduleModifiedByUsers { get; set; } = new List<Schedule>();
+
+    public virtual ICollection<ScheduleTrack> ScheduleTrackCreatedByUsers { get; set; } = new List<ScheduleTrack>();
+
+    public virtual ICollection<ScheduleTrack> ScheduleTrackModifiedByUsers { get; set; } = new List<ScheduleTrack>();
+
+    public virtual ICollection<ScheduleUser> ScheduleUserCreatedByUsers { get; set; } = new List<ScheduleUser>();
+
+    public virtual ICollection<ScheduleUser> ScheduleUserUsers { get; set; } = new List<ScheduleUser>();
 
     public virtual ICollection<TimesheetEntry> TimesheetEntryCreatedByUsers { get; set; } = new List<TimesheetEntry>();
 

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using Portal.Data;
 
 namespace Portal.Server;

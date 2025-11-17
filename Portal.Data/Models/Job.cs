@@ -10,11 +10,23 @@ public partial class Job
 {
     public int Id { get; set; }
 
-    public string? InvoiceNumber { get; set; }
-
     public int? ContactId { get; set; }
 
     public int? AddressId { get; set; }
+
+    public int? CouncilId { get; set; }
+
+    public int? JobColourId { get; set; }
+
+    public int? JobTypeId { get; set; }
+
+    public int? LegacyId { get; set; }
+
+    public string? InvoiceNumber { get; set; }
+
+    public int? SurveyNumber { get; set; }
+
+    public int? ConstructionNumber { get; set; }
 
     /// <summary>
     /// Total job price - consider calculating from timesheet entries
@@ -34,7 +46,7 @@ public partial class Job
     public DateTime? ModifiedOn { get; set; }
 
     /// <summary>
-    /// Soft delete timestamp - NULL means active
+    /// Soft delete TIMESTAMPTZ - NULL means active
     /// </summary>
     public DateTime? DeletedAt { get; set; }
 
@@ -42,7 +54,11 @@ public partial class Job
 
     public virtual Contact? Contact { get; set; }
 
+    public virtual Council? Council { get; set; }
+
     public virtual AppUser CreatedByUser { get; set; } = null!;
+
+    public virtual JobColour? JobColour { get; set; }
 
     public virtual ICollection<JobFile> JobFiles { get; set; } = new List<JobFile>();
 
@@ -50,7 +66,11 @@ public partial class Job
 
     public virtual ICollection<JobQuote> JobQuotes { get; set; } = new List<JobQuote>();
 
+    public virtual JobType? JobType { get; set; }
+
     public virtual AppUser? ModifiedByUser { get; set; }
+
+    public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 
     public virtual ICollection<TimesheetEntry> TimesheetEntries { get; set; } = new List<TimesheetEntry>();
 

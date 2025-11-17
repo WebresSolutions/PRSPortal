@@ -12,9 +12,9 @@ public partial class Address
 
     public string Street { get; set; } = null!;
 
-    public string City { get; set; } = null!;
+    public string Suburb { get; set; } = null!;
 
-    public int StateId { get; set; }
+    public int? StateId { get; set; }
 
     public string PostCode { get; set; } = null!;
 
@@ -29,11 +29,15 @@ public partial class Address
     public DateTime? ModifiedOn { get; set; }
 
     /// <summary>
-    /// Soft delete timestamp - NULL means active
+    /// Soft delete TIMESTAMPTZ - NULL means active
     /// </summary>
     public DateTime? DeletedAt { get; set; }
 
     public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();
+
+    public virtual ICollection<CouncilContact> CouncilContacts { get; set; } = new List<CouncilContact>();
+
+    public virtual ICollection<Council> Councils { get; set; } = new List<Council>();
 
     public virtual AppUser CreatedByUser { get; set; } = null!;
 
@@ -43,5 +47,5 @@ public partial class Address
 
     public virtual ICollection<Quote> Quotes { get; set; } = new List<Quote>();
 
-    public virtual State State { get; set; } = null!;
+    public virtual State? State { get; set; }
 }

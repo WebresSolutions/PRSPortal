@@ -37,7 +37,7 @@ public partial class AppFile
     public DateTime ModifiedOn { get; set; }
 
     /// <summary>
-    /// Soft delete timestamp - NULL means active
+    /// Soft delete TIMESTAMPTZ - NULL means active
     /// </summary>
     public DateTime? DeletedAt { get; set; }
 

@@ -20,9 +20,15 @@ public partial class PrsDbContext : DbContext
 
     public virtual DbSet<Contact> Contacts { get; set; }
 
+    public virtual DbSet<Council> Councils { get; set; }
+
+    public virtual DbSet<CouncilContact> CouncilContacts { get; set; }
+
     public virtual DbSet<FileType> FileTypes { get; set; }
 
     public virtual DbSet<Job> Jobs { get; set; }
+
+    public virtual DbSet<JobColour> JobColours { get; set; }
 
     public virtual DbSet<JobFile> JobFiles { get; set; }
 
@@ -30,11 +36,19 @@ public partial class PrsDbContext : DbContext
 
     public virtual DbSet<JobQuote> JobQuotes { get; set; }
 
+    public virtual DbSet<JobType> JobTypes { get; set; }
+
     public virtual DbSet<NoteType> NoteTypes { get; set; }
 
     public virtual DbSet<Quote> Quotes { get; set; }
 
     public virtual DbSet<QuoteNote> QuoteNotes { get; set; }
+
+    public virtual DbSet<Schedule> Schedules { get; set; }
+
+    public virtual DbSet<ScheduleTrack> ScheduleTracks { get; set; }
+
+    public virtual DbSet<ScheduleUser> ScheduleUsers { get; set; }
 
     public virtual DbSet<State> States { get; set; }
 
@@ -56,28 +70,23 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.StateId, "idx_address_state_id");
 
+            entity.HasIndex(e => e.Id, "idx_council_contact_address_id");
+
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
-            entity.Property(e => e.City)
-                .HasMaxLength(100)
-                .HasColumnName("city");
             entity.Property(e => e.Country)
                 .HasMaxLength(100)
                 .HasColumnName("country");
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_on");
             entity.Property(e => e.DeletedAt)
-                .HasComment("Soft delete timestamp - NULL means active")
-                .HasColumnType("timestamp without time zone")
+                .HasComment("Soft delete TIMESTAMPTZ - NULL means active")
                 .HasColumnName("deleted_at");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
-            entity.Property(e => e.ModifiedOn)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_on");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.PostCode)
                 .HasMaxLength(10)
                 .HasColumnName("post_code");
@@ -85,6 +94,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Street)
                 .HasMaxLength(255)
                 .HasColumnName("street");
+            entity.Property(e => e.Suburb)
+                .HasMaxLength(100)
+                .HasColumnName("suburb");
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.AddressCreatedByUsers)
                 .HasForeignKey(d => d.CreatedByUserId)
@@ -97,7 +109,6 @@ public partial class PrsDbContext : DbContext
 
             entity.HasOne(d => d.State).WithMany(p => p.Addresses)
                 .HasForeignKey(d => d.StateId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("address_state_id_fkey");
         });
 
@@ -125,11 +136,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_on");
             entity.Property(e => e.DeletedAt)
-                .HasComment("Soft delete timestamp - NULL means active")
-                .HasColumnType("timestamp without time zone")
+                .HasComment("Soft delete TIMESTAMPTZ - NULL means active")
                 .HasColumnName("deleted_at");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.ExternalId)
@@ -147,7 +156,6 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("modified_on");
             entity.Property(e => e.Title)
                 .HasMaxLength(255)
@@ -190,11 +198,9 @@ public partial class PrsDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.DeactivatedAt)
-                .HasComment("NULL = active user, timestamp = deactivated user")
-                .HasColumnType("timestamp without time zone")
+                .HasComment("NULL = active user, TIMESTAMPTZ = deactivated user")
                 .HasColumnName("deactivated_at");
             entity.Property(e => e.DisplayName)
                 .HasMaxLength(100)
@@ -205,14 +211,10 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.IdentityId)
                 .HasMaxLength(255)
                 .HasColumnName("identity_id");
-            entity.Property(e => e.LastLogin)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("last_login");
+            entity.Property(e => e.LastLogin).HasColumnName("last_login");
             entity.Property(e => e.LegacyUserId).HasColumnName("legacy_user_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
-            entity.Property(e => e.ModifiedOn)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_on");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
 
             entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.InverseModifiedByUser)
                 .HasForeignKey(d => d.ModifiedByUserId)
@@ -233,6 +235,8 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.Email, "idx_contact_email");
 
+            entity.HasIndex(e => e.Id, "idx_council_contact_contact_id");
+
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
@@ -240,17 +244,15 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_on");
             entity.Property(e => e.DeletedAt)
-                .HasComment("Soft delete timestamp - NULL means active")
-                .HasColumnType("timestamp without time zone")
+                .HasComment("Soft delete TIMESTAMPTZ - NULL means active")
                 .HasColumnName("deleted_at");
             entity.Property(e => e.Email)
                 .HasMaxLength(255)
                 .HasColumnName("email");
             entity.Property(e => e.Fax)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .HasColumnName("fax");
             entity.Property(e => e.FirstName)
                 .HasMaxLength(100)
@@ -258,12 +260,11 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.LastName)
                 .HasMaxLength(100)
                 .HasColumnName("last_name");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
-            entity.Property(e => e.ModifiedOn)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_on");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.Phone)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .HasColumnName("phone");
 
             entity.HasOne(d => d.Address).WithMany(p => p.Contacts)
@@ -280,6 +281,103 @@ public partial class PrsDbContext : DbContext
                 .HasConstraintName("contact_modified_by_user_id_fkey");
         });
 
+        modelBuilder.Entity<Council>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("council_pkey");
+
+            entity.ToTable("council", tb => tb.HasComment("Council information"));
+
+            entity.HasIndex(e => e.AddressId, "idx_council_address_id");
+
+            entity.HasIndex(e => e.Id, "idx_council_conact_council_id");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.AddressId).HasColumnName("address_id");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(e => e.Email)
+                .HasMaxLength(255)
+                .HasColumnName("email");
+            entity.Property(e => e.Fax)
+                .HasMaxLength(50)
+                .HasColumnName("fax");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
+            entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasColumnName("name");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(50)
+                .HasColumnName("phone");
+            entity.Property(e => e.Website)
+                .HasMaxLength(255)
+                .HasColumnName("website");
+
+            entity.HasOne(d => d.Address).WithMany(p => p.Councils)
+                .HasForeignKey(d => d.AddressId)
+                .HasConstraintName("council_address_id_fkey");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.CouncilCreatedByUsers)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("council_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.CouncilModifiedByUsers)
+                .HasForeignKey(d => d.ModifiedByUserId)
+                .HasConstraintName("council_modified_by_user_id_fkey");
+        });
+
+        modelBuilder.Entity<CouncilContact>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("council_contact_pkey");
+
+            entity.ToTable("council_contact");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.AddressId).HasColumnName("address_id");
+            entity.Property(e => e.ContactId).HasColumnName("contact_id");
+            entity.Property(e => e.CouncilId).HasColumnName("council_id");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
+            entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+
+            entity.HasOne(d => d.Address).WithMany(p => p.CouncilContacts)
+                .HasForeignKey(d => d.AddressId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("council_contact_address_id_fkey");
+
+            entity.HasOne(d => d.Contact).WithMany(p => p.CouncilContacts)
+                .HasForeignKey(d => d.ContactId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("council_contact_contact_id_fkey");
+
+            entity.HasOne(d => d.Council).WithMany(p => p.CouncilContacts)
+                .HasForeignKey(d => d.CouncilId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("council_contact_council_id_fkey");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.CouncilContactCreatedByUsers)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("council_contact_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.CouncilContactModifiedByUsers)
+                .HasForeignKey(d => d.ModifiedByUserId)
+                .HasConstraintName("council_contact_modified_by_user_id_fkey");
+        });
+
         modelBuilder.Entity<FileType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("file_type_pkey");
@@ -291,7 +389,6 @@ public partial class PrsDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Name)
@@ -307,7 +404,11 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.AddressId, "idx_job_address_id");
 
+            entity.HasIndex(e => e.JobColourId, "idx_job_colour_id");
+
             entity.HasIndex(e => e.ContactId, "idx_job_contact_id");
+
+            entity.HasIndex(e => e.CouncilId, "idx_job_council_id");
 
             entity.HasIndex(e => e.CreatedByUserId, "idx_job_created_by");
 
@@ -317,35 +418,35 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.InvoiceNumber, "idx_job_invoice_number");
 
+            entity.HasIndex(e => e.JobTypeId, "idx_job_type_id");
+
             entity.HasIndex(e => e.InvoiceNumber, "job_invoice_number_key").IsUnique();
 
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
             entity.Property(e => e.AddressId).HasColumnName("address_id");
+            entity.Property(e => e.ConstructionNumber).HasColumnName("construction_number");
             entity.Property(e => e.ContactId).HasColumnName("contact_id");
+            entity.Property(e => e.CouncilId).HasColumnName("council_id");
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_on");
-            entity.Property(e => e.DateSent)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("date_sent");
+            entity.Property(e => e.DateSent).HasColumnName("date_sent");
             entity.Property(e => e.DeletedAt)
-                .HasComment("Soft delete timestamp - NULL means active")
-                .HasColumnType("timestamp without time zone")
+                .HasComment("Soft delete TIMESTAMPTZ - NULL means active")
                 .HasColumnName("deleted_at");
             entity.Property(e => e.InvoiceNumber)
                 .HasMaxLength(255)
                 .HasColumnName("invoice_number");
+            entity.Property(e => e.JobColourId).HasColumnName("job_colour_id");
+            entity.Property(e => e.JobTypeId).HasColumnName("job_type_id");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
-            entity.Property(e => e.ModifiedOn)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_on");
-            entity.Property(e => e.PaymentReceived)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("payment_received");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.PaymentReceived).HasColumnName("payment_received");
+            entity.Property(e => e.SurveyNumber).HasColumnName("survey_number");
             entity.Property(e => e.TotalPrice)
                 .HasPrecision(10, 2)
                 .HasComment("Total job price - consider calculating from timesheet entries")
@@ -359,14 +460,43 @@ public partial class PrsDbContext : DbContext
                 .HasForeignKey(d => d.ContactId)
                 .HasConstraintName("job_contact_id_fkey");
 
+            entity.HasOne(d => d.Council).WithMany(p => p.Jobs)
+                .HasForeignKey(d => d.CouncilId)
+                .HasConstraintName("job_council_id_fkey");
+
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.JobCreatedByUsers)
                 .HasForeignKey(d => d.CreatedByUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("job_created_by_user_id_fkey");
 
+            entity.HasOne(d => d.JobColour).WithMany(p => p.Jobs)
+                .HasForeignKey(d => d.JobColourId)
+                .HasConstraintName("job_job_colour_id_fkey");
+
+            entity.HasOne(d => d.JobType).WithMany(p => p.Jobs)
+                .HasForeignKey(d => d.JobTypeId)
+                .HasConstraintName("job_job_type_id_fkey");
+
             entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.JobModifiedByUsers)
                 .HasForeignKey(d => d.ModifiedByUserId)
                 .HasConstraintName("job_modified_by_user_id_fkey");
+        });
+
+        modelBuilder.Entity<JobColour>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("job_colour_pkey");
+
+            entity.ToTable("job_colour", tb => tb.HasComment("Colour of job"));
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.Color)
+                .HasMaxLength(20)
+                .HasColumnName("color");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
         });
 
         modelBuilder.Entity<JobFile>(entity =>
@@ -386,7 +516,6 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_on");
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.JobFiles)
@@ -424,16 +553,11 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_on");
-            entity.Property(e => e.DeletedAt)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("deleted_at");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
             entity.Property(e => e.JobId).HasColumnName("job_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
-            entity.Property(e => e.ModifiedOn)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_on");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.JobNoteCreatedByUsers)
                 .HasForeignKey(d => d.CreatedByUserId)
@@ -468,12 +592,10 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_on");
-            entity.Property(e => e.DeletedAt)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("deleted_at");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
             entity.Property(e => e.JobId).HasColumnName("job_id");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.QuoteId).HasColumnName("quote_id");
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.JobQuotes)
@@ -492,6 +614,26 @@ public partial class PrsDbContext : DbContext
                 .HasConstraintName("job_quote_quote_id_fkey");
         });
 
+        modelBuilder.Entity<JobType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("job_type_pkey");
+
+            entity.ToTable("job_type", tb => tb.HasComment("Type of job"));
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Abbreviation)
+                .HasMaxLength(10)
+                .HasColumnName("abbreviation");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+        });
+
         modelBuilder.Entity<NoteType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("note_type_pkey");
@@ -503,7 +645,6 @@ public partial class PrsDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Name)
@@ -530,15 +671,11 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_on");
-            entity.Property(e => e.DeletedAt)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("deleted_at");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
-            entity.Property(e => e.ModifiedOn)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_on");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
 
             entity.HasOne(d => d.Address).WithMany(p => p.Quotes)
                 .HasForeignKey(d => d.AddressId)
@@ -573,15 +710,10 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_on");
-            entity.Property(e => e.DeletedAt)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("deleted_at");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
-            entity.Property(e => e.ModifiedOn)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_on");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.QuoteId).HasColumnName("quote_id");
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.QuoteNoteCreatedByUsers)
@@ -599,13 +731,138 @@ public partial class PrsDbContext : DbContext
                 .HasConstraintName("quote_note_quote_id_fkey");
         });
 
+        modelBuilder.Entity<Schedule>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("schedule_pkey");
+
+            entity.ToTable("schedule", tb => tb.HasComment("User schedules for work hours."));
+
+            entity.HasIndex(e => e.CreatedByUserId, "idx_schedule_created_by");
+
+            entity.HasIndex(e => e.EndTime, "idx_schedule_end_time");
+
+            entity.HasIndex(e => e.JobId, "idx_schedule_job_id");
+
+            entity.HasIndex(e => e.StartTime, "idx_schedule_start_time");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.EndTime)
+                .HasComment("End time of the schedule")
+                .HasColumnName("end_time");
+            entity.Property(e => e.JobId).HasColumnName("job_id");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
+            entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.Notes).HasColumnName("notes");
+            entity.Property(e => e.StartTime)
+                .HasComment("Start time of the schedule")
+                .HasColumnName("start_time");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.ScheduleCreatedByUsers)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("schedule_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.Job).WithMany(p => p.Schedules)
+                .HasForeignKey(d => d.JobId)
+                .HasConstraintName("schedule_job_id_fkey");
+
+            entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.ScheduleModifiedByUsers)
+                .HasForeignKey(d => d.ModifiedByUserId)
+                .HasConstraintName("schedule_modified_by_user_id_fkey");
+        });
+
+        modelBuilder.Entity<ScheduleTrack>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("schedule_track_pkey");
+
+            entity.ToTable("schedule_track");
+
+            entity.HasIndex(e => e.CreatedByUserId, "idx_schedule_track_created_by_user_id");
+
+            entity.HasIndex(e => e.JobTypeId, "idx_schedule_track_job_type_id");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.Date).HasColumnName("date");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(e => e.JobTypeId).HasColumnName("job_type_id");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
+            entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.ScheduleTrackCreatedByUsers)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("schedule_track_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.JobType).WithMany(p => p.ScheduleTracks)
+                .HasForeignKey(d => d.JobTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("schedule_track_job_type_id_fkey");
+
+            entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.ScheduleTrackModifiedByUsers)
+                .HasForeignKey(d => d.ModifiedByUserId)
+                .HasConstraintName("schedule_track_modified_by_user_id_fkey");
+        });
+
+        modelBuilder.Entity<ScheduleUser>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("schedule_users_pkey");
+
+            entity.ToTable("schedule_users");
+
+            entity.HasIndex(e => e.CreatedByUserId, "idx_schedule_users_created_by_id");
+
+            entity.HasIndex(e => e.ScheduleTrackId, "idx_schedule_users_schedule_track_id");
+
+            entity.HasIndex(e => e.UserId, "idx_schedule_users_user_id");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
+            entity.Property(e => e.ScheduleTrackId).HasColumnName("schedule_track_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.ScheduleUserCreatedByUsers)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("schedule_users_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.ScheduleTrack).WithMany(p => p.ScheduleUsers)
+                .HasForeignKey(d => d.ScheduleTrackId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("schedule_users_schedule_track_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.ScheduleUserUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("schedule_users_user_id_fkey");
+        });
+
         modelBuilder.Entity<State>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("state_pkey");
+            entity.HasKey(e => e.Id).HasName("states_pkey");
 
-            entity.ToTable("state", tb => tb.HasComment("States or territories for address management"));
+            entity.ToTable("states", tb => tb.HasComment("States or territories for address management"));
 
-            entity.HasIndex(e => e.Abbreviation, "state_abbreviation_key").IsUnique();
+            entity.HasIndex(e => e.Abbreviation, "states_abbreviation_key").IsUnique();
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -640,21 +897,15 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_on");
-            entity.Property(e => e.DateFrom)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("date_from");
+            entity.Property(e => e.DateFrom).HasColumnName("date_from");
             entity.Property(e => e.DateTo)
                 .HasComment("NULL indicates ongoing/in-progress entry")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("date_to");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.JobId).HasColumnName("job_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
-            entity.Property(e => e.ModifiedOn)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_on");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.TimesheetEntryCreatedByUsers)
@@ -693,16 +944,13 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_on");
             entity.Property(e => e.DeletedAt)
-                .HasComment("Soft delete timestamp - NULL means active assignment")
-                .HasColumnType("timestamp without time zone")
+                .HasComment("Soft delete TIMESTAMPTZ - NULL means active assignment")
                 .HasColumnName("deleted_at");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
-            entity.Property(e => e.ModifiedOn)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("modified_on");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.UserJobCreatedByUsers)
                 .HasForeignKey(d => d.CreatedByUserId)

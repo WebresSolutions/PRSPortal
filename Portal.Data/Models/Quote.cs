@@ -10,6 +10,8 @@ public partial class Quote
 {
     public int Id { get; set; }
 
+    public int? LegacyId { get; set; }
+
     public int? AddressId { get; set; }
 
     public int CreatedByUserId { get; set; }

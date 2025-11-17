@@ -4,25 +4,25 @@ using System.Collections.Generic;
 namespace Portal.Data.Models;
 
 /// <summary>
-/// Client or vendor contact information
+/// Council information
 /// </summary>
-public partial class Contact
+public partial class Council
 {
     public int Id { get; set; }
 
+    public int? AddressId { get; set; }
+
     public int? LegacyId { get; set; }
 
-    public string FirstName { get; set; } = null!;
-
-    public string LastName { get; set; } = null!;
-
-    public string Email { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
     public string? Phone { get; set; }
 
     public string? Fax { get; set; }
 
-    public int? AddressId { get; set; }
+    public string? Email { get; set; }
+
+    public string? Website { get; set; }
 
     public int CreatedByUserId { get; set; }
 
@@ -32,9 +32,6 @@ public partial class Contact
 
     public DateTime? ModifiedOn { get; set; }
 
-    /// <summary>
-    /// Soft delete TIMESTAMPTZ - NULL means active
-    /// </summary>
     public DateTime? DeletedAt { get; set; }
 
     public virtual Address? Address { get; set; }
