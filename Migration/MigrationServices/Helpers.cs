@@ -18,16 +18,13 @@ internal static class Helpers
             // Convert the state to the id first
             StateEnum? stateEnum = StateExtensions.FromAbbreviation(state);
             int stateId = stateEnum is not null ? (int)stateEnum : 3;
-            State? stateObj = States.FirstOrDefault(x => x.Id == stateId);
-
-            if (stateObj is null)
-                stateObj = context.States.First(x => x.Id == 3);
+            if (!States.Select(x => x.Id).Contains(stateId))
+                stateId = 3;
 
             Address? addressObj = new()
             {
                 Suburb = suburb.ToUpper(),
                 StateId = stateId,
-                State = stateObj,
                 Country = "Australia",
                 Street = streetAddress,
                 PostCode = postCode ?? "3000",

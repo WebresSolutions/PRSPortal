@@ -7,11 +7,28 @@ using System.Collections.Frozen;
 
 namespace Migration.MigrationServices;
 
-internal class MigrationService(PrsDbContext _destinationContext, SourceDBContext _sourceDBContext, FrozenDictionary<int, int> users) : BaseMigrationClass(_destinationContext, _sourceDBContext)
+internal class MigrationService(
+    PrsDbContext _destinationContext,
+    SourceDBContext _sourceDBContext,
+    FrozenDictionary<int, int> users) : BaseMigrationClass(_destinationContext, _sourceDBContext)
 {
+    /// <summary>
+    /// Cache of councils to avoid multiple DB hits. Key is the legacy ID.
+    /// </summary>
     private FrozenDictionary<int, Portal.Data.Models.Council>? _councilsCache;
+    /// <summary>
+    /// Cache of contacts to avoid multiple DB hits. Key is the legacy ID.
+    /// </summary>
     private FrozenDictionary<int, Portal.Data.Models.Contact>? _contactsCache;
+    /// <summary>
+    /// Cache of jobs to avoid multiple DB hits. Key is the legacy ID.
+    /// </summary>
     private FrozenDictionary<int, Portal.Data.Models.Job>? _jobsCache;
+
+    /// <summary>
+    /// Cashe of users to avoid multiple DB hits. Key is the legacy ID, value is the new user ID.
+    /// </summary>
+    private readonly FrozenDictionary<int, int> _Users = users;
 
     public void MigrateContacts(Action<MigrationProgress> progressCallback)
     {
@@ -27,8 +44,8 @@ internal class MigrationService(PrsDbContext _destinationContext, SourceDBContex
 
             // Get all of the councils
             List<Portal.Data.Models.Contact> councilsToCreate = [];
-            SourceDb.Contact[] oldContacts = [.. _sourceDBContext.Contacts];
-            List<Portal.Data.Models.Contact> contacts = [.. _destinationContext.Contacts];
+            SourceDb.Contact[] oldContacts = [.. _sourceDBContext.Contacts.AsNoTracking()];
+            List<Portal.Data.Models.Contact> contacts = [.. _destinationContext.Contacts.AsNoTracking()];
 
             if (contacts.Count == oldContacts.Length)
             {
@@ -70,6 +87,7 @@ internal class MigrationService(PrsDbContext _destinationContext, SourceDBContex
                     CreatedByUserId = 95,
                     CreatedOn = Helpers.GetValidDateWithTimezone(oldContact.Created),
                     LegacyId = (int)oldContact.Id,
+                    ParentContactId = oldContact.ContactId is 0 ? null : oldContact.ContactId
                 };
 
                 Address address = Helpers.CreateAddress(_destinationContext, oldContact.State, oldContact.Address ?? "", oldContact.Suburb ?? "", oldContact.Postcode);
@@ -77,7 +95,6 @@ internal class MigrationService(PrsDbContext _destinationContext, SourceDBContex
                 contactToAdd.Add(newContact);
                 index++;
             }
-
             _destinationContext.Addresses.AddRange(addressesToAdd.Values);
             _destinationContext.SaveChanges();
 
@@ -95,8 +112,15 @@ internal class MigrationService(PrsDbContext _destinationContext, SourceDBContex
                 TotalItems = oldContacts.Length
             });
 
-            System.Threading.Tasks.Task.Run(() => _destinationContext.BulkInsert(contactToAdd).Result);
+            _destinationContext.BulkInsert(contactToAdd);
             contacts = [.. _destinationContext.Contacts];
+            _contactsCache = contacts.ToFrozenDictionary(x => x.LegacyId ?? 0, y => y);
+
+            // update parent contact ids
+            foreach (Portal.Data.Models.Contact contact in contacts)
+                contact.ParentContactId = contact.ParentContactId.HasValue ? _contactsCache.GetValueOrDefault(contact.ParentContactId ?? 0)?.Id : null;
+
+            _destinationContext.SaveChanges();
             _contactsCache = contacts.ToFrozenDictionary(x => x.LegacyId ?? 0, y => y);
 
             progressCallback.Invoke(new MigrationProgress
@@ -129,7 +153,7 @@ internal class MigrationService(PrsDbContext _destinationContext, SourceDBContex
 
             // Get all of the councils
             List<Portal.Data.Models.Council> councilsToCreate = [];
-            SourceDb.Council[] oldCouncils = [.. _sourceDBContext.Councils];
+            SourceDb.Council[] oldCouncils = [.. _sourceDBContext.Councils.AsNoTracking()];
             if (_destinationContext.CouncilContacts.Count() == oldCouncils.Length)
             {
                 _councilsCache = _destinationContext.Councils.ToFrozenDictionary(x => x.LegacyId ?? 0, y => y);
@@ -222,8 +246,8 @@ internal class MigrationService(PrsDbContext _destinationContext, SourceDBContex
             });
 
             // Get all of the jobs
-            SourceDb.Job[] jobs = [.. _sourceDBContext.Jobs];
-            Portal.Data.Models.Job[] existingJobsCount = [.. _destinationContext.Jobs.Include(x => x.Address)];
+            SourceDb.Job[] jobs = [.. _sourceDBContext.Jobs.AsNoTracking()];
+            Portal.Data.Models.Job[] existingJobsCount = [.. _destinationContext.Jobs.Include(x => x.Address).AsNoTracking()];
             if (jobs.Length == existingJobsCount.Length)
             {
                 progressCallback.Invoke(new MigrationProgress
@@ -263,11 +287,14 @@ internal class MigrationService(PrsDbContext _destinationContext, SourceDBContex
 
                 // Find an address
                 Address address = Helpers.CreateAddress(_destinationContext, oldJob.State, oldJob.Address, oldJob.Suburb ?? "", oldJob.Postcode);
-                if (users.TryGetValue(oldJob.CreatedUser ?? 0, out int userId))
-                    userId = users.First().Value; // Default to first user if not found
+                if (_Users.TryGetValue(oldJob.CreatedUser ?? 0, out int userId))
+                    userId = _Users.First().Value; // Default to first user if not found
 
                 _councilsCache!.TryGetValue(oldJob.CouncilId ?? 0, out Portal.Data.Models.Council? council);
                 _contactsCache!.TryGetValue(oldJob.ContactId, out Portal.Data.Models.Contact? contact);
+
+                if (contact is null)
+                    throw new Exception($"Contact with LegacyId {oldJob.ContactId} not found for Job LegacyId {oldJob.Id}");
 
                 Portal.Data.Models.Job newJob = new()
                 {
@@ -277,10 +304,10 @@ internal class MigrationService(PrsDbContext _destinationContext, SourceDBContex
                     JobTypeId = oldJob.SetoutJobNumber is not null ? 1 : 2,
                     LegacyId = (int)oldJob.Id,
                     Contact = contact,
-                    ContactId = contact?.Id,
+                    ContactId = contact.Id,
                     Council = council,
                     CouncilId = council?.Id,
-                    DeletedAt = Helpers.GetValidDateWithTimezone(oldJob.DeletedDate),
+                    DeletedAt = oldJob.DeletedDate is null ? null : Helpers.GetValidDateWithTimezone(oldJob.DeletedDate),
                 };
                 jobAddresses.Add(newJob.LegacyId ?? 0, address);
                 jobsToCreate.Add(newJob);
@@ -316,20 +343,192 @@ internal class MigrationService(PrsDbContext _destinationContext, SourceDBContex
                 CurrentStep = "Migrating Jobs",
                 CurrentItem = "Saving jobs to destination database...",
                 CurrentItemIndex = jobs.Length,
-                TotalItems = jobs.Lengthsdafasdfew c   fsda112 =
+                TotalItems = jobs.Length
             });
-            dsafsdsasdf_destinationContext.BulkInsert(jobsToCreate).Result);
+
+            int result = _destinationContext.BulkInsert(jobsToCreate);
 
             progressCallback.Invoke(new MigrationProgress
             {
                 CurrentStep = "Migrating Jobs",
-                CurrentItem = $"Successfully migrated {jobsToCreate.Count} jobs",
+                CurrentItem = $"Successfully migrated {result} jobs",
                 CurrentItemIndex = jobsToCreate.Count,
                 TotalItems = jobsToCreate.Count
             });
 
-            existingJobsCount = [.. _destinationContext.Jobs.Include(x => x.Address)];
+            existingJobsCount = [.. _destinationContext.Jobs.Include(x => x.Address).AsNoTracking()];
             _jobsCache = existingJobsCount.ToFrozenDictionary(x => x.LegacyId ?? 0, y => y);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Migrates the job sub-objects such as notes, tasks, attachments, etc.
+    /// </summary>
+    /// <param name="progressCallback"></param>
+    public void MigratateJobsSubObjects(Action<MigrationProgress> progressCallback)
+    {
+        try
+        {
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Job Notes",
+                CurrentItem = "Loading jobs from source database...",
+                CurrentItemIndex = 0,
+                TotalItems = 0
+            });
+
+            // Get all of the jobs
+            Note[] notes = [.. _sourceDBContext.Notes.AsNoTracking()];
+            JobNote[] existingNotes = [.. _destinationContext.JobNotes.AsNoTracking()];
+            if (notes.Length == existingNotes.Length)
+            {
+                progressCallback.Invoke(new MigrationProgress
+                {
+                    CurrentStep = "Migrating Job Notes",
+                    CurrentItem = "Jobs notes already exist",
+                    CurrentItemIndex = 0,
+                    TotalItems = 0
+                });
+                return;
+            }
+
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Job Notes",
+                CurrentItem = $"Found {notes.Length} jobs",
+                CurrentItemIndex = 0,
+                TotalItems = notes.Length
+            });
+
+
+            List<JobNote> notesToCreate = [];
+            int index = 0;
+            foreach (Note note in notes)
+            {
+                if (index % 1000 == 0)
+                {
+                    progressCallback.Invoke(new MigrationProgress
+                    {
+                        CurrentStep = "Migrating Job Notes",
+                        CurrentItem = $"Processing note {index + 1}/{notes.Length}",
+                        CurrentItemIndex = index + 1,
+                        TotalItems = notes.Length
+                    });
+                }
+                int? assignedUserId = null;
+                if (_Users.TryGetValue(note.AssignedTo ?? 0, out int userResult))
+                    assignedUserId = userResult;
+
+                JobNote newNote = new()
+                {
+                    Note = note.Note1,
+                    CreatedByUserId = _Users.GetValueOrDefault(note.CreatedUser ?? 0, 95),
+                    CreatedOn = Helpers.GetValidDateWithTimezone(note.Created),
+                    ModifiedByUserId = note.ModifiedUser is not null ? _Users.GetValueOrDefault(note.ModifiedUser ?? 0, 95) : null,
+                    ModifiedOn = Helpers.GetValidDateWithTimezone(note.Modified),
+                    DeletedAt = Helpers.GetValidDateWithTimezone(note.DeletedDate),
+                    JobId = _jobsCache!.GetValueOrDefault(note.JobId)?.Id ?? throw new Exception($"Job with LegacyId {note.JobId} not found for Note LegacyId {note.Id}"),
+                    AssignedUserId = assignedUserId,
+                    LegacyId = (int)note.Id,
+                    ActionRequired = note.ActionRequired
+                };
+
+                notesToCreate.Add(newNote);
+                index++;
+            }
+
+            _destinationContext.BulkInsert(notesToCreate);
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Job Notes",
+                CurrentItem = $"Completed migrating notes",
+                CurrentItemIndex = notes.Length,
+                TotalItems = notes.Length
+            });
+
+            // Get all of the jobs
+            JobsUser[] userJobs = [.. _sourceDBContext.JobsUsers.AsNoTracking()];
+            UserJob[] userJobsNew = [.. _destinationContext.UserJobs.AsNoTracking()];
+            if (userJobs.Length == userJobsNew.Length)
+            {
+                progressCallback.Invoke(new MigrationProgress
+                {
+                    CurrentStep = "Migrating Job Users",
+                    CurrentItem = "Job users already exist",
+                    CurrentItemIndex = 0,
+                    TotalItems = 0
+                });
+                return;
+            }
+
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Job Users",
+                CurrentItem = $"Found {userJobs.Length} jobs",
+                CurrentItemIndex = 0,
+                TotalItems = notes.Length
+            });
+
+            List<UserJob> userJobsToCreate = [];
+
+            index = 0;
+            foreach (JobsUser userJob in userJobs)
+            {
+                if (index % 1000 == 0)
+                {
+                    progressCallback.Invoke(new MigrationProgress
+                    {
+                        CurrentStep = "Migrating User Jobs ",
+                        CurrentItem = $"Processing job {index + 1}/{userJobs.Length}",
+                        CurrentItemIndex = index + 1,
+                        TotalItems = userJobs.Length
+                    });
+                }
+                try
+                {
+                    int jobId = 0;
+                    // For some reason there are some user jobs which reference a job which does not exist.
+                    if (!_jobsCache!.TryGetValue(userJob.JobId, out Portal.Data.Models.Job? job))
+                        continue;
+
+                    jobId = job.Id;
+                    int userId = _Users.GetValueRefOrNullRef(userJob.UserId);
+                    UserJob newUserJob = new()
+                    {
+                        CreatedByUserId = _Users.GetValueOrDefault(userJob.CreatedUser ?? 0, 95),
+                        CreatedOn = Helpers.GetValidDateWithTimezone(userJob.Created),
+                        ModifiedByUserId = userJob.ModifiedUser is not null ? _Users.GetValueOrDefault(userJob.ModifiedUser ?? 0, 95) : null,
+                        ModifiedOn = Helpers.GetValidDateWithTimezone(userJob.Modified),
+                        DeletedAt = Helpers.GetValidDateWithTimezone(userJob.DeletedDate),
+                        JobId = jobId,
+                        LegacyId = (int)userJob.Id,
+                        UserId = userId
+                    };
+
+                    userJobsToCreate.Add(newUserJob);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    throw;
+                }
+                index++;
+            }
+
+            _destinationContext.BulkInsert(userJobsToCreate);
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Job Users",
+                CurrentItem = $"Completed migrating job users",
+                CurrentItemIndex = notes.Length,
+                TotalItems = notes.Length
+            });
+
         }
         catch (Exception ex)
         {

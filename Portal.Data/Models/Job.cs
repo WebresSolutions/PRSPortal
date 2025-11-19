@@ -10,7 +10,7 @@ public partial class Job
 {
     public int Id { get; set; }
 
-    public int? ContactId { get; set; }
+    public int ContactId { get; set; }
 
     public int? AddressId { get; set; }
 
@@ -52,7 +52,7 @@ public partial class Job
 
     public virtual Address? Address { get; set; }
 
-    public virtual Contact? Contact { get; set; }
+    public virtual Contact Contact { get; set; } = null!;
 
     public virtual Council? Council { get; set; }
 
@@ -65,6 +65,8 @@ public partial class Job
     public virtual ICollection<JobNote> JobNotes { get; set; } = new List<JobNote>();
 
     public virtual ICollection<JobQuote> JobQuotes { get; set; } = new List<JobQuote>();
+
+    public virtual ICollection<JobTask> JobTasks { get; set; } = new List<JobTask>();
 
     public virtual JobType? JobType { get; set; }
 

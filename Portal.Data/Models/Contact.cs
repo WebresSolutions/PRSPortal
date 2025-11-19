@@ -10,6 +10,8 @@ public partial class Contact
 {
     public int Id { get; set; }
 
+    public int? ParentContactId { get; set; }
+
     public int? LegacyId { get; set; }
 
     public string FirstName { get; set; } = null!;
@@ -43,7 +45,11 @@ public partial class Contact
 
     public virtual AppUser CreatedByUser { get; set; } = null!;
 
+    public virtual ICollection<Contact> InverseParentContact { get; set; } = new List<Contact>();
+
     public virtual ICollection<Job> Jobs { get; set; } = new List<Job>();
 
     public virtual AppUser? ModifiedByUser { get; set; }
+
+    public virtual Contact? ParentContact { get; set; }
 }

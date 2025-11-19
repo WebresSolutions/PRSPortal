@@ -36,6 +36,8 @@ public partial class PrsDbContext : DbContext
 
     public virtual DbSet<JobQuote> JobQuotes { get; set; }
 
+    public virtual DbSet<JobTask> JobTasks { get; set; }
+
     public virtual DbSet<JobType> JobTypes { get; set; }
 
     public virtual DbSet<NoteType> NoteTypes { get; set; }
@@ -235,6 +237,8 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.Email, "idx_contact_email");
 
+            entity.HasIndex(e => e.ParentContactId, "idx_contact_parent_contact_id");
+
             entity.HasIndex(e => e.Id, "idx_council_contact_contact_id");
 
             entity.Property(e => e.Id)
@@ -263,6 +267,7 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.ParentContactId).HasColumnName("parent_contact_id");
             entity.Property(e => e.Phone)
                 .HasMaxLength(50)
                 .HasColumnName("phone");
@@ -279,6 +284,10 @@ public partial class PrsDbContext : DbContext
             entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.ContactModifiedByUsers)
                 .HasForeignKey(d => d.ModifiedByUserId)
                 .HasConstraintName("contact_modified_by_user_id_fkey");
+
+            entity.HasOne(d => d.ParentContact).WithMany(p => p.InverseParentContact)
+                .HasForeignKey(d => d.ParentContactId)
+                .HasConstraintName("contact_parent_contact_id_fkey");
         });
 
         modelBuilder.Entity<Council>(entity =>
@@ -458,6 +467,7 @@ public partial class PrsDbContext : DbContext
 
             entity.HasOne(d => d.Contact).WithMany(p => p.Jobs)
                 .HasForeignKey(d => d.ContactId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("job_contact_id_fkey");
 
             entity.HasOne(d => d.Council).WithMany(p => p.Jobs)
@@ -538,7 +548,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("job_note_pkey");
 
-            entity.ToTable("job_note", tb => tb.HasComment("Notes specifically attached to a job (One-to-Many: Job to Note)."));
+            entity.ToTable("job_note", tb => tb.HasComment("Many-to-many relationship between users and jobs"));
 
             entity.HasIndex(e => e.CreatedByUserId, "idx_job_note_created_by");
 
@@ -546,18 +556,31 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.JobId, "idx_job_note_job_id");
 
+            entity.HasIndex(e => e.AssignedUserId, "idx_job_note_user_id");
+
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
-            entity.Property(e => e.Content).HasColumnName("content");
+            entity.Property(e => e.ActionRequired)
+                .HasDefaultValue(false)
+                .HasColumnName("action_required");
+            entity.Property(e => e.AssignedUserId).HasColumnName("assigned_user_id");
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
-            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(e => e.DeletedAt)
+                .HasComment("Soft delete TIMESTAMPTZ - NULL means to show")
+                .HasColumnName("deleted_at");
             entity.Property(e => e.JobId).HasColumnName("job_id");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.Note).HasColumnName("note");
+
+            entity.HasOne(d => d.AssignedUser).WithMany(p => p.JobNoteAssignedUsers)
+                .HasForeignKey(d => d.AssignedUserId)
+                .HasConstraintName("job_note_assigned_user_id_fkey");
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.JobNoteCreatedByUsers)
                 .HasForeignKey(d => d.CreatedByUserId)
@@ -612,6 +635,58 @@ public partial class PrsDbContext : DbContext
                 .HasForeignKey(d => d.QuoteId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("job_quote_quote_id_fkey");
+        });
+
+        modelBuilder.Entity<JobTask>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("job_task_pkey");
+
+            entity.ToTable("job_task");
+
+            entity.HasIndex(e => e.CreatedByUserId, "idx_task_created_by");
+
+            entity.HasIndex(e => e.DeletedAt, "idx_task_deleted_at");
+
+            entity.HasIndex(e => e.JobId, "idx_task_job_id");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.ActiveDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("active_date");
+            entity.Property(e => e.CompletedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("completed_date");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(e => e.InvoiceRequired)
+                .HasDefaultValue(false)
+                .HasColumnName("invoice_required");
+            entity.Property(e => e.InvoicedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("invoiced_date");
+            entity.Property(e => e.JobId).HasColumnName("job_id");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
+            entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.JobTaskCreatedByUsers)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("job_task_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.Job).WithMany(p => p.JobTasks)
+                .HasForeignKey(d => d.JobId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("job_task_job_id_fkey");
+
+            entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.JobTaskModifiedByUsers)
+                .HasForeignKey(d => d.ModifiedByUserId)
+                .HasConstraintName("job_task_modified_by_user_id_fkey");
         });
 
         modelBuilder.Entity<JobType>(entity =>

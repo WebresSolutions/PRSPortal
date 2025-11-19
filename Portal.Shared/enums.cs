@@ -1,7 +1,17 @@
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace Portal.Shared;
+
+public enum SortDirectionEnum
+{
+    [Display(Name = "asc")]
+    Asc = 1,
+
+    [Display(Name = "desc")]
+    Desc = 2,
+}
 
 public enum StateEnum
 {

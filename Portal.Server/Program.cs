@@ -1,3 +1,5 @@
+using Portal.Server.Controllers;
+
 namespace Portal.Server;
 
 /// <summary>
@@ -18,7 +20,7 @@ public class Program
 
         Console.WriteLine("Skipping databases and identity services for IntegrationTests");
 
-        builder.AddOtherServices();
+        builder.AddServices();
 
         WebApplication? app = builder.Build();
 
@@ -73,6 +75,7 @@ public class Program
         _ = app.MapRazorPages();
         _ = app.MapControllers();
         _ = app.MapFallbackToFile("index.html");
+        app.AddJobEndpoints();
 
         app.Run();
     }

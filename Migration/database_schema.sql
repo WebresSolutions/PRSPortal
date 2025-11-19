@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS quote_note;
 DROP TABLE IF EXISTS council_contact;
 DROP TABLE IF EXISTS job_quote;
 DROP TABLE IF EXISTS job_note;
+DROP TABLE IF EXISTS job_task;
 DROP TABLE IF EXISTS job_file;
 DROP TABLE IF EXISTS user_job;
 
@@ -101,6 +102,7 @@ CREATE INDEX idx_address_created_by ON address(created_by_user_id);
 
 CREATE TABLE contact (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    parent_contact_id INT REFERENCES contact(id),
     legacy_id INT,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
@@ -119,6 +121,7 @@ COMMENT ON TABLE contact IS 'Client or vendor contact information';
 COMMENT ON COLUMN contact.deleted_at IS 'Soft delete TIMESTAMPTZ - NULL means active';
 
 CREATE INDEX idx_contact_email ON contact(email);
+CREATE INDEX idx_contact_parent_contact_id ON contact(parent_contact_id);
 CREATE INDEX idx_contact_address_id ON contact(address_id);
 CREATE INDEX idx_contact_deleted_at ON contact(deleted_at);
 CREATE INDEX idx_contact_created_by ON contact(created_by_user_id);
@@ -256,7 +259,7 @@ INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Cadastral', 'CAD');
 
 CREATE TABLE job (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    contact_id INT REFERENCES contact(id),
+    contact_id INT not null REFERENCES contact(id),
     address_id INT REFERENCES address(id),
     council_id INT REFERENCES council(id),
     job_colour_id INT REFERENCES job_colour(id),
@@ -313,6 +316,31 @@ CREATE INDEX idx_user_job_job_id ON user_job(job_id);
 CREATE INDEX idx_user_job_deleted_at ON user_job(deleted_at);
 
 -- ============================================================================
+-- USER JOB NOTES (One-to-Many)
+-- ============================================================================
+CREATE TABLE job_note (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    assigned_user_id INT  REFERENCES app_user(id),
+    job_id INT NOT NULL REFERENCES job(id),
+    legacy_id INT,
+    note TEXT NOT NULL,
+    action_required BOOLEAN NOT NULL DEFAULT FALSE,
+    created_by_user_id INT NOT NULL REFERENCES app_user(id),
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_by_user_id INT REFERENCES app_user(id),
+    modified_on TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ DEFAULT NULL
+);
+
+COMMENT ON TABLE job_note IS 'Many-to-many relationship between users and jobs';
+COMMENT ON COLUMN job_note.deleted_at IS 'Soft delete TIMESTAMPTZ - NULL means to show';
+
+CREATE INDEX idx_job_note_user_id ON job_note(assigned_user_id);
+CREATE INDEX idx_job_note_job_id ON job_note(job_id);
+CREATE INDEX idx_job_note_deleted_at ON job_note(deleted_at);
+CREATE INDEX idx_job_note_created_by ON job_note(created_by_user_id);
+
+-- ============================================================================
 -- JOB FILE TABLE (Many-to-Many)
 -- ============================================================================
 
@@ -331,14 +359,17 @@ CREATE INDEX idx_job_file_file_id ON job_file(file_id);
 CREATE INDEX idx_job_file_created_by ON job_file(created_by_user_id);
 
 -- ============================================================================
--- JOB NOTE TABLE (Many-to-One)
+-- JOB FILE TABLE (Many-to-Many)
 -- ============================================================================
 
-CREATE TABLE job_note (
+CREATE TABLE job_task(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     job_id INT NOT NULL REFERENCES job(id),
-    content TEXT NOT NULL, -- Note content is now here
-    -- note_type_id is removed as the table title implies the type
+    legacy_id INT,
+    invoice_required bool not null default false,
+    active_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    invoiced_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_by_user_id INT REFERENCES app_user(id),
@@ -346,11 +377,9 @@ CREATE TABLE job_note (
     deleted_at TIMESTAMPTZ DEFAULT NULL
 );
 
-COMMENT ON TABLE job_note IS 'Notes specifically attached to a job (One-to-Many: Job to Note).';
-
-CREATE INDEX idx_job_note_job_id ON job_note(job_id);
-CREATE INDEX idx_job_note_created_by ON job_note(created_by_user_id);
-CREATE INDEX idx_job_note_deleted_at ON job_note(deleted_at);
+CREATE INDEX idx_task_job_id ON job_task(job_id);
+CREATE INDEX idx_task_deleted_at ON job_task(deleted_at);
+CREATE INDEX idx_task_created_by ON job_task(created_by_user_id);
 
 -- ============================================================================
 -- QUOTE TABLE

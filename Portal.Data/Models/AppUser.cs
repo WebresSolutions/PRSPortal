@@ -59,11 +59,17 @@ public partial class AppUser
 
     public virtual ICollection<Job> JobModifiedByUsers { get; set; } = new List<Job>();
 
+    public virtual ICollection<JobNote> JobNoteAssignedUsers { get; set; } = new List<JobNote>();
+
     public virtual ICollection<JobNote> JobNoteCreatedByUsers { get; set; } = new List<JobNote>();
 
     public virtual ICollection<JobNote> JobNoteModifiedByUsers { get; set; } = new List<JobNote>();
 
     public virtual ICollection<JobQuote> JobQuotes { get; set; } = new List<JobQuote>();
+
+    public virtual ICollection<JobTask> JobTaskCreatedByUsers { get; set; } = new List<JobTask>();
+
+    public virtual ICollection<JobTask> JobTaskModifiedByUsers { get; set; } = new List<JobTask>();
 
     public virtual AppUser? ModifiedByUser { get; set; }
 

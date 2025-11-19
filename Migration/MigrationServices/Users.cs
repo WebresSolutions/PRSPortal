@@ -15,8 +15,8 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
     /// <returns></returns>
     public FrozenDictionary<int, int> MigrateUsers(Action<MigrationProgress>? progressCallback = null)
     {
-        progressCallback?.Invoke(new MigrationProgress 
-        { 
+        progressCallback?.Invoke(new MigrationProgress
+        {
             CurrentStep = "Migrating Users",
             CurrentItem = "Loading users from source database...",
             CurrentItemIndex = 0,
@@ -24,10 +24,10 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
         });
 
         // Get the users from the source database
-        User[] sourceUsers = [.. _sourceDBContext.Users.AsNoTracking().Where(x => x.Active == true)];
+        User[] sourceUsers = [.. _sourceDBContext.Users.AsNoTracking()];
 
-        progressCallback?.Invoke(new MigrationProgress 
-        { 
+        progressCallback?.Invoke(new MigrationProgress
+        {
             CurrentStep = "Migrating Users",
             CurrentItem = $"Found {sourceUsers.Length} users",
             CurrentItemIndex = 0,
@@ -37,8 +37,8 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
         // Get the users from the destination database
         if (sourceUsers.Length == _destinationContext.AppUsers.Count())
         {
-            progressCallback?.Invoke(new MigrationProgress 
-            { 
+            progressCallback?.Invoke(new MigrationProgress
+            {
                 CurrentStep = "Migrating Users",
                 CurrentItem = "Users already migrated",
                 CurrentItemIndex = sourceUsers.Length,
@@ -47,8 +47,8 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
             return _destinationContext.AppUsers.ToFrozenDictionary(x => x.LegacyUserId, y => y.LegacyUserId);
         }
 
-        progressCallback?.Invoke(new MigrationProgress 
-        { 
+        progressCallback?.Invoke(new MigrationProgress
+        {
             CurrentStep = "Migrating Users",
             CurrentItem = "Creating user records...",
             CurrentItemIndex = 0,
@@ -57,7 +57,7 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
 
         DateTime now = DateTime.UtcNow;
         List<AppUser> destinationUsers = [];
-        
+
         for (int i = 0; i < sourceUsers.Length; i++)
         {
             User sourceUser = sourceUsers[i];
@@ -71,8 +71,8 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
             };
             destinationUsers.Add(newUser);
 
-            progressCallback?.Invoke(new MigrationProgress 
-            { 
+            progressCallback?.Invoke(new MigrationProgress
+            {
                 CurrentStep = "Migrating Users",
                 CurrentItem = $"Processing user: {newUser.DisplayName}",
                 CurrentItemIndex = i + 1,
@@ -80,8 +80,8 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
             });
         }
 
-        progressCallback?.Invoke(new MigrationProgress 
-        { 
+        progressCallback?.Invoke(new MigrationProgress
+        {
             CurrentStep = "Migrating Users",
             CurrentItem = "Saving users to destination database...",
             CurrentItemIndex = sourceUsers.Length,
@@ -92,8 +92,8 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
         _destinationContext.AppUsers.AddRange(destinationUsers);
         _ = _destinationContext.SaveChanges();
 
-        progressCallback?.Invoke(new MigrationProgress 
-        { 
+        progressCallback?.Invoke(new MigrationProgress
+        {
             CurrentStep = "Migrating Users",
             CurrentItem = $"Successfully migrated {destinationUsers.Count} users",
             CurrentItemIndex = destinationUsers.Count,

@@ -17,7 +17,8 @@ internal class Program
         Application.Init();
         try
         {
-            Application.Run(new GUI(InitMigration, StartMigration));
+            GUI gui = new(InitMigration, StartMigration);
+            Application.Run(gui);
         }
         catch (Exception ex)
         {
@@ -51,6 +52,7 @@ internal class Program
             migration.MigrateContacts(progressCallback);
             migration.MigrateCouncils(progressCallback);
             migration.MigrateJobs(progressCallback);
+            migration.MigratateJobsSubObjects(progressCallback);
         }
         catch (Exception)
         {

@@ -3,22 +3,21 @@ using System.Collections.Generic;
 
 namespace Portal.Data.Models;
 
-/// <summary>
-/// Many-to-many relationship between users and jobs
-/// </summary>
-public partial class JobNote
+public partial class JobTask
 {
     public int Id { get; set; }
-
-    public int? AssignedUserId { get; set; }
 
     public int JobId { get; set; }
 
     public int? LegacyId { get; set; }
 
-    public string Note { get; set; } = null!;
+    public bool InvoiceRequired { get; set; }
 
-    public bool ActionRequired { get; set; }
+    public DateTime ActiveDate { get; set; }
+
+    public DateTime CompletedDate { get; set; }
+
+    public DateTime InvoicedDate { get; set; }
 
     public int CreatedByUserId { get; set; }
 
@@ -28,12 +27,7 @@ public partial class JobNote
 
     public DateTime? ModifiedOn { get; set; }
 
-    /// <summary>
-    /// Soft delete TIMESTAMPTZ - NULL means to show
-    /// </summary>
     public DateTime? DeletedAt { get; set; }
-
-    public virtual AppUser? AssignedUser { get; set; }
 
     public virtual AppUser CreatedByUser { get; set; } = null!;
 

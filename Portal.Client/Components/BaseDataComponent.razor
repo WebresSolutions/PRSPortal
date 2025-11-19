@@ -1,0 +1,40 @@
+﻿
+@code {
+    /// <summary>
+    /// Gets or sets the cascading authentication state task for the component
+    /// </summary>
+    [CascadingParameter]
+    public Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the component is currently loading data
+    /// </summary>
+    public bool IsLoading { get; set; }
+
+    /// <summary>
+    /// Gets or sets the return URL for authentication redirects
+    /// </summary>
+    public string? ReturnUrl { get; set; }
+
+    /// <summary>
+    /// Initializes the component and checks authentication status
+    /// Redirects unauthenticated users to the login page
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation</returns>
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationStateTask is not null)
+        {
+            AuthenticationState? authenticationState = await AuthenticationStateTask;
+
+            if (authenticationState?.User?.Identity is null || !authenticationState.User.Identity.IsAuthenticated)
+            {
+                string returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+                Console.WriteLine("ReturnURL: " + returnUrl);
+                // Use the current website's base URL instead of hardcoded Authority
+                string loginUrl = $"{_navigationManager.BaseUri}Identity/Account/Login?returnUrl={returnUrl}";
+                _navigationManager.NavigateTo(loginUrl, true);
+            }
+        }
+    }
+}

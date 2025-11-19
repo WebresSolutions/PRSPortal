@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using Portal.Data;
+using Portal.Server.Services.Instances;
+using Portal.Server.Services.Interfaces;
 
 namespace Portal.Server;
 
@@ -16,7 +18,7 @@ public static class Dependencies
     public static void AddDatabases(this WebApplicationBuilder builder)
     {
         Console.WriteLine("Using ENV: " + builder.Environment.EnvironmentName);
-        _ = builder.Services.AddDbContextPool<PrsDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("PrsConnection")));
+        builder.Services.AddDbContext<PrsDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("PrsConnection")));
     }
 
     /// <summary>
@@ -24,22 +26,23 @@ public static class Dependencies
     /// Sets up the application's business logic infrastructure
     /// </summary>
     /// <param name="builder">The web application builder to configure</param>
-    public static void AddOtherServices(this WebApplicationBuilder builder)
+    public static void AddServices(this WebApplicationBuilder builder)
     {
         // Add the custom services
-        _ = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
-        _ = builder.WebHost.UseStaticWebAssets();
-        _ = builder.Services.AddControllersWithViews();
-        _ = builder.Services.AddRazorPages();
+        builder.WebHost.UseStaticWebAssets();
+        builder.Services.AddControllersWithViews();
+        builder.Services.AddRazorPages();
+        builder.Services.AddScoped<IJobService, JobService>();
 
         // Add Swagger/OpenAPI services for API debugging
         bool enableSwagger = builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");
         if (enableSwagger)
         {
-            _ = builder.Services.AddEndpointsApiExplorer();
-            _ = builder.Services.AddSwaggerGen(c =>
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
@@ -49,7 +52,7 @@ public static class Dependencies
                 });
             });
         }
-        _ = builder.Services.AddCors(options =>
+        builder.Services.AddCors(options =>
         {
             options.AddPolicy("CorsPolicy",
                 builder => builder.WithOrigins(
