@@ -23,7 +23,10 @@ internal class Program
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
-            Application.Shutdown();
+            if (Application.Top != null)
+            {
+                Application.RequestStop();
+            }
             throw;
         }
         finally
@@ -83,7 +86,6 @@ internal class Program
 
         if (resetDatabase)
         {
-            // Get the actual source directory, not the bin directory
             string solutionDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory()));
             string sqlPath = Path.Combine(solutionDir, "database_schema.sql");
 

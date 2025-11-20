@@ -23,64 +23,65 @@ public class GUI : Window
             Y = Pos.Center() - 4,
             IsDefault = true
         };
-        // Remove the current window
-        Application.Top.Remove(this);
-
-        // Create and show a new view/window for migration
-        Window migrationWindow = new()
-        {
-            Title = "Migration Progress",
-            X = 0,
-            Y = 0,
-            Width = Dim.Fill(),
-            Height = Dim.Fill()
-        };
-
-        // Add migration UI components
-        Label stepLabel = new()
-        {
-            Text = "Initializing migration...",
-            X = 2,
-            Y = 2,
-            Width = Dim.Fill() - 4
-        };
-
-        Label statusLabel = new()
-        {
-            Text = "Preparing...",
-            X = 2,
-            Y = 4,
-            Width = Dim.Fill() - 4
-        };
-
-        ProgressBar progressBar = new()
-        {
-            X = 2,
-            Y = 6,
-            Width = Dim.Fill() - 4,
-            Height = 1
-        };
-
-        Label percentageLabel = new()
-        {
-            Text = "0%",
-            X = Pos.Center(),
-            Y = 8,
-            Width = 10
-        };
-
-        Label countLabel = new()
-        {
-            Text = "0 / 0",
-            X = Pos.Center(),
-            Y = 10,
-            Width = 20
-        };
 
         void ButtonClicked(bool reset)
         {
             if (initapp.Invoke(reset))
             {
+                // Remove the current window
+                Application.Top.Remove(this);
+
+                // Create and show a new view/window for migration
+                Window migrationWindow = new()
+                {
+                    Title = "Migration Progress",
+                    X = 0,
+                    Y = 0,
+                    Width = Dim.Fill(),
+                    Height = Dim.Fill()
+                };
+
+                // Add migration UI components
+                Label stepLabel = new()
+                {
+                    Text = "Initializing migration...",
+                    X = 2,
+                    Y = 2,
+                    Width = Dim.Fill() - 4
+                };
+
+                Label statusLabel = new()
+                {
+                    Text = "Preparing...",
+                    X = 2,
+                    Y = 4,
+                    Width = Dim.Fill() - 4
+                };
+
+                ProgressBar progressBar = new()
+                {
+                    X = 2,
+                    Y = 6,
+                    Width = Dim.Fill() - 4,
+                    Height = 1
+                };
+
+                Label percentageLabel = new()
+                {
+                    Text = "0%",
+                    X = Pos.Center(),
+                    Y = 8,
+                    Width = 10
+                };
+
+                Label countLabel = new()
+                {
+                    Text = "0 / 0",
+                    X = Pos.Center(),
+                    Y = 10,
+                    Width = 20
+                };
+
                 migrationWindow.Add(stepLabel, statusLabel, progressBar, percentageLabel, countLabel);
                 Application.Top.Add(migrationWindow);
                 // Refresh the display
@@ -122,10 +123,17 @@ public class GUI : Window
                         Application.MainLoop.Invoke(() =>
                         {
                             stepLabel.Text = "Migration Complete";
-                            statusLabel.Text = "Database Mirgation Complete!";
+                            statusLabel.Text = "Database Migration Complete!";
                             progressBar.Fraction = 1.0f;
                             percentageLabel.Text = "100%";
-                            Application.Shutdown();
+                            Application.Refresh();
+                            
+                            // Use a timer to shutdown after a brief delay to allow UI to update
+                            Application.MainLoop.AddTimeout(TimeSpan.FromSeconds(2), (mainLoop) =>
+                            {
+                                Application.RequestStop();
+                                return false;
+                            });
                         });
                     }
                     catch (Exception ex)
@@ -142,7 +150,7 @@ public class GUI : Window
             else
             {
                 btnInit.Text = "Failed to Init";
-                Application.Shutdown();
+                Application.RequestStop();
             }
         }
         btnInitWithoutDbReset.Clicked += () => ButtonClicked(false);
