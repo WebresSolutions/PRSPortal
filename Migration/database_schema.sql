@@ -1,8 +1,8 @@
 -- Tier 1: Tables with FKs pointing to other tables (Junction/Child tables)
 DROP TABLE IF EXISTS schedule;
-DROP TABLE IF EXISTS schedule_users;
-DROP TABLE IF EXISTS schedule_track;
+DROP TABLE IF EXISTS schedule_user;
 DROP TABLE IF EXISTS timesheet_entry;
+DROP TABLE IF EXISTS schedule_track;
 DROP TABLE IF EXISTS quote_note;
 DROP TABLE IF EXISTS council_contact;
 DROP TABLE IF EXISTS job_quote;
@@ -22,10 +22,16 @@ DROP TABLE IF EXISTS address;
 -- Tier 3: Lookup/Type tables
 DROP TABLE IF EXISTS job_type;
 DROP TABLE IF EXISTS job_colour;
-DROP TABLE IF EXISTS note_type;
+DROP TABLE IF EXISTS schedule_colour;
 DROP TABLE IF EXISTS file_type;
+DROP TABLE IF EXISTS job_task_type;
 DROP TABLE IF EXISTS states;
 DROP TABLE IF EXISTS app_user;
+
+-- ============================================================================
+-- EXTENSIONS
+-- ============================================================================
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- ============================================================================
 -- APP USER TABLE
@@ -95,6 +101,12 @@ COMMENT ON COLUMN address.deleted_at IS 'Soft delete TIMESTAMPTZ - NULL means ac
 CREATE INDEX idx_address_state_id ON address(state_id);
 CREATE INDEX idx_address_deleted_at ON address(deleted_at);
 CREATE INDEX idx_address_created_by ON address(created_by_user_id);
+-- Add trigram indexes for text search on address fields
+CREATE INDEX idx_address_street_trgm ON address USING GIN(street gin_trgm_ops);
+CREATE INDEX idx_address_suburb_trgm ON address USING GIN(suburb gin_trgm_ops);
+
+-- Optional: Combined trigram index if users often search across both fields
+CREATE INDEX idx_address_street_suburb_trgm ON address USING GIN((street || ' ' || suburb) gin_trgm_ops);
 
 -- ============================================================================
 -- CONTACT TABLE
@@ -106,6 +118,7 @@ CREATE TABLE contact (
     legacy_id INT,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
+    full_name VARCHAR(201) NOT NULL GENERATED ALWAYS AS (first_name || ' ' || last_name) STORED,
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(50),
     fax VARCHAR(50),
@@ -125,6 +138,9 @@ CREATE INDEX idx_contact_parent_contact_id ON contact(parent_contact_id);
 CREATE INDEX idx_contact_address_id ON contact(address_id);
 CREATE INDEX idx_contact_deleted_at ON contact(deleted_at);
 CREATE INDEX idx_contact_created_by ON contact(created_by_user_id);
+CREATE INDEX idx_contact_name_trgm ON contact USING GIN(full_name gin_trgm_ops);
+CREATE INDEX idx_contact_email_trgm ON contact USING GIN(email gin_trgm_ops);
+CREATE INDEX idx_contact_phone_trgm ON contact USING GIN(phone gin_trgm_ops);
 
 -- ============================================================================
 -- COUNCIL TABLE
@@ -213,26 +229,15 @@ CREATE INDEX idx_file_deleted_at ON app_file(deleted_at);
 CREATE INDEX idx_file_external_id ON app_file(external_id);
 
 -- ============================================================================
--- NOTE TYPE TABLE
--- ============================================================================
-
-CREATE TABLE note_type (
-    id INT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-COMMENT ON TABLE note_type IS 'Type of note';
-
--- ============================================================================
 -- JOB COLOUR TABLE
 -- ============================================================================
 
 CREATE TABLE job_colour (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     color VARCHAR(20) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT job_color_format CHECK (color IS NULL OR color LIKE '#%'),
+    CONSTRAINT job_color_unique UNIQUE (color)
 );
 
 COMMENT ON TABLE job_colour IS 'Colour of job';
@@ -244,14 +249,15 @@ COMMENT ON TABLE job_colour IS 'Colour of job';
 CREATE TABLE job_type (
     id INT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
-    abbreviation VARCHAR(10) NOT NULL,
+    abbreviation VARCHAR(15) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 COMMENT ON TABLE job_type IS 'Type of job';
+COMMENT ON COLUMN job_type.name IS 'Construction = Set out. Survey = CAD.';
 
-INSERT INTO job_type(id, name, abbreviation) VALUES (1, 'Set Out', 'SET');
-INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Cadastral', 'CAD');
+INSERT INTO job_type(id, name, abbreviation) VALUES (1, 'Construction', 'CONSTRUCTION');
+INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
 
 -- ============================================================================
 -- JOB TABLE
@@ -259,18 +265,15 @@ INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Cadastral', 'CAD');
 
 CREATE TABLE job (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    contact_id INT not null REFERENCES contact(id),
+    contact_id INT NOT NULL REFERENCES contact(id),
     address_id INT REFERENCES address(id),
     council_id INT REFERENCES council(id),
     job_colour_id INT REFERENCES job_colour(id),
-    job_type_id INT REFERENCES job_type(id),
+    job_type_id INT NOT NULL REFERENCES job_type(id),
     legacy_id INT,
     invoice_number VARCHAR(255) UNIQUE,
-    survey_number INT,
-    construction_number INT,
-    total_price NUMERIC(10, 2),
-    date_sent TIMESTAMPTZ,
-    payment_received TIMESTAMPTZ,
+    job_number INT,
+    details TEXT,
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_by_user_id INT REFERENCES app_user(id),
@@ -279,9 +282,10 @@ CREATE TABLE job (
 );
 
 COMMENT ON TABLE job IS 'Main job/project tracking with invoicing';
-COMMENT ON COLUMN job.total_price IS 'Total job price - consider calculating from timesheet entries';
 COMMENT ON COLUMN job.deleted_at IS 'Soft delete TIMESTAMPTZ - NULL means active';
+COMMENT ON COLUMN job.job_number IS 'Used in junction with the job type to identify the job. With either be type Construction or Surveying';
 
+CREATE INDEX idx_job_number ON job(job_number);
 CREATE INDEX idx_job_invoice_number ON job(invoice_number);
 CREATE INDEX idx_job_contact_id ON job(contact_id);
 CREATE INDEX idx_job_address_id ON job(address_id);
@@ -359,13 +363,31 @@ CREATE INDEX idx_job_file_file_id ON job_file(file_id);
 CREATE INDEX idx_job_file_created_by ON job_file(created_by_user_id);
 
 -- ============================================================================
--- JOB FILE TABLE (Many-to-Many)
+-- JOB TASK TABLE (Many-to-One)
+-- ============================================================================
+CREATE TABLE job_task_type(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_by_user_id INT NOT NULL REFERENCES app_user(id),
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_by_user_id INT REFERENCES app_user(id),
+    modified_on TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ DEFAULT NULL
+);
+
+CREATE INDEX idx_job_task_type_name ON job_task_type(name);
+CREATE INDEX idx_job_task_type_created_by ON job_task_type(created_by_user_id);
+
+-- ============================================================================
+-- JOB TASK TABLE (Many-to-One)
 -- ============================================================================
 
 CREATE TABLE job_task(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     job_id INT NOT NULL REFERENCES job(id),
     legacy_id INT,
+    description VARCHAR(255),
     invoice_required bool not null default false,
     active_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     completed_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -491,18 +513,31 @@ CREATE INDEX idx_schedule_track_created_by_user_id ON schedule_track(created_by_
 -- SCHEDULE USERS TABLE
 -- ============================================================================
 
-CREATE TABLE schedule_users(
+CREATE TABLE schedule_user(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     schedule_track_id INT NOT NULL REFERENCES schedule_track(id),
-    legacy_id INT,
     user_id INT NOT NULL REFERENCES app_user(id),
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_schedule_users_schedule_track_id ON schedule_users(schedule_track_id);
-CREATE INDEX idx_schedule_users_user_id ON schedule_users(user_id);
-CREATE INDEX idx_schedule_users_created_by_id ON schedule_users(created_by_user_id);
+CREATE INDEX idx_schedule_users_schedule_track_id ON schedule_user(schedule_track_id);
+CREATE INDEX idx_schedule_users_user_id ON schedule_user(user_id);
+CREATE INDEX idx_schedule_users_created_by_id ON schedule_user(created_by_user_id);
+
+-- ============================================================================
+-- SCHEDULE COLOUR TABLE
+-- ============================================================================
+
+CREATE TABLE schedule_colour (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    color VARCHAR(20) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT schedule_colour_format CHECK (color IS NULL OR color LIKE '#%'),
+    CONSTRAINT schedule_colour_unique UNIQUE (color)
+);
+
+COMMENT ON TABLE schedule_colour IS 'Colour of the schedule';
 
 -- ============================================================================
 -- SCHEDULE TABLE
@@ -510,6 +545,8 @@ CREATE INDEX idx_schedule_users_created_by_id ON schedule_users(created_by_user_
 
 CREATE TABLE schedule(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    schedule_track_id INT NOT NULL REFERENCES schedule_track(id),
+    schedule_colour_id INT NOT NULL REFERENCES schedule_colour(id),
     legacy_id INT,
     start_time TIMESTAMPTZ NOT NULL,
     end_time TIMESTAMPTZ NOT NULL,
@@ -527,6 +564,8 @@ COMMENT ON COLUMN schedule.start_time IS 'Start time of the schedule';
 COMMENT ON COLUMN schedule.end_time IS 'End time of the schedule';
 
 CREATE INDEX idx_schedule_job_id ON schedule(job_id);
+CREATE INDEX idx_schedule_track_id ON schedule(schedule_track_id);
+CREATE INDEX idx_schedule_colour_id ON schedule(schedule_colour_id);
 CREATE INDEX idx_schedule_start_time ON schedule(start_time);
 CREATE INDEX idx_schedule_end_time ON schedule(end_time);
 CREATE INDEX idx_schedule_created_by ON schedule(created_by_user_id);

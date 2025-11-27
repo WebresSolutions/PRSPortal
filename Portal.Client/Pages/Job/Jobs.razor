@@ -5,43 +5,45 @@
 @using Portal.Shared.Web
 @inherits BaseDataComponent;
 
-<Card Title="Jobs">
-    <ChildContent>
-        <MudDataGrid T="ListJobDto"
-                     ServerData="LoadJobs"
-                     Filterable="true"
-                     SortMode="SortMode.Single"
-                     Loading="base.IsLoading"
-                     RowsPerPage="_rowsPerPage"
-                     RowsPerPageValues="@(new int[] { 10, 25, 50, 100 })"
-                     CurrentPage="_sessionData.Page"
-                     CurrentPageChanged="@((page) => _sessionData.Page = page)"
-                     Dense=true
-                     @ref="_grid">
-            <ToolBarContent>
-                <MudTextField T="string" @bind-Value="_sessionData.SearchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))"
-                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Clearable="true" OnClearButtonClick="ClearSearch"></MudTextField>
-            </ToolBarContent>
-            <Columns>
-              
-                <PropertyColumn Property="x => x.Contact" ShowFilterIcon="false" />
-                <PropertyColumn Property="x => x.Address.street" ShowFilterIcon="false" Title="Street" />
-                <PropertyColumn Property="x => x.Address.suburb" ShowFilterIcon="false" Title="Suburb" />
-                <PropertyColumn Property="x => x.ConstructionNumber" ShowFilterIcon="false" Title="Construction Number"/>
-                <PropertyColumn Property="x => x.SurveyNumber" ShowFilterIcon="false" Title="Survey Number" />
-            </Columns>
-            <PagerContent>
-                <MudDataGridPager T="ListJobDto" />
-            </PagerContent>
-        </MudDataGrid>
-    </ChildContent>
-</Card>
+<div>
+    <Card Title="Jobs">
+        <ChildContent>
+            <MudDataGrid T="ListJobDto"
+                         ServerData="LoadJobs"
+                         Filterable="true"
+                         SortMode="SortMode.Single"
+                         Loading="base.IsLoading"
+                         RowsPerPage="_rowsPerPage"
+                         RowsPerPageValues="@(new int[] { 10, 25, 50, 100 })"
+                         CurrentPage="_sessionData.Page"
+                         CurrentPageChanged="@((page) => _sessionData.Page = page)"
+                         Dense=true
+                         @ref="_grid">
+                <ToolBarContent>
+                    <MudTextField T="string" @bind-Value="_sessionData.SearchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))"
+                                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Clearable="true" OnClearButtonClick="ClearSearch"></MudTextField>
+                </ToolBarContent>
+                <Columns>
+                    <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" />
+                    <PropertyColumn Property="x => x.Contact" ShowFilterIcon="false" />
+                    <PropertyColumn Property="x => x.Address.street" ShowFilterIcon="false" Title="Street" />
+                    <PropertyColumn Property="x => x.Address.suburb" ShowFilterIcon="false" Title="Suburb" />
+                    <PropertyColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number" />
+                    <PropertyColumn Property="x => x.JobType" ShowFilterIcon="false" Title="Job Type" />
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="ListJobDto" />
+                </PagerContent>
+            </MudDataGrid>
+        </ChildContent>
+    </Card>
+</div>
 
 @code {
     private PagedResponse<ListJobDto>? _pagedResponse;
     private readonly int _rowsPerPage = 25;
     private MudDataGrid<ListJobDto>? _grid;
-     /// <summary>
+    /// <summary>
     /// Session data for the facilities page
     /// </summary>
     private SessionSearchData _sessionData = new();
@@ -92,23 +94,21 @@
             {
                 // Set order direction
                 _sessionData.Order = sortDefinition.Descending ? SortDirectionEnum.Desc : SortDirectionEnum.Asc;
-
-                // Map the property name to the API's expected orderby value
                 _sessionData.OrderBy = sortDefinition.SortBy switch
                 {
-                    nameof(ListJobDto.Contact) or
-                    nameof(ListJobDto.Address.street) or
-                    nameof(ListJobDto.Address.suburb) or
-                    nameof(ListJobDto.SurveyNumber) or
-                    nameof(ListJobDto.ConstructionNumber) or
-                    _ => nameof(ListJobDto.Contact) // Default
+                    var s when s == nameof(ListJobDto.Contact)
+                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.postCode)
+                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.suburb)
+                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.street)
+                            || s == nameof(ListJobDto.JobNumber) => s,
+                    _ => nameof(ListJobDto.JobId)
                 };
             }
             else
             {
                 // Default sorting if no sort definition
                 _sessionData.OrderBy = nameof(ListJobDto.JobId);
-                _sessionData.Order = SortDirectionEnum.Asc;
+                _sessionData.Order = SortDirectionEnum.Desc;
             }
 
             // Save current state to session
@@ -141,7 +141,7 @@
                 Console.WriteLine($"API Error: {errorMessage}");
                 if (_dialogService is not null)
                 {
-                    _ = await _dialogService.ShowMessageBox("Error", errorMessage);
+                    _snackbar.Add("Error", Severity.Error);
                 }
                 return new GridData<ListJobDto>() { Items = [], TotalItems = 0 };
             }

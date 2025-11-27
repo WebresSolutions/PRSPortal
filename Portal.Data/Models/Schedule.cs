@@ -10,6 +10,10 @@ public partial class Schedule
 {
     public int Id { get; set; }
 
+    public int ScheduleTrackId { get; set; }
+
+    public int ScheduleColourId { get; set; }
+
     public int? LegacyId { get; set; }
 
     /// <summary>
@@ -39,4 +43,8 @@ public partial class Schedule
     public virtual Job? Job { get; set; }
 
     public virtual AppUser? ModifiedByUser { get; set; }
+
+    public virtual ScheduleColour ScheduleColour { get; set; } = null!;
+
+    public virtual ScheduleTrack ScheduleTrack { get; set; } = null!;
 }

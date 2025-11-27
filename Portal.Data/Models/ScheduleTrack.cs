@@ -30,4 +30,6 @@ public partial class ScheduleTrack
     public virtual AppUser? ModifiedByUser { get; set; }
 
     public virtual ICollection<ScheduleUser> ScheduleUsers { get; set; } = new List<ScheduleUser>();
+
+    public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 }

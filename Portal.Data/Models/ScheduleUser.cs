@@ -9,8 +9,6 @@ public partial class ScheduleUser
 
     public int ScheduleTrackId { get; set; }
 
-    public int? LegacyId { get; set; }
-
     public int UserId { get; set; }
 
     public int CreatedByUserId { get; set; }

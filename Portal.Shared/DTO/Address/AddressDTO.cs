@@ -1,9 +1,9 @@
 ﻿namespace Portal.Shared.DTO.Address;
 
 public record AddressDTO(
-    int addressId,
-    StateEnum? state,
-    int stateId,
+    int AddressId,
+    StateEnum? State,
+    int StateId,
     string suburb,
     string street,
     string postCode

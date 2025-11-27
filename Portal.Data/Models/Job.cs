@@ -18,24 +18,18 @@ public partial class Job
 
     public int? JobColourId { get; set; }
 
-    public int? JobTypeId { get; set; }
+    public int JobTypeId { get; set; }
 
     public int? LegacyId { get; set; }
 
     public string? InvoiceNumber { get; set; }
 
-    public int? SurveyNumber { get; set; }
-
-    public int? ConstructionNumber { get; set; }
-
     /// <summary>
-    /// Total job price - consider calculating from timesheet entries
+    /// Used in junction with the job type to identify the job. With either be type Construction or Surveying
     /// </summary>
-    public decimal? TotalPrice { get; set; }
+    public int? JobNumber { get; set; }
 
-    public DateTime? DateSent { get; set; }
-
-    public DateTime? PaymentReceived { get; set; }
+    public string? Details { get; set; }
 
     public int CreatedByUserId { get; set; }
 
@@ -68,7 +62,7 @@ public partial class Job
 
     public virtual ICollection<JobTask> JobTasks { get; set; } = new List<JobTask>();
 
-    public virtual JobType? JobType { get; set; }
+    public virtual JobType JobType { get; set; } = null!;
 
     public virtual AppUser? ModifiedByUser { get; set; }
 

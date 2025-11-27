@@ -38,15 +38,17 @@ public partial class PrsDbContext : DbContext
 
     public virtual DbSet<JobTask> JobTasks { get; set; }
 
-    public virtual DbSet<JobType> JobTypes { get; set; }
+    public virtual DbSet<JobTaskType> JobTaskTypes { get; set; }
 
-    public virtual DbSet<NoteType> NoteTypes { get; set; }
+    public virtual DbSet<JobType> JobTypes { get; set; }
 
     public virtual DbSet<Quote> Quotes { get; set; }
 
     public virtual DbSet<QuoteNote> QuoteNotes { get; set; }
 
     public virtual DbSet<Schedule> Schedules { get; set; }
+
+    public virtual DbSet<ScheduleColour> ScheduleColours { get; set; }
 
     public virtual DbSet<ScheduleTrack> ScheduleTracks { get; set; }
 
@@ -60,6 +62,8 @@ public partial class PrsDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("pg_trgm");
+
         modelBuilder.Entity<Address>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("address_pkey");
@@ -71,6 +75,14 @@ public partial class PrsDbContext : DbContext
             entity.HasIndex(e => e.DeletedAt, "idx_address_deleted_at");
 
             entity.HasIndex(e => e.StateId, "idx_address_state_id");
+
+            entity.HasIndex(e => e.Street, "idx_address_street_trgm")
+                .HasMethod("gin")
+                .HasOperators(new[] { "gin_trgm_ops" });
+
+            entity.HasIndex(e => e.Suburb, "idx_address_suburb_trgm")
+                .HasMethod("gin")
+                .HasOperators(new[] { "gin_trgm_ops" });
 
             entity.HasIndex(e => e.Id, "idx_council_contact_address_id");
 
@@ -237,7 +249,19 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.Email, "idx_contact_email");
 
+            entity.HasIndex(e => e.Email, "idx_contact_email_trgm")
+                .HasMethod("gin")
+                .HasOperators(new[] { "gin_trgm_ops" });
+
+            entity.HasIndex(e => e.FullName, "idx_contact_name_trgm")
+                .HasMethod("gin")
+                .HasOperators(new[] { "gin_trgm_ops" });
+
             entity.HasIndex(e => e.ParentContactId, "idx_contact_parent_contact_id");
+
+            entity.HasIndex(e => e.Phone, "idx_contact_phone_trgm")
+                .HasMethod("gin")
+                .HasOperators(new[] { "gin_trgm_ops" });
 
             entity.HasIndex(e => e.Id, "idx_council_contact_contact_id");
 
@@ -261,6 +285,10 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.FirstName)
                 .HasMaxLength(100)
                 .HasColumnName("first_name");
+            entity.Property(e => e.FullName)
+                .HasMaxLength(201)
+                .HasComputedColumnSql("(((first_name)::text || ' '::text) || (last_name)::text)", true)
+                .HasColumnName("full_name");
             entity.Property(e => e.LastName)
                 .HasMaxLength(100)
                 .HasColumnName("last_name");
@@ -427,6 +455,8 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.InvoiceNumber, "idx_job_invoice_number");
 
+            entity.HasIndex(e => e.JobNumber, "idx_job_number");
+
             entity.HasIndex(e => e.JobTypeId, "idx_job_type_id");
 
             entity.HasIndex(e => e.InvoiceNumber, "job_invoice_number_key").IsUnique();
@@ -435,31 +465,27 @@ public partial class PrsDbContext : DbContext
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
             entity.Property(e => e.AddressId).HasColumnName("address_id");
-            entity.Property(e => e.ConstructionNumber).HasColumnName("construction_number");
             entity.Property(e => e.ContactId).HasColumnName("contact_id");
             entity.Property(e => e.CouncilId).HasColumnName("council_id");
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
-            entity.Property(e => e.DateSent).HasColumnName("date_sent");
             entity.Property(e => e.DeletedAt)
                 .HasComment("Soft delete TIMESTAMPTZ - NULL means active")
                 .HasColumnName("deleted_at");
+            entity.Property(e => e.Details).HasColumnName("details");
             entity.Property(e => e.InvoiceNumber)
                 .HasMaxLength(255)
                 .HasColumnName("invoice_number");
             entity.Property(e => e.JobColourId).HasColumnName("job_colour_id");
+            entity.Property(e => e.JobNumber)
+                .HasComment("Used in junction with the job type to identify the job. With either be type Construction or Surveying")
+                .HasColumnName("job_number");
             entity.Property(e => e.JobTypeId).HasColumnName("job_type_id");
             entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
-            entity.Property(e => e.PaymentReceived).HasColumnName("payment_received");
-            entity.Property(e => e.SurveyNumber).HasColumnName("survey_number");
-            entity.Property(e => e.TotalPrice)
-                .HasPrecision(10, 2)
-                .HasComment("Total job price - consider calculating from timesheet entries")
-                .HasColumnName("total_price");
 
             entity.HasOne(d => d.Address).WithMany(p => p.Jobs)
                 .HasForeignKey(d => d.AddressId)
@@ -485,6 +511,7 @@ public partial class PrsDbContext : DbContext
 
             entity.HasOne(d => d.JobType).WithMany(p => p.Jobs)
                 .HasForeignKey(d => d.JobTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("job_job_type_id_fkey");
 
             entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.JobModifiedByUsers)
@@ -497,6 +524,8 @@ public partial class PrsDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("job_colour_pkey");
 
             entity.ToTable("job_colour", tb => tb.HasComment("Colour of job"));
+
+            entity.HasIndex(e => e.Color, "job_color_unique").IsUnique();
 
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
@@ -663,6 +692,9 @@ public partial class PrsDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
             entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(e => e.Description)
+                .HasMaxLength(255)
+                .HasColumnName("description");
             entity.Property(e => e.InvoiceRequired)
                 .HasDefaultValue(false)
                 .HasColumnName("invoice_required");
@@ -689,6 +721,39 @@ public partial class PrsDbContext : DbContext
                 .HasConstraintName("job_task_modified_by_user_id_fkey");
         });
 
+        modelBuilder.Entity<JobTaskType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("job_task_type_pkey");
+
+            entity.ToTable("job_task_type");
+
+            entity.HasIndex(e => e.CreatedByUserId, "idx_job_task_type_created_by");
+
+            entity.HasIndex(e => e.Name, "idx_job_task_type_name");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasColumnName("name");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.JobTaskTypeCreatedByUsers)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("job_task_type_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.JobTaskTypeModifiedByUsers)
+                .HasForeignKey(d => d.ModifiedByUserId)
+                .HasConstraintName("job_task_type_modified_by_user_id_fkey");
+        });
+
         modelBuilder.Entity<JobType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("job_type_pkey");
@@ -699,31 +764,14 @@ public partial class PrsDbContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("id");
             entity.Property(e => e.Abbreviation)
-                .HasMaxLength(10)
+                .HasMaxLength(15)
                 .HasColumnName("abbreviation");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
-                .HasColumnName("name");
-        });
-
-        modelBuilder.Entity<NoteType>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("note_type_pkey");
-
-            entity.ToTable("note_type", tb => tb.HasComment("Type of note"));
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
-            entity.Property(e => e.Description).HasColumnName("description");
-            entity.Property(e => e.Name)
-                .HasMaxLength(255)
+                .HasComment("Construction = Set out. Survey = CAD.")
                 .HasColumnName("name");
         });
 
@@ -812,6 +860,8 @@ public partial class PrsDbContext : DbContext
 
             entity.ToTable("schedule", tb => tb.HasComment("User schedules for work hours."));
 
+            entity.HasIndex(e => e.ScheduleColourId, "idx_schedule_colour_id");
+
             entity.HasIndex(e => e.CreatedByUserId, "idx_schedule_created_by");
 
             entity.HasIndex(e => e.EndTime, "idx_schedule_end_time");
@@ -819,6 +869,8 @@ public partial class PrsDbContext : DbContext
             entity.HasIndex(e => e.JobId, "idx_schedule_job_id");
 
             entity.HasIndex(e => e.StartTime, "idx_schedule_start_time");
+
+            entity.HasIndex(e => e.ScheduleTrackId, "idx_schedule_track_id");
 
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
@@ -835,6 +887,8 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.Notes).HasColumnName("notes");
+            entity.Property(e => e.ScheduleColourId).HasColumnName("schedule_colour_id");
+            entity.Property(e => e.ScheduleTrackId).HasColumnName("schedule_track_id");
             entity.Property(e => e.StartTime)
                 .HasComment("Start time of the schedule")
                 .HasColumnName("start_time");
@@ -851,6 +905,35 @@ public partial class PrsDbContext : DbContext
             entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.ScheduleModifiedByUsers)
                 .HasForeignKey(d => d.ModifiedByUserId)
                 .HasConstraintName("schedule_modified_by_user_id_fkey");
+
+            entity.HasOne(d => d.ScheduleColour).WithMany(p => p.Schedules)
+                .HasForeignKey(d => d.ScheduleColourId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("schedule_schedule_colour_id_fkey");
+
+            entity.HasOne(d => d.ScheduleTrack).WithMany(p => p.Schedules)
+                .HasForeignKey(d => d.ScheduleTrackId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("schedule_schedule_track_id_fkey");
+        });
+
+        modelBuilder.Entity<ScheduleColour>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("schedule_colour_pkey");
+
+            entity.ToTable("schedule_colour", tb => tb.HasComment("Colour of the schedule"));
+
+            entity.HasIndex(e => e.Color, "schedule_colour_unique").IsUnique();
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.Color)
+                .HasMaxLength(20)
+                .HasColumnName("color");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
         });
 
         modelBuilder.Entity<ScheduleTrack>(entity =>
@@ -894,9 +977,9 @@ public partial class PrsDbContext : DbContext
 
         modelBuilder.Entity<ScheduleUser>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("schedule_users_pkey");
+            entity.HasKey(e => e.Id).HasName("schedule_user_pkey");
 
-            entity.ToTable("schedule_users");
+            entity.ToTable("schedule_user");
 
             entity.HasIndex(e => e.CreatedByUserId, "idx_schedule_users_created_by_id");
 
@@ -911,24 +994,23 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
-            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.ScheduleTrackId).HasColumnName("schedule_track_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.ScheduleUserCreatedByUsers)
                 .HasForeignKey(d => d.CreatedByUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("schedule_users_created_by_user_id_fkey");
+                .HasConstraintName("schedule_user_created_by_user_id_fkey");
 
             entity.HasOne(d => d.ScheduleTrack).WithMany(p => p.ScheduleUsers)
                 .HasForeignKey(d => d.ScheduleTrackId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("schedule_users_schedule_track_id_fkey");
+                .HasConstraintName("schedule_user_schedule_track_id_fkey");
 
             entity.HasOne(d => d.User).WithMany(p => p.ScheduleUserUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("schedule_users_user_id_fkey");
+                .HasConstraintName("schedule_user_user_id_fkey");
         });
 
         modelBuilder.Entity<State>(entity =>

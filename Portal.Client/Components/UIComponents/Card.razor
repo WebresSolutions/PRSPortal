@@ -47,6 +47,9 @@
     [Parameter]
     public int Height { get; set; } = 300;
 
+    [Parameter]
+    public Action? TitleActions { get; set; }
+
 	private string _heightString => Height > 0 ? $"{Height}px" : "300px";
 
     /// <summary>
@@ -54,6 +57,7 @@
     /// </summary>
     [Parameter]
     public RenderFragment? TitleContent { get; set; }
+
     /// <summary>
     /// Optionally pass a function to reload the card content
     /// </summary>

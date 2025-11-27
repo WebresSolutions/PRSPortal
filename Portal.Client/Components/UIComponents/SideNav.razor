@@ -1,6 +1,6 @@
 ﻿
 <nav class="sidebar d-flex ps-2 gap-2 flex-column">
-	<FluentButton OnClick="@(MinimizeSidebar)" Appearance="Appearance.Lightweight"><i class="bi bi-list"></i></FluentButton>
+	<button @onclick="@(MinimizeSidebar)" Appearance="Appearance.Lightweight"><i class="bi bi-list"></i></button>
 	<div class="sidebar-top">
 		<ul class="nav flex-column">
 			@foreach (KeyValuePair<string, NavigationLink> link in links)

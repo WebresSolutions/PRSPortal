@@ -37,6 +37,14 @@ public enum StateEnum
     NT = 7
 }
 
+public enum JobTypeEnum
+{
+    [Description("Construction")]
+    Construction = 1,
+    [Description("Surveying")]
+    Surveying = 2,
+}
+
 // Helper extension methods
 public static class StateExtensions
 {

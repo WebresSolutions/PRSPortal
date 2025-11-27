@@ -8,21 +8,13 @@ public class GUI : Window
     {
         Title = "PRS Database Migration [MySQL ---> PgSQL]";
 
-        Button btnInit = new()
-        {
-            Text = "Start Database Migration W reset.",
-            X = Pos.Center(),
-            Y = Pos.Center(),
-            IsDefault = true
-        };
+        // Add the button clicked events
+        _BtnInitWithoutDbReset.Clicked += () => ButtonClicked(false);
+        _BtnInit.Clicked += () => ButtonClicked(true);
 
-        Button btnInitWithoutDbReset = new()
-        {
-            Text = "Start Database Migration WO reset.",
-            X = Pos.Center(),
-            Y = Pos.Center() - 4,
-            IsDefault = true
-        };
+        // Add the buttons to the main window. 
+        Add(_BtnInit);
+        Add(_BtnInitWithoutDbReset);
 
         void ButtonClicked(bool reset)
         {
@@ -31,132 +23,213 @@ public class GUI : Window
                 // Remove the current window
                 Application.Top.Remove(this);
 
-                // Create and show a new view/window for migration
-                Window migrationWindow = new()
-                {
-                    Title = "Migration Progress",
-                    X = 0,
-                    Y = 0,
-                    Width = Dim.Fill(),
-                    Height = Dim.Fill()
-                };
-
-                // Add migration UI components
-                Label stepLabel = new()
-                {
-                    Text = "Initializing migration...",
-                    X = 2,
-                    Y = 2,
-                    Width = Dim.Fill() - 4
-                };
-
-                Label statusLabel = new()
-                {
-                    Text = "Preparing...",
-                    X = 2,
-                    Y = 4,
-                    Width = Dim.Fill() - 4
-                };
-
-                ProgressBar progressBar = new()
-                {
-                    X = 2,
-                    Y = 6,
-                    Width = Dim.Fill() - 4,
-                    Height = 1
-                };
-
-                Label percentageLabel = new()
-                {
-                    Text = "0%",
-                    X = Pos.Center(),
-                    Y = 8,
-                    Width = 10
-                };
-
-                Label countLabel = new()
-                {
-                    Text = "0 / 0",
-                    X = Pos.Center(),
-                    Y = 10,
-                    Width = 20
-                };
-
-                migrationWindow.Add(stepLabel, statusLabel, progressBar, percentageLabel, countLabel);
-                Application.Top.Add(migrationWindow);
+                _MigrationWindow.Add(_StepLabel, _StatusLabel, _ProgressBar, _PercentageLabel, _CountLabel, _BtnRestart, _BtnExit);
+                Application.Top.Add(_MigrationWindow);
                 // Refresh the display
                 Application.Top.SetNeedsDisplay();
 
-                // Progress callback that updates the UI
-                void progressCallback(MigrationProgress progress)
+                // Store the reset parameter for restart
+                bool shouldReset = reset;
+
+                // Function to start the migration
+                void StartMigrationProcess()
                 {
-                    Application.MainLoop.Invoke(() =>
+                    // Reset UI
+                    _StepLabel.Text = "Initializing migration...";
+                    _StatusLabel.Text = "Preparing...";
+                    _ProgressBar.Fraction = 0f;
+                    _PercentageLabel.Text = "0%";
+                    _CountLabel.Text = "0 / 0";
+                    _BtnRestart.Visible = false;
+                    _BtnExit.Visible = false;
+                    Application.Refresh();
+
+                    // Progress callback that updates the UI
+                    void progressCallback(MigrationProgress progress)
                     {
-                        stepLabel.Text = progress.CurrentStep;
-                        statusLabel.Text = progress.CurrentItem;
-
-                        if (progress.TotalItems > 0)
+                        Application.MainLoop.Invoke(() =>
                         {
-                            double fraction = progress.Percentage / 100.0;
-                            progressBar.Fraction = (float)fraction;
-                            percentageLabel.Text = $"{progress.Percentage:F1}%";
-                            countLabel.Text = $"{progress.CurrentItemIndex} / {progress.TotalItems}";
-                        }
-                        else
-                        {
-                            progressBar.Fraction = 0f;
-                            percentageLabel.Text = "0%";
-                            countLabel.Text = "0 / 0";
-                        }
+                            _StepLabel.Text = progress.CurrentStep;
+                            _StatusLabel.Text = progress.CurrentItem;
 
-                        Application.Refresh();
-                    });
+                            if (progress.TotalItems > 0)
+                            {
+                                double fraction = progress.Percentage / 100.0;
+                                _ProgressBar.Fraction = (float)fraction;
+                                _PercentageLabel.Text = $"{progress.Percentage:F1}%";
+                                _CountLabel.Text = $"{progress.CurrentItemIndex} / {progress.TotalItems}";
+                            }
+                            else
+                            {
+                                _ProgressBar.Fraction = 0f;
+                                _PercentageLabel.Text = "0%";
+                                _CountLabel.Text = "0 / 0";
+                            }
+
+                            Application.Refresh();
+                        });
+                    }
+
+                    // Start the migration process on a manually spawned background thread
+                    Thread migrationThread = new(() =>
+                    {
+                        try
+                        {
+                            // Start the actual migration.
+                            startMigration.Invoke(progressCallback);
+
+                            Application.MainLoop.Invoke(() =>
+                            {
+                                _StepLabel.Text = "Migration Complete";
+                                _StatusLabel.Text = "Database Migration Complete!";
+                                _ProgressBar.Fraction = 1.0f;
+                                _PercentageLabel.Text = "100%";
+
+                                // Show restart and exit buttons
+                                _BtnRestart.Visible = true;
+                                _BtnExit.Visible = true;
+                                Application.Refresh();
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            Application.MainLoop.Invoke(() =>
+                            {
+                                _StepLabel.Text = "Migration Failed";
+                                _StatusLabel.Text = $"Error: {ex.Message}";
+
+                                // Show restart and exit buttons even on failure
+                                _BtnRestart.Visible = true;
+                                _BtnExit.Visible = true;
+                                Application.Refresh();
+                            });
+                        }
+                    })
+                    {
+                        IsBackground = true  // Thread will terminate when main thread exits
+                    };
+
+                    migrationThread.Start();
                 }
 
-                // Start the migration process in a background task
-                Task.Run(() =>
+                // Button click handlers
+                _BtnRestart.Clicked += () =>
                 {
-                    try
+                    // Re-initialize if needed (only if reset was originally requested)
+                    if (shouldReset)
                     {
-                        startMigration.Invoke(progressCallback);
+                        if (initapp.Invoke(true))
+                        {
+                            StartMigrationProcess();
+                        }
+                    }
+                    else
+                    {
+                        // Just restart migration without re-initializing
+                        StartMigrationProcess();
+                    }
+                };
 
-                        Application.MainLoop.Invoke(() =>
-                        {
-                            stepLabel.Text = "Migration Complete";
-                            statusLabel.Text = "Database Migration Complete!";
-                            progressBar.Fraction = 1.0f;
-                            percentageLabel.Text = "100%";
-                            Application.Refresh();
-                            
-                            // Use a timer to shutdown after a brief delay to allow UI to update
-                            Application.MainLoop.AddTimeout(TimeSpan.FromSeconds(2), (mainLoop) =>
-                            {
-                                Application.RequestStop();
-                                return false;
-                            });
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Application.MainLoop.Invoke(() =>
-                        {
-                            stepLabel.Text = "Migration Failed";
-                            statusLabel.Text = $"Error: {ex.Message}";
-                            Application.Refresh();
-                        });
-                    }
-                });
+                _BtnExit.Clicked += () =>
+                {
+                    Application.RequestStop();
+                };
+
+                // Start the initial migration
+                StartMigrationProcess();
             }
             else
             {
-                btnInit.Text = "Failed to Init";
+                _BtnInit.Text = "Failed to Init";
                 Application.RequestStop();
             }
         }
-        btnInitWithoutDbReset.Clicked += () => ButtonClicked(false);
-        btnInit.Clicked += () => ButtonClicked(true);
-
-        Add(btnInit);
-        Add(btnInitWithoutDbReset);
     }
+
+    // Create and show a new view/window for migration
+    private readonly Window _MigrationWindow = new()
+    {
+        Title = "Migration In Progress",
+        X = 0,
+        Y = 0,
+        Width = Dim.Fill(),
+        Height = Dim.Fill()
+    };
+
+    // Add migration UI components
+    private readonly Label _StepLabel = new()
+    {
+        Text = "Initializing migration...",
+        X = 2,
+        Y = 2,
+        Width = Dim.Fill() - 4
+    };
+
+    private readonly Label _StatusLabel = new()
+    {
+        Text = "Preparing...",
+        X = 2,
+        Y = 4,
+        Width = Dim.Fill() - 4
+    };
+
+    private readonly ProgressBar _ProgressBar = new()
+    {
+        X = 2,
+        Y = 6,
+        Width = Dim.Fill() - 4,
+        Height = 1
+    };
+
+    private readonly Label _PercentageLabel = new()
+    {
+        Text = "0%",
+        X = Pos.Center(),
+        Y = 8,
+        Width = 10
+    };
+
+    private readonly Label _CountLabel = new()
+    {
+        Text = "0 / 0",
+        X = Pos.Center(),
+        Y = 10,
+        Width = 20
+    };
+
+    // Buttons for restart and exit (initially hidden)
+    private Button _BtnRestart = new()
+    {
+        Text = "Restart Migration",
+        X = Pos.Center() - 15,
+        Y = 12,
+        Width = 30,
+        Visible = false
+    };
+
+    private Button _BtnExit = new()
+    {
+        Text = "Exit",
+        X = Pos.Center() - 10,
+        Y = 14,
+        Width = 20,
+        Visible = false
+    };
+
+    private readonly Button _BtnInit = new()
+    {
+        Text = "Migrate And Reset",
+        X = Pos.Center(),
+        Y = Pos.Center(),
+        IsDefault = true
+    };
+
+    private readonly Button _BtnInitWithoutDbReset = new()
+    {
+        Text = "Migrate",
+        X = Pos.Center(),
+        Y = Pos.Center() - 4,
+        IsDefault = true
+    };
+
 }

@@ -10,6 +10,9 @@ public partial class JobType
 {
     public int Id { get; set; }
 
+    /// <summary>
+    /// Construction = Set out. Survey = CAD.
+    /// </summary>
     public string Name { get; set; } = null!;
 
     public string Abbreviation { get; set; } = null!;

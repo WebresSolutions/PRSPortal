@@ -3,7 +3,9 @@ using Migration.Display;
 using Migration.SourceDb;
 using Portal.Data;
 using Portal.Data.Models;
+using Portal.Shared;
 using System.Collections.Frozen;
+using Schedule = Portal.Data.Models.Schedule;
 
 namespace Migration.MigrationServices;
 
@@ -233,6 +235,7 @@ internal class MigrationService(
         }
     }
 
+
     public void MigrateJobs(Action<MigrationProgress> progressCallback)
     {
         try
@@ -268,13 +271,47 @@ internal class MigrationService(
                 TotalItems = jobs.Length
             });
 
+            // Select all of the valid hash colors from the jobs
+            List<string?> existingColours = [.. jobs.GroupBy(j => j.Colour)
+                .Select(g => g.Key)
+                .Where(c => c is not null && c.StartsWith('#') && c.Length == 7)];
+
+            List<JobColour> jobColours = [.. existingColours.Select(x => new JobColour
+            {
+                Color = x!,
+                CreatedAt = DateTime.UtcNow
+            })];
+            jobColours.Add(new JobColour
+            {
+                Color = "#FFFFFF",
+                CreatedAt = DateTime.UtcNow
+            });
+            _destinationContext.AddRange(jobColours);
+            _destinationContext.SaveChanges();
+
             List<Portal.Data.Models.Job> jobsToCreate = [];
             Dictionary<int, Address> jobAddresses = [];
+
+            // Find list of duplicates
+            int?[] duplicateCads = [.. jobs
+                .Where(x => x.CadastralJobNumber is not null && x.Deleted == false)
+                .GroupBy(x => x.CadastralJobNumber)
+                .Select(x => new { CadNumber = x.Key, Count = x.Count() })
+                .Where(x => x.Count > 1)
+                .Select(x => x.CadNumber)];
+
+            int?[] duplicateSetOuts = [.. jobs
+                .Where(x => x.SetoutJobNumber is not null && x.Deleted == false)
+                .GroupBy(x => x.SetoutJobNumber)
+                .Select(x => new { CadNumber = x.Key, Count = x.Count() })
+                .Where(x => x.Count > 1)
+                .Select(x => x.CadNumber)];
 
             for (int i = 0; i < jobs.Length; i++)
             {
                 SourceDb.Job oldJob = jobs[i];
-                if (i % 100 == 0)
+
+                if (i % 1000 == 0)
                 {
                     progressCallback.Invoke(new MigrationProgress
                     {
@@ -296,10 +333,11 @@ internal class MigrationService(
                 if (contact is null)
                     throw new Exception($"Contact with LegacyId {oldJob.ContactId} not found for Job LegacyId {oldJob.Id}");
 
+                int? jobNumber = oldJob.CadastralJobNumber ?? oldJob.SetoutJobNumber;
+
                 Portal.Data.Models.Job newJob = new()
                 {
-                    ConstructionNumber = oldJob.SetoutJobNumber,
-                    SurveyNumber = oldJob.CadastralJobNumber,
+                    JobNumber = jobNumber,
                     CreatedByUserId = 95,
                     JobTypeId = oldJob.SetoutJobNumber is not null ? 1 : 2,
                     LegacyId = (int)oldJob.Id,
@@ -308,6 +346,7 @@ internal class MigrationService(
                     Council = council,
                     CouncilId = council?.Id,
                     DeletedAt = oldJob.DeletedDate is null ? null : Helpers.GetValidDateWithTimezone(oldJob.DeletedDate),
+                    JobColour = jobColours.FirstOrDefault(jc => jc.Color == (oldJob.Colour is not null && oldJob.Colour.StartsWith('#') && oldJob.Colour.Length == 7 ? oldJob.Colour : "#FFFFFF")),
                 };
                 jobAddresses.Add(newJob.LegacyId ?? 0, address);
                 jobsToCreate.Add(newJob);
@@ -404,7 +443,6 @@ internal class MigrationService(
                 CurrentItemIndex = 0,
                 TotalItems = notes.Length
             });
-
 
             List<JobNote> notesToCreate = [];
             int index = 0;
@@ -535,5 +573,222 @@ internal class MigrationService(
             Console.WriteLine(ex.Message);
             throw;
         }
+    }
+
+    /// <summary>
+    /// TODO: Lets wait and see how schedules are used before migrating them.
+    /// </summary>
+    /// <param name="progressCallback"></param>
+    public void MigrateSchedule(Action<MigrationProgress> progressCallback)
+    {
+        progressCallback.Invoke(new MigrationProgress
+        {
+            CurrentStep = "Migrating Schedules",
+            CurrentItem = "Loading schedules...",
+            CurrentItemIndex = 0,
+            TotalItems = 0
+        });
+        // Get all of the schedule tracks
+        SourceDb.ScheduleTrack[] scheduletracksOld = [.. _sourceDBContext.ScheduleTracks];
+        Portal.Data.Models.ScheduleTrack[] scheduletracksNew = [.. _destinationContext.ScheduleTracks];
+
+        if (scheduletracksOld.Length == scheduletracksNew.Length)
+        {
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Schedule Tracks",
+                CurrentItem = "Schedules exist",
+                CurrentItemIndex = 0,
+                TotalItems = 0
+            });
+            return;
+        }
+        Dictionary<int, Portal.Data.Models.ScheduleTrack> scheduleTracksToAdd = [];
+        Dictionary<int, List<ScheduleUser>> scheduleUsers = [];
+        int index = 0;
+        foreach (SourceDb.ScheduleTrack scheduleTrackOld in scheduletracksOld)
+        {
+            if (index % 1000 == 0)
+            {
+                progressCallback.Invoke(new MigrationProgress
+                {
+                    CurrentStep = "Migrating Schedule Tracks",
+                    CurrentItem = $"Processing job {index + 1}/{scheduletracksOld.Length}",
+                    CurrentItemIndex = index + 1,
+                    TotalItems = scheduletracksOld.Length
+                });
+            }
+
+            // Schedule groups currently = 1 = CAD, 2 = Setout
+            Portal.Data.Models.ScheduleTrack newScheduleTrack = new()
+            {
+                JobTypeId = scheduleTrackOld.ScheduleGroupId == (int)JobTypeEnum.Surveying ? (int)JobTypeEnum.Surveying : (int)JobTypeEnum.Construction,
+                CreatedByUserId = 95,
+                CreatedOn = Helpers.GetValidDateWithTimezone(scheduleTrackOld.Created),
+                Date = scheduleTrackOld.Date.HasValue ? scheduleTrackOld.Date : null,
+                LegacyId = (int)scheduleTrackOld.Id,
+            };
+            scheduleTracksToAdd.Add((int)scheduleTrackOld.Id, newScheduleTrack);
+            if (scheduleTrackOld.AssigneeUserId1 is not null || scheduleTrackOld.AssigneeUserId2 is not null)
+            {
+                List<ScheduleUser> userList = [];
+
+                if (scheduleTrackOld.AssigneeUserId1 is not null && scheduleTrackOld.AssigneeUserId1 is > 0)
+                    userList.Add(new ScheduleUser
+                    {
+                        CreatedByUserId = 95,
+                        CreatedOn = DateTime.UtcNow,
+                        UserId = _Users.GetValueRefOrNullRef(scheduleTrackOld.AssigneeUserId1 ?? 0)
+                    });
+
+                if (scheduleTrackOld.AssigneeUserId2 is not null && scheduleTrackOld.AssigneeUserId2 is > 0)
+                    userList.Add(new ScheduleUser
+                    {
+                        CreatedByUserId = 95,
+                        CreatedOn = DateTime.UtcNow,
+                        UserId = _Users.GetValueRefOrNullRef(scheduleTrackOld.AssigneeUserId2 ?? 0)
+                    });
+
+                scheduleUsers.Add((int)newScheduleTrack.LegacyId, userList);
+            }
+            index++;
+        }
+        progressCallback.Invoke(new MigrationProgress
+        {
+            CurrentStep = "Migrating Schedule Tracks",
+            CurrentItem = $"Saving schedule tracks to the database",
+            CurrentItemIndex = scheduletracksOld.Length,
+            TotalItems = scheduletracksOld.Length
+        });
+        _destinationContext.AddRange(scheduleTracksToAdd.Values);
+        _destinationContext.SaveChanges();
+
+        index = 0;
+        // Configure the track Id on the users
+        foreach (KeyValuePair<int, List<ScheduleUser>> scheduleUser in scheduleUsers)
+        {
+            if (index % 1000 == 0)
+            {
+                progressCallback.Invoke(new MigrationProgress
+                {
+                    CurrentStep = "Migrating Schedule Users",
+                    CurrentItem = $"Processing user {index + 1}/{scheduleUsers.Count}",
+                    CurrentItemIndex = index + 1,
+                    TotalItems = scheduleUsers.Count
+                });
+            }
+            int scheduleTrackId = scheduleTracksToAdd[scheduleUser.Key].Id;
+            foreach (ScheduleUser user in scheduleUser.Value)
+                user.ScheduleTrackId = scheduleTrackId;
+
+            index++;
+        }
+        // bulk insert the schedule users 
+        List<ScheduleUser> scheduleUsersToInsert = [.. scheduleUsers.SelectMany(su => su.Value)];
+        _destinationContext.BulkInsert(scheduleUsersToInsert);
+
+        // Get all of the schedules
+        SourceDb.Schedule[] schedulesOld = [.. _sourceDBContext.Schedules.AsNoTracking()];
+        Schedule[] schedulesNew = [.. _destinationContext.Schedules.AsNoTracking()];
+
+        if (schedulesOld.Length == schedulesNew.Length)
+        {
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Schedules",
+                CurrentItem = "Schedules exist",
+                CurrentItemIndex = 0,
+                TotalItems = 0
+            });
+            return;
+        }
+
+        // Select all of the valid hash colors from the jobs
+        List<string?> existingColours = [.. schedulesOld.GroupBy(j => j.Colour)
+                .Select(g => g.Key)
+                .Where(c => c is not null && c.StartsWith('#') && c.Length == 7)];
+
+        List<ScheduleColour> scheduleColours = [.. existingColours.Select(x => new ScheduleColour
+            {
+                Color = x!,
+                CreatedAt = DateTime.UtcNow
+            })];
+        scheduleColours.Add(new ScheduleColour
+        {
+            Color = "#FFFFFF",
+            CreatedAt = DateTime.UtcNow
+        });
+        _destinationContext.AddRange(scheduleColours);
+        _destinationContext.SaveChanges();
+
+        index = 0;
+        List<Schedule> schedulesToAdd = [];
+
+        foreach (SourceDb.Schedule scheduleOld in schedulesOld)
+        {
+            if (index % 1000 == 0)
+            {
+                progressCallback.Invoke(new MigrationProgress
+                {
+                    CurrentStep = "Migrating Schedules",
+                    CurrentItem = $"Processing schedule {index + 1}/{schedulesOld.Length}",
+                    CurrentItemIndex = index + 1,
+                    TotalItems = schedulesOld.Length
+                });
+            }
+            Schedule schedule = new()
+            {
+                ScheduleColour = scheduleColours.First(jc => jc.Color == (scheduleOld.Colour is not null && scheduleOld.Colour.StartsWith('#') && scheduleOld.Colour.Length == 7 ? scheduleOld.Colour : "#FFFFFF")),
+                //ScheduleTrackId = scheduleTracksToAdd[scheduleOld.ScheduleTrackId].Id
+            };
+
+            schedulesToAdd.Add(schedule);
+        }
+
+        progressCallback.Invoke(new MigrationProgress
+        {
+            CurrentStep = "Migrating Schedules",
+            CurrentItem = $"Found {schedulesOld.Length} schedules",
+            CurrentItemIndex = 0,
+            TotalItems = schedulesOld.Length
+        });
+    }
+
+    /// <summary>
+    /// TODO: Lets wait and see how tasks are used before migrating them.
+    /// </summary>
+    /// <param name="progressCallback"></param>
+    public void MigarateTasks(Action<MigrationProgress> progressCallback)
+    {
+        progressCallback.Invoke(new MigrationProgress
+        {
+            CurrentStep = "Migrating Tasks",
+            CurrentItem = "Loading jobs from source database...",
+            CurrentItemIndex = 0,
+            TotalItems = 0
+        });
+
+        // Get all of the jobs
+        SourceDb.Task[] tasks = [.. _sourceDBContext.Tasks.AsNoTracking()];
+        JobTask[] jobTasks = [.. _destinationContext.JobTasks.AsNoTracking()];
+        if (tasks.Length == jobTasks.Length)
+        {
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Tasks",
+                CurrentItem = "Task already exist",
+                CurrentItemIndex = 0,
+                TotalItems = 0
+            });
+            return;
+        }
+
+        progressCallback.Invoke(new MigrationProgress
+        {
+            CurrentStep = "Migrating Job Notes",
+            CurrentItem = $"Found {tasks.Length} jobs",
+            CurrentItemIndex = 0,
+            TotalItems = tasks.Length
+        });
     }
 }

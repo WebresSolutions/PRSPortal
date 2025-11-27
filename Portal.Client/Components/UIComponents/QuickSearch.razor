@@ -1,0 +1,47 @@
+﻿<section class="quicksearch d-flex ps-2 gap-2 flex-column">
+    <div class="search">
+        <strong>Job Search</strong>
+        <div class="search-boxes">
+            <InputText  @bind-Value="jobseachtext"/>
+        </div>
+    </div>
+    <div class="search">
+        <strong>Contact Search</strong>
+        <div class="search-boxes">
+        </div>
+    </div>
+    <div class="search">
+        <strong>Task Search</strong>
+        <div class="search-boxes">
+
+        </div>
+    </div>
+</section>
+
+@code {
+    string jobseachtext = string.Empty;
+
+
+}
+
+<style>
+    .quicksearch {
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        width: 200px;
+        height: 100vh;
+        background-color: var(--color-white);
+        padding-top: 4rem;
+    }
+
+        .quicksearch .search{
+            margin-top: 1rem;
+        }
+
+@@media (max-width: 768px) {
+        .quicksearch {
+            display: none;
+        }
+    }
+</style>

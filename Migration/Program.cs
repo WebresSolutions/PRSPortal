@@ -23,10 +23,9 @@ internal class Program
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
-            if (Application.Top != null)
-            {
+            if (Application.Top is not null)
                 Application.RequestStop();
-            }
+
             throw;
         }
         finally
@@ -56,6 +55,7 @@ internal class Program
             migration.MigrateCouncils(progressCallback);
             migration.MigrateJobs(progressCallback);
             migration.MigratateJobsSubObjects(progressCallback);
+            migration.MigrateSchedule(progressCallback);
         }
         catch (Exception)
         {

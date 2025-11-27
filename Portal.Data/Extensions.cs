@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Portal.Data;
@@ -54,7 +55,7 @@ public static class Extensions
         if (entities.Count == 0)
             return 0;
 
-        (string[], PropertyInfo[], string?) columnAndProperties = GetColumnAndPropertyInfo<T>(dbContext);
+        (string[], PropertyInfo?[], string?) columnAndProperties = GetColumnAndPropertyInfo<T>(dbContext);
         using NpgsqlConnection connection = new(dbContext.Database.GetConnectionString());
         connection.Open();
 
@@ -79,14 +80,61 @@ public static class Extensions
     /// <param name="dbContext"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public static (string[], PropertyInfo[], string?) GetColumnAndPropertyInfo<T>(this PrsDbContext dbContext) where T : class
+    private static (string[] columns, PropertyInfo?[] properties, string? tableName) GetColumnAndPropertyInfo<T>(PrsDbContext dbContext) where T : class
     {
-        IEntityType? entityType = dbContext.Model.FindEntityType(typeof(T))
-            ?? throw new InvalidOperationException($"Entity type {typeof(T).Name} not found");
+        IEntityType? entityType = dbContext.Model.FindEntityType(typeof(T));
+        if (entityType == null)
+            throw new InvalidOperationException($"Entity type {typeof(T).Name} not found in the model.");
+
         string? tableName = entityType.GetTableName();
-        List<IProperty> properties = [.. entityType.GetProperties().Where(p => p.ValueGenerated != ValueGenerated.OnAdd)];
+        string? schema = entityType.GetSchema();
+        string? fullTableName = schema != null ? $"{schema}.{tableName}" : tableName;
+
+        // Get only non-generated columns
+        List<IProperty> properties = entityType.GetProperties()
+            .Where(p => p.ValueGenerated == Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.Never
+                     || p.ValueGenerated == Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.OnAdd) // Allow IDENTITY columns
+            .Where(p => p.GetComputedColumnSql() == null && p.IsPrimaryKey() == false) // Exclude computed columns
+            .ToList();
+
         string[] columnNames = [.. properties.Select(p => p.GetColumnName())];
-        PropertyInfo[] propertyInfos = [.. properties.Select(p => typeof(T).GetProperty(p.Name)!)];
-        return (columnNames, propertyInfos, tableName);
+
+        PropertyInfo?[] propertyInfos = properties
+            .Select(p => typeof(T).GetProperty(p.Name))
+            .Where(p => p != null)
+            .ToArray();
+
+        return (columnNames, propertyInfos, fullTableName);
+    }
+
+    /// <summary>
+    /// Forms and expression for a case-insensitive LIKE search using PostgreSQL's ILIKE.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="propertySelector"></param>
+    /// <param name="searchTerm"></param>
+    /// <returns></returns>
+    public static IQueryable<T> ILike<T>(this IQueryable<T> source,
+    Expression<Func<T, string>> propertySelector,
+    string searchTerm)
+    {
+        ParameterExpression parameter = propertySelector.Parameters[0];
+        ConstantExpression wrappedSearchTerm = Expression.Constant($"%{searchTerm}%");
+        Type extensionsType = typeof(NpgsqlDbFunctionsExtensions);
+        MethodInfo? ilikeMethod = extensionsType.GetMethod("ILike", [typeof(DbFunctions), typeof(string), typeof(string)]);
+
+        if (ilikeMethod is null)
+        {
+            throw new Exception("Failed ot get the ILike method.");
+        }
+
+        Expression propertyAccess = propertySelector.Body;
+        MemberExpression efFunctionsProperty = Expression.Property(null, nameof(EF.Functions));
+
+        MethodCallExpression ilikeCall = Expression.Call(ilikeMethod, efFunctionsProperty, propertyAccess, wrappedSearchTerm);
+
+        Expression<Func<T, bool>> finalExpression = Expression.Lambda<Func<T, bool>>(ilikeCall, parameter);
+        return source.Where(finalExpression);
     }
 }

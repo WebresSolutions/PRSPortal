@@ -94,7 +94,7 @@
     --color-primary: #ff5020;
     --color-primary-light: #ff957d;
     --color-secondary: #f2ecee;
-    --color-background: #fafafa;
+    --color-background: #f5f5ff;
     --color-success: #63a46c;
     --color-grey-dark: #808080;
     --color-grey: #f5f3f5;
@@ -233,11 +233,12 @@ a{
     text-decoration: none;
 }
 
-.nav-item a.active {
-    color: var(--color-primary) !important;
-    border-radius: var(--border-rad);
-    /*font-weight: bold;*/
-}
+    .nav-item a.active {
+        color: var(--color-white) !important;
+        background-color: var(--color-primary-light);
+        border-radius: var(--border-rad);
+        /*font-weight: bold;*/
+    }
 
 .nav-item a:hover {
     color: var(--color-grey-dark) !important;

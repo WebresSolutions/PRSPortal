@@ -20,3 +20,9 @@
     margin-top: auto;
     padding-bottom: 20px;
 }
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+}

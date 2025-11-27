@@ -12,9 +12,9 @@ public class ListJobDto
     public int AddressId { get; set; }
     public int ContactId { get; set; }
     public string Contact { get; set; }
-    public int? ConstructionNumber { get; set; }
-    public int? SurveyNumber { get; set; }
-    public string AddressAsString => $"{Address.street}, {Address.suburb} {Address.state}";
+    public int? JobNumber { get; set; }
+    public string JobType { get; set; }
+    public string AddressAsString => $"{Address.street}, {Address.suburb} {Address.State}";
 
     /// <summary>
     /// Initializes a new instance of the ListJobDto class
@@ -32,16 +32,16 @@ public class ListJobDto
         int addressId,
         int contactId,
         string contact,
-        int? setoutNumber,
-        int? cadNumber)
+        int? jobNumber,
+        string jobType)
     {
         JobId = jobId;
         Address = address;
         AddressId = addressId;
         ContactId = contactId;
         Contact = contact;
-        ConstructionNumber = setoutNumber;
-        SurveyNumber = cadNumber;
+        JobNumber = jobNumber;
+        JobType = jobType;
     }
 
     /// <summary>

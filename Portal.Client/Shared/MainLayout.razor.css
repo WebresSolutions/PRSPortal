@@ -5,15 +5,16 @@
 }
 
 
-
 .main {
     margin-left: 180px; /* Same as the width of the sidenav */
+    margin-right: 200px; /* Same as the width of the quicksearch */
     margin-top: 75px;
 }
 
 .main-full {
     margin-top: 75px;
     margin-left: 45px;
+    margin-right: 200px; /* Same as the width of the quicksearch */
 }
 
 .content {
@@ -78,10 +79,12 @@ footer {
     .main-full {
         margin-top: 75px;
         margin-left: 45px;
+        margin-right: 200px; /* Same as the width of the quicksearch */
     }
 
     .main {
         margin-left: 110px; /* Same as the width of the sidenav */
+        margin-right: 200px; /* Same as the width of the quicksearch */
         margin-top: 75px;
     }
 }
