@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NpgsqlTypes;
 
 namespace Portal.Data.Models;
 
@@ -32,6 +33,8 @@ public partial class Address
     /// Soft delete TIMESTAMPTZ - NULL means active
     /// </summary>
     public DateTime? DeletedAt { get; set; }
+
+    public NpgsqlTsVector? SearchVector { get; set; }
 
     public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();
 

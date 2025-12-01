@@ -6,6 +6,7 @@ using Portal.Shared;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
+using Quartz.Util;
 
 namespace Portal.Server.Services.Instances;
 
@@ -21,19 +22,17 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 .Where(x => x.DeletedAt == null)
                 .AsQueryable();
 
-            if (searchFilter is not null)
+            if (!searchFilter.IsNullOrWhiteSpace())
             {
-                searchFilter = searchFilter.Trim();
+                searchFilter = searchFilter!.Trim();
                 bool isNumeric = int.TryParse(searchFilter, out int numericValue);
-                searchFilter = $"%{searchFilter}%";
                 jobQuery = jobQuery.Where(job =>
                             (isNumeric && job.Id == numericValue)
                             || (isNumeric && job.JobNumber != null && job.JobNumber.Value == numericValue)
-                            || job.Address != null && EF.Functions.ILike(job.Address.Street, searchFilter)
-                            || job.Address != null && EF.Functions.ILike(job.Address.Suburb, searchFilter)
-                            || EF.Functions.ILike(job.Contact.FullName, searchFilter));
+                            || job.Address != null && job.Address.SearchVector != null && job.Address.SearchVector.Matches(searchFilter)
+                            || job.Contact.SearchVector != null && job.Contact.SearchVector.Matches(searchFilter));
             }
-
+            string stringQUery = jobQuery.ToQueryString();
             string? addressSuburb = nameof(ListJobDto.Address.suburb);
             Console.WriteLine(addressSuburb);
 

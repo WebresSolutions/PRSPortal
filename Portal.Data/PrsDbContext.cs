@@ -104,6 +104,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.PostCode)
                 .HasMaxLength(10)
                 .HasColumnName("post_code");
+            entity.Property(e => e.SearchVector)
+                .HasComputedColumnSql("(setweight(to_tsvector('english'::regconfig, (COALESCE(street, ''::character varying))::text), 'A'::\"char\") || setweight(to_tsvector('english'::regconfig, (COALESCE(suburb, ''::character varying))::text), 'B'::\"char\"))", true)
+                .HasColumnName("search_vector");
             entity.Property(e => e.StateId).HasColumnName("state_id");
             entity.Property(e => e.Street)
                 .HasMaxLength(255)
@@ -299,6 +302,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Phone)
                 .HasMaxLength(50)
                 .HasColumnName("phone");
+            entity.Property(e => e.SearchVector)
+                .HasComputedColumnSql("((setweight(to_tsvector('english'::regconfig, (COALESCE(first_name, ''::character varying))::text), 'A'::\"char\") || setweight(to_tsvector('english'::regconfig, (COALESCE(last_name, ''::character varying))::text), 'B'::\"char\")) || setweight(to_tsvector('english'::regconfig, (COALESCE(email, ''::character varying))::text), 'C'::\"char\"))", true)
+                .HasColumnName("search_vector");
 
             entity.HasOne(d => d.Address).WithMany(p => p.Contacts)
                 .HasForeignKey(d => d.AddressId)
@@ -590,9 +596,7 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
-            entity.Property(e => e.ActionRequired)
-                .HasDefaultValue(false)
-                .HasColumnName("action_required");
+            entity.Property(e => e.ActionRequired).HasColumnName("action_required");
             entity.Property(e => e.AssignedUserId).HasColumnName("assigned_user_id");
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
@@ -695,9 +699,7 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Description)
                 .HasMaxLength(255)
                 .HasColumnName("description");
-            entity.Property(e => e.InvoiceRequired)
-                .HasDefaultValue(false)
-                .HasColumnName("invoice_required");
+            entity.Property(e => e.InvoiceRequired).HasColumnName("invoice_required");
             entity.Property(e => e.InvoicedDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("invoiced_date");

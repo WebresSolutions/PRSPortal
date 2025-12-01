@@ -91,11 +91,10 @@ public static class Extensions
         string? fullTableName = schema != null ? $"{schema}.{tableName}" : tableName;
 
         // Get only non-generated columns
-        List<IProperty> properties = entityType.GetProperties()
+        List<IProperty> properties = [.. entityType.GetProperties()
             .Where(p => p.ValueGenerated == Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.Never
                      || p.ValueGenerated == Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.OnAdd) // Allow IDENTITY columns
-            .Where(p => p.GetComputedColumnSql() == null && p.IsPrimaryKey() == false) // Exclude computed columns
-            .ToList();
+            .Where(p => p.GetComputedColumnSql() == null && p.IsPrimaryKey() == false)];
 
         string[] columnNames = [.. properties.Select(p => p.GetColumnName())];
 

@@ -92,7 +92,11 @@ CREATE TABLE address (
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_by_user_id INT REFERENCES app_user(id),
     modified_on TIMESTAMPTZ,
-    deleted_at TIMESTAMPTZ DEFAULT NULL
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    search_vector tsvector GENERATED ALWAYS AS (
+            setweight(to_tsvector('english', coalesce(street, '')), 'A') ||
+            setweight(to_tsvector('english', coalesce(suburb, '')), 'B')
+        ) STORED NOT NULL
 );
 
 COMMENT ON TABLE address IS 'Physical addresses for contacts and jobs';
@@ -127,7 +131,12 @@ CREATE TABLE contact (
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_by_user_id INT REFERENCES app_user(id),
     modified_on TIMESTAMPTZ,
-    deleted_at TIMESTAMPTZ DEFAULT NULL
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
+    search_vector tsvector GENERATED ALWAYS AS (
+            setweight(to_tsvector('english', coalesce(first_name, '')), 'A') ||
+            setweight(to_tsvector('english', coalesce(last_name, '')), 'B') ||
+            setweight(to_tsvector('english', coalesce(email, '')), 'C')
+        ) STORED NOT NULL
 );
 
 COMMENT ON TABLE contact IS 'Client or vendor contact information';

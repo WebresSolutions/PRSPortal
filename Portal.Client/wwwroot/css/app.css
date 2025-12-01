@@ -100,7 +100,7 @@
     --color-grey: #f5f3f5;
     --color-white: #ffffff;
     --color-yellow: #a16207;
-    --border-rad: 12px;
+    --border-rad: 15px;
     --padding: 10px;
 }
 
@@ -149,10 +149,6 @@ ul > li {
     color: #fff;
     background-color: #1b6ec2;
     border-color: #1861ac;
-}
-
-.content {
-    padding-top: 1.1rem;
 }
 
 .valid.modified:not([type="checkbox"]) {
@@ -248,4 +244,63 @@ a{
 
 ul > li > a {
     font-size: 0.8rem;
+}
+.mud-table {
+    box-shadow: none !important;
+}
+
+.mud-button-filled.mud-button-filled-primary {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+    background-color: var(--color-primary) !important;
+}
+
+.mud-button-filled.mud-button-filled-success {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+    background-color: var(--color-success) !important;
+}
+
+.mud-button-filled.mud-button-filled-secondary {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+}
+
+.mud-button-filled.mud-button-filled-default {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+}
+
+.mud-button-filled.mud-button-filled-info {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+}
+
+.mud-secondary-text {
+    color: var(--color-secondary) !important;
+}
+
+.mud-tab.mud-tab-active {
+    color: var(--color-secondary) !important;
+}
+
+    .mud-tab .mud-tab-active .mud-ripple .mud-tab-panel > * {
+        color: var(--color-secondary) !important;
+    }
+
+.mud-tab-slider {
+    background: black !important;
+}
+
+.mud-input-outlined-border {
+    border-radius: var(--border-rad) !important;
+}
+
+.mud-table-cell.sticky-left {
+    z-index: auto !important;
+}
+
+.mud-input {
+    background: white !important;
+    border-radius: var(--border-rad) !important;
 }

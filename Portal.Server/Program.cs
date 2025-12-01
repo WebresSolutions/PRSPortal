@@ -24,7 +24,7 @@ public class Program
 
         WebApplication? app = builder.Build();
 
-        _ = app.Use((context, next) =>
+        app.Use((context, next) =>
         {
             if (context.Request.Scheme != "https")
             {
@@ -32,20 +32,20 @@ public class Program
             }
             return next(context);
         });
-        _ = app.UseForwardedHeaders();
+        app.UseForwardedHeaders();
 
         // Configure the HTTP request pipeline
         if (app.Environment.IsDevelopment())
         {
-            _ = app.UseDeveloperExceptionPage();
+            app.UseDeveloperExceptionPage();
             app.UseWebAssemblyDebugging();
 
             // Enable Swagger/OpenAPI for API debugging
             bool enableSwagger = app.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");
             if (enableSwagger)
             {
-                _ = app.UseSwagger();
-                _ = app.UseSwaggerUI(c =>
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
                 {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Portal API v1");
                     c.RoutePrefix = "swagger";
@@ -54,27 +54,27 @@ public class Program
         }
         else
         {
-            _ = app.UseExceptionHandler("/Error");
-            _ = app.UseHsts();
+            app.UseExceptionHandler("/Error");
+            app.UseHsts();
         }
 
         // Only use HTTPS redirection in development or when not behind a proxy
         if (!app.Environment.IsDevelopment())
         {
-            _ = app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
         }
 
-        _ = app.UseBlazorFrameworkFiles();
-        _ = app.UseStaticFiles();
-        _ = app.UseRouting();
-        _ = app.UseCors("CorsPolicy");
+        app.UseBlazorFrameworkFiles();
+        app.UseStaticFiles();
+        app.UseRouting();
+        app.UseCors("CorsPolicy");
 
-        _ = app.UseAuthentication();
-        _ = app.UseAuthorization();
+        app.UseAuthentication();
+        app.UseAuthorization();
 
-        _ = app.MapRazorPages();
-        _ = app.MapControllers();
-        _ = app.MapFallbackToFile("index.html");
+        app.MapRazorPages();
+        app.MapControllers();
+        app.MapFallbackToFile("index.html");
         app.AddJobEndpoints();
 
         app.Run();
