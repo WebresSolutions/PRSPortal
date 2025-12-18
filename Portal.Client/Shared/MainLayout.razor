@@ -2,20 +2,18 @@
 @inject IJSRuntime JSRuntime
 
 <div class="page">
-    <SideNav ToggleNav=ToggleNav  Hide="@ToggleNav"/>
+    <SideNav ToggleNav=ToggleNav Hide="@ToggleNav" />
 
     <div class="top-row @(headerVisible ? "header-visible" : "header-hidden")">
         <NavBar ShowNav="hideSidebar" ToggleNav=ToggleNav />
     </div>
-    <QuickSearch/>
+    @* <QuickSearch /> *@
     <div class="@MainClass">
-        <div class="content px-4 @FullWidth">
-            @Body
-        </div>
+        @Body
     </div>
-    <footer>
+    @*     <footer>
         Built by <a href="https://webres.solutions" target="_blank" style="color: #b2424d;">Webres Solutions</a>
-    </footer>
+    </footer> *@
 </div>
 
 <MudThemeProvider />
@@ -29,7 +27,7 @@
 
     private void ToggleNav() => hideSidebar = !hideSidebar;
 
-    private string MainClass => hideSidebar ? "main-full" : "main";
+    private string MainClass => hideSidebar ? "main full" : "main";
 
     private string FullWidth => hideSidebar ? "full" : "";
 

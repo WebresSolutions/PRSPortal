@@ -1,95 +1,8 @@
 ﻿@import url("open-iconic/font/css/open-iconic-bootstrap.min.css");
-
-@font-face {
-    font-family: "Inter";
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src:
-        local("Inter Regular"),
-        url("../fonts/Inter-Regular.woff") format("woff");
-}
-
-@font-face {
-    font-family: "Inter";
-    font-style: italic;
-    font-weight: 400;
-    font-display: swap;
-    src:
-        local("Inter Italic"),
-        url("../fonts/Inter-Italic.woff") format("woff");
-}
-
-@font-face {
-    font-family: "Inter";
-    font-style: normal;
-    font-weight: 500;
-    font-display: swap;
-    src:
-        local("Inter Medium"),
-        url("../fonts/Inter-Medium.woff") format("woff");
-}
-
-@font-face {
-    font-family: "Inter";
-    font-style: italic;
-    font-weight: 500;
-    font-display: swap;
-    src:
-        local("Inter Medium Italic"),
-        url("../fonts/Inter-MediumItalic.woff") format("woff");
-}
-
-@font-face {
-    font-family: "Inter";
-    font-style: normal;
-    font-weight: 600;
-    font-display: swap;
-    src:
-        local("Inter Semi Bold"),
-        url("../fonts/Inter-SemiBold.woff") format("woff");
-}
-
-@font-face {
-    font-family: "Inter";
-    font-style: italic;
-    font-weight: 600;
-    font-display: swap;
-    src:
-        local("Inter Semi Bold Italic"),
-        url("../fonts/Inter-SemiBoldItalic.woff") format("woff");
-}
-
-@font-face {
-    font-family: "Inter";
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src:
-        local("Inter Bold"),
-        url("../fonts/Inter-Bold.woff") format("woff");
-}
-
-@font-face {
-    font-family: "Inter";
-    font-style: italic;
-    font-weight: 700;
-    font-display: swap;
-    src:
-        local("Inter Bold Italic"),
-        url("../fonts/Inter-BoldItalic.woff") format("woff");
-}
-
-@font-face {
-    font-family: "Satoshi";
-    font-style: italic;
-    font-weight: 600;
-    font-display: swap;
-    src:
-        local("Satoshi Regular"),
-        url("../fonts/Satoshi-Regular.woff2") format("woff2");
-}
-
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@100;300;400;500;700;900&display=swap');
+@import "tailwindcss";
+@import "../bin/lumexui/theme"; /* theme */
+@source "../bin/lumexui/*.cs"; /* styles */
 :root {
     --color-primary: #ff5020;
     --color-primary-light: #ff957d;
@@ -100,35 +13,28 @@
     --color-grey: #f5f3f5;
     --color-white: #ffffff;
     --color-yellow: #a16207;
-    --border-rad: 15px;
+    --border-rad: 10px;
     --padding: 10px;
+    --colour-survey: #748CAB;
+    --colour-construction: #AEF6C7;
 }
 
 html,
 body {
     background-color: var(--color-background) !important;
-    transition:
-        color 0.5s,
-        background-color 0.5s;
+    transition: color 0.5s, background-color 0.5s;
     line-height: 1.6;
-    font-family:
-        Inter,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        Oxygen,
-        Ubuntu,
-        Cantarell,
-        "Fira Sans",
-        "Droid Sans",
-        "Helvetica Neue",
-        sans-serif;
-    font-size: 100%;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-size: 15px;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+.container {
+    margin-left: auto; /* Same as the width of the sidenav */
+    margin-right: auto; /* Same as the width of the quicksearch */
+}
+
 
 a,
 .btn-link {
@@ -141,9 +47,9 @@ ul {
     padding-left: 0 !important;
 }
 
-ul > li {
-    list-style: none;
-}
+    ul > li {
+        list-style: none;
+    }
 
 .btn-primary {
     color: #fff;
@@ -175,12 +81,12 @@ ul > li {
     z-index: 1000;
 }
 
-#blazor-error-ui .dismiss {
-    cursor: pointer;
-    position: absolute;
-    right: 0.75rem;
-    top: 0.5rem;
-}
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
 
 .bg-white {
     background: white;
@@ -191,21 +97,15 @@ ul > li {
     font-weight: 600;
 }
 
-.bg-white:hover {
-    background-color: var(--color-background);
-    color: var(--color-secondary);
-    transition: all ease-in-out 0.2s;
-    transform: translateY(-3px);
-}
+    .bg-white:hover {
+        background-color: var(--color-background);
+        color: var(--color-secondary);
+        transition: all ease-in-out 0.2s;
+        transform: translateY(-3px);
+    }
 
 .mud-table {
     box-shadow: none !important;
-}
-
-.container {
-    background: var(--color-white);
-    padding: 15px;
-    border-radius: var(--border-rad);
 }
 
 .shadow {
@@ -215,36 +115,12 @@ ul > li {
 .border-rad {
     border-radius: var(--border-rad) !important;
 }
-a{
+
+a {
     text-decoration: none !important;
 }
-.nav-item a {
-    padding: 10px 15px;
-    line-height: 3rem;
-    transition: all ease-in-out 0.1s;
-    font-size: 1rem;
-    height: 3rem;
-    color: black;
-    border-radius: var(--border-rad);
-    text-decoration: none;
-}
 
-    .nav-item a.active {
-        color: var(--color-white) !important;
-        background-color: var(--color-primary-light);
-        border-radius: var(--border-rad);
-        /*font-weight: bold;*/
-    }
 
-.nav-item a:hover {
-    color: var(--color-grey-dark) !important;
-    transition: all ease-in-out 0.1s;
-    transform: translateY(-3px);
-}
-
-ul > li > a {
-    font-size: 0.8rem;
-}
 .mud-table {
     box-shadow: none !important;
 }

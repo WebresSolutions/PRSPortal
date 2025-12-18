@@ -1,17 +1,9 @@
-﻿@page "/"
-
+﻿
 <AuthorizeView>
-	<Authorized>
-		<Card Title="Index">
-			<ChildContent>
-				<div class="" style="overflow:hidden">
-					<a>Hello, @context.User!.Identity!.Name!</a>
-				</div>
-				<User />
-			</ChildContent>
-		</Card>
-	</Authorized>
-	<NotAuthorized>
-		<RedirectToLogin/>
-	</NotAuthorized>
+    <Authorized>
+        <User />
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
 </AuthorizeView>

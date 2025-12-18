@@ -13,7 +13,6 @@
   <ItemGroup>
     <Folder Include="DTO\Schedule\" />
     <Folder Include="DTO\Notes\" />
-    <Folder Include="DTO\User\" />
   </ItemGroup>
 
 </Project>

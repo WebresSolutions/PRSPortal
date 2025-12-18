@@ -1,4 +1,5 @@
 ﻿using Portal.Shared.DTO.Address;
+using Portal.Shared.DTO.Contact;
 
 namespace Portal.Shared.DTO.Job;
 
@@ -10,12 +11,19 @@ public class ListJobDto
     public int JobId { get; set; }
     public AddressDTO Address { get; set; }
     public int AddressId { get; set; }
-    public int ContactId { get; set; }
-    public string Contact { get; set; }
+    public ContactDto? Contact1 { get; set; }
+    public ContactDto? Contact2 { get; set; }
     public int? JobNumber { get; set; }
-    public string JobType { get; set; }
+    public string JobType { get; set; } = "";
+    public int JobTypeInt { get; set; }
     public string AddressAsString => $"{Address.street}, {Address.suburb} {Address.State}";
-
+    public string JoinedContactName => Contact1 != null && Contact2 != null
+        ? $"{Contact1.fullName} / {Contact2.fullName}"
+        : Contact1 != null
+            ? Contact1.fullName
+            : Contact2 != null
+                ? Contact2.fullName
+                : "No Contact";
     /// <summary>
     /// Initializes a new instance of the ListJobDto class
     /// </summary>
@@ -29,19 +37,19 @@ public class ListJobDto
     public ListJobDto(
         int jobId,
         AddressDTO address,
-        int addressId,
-        int contactId,
-        string contact,
+        ContactDto? contact1,
+        ContactDto? contact2,
         int? jobNumber,
-        string jobType)
+        string jobType,
+        int jobTypeInt)
     {
         JobId = jobId;
         Address = address;
-        AddressId = addressId;
-        ContactId = contactId;
-        Contact = contact;
+        Contact1 = contact1;
+        Contact2 = contact2;
         JobNumber = jobNumber;
         JobType = jobType;
+        JobTypeInt = jobTypeInt;
     }
 
     /// <summary>
@@ -49,7 +57,6 @@ public class ListJobDto
     /// </summary>
     public ListJobDto()
     {
-        Contact = string.Empty;
         Address = null!;
     }
 }

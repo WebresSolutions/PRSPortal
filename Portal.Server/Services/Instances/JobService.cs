@@ -4,6 +4,7 @@ using Portal.Data.Models;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Address;
+using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 using Quartz.Util;
@@ -42,7 +43,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 nameof(ListJobDto.JobId) => isDescending
                     ? jobQuery.OrderByDescending(x => x.Id)
                     : jobQuery.OrderBy(x => x.Id),
-                nameof(ListJobDto.Contact) => isDescending
+                nameof(ListJobDto.Contact1.fullName) => isDescending
                     ? jobQuery.OrderByDescending(x => x.Contact.FullName)
                     : jobQuery.OrderBy(x => x.Contact.FullName),
                 nameof(ListJobDto.JobNumber) => isDescending
@@ -68,11 +69,11 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                         .Select(x => new ListJobDto(
                             x.Id,
                             new AddressDTO(x.AddressId ?? 1, (StateEnum)x.Address!.StateId!, x.Address.StateId ?? 3, x.Address.Suburb, x.Address.Street, x.Address.PostCode),
-                            x.AddressId ?? 0,
-                            x.ContactId,
-                            x.Contact.FullName,
+                            x.Contact != null ? new ContactDto(x.ContactId, x.Contact.FullName) : null,
+                            x.Contact != null && x.Contact.ParentContact != null ? new ContactDto(x.Contact.ParentContactId ?? 0, x.Contact.ParentContact!.FullName) : null,
                             x.JobNumber,
-                            x.JobType.Name
+                            x.JobType.Name,
+                            x.JobTypeId
                             ))
                         .ToListAsync();
             int total = await jobQuery.CountAsync();
@@ -86,5 +87,61 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
             _logger.LogError(ex, "Failed to get all jobs");
             return result.SetError(ErrorType.InternalError, "Failed to get list of jobs");
         }
+    }
+
+    /// <summary>
+    /// Retrieves detailed information for a job specified by its unique identifier.
+    /// </summary>
+    /// <remarks>The returned job details include associated notes and address information. If the specified
+    /// job does not exist or has been deleted, the result will indicate a 'NotFound' error.</remarks>
+    /// <param name="jobId">The unique identifier of the job to retrieve. Must refer to an existing, non-deleted job.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
+    /// cref="Result{JobDetailsDto}"/> with job details if found; otherwise, an error indicating that the job was not
+    /// found.</returns>
+    public async Task<Result<JobDetailsDto>> GetJob(int jobId)
+    {
+        Result<JobDetailsDto> result = new();
+
+        // Retrieve the job from the database
+        JobDetailsDto? job = await _dbContext.Jobs
+            .AsNoTracking()
+            .Where(j => j.Id == jobId && j.DeletedAt == null)
+            .Select(x => new JobDetailsDto
+            {
+                JobId = x.Id,
+                JobNumber = x.JobNumber ?? 0,
+                JobType = (JobTypeEnum)x.JobTypeId,
+                Address = new AddressDTO(
+                    x.AddressId ?? 1,
+                    (StateEnum)x.Address!.StateId!,
+                    x.Address.StateId ?? 3,
+                    x.Address.Suburb,
+                    x.Address.Street,
+                    x.Address.PostCode
+                ),
+                Colour = x.JobColour != null
+                    ? new JobColourDto(x.JobColourId!.Value, x.JobColour.Color)
+                    : null,
+            })
+            .FirstOrDefaultAsync();
+
+        if (job is null)
+            return result.SetError(ErrorType.NotFound, "Invalid job Id");
+
+        job.Notes = await _dbContext.JobNotes
+            .AsNoTracking()
+            .Where(n => n.JobId == jobId && n.DeletedAt == null)
+            .Select(n => new JobNoteDto
+            {
+                NoteId = n.Id,
+                Content = n.Note,
+                AssignedUser = n.AssignedUserId != null
+                    ? new(n.AssignedUserId.Value, n.AssignedUser!.DisplayName ?? "")
+                    : null
+            })
+            .ToListAsync();
+
+        result.Value = job;
+        return result;
     }
 }

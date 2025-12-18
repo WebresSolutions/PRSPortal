@@ -1,60 +1,80 @@
 ﻿
 <nav class="sidebar d-flex ps-2 gap-2 flex-column">
-	<button @onclick="@(MinimizeSidebar)" Appearance="Appearance.Lightweight"><i class="bi bi-list"></i></button>
-	<div class="sidebar-top">
-		<ul class="nav flex-column">
-			@foreach (KeyValuePair<string, NavigationLink> link in links)
-			{
-				<NavElement Link=@link.Value Minimize="minimize" />
-			}
-		</ul>
-	</div>
-	<div class="auth-controls">
-		<AuthorizeView>
-			<Authorized>
-				<i class="bi bi-person-vcard btn" href="authentication/profile"></i>
-				<i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
-			</Authorized>
-		</AuthorizeView>
-	</div>
+    <NavLink href="/">
+        <img alt="PRS" src=@(minimize ? "/images/MinimalLogo.svg" : "/images/PRS-Primary-Logo.svg")
+             style=@(minimize ? "width: 40px" : "width:120px") class="prs-logo ms-2" />
+    </NavLink>
+    <button @onclick="@(MinimizeSidebar)" class="nav-hide-button"><i class=@(!minimize ? "bi bi-arrow-left-circle" : "bi bi-arrow-right-circle")></i></button>
+    <AuthorizeView>
+        <ul class="nav flex-column mt-3">
+            <li class="nav-item px-2">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <MudIcon Icon="@Icons.Material.Filled.Home" Title="Home" />
+                    Home
+                </NavLink>
+            </li>
+            <li class="nav-item px-2">
+                <NavLink class="nav-link" href="Jobs">
+                    <MudIcon Icon="@Icons.Material.Filled.Warehouse" Title="Favorite" />
+                    Jobs
+                </NavLink>
+            </li>
+            <li class="nav-item px-2">
+                <NavLink class="nav-link" href="Quotes">
+                    <MudIcon Icon="@Icons.Material.Filled.Checklist" Title="Favorite" />
+                    Quotes
+                </NavLink>
+            </li>
+            <li class="nav-item px-2">
+                <NavLink class="nav-link" href="Councils">
+                    <MudIcon Icon="@Icons.Material.Filled.FormatListNumbered" Title="Favorite" />
+                    Councils
+                </NavLink>
+            </li>
+        </ul>
+    </AuthorizeView>
+    <div class="auth-controls">
+        <AuthorizeView>
+            <Authorized>
+                <i class="bi bi-person-vcard btn" href="authentication/profile"></i>
+                <i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
+            </Authorized>
+        </AuthorizeView>
+    </div>
 </nav>
 
 @code {
-	[Parameter]
-	public required Action ToggleNav { get; set; }
+    [Parameter]
+    public required Action ToggleNav { get; set; }
 
-	[Parameter]
-	public required EventCallback Hide { get; set; }
+    [Parameter]
+    public required EventCallback Hide { get; set; }
 
-	private bool minimize = false;
+    private bool minimize = false;
 
-	private async Task MinimizeSidebar()
-	{
-		minimize = !minimize;
-		await Hide.InvokeAsync();
-	}
+    private async Task MinimizeSidebar()
+    {
+        minimize = !minimize;
+        await Hide.InvokeAsync();
+    }
 
-	private string width() => minimize ? "width: 40px" : "width: 120px";
+    private string width() => minimize ? "width: 40px" : "width: 120px";
 
-	private readonly Dictionary<string, NavigationLink> links = new()
-	{
-		{ "Home", new NavigationLink(){Link = "", Title = "Home", Icon = "bi bi-house"} },
-		{ "Jobs", new NavigationLink(){Link = "jobs", Title = "Jobs", Icon = "bi bi-wrench",
-		SubLinks = [
-		new NavigationLink() { Link = "tasks", Title = "Tasks", Icon = "bi bi-list-task"},
-		new NavigationLink() { Link = "notes", Title = "Notes", Icon = "bi bi-journal"},
-		new NavigationLink() { Link = "invoices", Title = "Invoices", Icon = "bi bi-card-text" }
-		]}
-		},
-		{ "Quotes", new NavigationLink(){Link = "quotes", Title = "Quotes", Icon = "bi bi-receipt" } },
-		{ "Councils", new NavigationLink(){Link = "councils", Title = "Councils",Icon = "bi bi-people-fill"} },
-		{ "Tools", new NavigationLink(){Link = "tools", Title = "Tools",Icon = "bi bi-hammer"} },
-		{ "Admin", new NavigationLink(){Link = "admin", Title = "Admin",Icon = "bi bi-sliders"} },
-		{ "Schedule", new NavigationLink(){Link = "schedule", Title = "Schedule", Icon = "bi bi-calendar"} }
-	};
+    private readonly Dictionary<string, NavigationLink> links = new()
+    {
+        { "Dashboard", new NavigationLink(){Link = "dashboard", Title = "Dashboard", Icon = "bi bi-speedometer2"} },
+        { "Home", new NavigationLink(){Link = "", Title = "Home", Icon = "bi bi-house"} },
+        { "Jobs", new NavigationLink(){Link = "jobs", Title = "Jobs", Icon = "bi bi-wrench" }},
+        { "Quotes", new NavigationLink(){Link = "quotes", Title = "Quotes", Icon = "bi bi-receipt" } },
+        { "Councils", new NavigationLink(){Link = "councils", Title = "Councils",Icon = "bi bi-people-fill"} },
+        { "Tools", new NavigationLink(){Link = "tools", Title = "Tools",Icon = "bi bi-hammer"} },
+        { "Admin", new NavigationLink(){Link = "admin", Title = "Admin",Icon = "bi bi-sliders"} },
+        { "Schedule", new NavigationLink(){Link = "schedule", Title = "Schedule", Icon = "bi bi-calendar"} }
+    };
 
-	private void BeginSignOut(MouseEventArgs args)
-	{
-		_navigationManager.NavigateToLogout("authentication/logout");
-	}
+
+    private void BeginSignOut(MouseEventArgs args)
+    {
+        _navigationManager.NavigateToLogout("authentication/logout");
+    }
 }

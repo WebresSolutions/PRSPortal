@@ -1,4 +1,5 @@
-﻿using Terminal.Gui;
+﻿using System.Diagnostics;
+using Terminal.Gui;
 
 namespace Migration.Display;
 
@@ -70,18 +71,22 @@ public class GUI : Window
                         });
                     }
 
-                    // Start the migration process on a manually spawned background thread
                     Thread migrationThread = new(() =>
                     {
                         try
                         {
+                            Stopwatch stopwatch = new();
+                            stopwatch.Start();
+
                             // Start the actual migration.
                             startMigration.Invoke(progressCallback);
+
+                            stopwatch.Stop();
 
                             Application.MainLoop.Invoke(() =>
                             {
                                 _StepLabel.Text = "Migration Complete";
-                                _StatusLabel.Text = "Database Migration Complete!";
+                                _StatusLabel.Text = $"Migration Complete. Time Elapsed: {stopwatch.Elapsed.TotalSeconds}";
                                 _ProgressBar.Fraction = 1.0f;
                                 _PercentageLabel.Text = "100%";
 

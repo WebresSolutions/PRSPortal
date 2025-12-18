@@ -42,6 +42,7 @@ public static class Dependencies
         if (enableSwagger)
         {
             builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddOpenApi();
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo

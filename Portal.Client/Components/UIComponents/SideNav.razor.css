@@ -1,19 +1,29 @@
 ﻿.sidebar {
     margin: 0;
     padding: 0 10px;
-    width:fit-content;
-    padding-top: 80px;
+    width: fit-content;
+    padding-top: 20px;
     position: fixed;
     height: 100%;
-    overflow: auto;
+    overflow: visible;
     background-color: var(--color-white);
-    z-index : 1;
+    z-index: 100;
     justify-content: space-between;
 }
+
+.prs-logo {
+    height: 48px;
+}
+
 .sidebar-top {
     flex: 1;
+    overflow-y: auto;
+    overflow-x: visible;
+    max-height: calc(100vh - 200px);
+    margin-top: 20px
 }
-.auth-controls{
+
+.auth-controls {
     border-top: 1px solid black;
     display: flex;
     flex-direction: column;
@@ -21,8 +31,56 @@
     padding-bottom: 20px;
 }
 
+.nav-hide-button {
+    position: absolute;
+    right: -8px;
+    top: 100px;
+    z-index: 15;
+}
+
+    .nav-hide-button > i {
+        color: var(--color-primary);
+    }
+
 @media (max-width: 768px) {
     .sidebar {
         display: none;
     }
 }
+
+.nav-item {
+    font-size: 1rem;
+    padding-bottom: 0.5rem;
+    font-weight: 700;
+    width: 100%;
+}
+
+    .nav-item:first-of-type {
+        padding-top: 1rem;
+    }
+
+    .nav-item:last-of-type {
+        padding-bottom: 1rem;
+    }
+
+    .nav-item ::deep a {
+        color: var(--color-primary);
+        border-radius: 15px;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        line-height: 3rem;
+        transition: all ease-in-out 0.2s;
+    }
+
+        .nav-item ::deep a.active {
+            background-color: var(--color-background);
+            color: var(--color-black) !important;
+        }
+
+        .nav-item ::deep a:hover {
+            background-color: var(--color-background);
+            /*color: var(--color-grey-dark);*/
+            transition: all ease-in-out 0.2s;
+            transform: translateY(-3px);
+        }

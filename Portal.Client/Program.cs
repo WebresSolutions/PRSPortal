@@ -39,7 +39,6 @@ public class Program
 
         Console.WriteLine($"ClientId: {clientId}");
         Console.WriteLine($"authority: {authority}");
-
         builder.Services.AddMudServices(config =>
         {
             config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;

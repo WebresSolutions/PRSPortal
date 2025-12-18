@@ -16,4 +16,6 @@ public interface IJobService
     /// <param name="orderby">Column to order by</param>
     /// <returns>A paged list of responses</returns>
     Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(int page, int pageSize, SortDirectionEnum? order, string? nameFilter, string? orderby);
+
+    Task<Result<JobDetailsDto>> GetJob(int jobId);
 }

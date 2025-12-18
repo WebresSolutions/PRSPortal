@@ -1,4 +1,5 @@
 using Portal.Server.Controllers;
+using Scalar.AspNetCore;
 
 namespace Portal.Server;
 
@@ -44,6 +45,8 @@ public class Program
             bool enableSwagger = app.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");
             if (enableSwagger)
             {
+                app.MapOpenApi();
+                app.MapScalarApiReference();
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {

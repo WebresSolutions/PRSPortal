@@ -469,7 +469,7 @@ internal class MigrationService(
                     CreatedOn = Helpers.GetValidDateWithTimezone(note.Created),
                     ModifiedByUserId = note.ModifiedUser is not null ? _Users.GetValueOrDefault(note.ModifiedUser ?? 0, 95) : null,
                     ModifiedOn = Helpers.GetValidDateWithTimezone(note.Modified),
-                    DeletedAt = Helpers.GetValidDateWithTimezone(note.DeletedDate),
+                    DeletedAt = Helpers.GetValidDateWithTimezoneNull(note.DeletedDate),
                     JobId = _jobsCache!.GetValueOrDefault(note.JobId)?.Id ?? throw new Exception($"Job with LegacyId {note.JobId} not found for Note LegacyId {note.Id}"),
                     AssignedUserId = assignedUserId,
                     LegacyId = (int)note.Id,
@@ -488,85 +488,6 @@ internal class MigrationService(
                 CurrentItemIndex = notes.Length,
                 TotalItems = notes.Length
             });
-
-            // Get all of the jobs
-            JobsUser[] userJobs = [.. _sourceDBContext.JobsUsers.AsNoTracking()];
-            UserJob[] userJobsNew = [.. _destinationContext.UserJobs.AsNoTracking()];
-            if (userJobs.Length == userJobsNew.Length)
-            {
-                progressCallback.Invoke(new MigrationProgress
-                {
-                    CurrentStep = "Migrating Job Users",
-                    CurrentItem = "Job users already exist",
-                    CurrentItemIndex = 0,
-                    TotalItems = 0
-                });
-                return;
-            }
-
-            progressCallback.Invoke(new MigrationProgress
-            {
-                CurrentStep = "Migrating Job Users",
-                CurrentItem = $"Found {userJobs.Length} jobs",
-                CurrentItemIndex = 0,
-                TotalItems = notes.Length
-            });
-
-            List<UserJob> userJobsToCreate = [];
-
-            index = 0;
-            foreach (JobsUser userJob in userJobs)
-            {
-                if (index % 1000 == 0)
-                {
-                    progressCallback.Invoke(new MigrationProgress
-                    {
-                        CurrentStep = "Migrating User Jobs ",
-                        CurrentItem = $"Processing job {index + 1}/{userJobs.Length}",
-                        CurrentItemIndex = index + 1,
-                        TotalItems = userJobs.Length
-                    });
-                }
-                try
-                {
-                    int jobId = 0;
-                    // For some reason there are some user jobs which reference a job which does not exist.
-                    if (!_jobsCache!.TryGetValue(userJob.JobId, out Portal.Data.Models.Job? job))
-                        continue;
-
-                    jobId = job.Id;
-                    int userId = _Users.GetValueRefOrNullRef(userJob.UserId);
-                    UserJob newUserJob = new()
-                    {
-                        CreatedByUserId = _Users.GetValueOrDefault(userJob.CreatedUser ?? 0, 95),
-                        CreatedOn = Helpers.GetValidDateWithTimezone(userJob.Created),
-                        ModifiedByUserId = userJob.ModifiedUser is not null ? _Users.GetValueOrDefault(userJob.ModifiedUser ?? 0, 95) : null,
-                        ModifiedOn = Helpers.GetValidDateWithTimezone(userJob.Modified),
-                        DeletedAt = Helpers.GetValidDateWithTimezone(userJob.DeletedDate),
-                        JobId = jobId,
-                        LegacyId = (int)userJob.Id,
-                        UserId = userId
-                    };
-
-                    userJobsToCreate.Add(newUserJob);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    throw;
-                }
-                index++;
-            }
-
-            _destinationContext.BulkInsert(userJobsToCreate);
-            progressCallback.Invoke(new MigrationProgress
-            {
-                CurrentStep = "Migrating Job Users",
-                CurrentItem = $"Completed migrating job users",
-                CurrentItemIndex = notes.Length,
-                TotalItems = notes.Length
-            });
-
         }
         catch (Exception ex)
         {
@@ -575,183 +496,319 @@ internal class MigrationService(
         }
     }
 
+    public void MigrateUserJobs(Action<MigrationProgress> progressCallback)
+    {
+        // Get all of the jobs
+        JobsUser[] userJobs = [.. _sourceDBContext.JobsUsers.AsNoTracking()];
+        UserJob[] userJobsNew = [.. _destinationContext.UserJobs.AsNoTracking()];
+        if (userJobs.Length == userJobsNew.Length)
+        {
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Job Users",
+                CurrentItem = "Job users already exist",
+                CurrentItemIndex = 0,
+                TotalItems = 0
+            });
+        }
+
+        progressCallback.Invoke(new MigrationProgress
+        {
+            CurrentStep = "Migrating Job Users",
+            CurrentItem = $"Found {userJobs.Length} jobs",
+            CurrentItemIndex = 0,
+            TotalItems = userJobs.Length
+        });
+
+        List<UserJob> userJobsToCreate = [];
+
+        int index = 0;
+        foreach (JobsUser userJob in userJobs)
+        {
+            if (index % 1000 == 0)
+            {
+                progressCallback.Invoke(new MigrationProgress
+                {
+                    CurrentStep = "Migrating User Jobs ",
+                    CurrentItem = $"Processing job {index + 1}/{userJobs.Length}",
+                    CurrentItemIndex = index + 1,
+                    TotalItems = userJobs.Length
+                });
+            }
+            try
+            {
+                if (_Users.TryGetValue(userJob.UserId, out int userId) &&
+                    userId > 0 &&
+                    _jobsCache!.TryGetValue(userJob.JobId, out Portal.Data.Models.Job? job) &&
+                    job is not null)
+                {
+                    UserJob newUserJob = new()
+                    {
+                        CreatedByUserId = _Users.GetValueOrDefault(userJob.CreatedUser ?? 0, 95),
+                        CreatedOn = Helpers.GetValidDateWithTimezone(userJob.Created),
+                        ModifiedByUserId = userJob.ModifiedUser is not null ? _Users.GetValueOrDefault(userJob.ModifiedUser ?? 0, 95) : null,
+                        ModifiedOn = Helpers.GetValidDateWithTimezone(userJob.Modified),
+                        DeletedAt = Helpers.GetValidDateWithTimezone(userJob.DeletedDate),
+                        JobId = job.Id,
+                        LegacyId = (int)userJob.Id,
+                        UserId = userId
+                    };
+                    userJobsToCreate.Add(newUserJob);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+            index++;
+        }
+
+        // Validate all UserJobs have valid UserId and JobId before bulk insert
+        List<UserJob> invalidUserJobs = [.. userJobsToCreate.Where(uj => uj.UserId <= 0 || uj.JobId <= 0 || uj.CreatedByUserId <= 0)];
+        if (invalidUserJobs.Count != 0)
+        {
+            throw new Exception($"Found {invalidUserJobs.Count} UserJobs with invalid UserId or JobId. " +
+                $"Invalid UserIds: {string.Join(", ", invalidUserJobs.Where(uj => uj.UserId <= 0).Select(uj => uj.UserId).Distinct())}, " +
+                $"Invalid JobIds: {string.Join(", ", invalidUserJobs.Where(uj => uj.JobId <= 0).Select(uj => uj.JobId).Distinct())}");
+        }
+
+        progressCallback.Invoke(new MigrationProgress
+        {
+            CurrentStep = "Migrating Job Users",
+            CurrentItem = $"Saving Jobs to the database",
+            CurrentItemIndex = userJobsToCreate.Count,
+            TotalItems = userJobsToCreate.Count
+        });
+        try
+        {
+            _destinationContext.BulkInsert(userJobsToCreate);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+
+        progressCallback.Invoke(new MigrationProgress
+        {
+            CurrentStep = "Migrating Job Users",
+            CurrentItem = $"Completed migrating job users",
+            CurrentItemIndex = userJobsToCreate.Count,
+            TotalItems = userJobsToCreate.Count
+        });
+    }
+
     /// <summary>
     /// TODO: Lets wait and see how schedules are used before migrating them.
     /// </summary>
     /// <param name="progressCallback"></param>
     public void MigrateSchedule(Action<MigrationProgress> progressCallback)
     {
-        progressCallback.Invoke(new MigrationProgress
+        try
         {
-            CurrentStep = "Migrating Schedules",
-            CurrentItem = "Loading schedules...",
-            CurrentItemIndex = 0,
-            TotalItems = 0
-        });
-        // Get all of the schedule tracks
-        SourceDb.ScheduleTrack[] scheduletracksOld = [.. _sourceDBContext.ScheduleTracks];
-        Portal.Data.Models.ScheduleTrack[] scheduletracksNew = [.. _destinationContext.ScheduleTracks];
 
-        if (scheduletracksOld.Length == scheduletracksNew.Length)
-        {
             progressCallback.Invoke(new MigrationProgress
             {
-                CurrentStep = "Migrating Schedule Tracks",
-                CurrentItem = "Schedules exist",
+                CurrentStep = "Migrating Schedules",
+                CurrentItem = "Loading schedules...",
                 CurrentItemIndex = 0,
                 TotalItems = 0
             });
-            return;
-        }
-        Dictionary<int, Portal.Data.Models.ScheduleTrack> scheduleTracksToAdd = [];
-        Dictionary<int, List<ScheduleUser>> scheduleUsers = [];
-        int index = 0;
-        foreach (SourceDb.ScheduleTrack scheduleTrackOld in scheduletracksOld)
-        {
-            if (index % 1000 == 0)
+            // Get all of the schedule tracks
+            SourceDb.ScheduleTrack[] scheduletracksOld = [.. _sourceDBContext.ScheduleTracks.AsNoTracking()];
+            Portal.Data.Models.ScheduleTrack[] scheduletracksNew = [.. _destinationContext.ScheduleTracks];
+
+            if (scheduletracksOld.Length == scheduletracksNew.Length)
             {
                 progressCallback.Invoke(new MigrationProgress
                 {
                     CurrentStep = "Migrating Schedule Tracks",
-                    CurrentItem = $"Processing job {index + 1}/{scheduletracksOld.Length}",
-                    CurrentItemIndex = index + 1,
-                    TotalItems = scheduletracksOld.Length
+                    CurrentItem = "Schedules exist",
+                    CurrentItemIndex = 0,
+                    TotalItems = 0
                 });
+                return;
             }
-
-            // Schedule groups currently = 1 = CAD, 2 = Setout
-            Portal.Data.Models.ScheduleTrack newScheduleTrack = new()
+            Dictionary<int, Portal.Data.Models.ScheduleTrack> scheduleTracksToAdd = [];
+            Dictionary<int, List<ScheduleUser>> scheduleUsers = [];
+            int index = 0;
+            foreach (SourceDb.ScheduleTrack scheduleTrackOld in scheduletracksOld)
             {
-                JobTypeId = scheduleTrackOld.ScheduleGroupId == (int)JobTypeEnum.Surveying ? (int)JobTypeEnum.Surveying : (int)JobTypeEnum.Construction,
-                CreatedByUserId = 95,
-                CreatedOn = Helpers.GetValidDateWithTimezone(scheduleTrackOld.Created),
-                Date = scheduleTrackOld.Date.HasValue ? scheduleTrackOld.Date : null,
-                LegacyId = (int)scheduleTrackOld.Id,
-            };
-            scheduleTracksToAdd.Add((int)scheduleTrackOld.Id, newScheduleTrack);
-            if (scheduleTrackOld.AssigneeUserId1 is not null || scheduleTrackOld.AssigneeUserId2 is not null)
-            {
-                List<ScheduleUser> userList = [];
-
-                if (scheduleTrackOld.AssigneeUserId1 is not null && scheduleTrackOld.AssigneeUserId1 is > 0)
-                    userList.Add(new ScheduleUser
-                    {
-                        CreatedByUserId = 95,
-                        CreatedOn = DateTime.UtcNow,
-                        UserId = _Users.GetValueRefOrNullRef(scheduleTrackOld.AssigneeUserId1 ?? 0)
-                    });
-
-                if (scheduleTrackOld.AssigneeUserId2 is not null && scheduleTrackOld.AssigneeUserId2 is > 0)
-                    userList.Add(new ScheduleUser
-                    {
-                        CreatedByUserId = 95,
-                        CreatedOn = DateTime.UtcNow,
-                        UserId = _Users.GetValueRefOrNullRef(scheduleTrackOld.AssigneeUserId2 ?? 0)
-                    });
-
-                scheduleUsers.Add((int)newScheduleTrack.LegacyId, userList);
-            }
-            index++;
-        }
-        progressCallback.Invoke(new MigrationProgress
-        {
-            CurrentStep = "Migrating Schedule Tracks",
-            CurrentItem = $"Saving schedule tracks to the database",
-            CurrentItemIndex = scheduletracksOld.Length,
-            TotalItems = scheduletracksOld.Length
-        });
-        _destinationContext.AddRange(scheduleTracksToAdd.Values);
-        _destinationContext.SaveChanges();
-
-        index = 0;
-        // Configure the track Id on the users
-        foreach (KeyValuePair<int, List<ScheduleUser>> scheduleUser in scheduleUsers)
-        {
-            if (index % 1000 == 0)
-            {
-                progressCallback.Invoke(new MigrationProgress
+                if (index % 1000 == 0)
                 {
-                    CurrentStep = "Migrating Schedule Users",
-                    CurrentItem = $"Processing user {index + 1}/{scheduleUsers.Count}",
-                    CurrentItemIndex = index + 1,
-                    TotalItems = scheduleUsers.Count
-                });
+                    progressCallback.Invoke(new MigrationProgress
+                    {
+                        CurrentStep = "Migrating Schedule Tracks",
+                        CurrentItem = $"Processing job {index + 1}/{scheduletracksOld.Length}",
+                        CurrentItemIndex = index + 1,
+                        TotalItems = scheduletracksOld.Length
+                    });
+                }
+
+                // Schedule groups currently = 1 = CAD, 2 = Setout
+                Portal.Data.Models.ScheduleTrack newScheduleTrack = new()
+                {
+                    JobTypeId = scheduleTrackOld.ScheduleGroupId == (int)JobTypeEnum.Surveying ? (int)JobTypeEnum.Surveying : (int)JobTypeEnum.Construction,
+                    CreatedByUserId = 95,
+                    CreatedOn = Helpers.GetValidDateWithTimezone(scheduleTrackOld.Created),
+                    Date = scheduleTrackOld.Date.HasValue ? scheduleTrackOld.Date : null,
+                    LegacyId = (int)scheduleTrackOld.Id,
+                };
+                scheduleTracksToAdd.Add((int)scheduleTrackOld.Id, newScheduleTrack);
+                if (scheduleTrackOld.AssigneeUserId1 is not null || scheduleTrackOld.AssigneeUserId2 is not null)
+                {
+                    List<ScheduleUser> userList = [];
+
+                    if (scheduleTrackOld.AssigneeUserId1 is not null && scheduleTrackOld.AssigneeUserId1 is > 0)
+                        userList.Add(new ScheduleUser
+                        {
+                            CreatedByUserId = 95,
+                            CreatedOn = DateTime.UtcNow,
+                            UserId = _Users.GetValueRefOrNullRef(scheduleTrackOld.AssigneeUserId1 ?? 0)
+                        });
+
+                    if (scheduleTrackOld.AssigneeUserId2 is not null && scheduleTrackOld.AssigneeUserId2 is > 0)
+                        userList.Add(new ScheduleUser
+                        {
+                            CreatedByUserId = 95,
+                            CreatedOn = DateTime.UtcNow,
+                            UserId = _Users.GetValueRefOrNullRef(scheduleTrackOld.AssigneeUserId2 ?? 0)
+                        });
+
+                    scheduleUsers.Add((int)newScheduleTrack.LegacyId, userList);
+                }
+                index++;
             }
-            int scheduleTrackId = scheduleTracksToAdd[scheduleUser.Key].Id;
-            foreach (ScheduleUser user in scheduleUser.Value)
-                user.ScheduleTrackId = scheduleTrackId;
-
-            index++;
-        }
-        // bulk insert the schedule users 
-        List<ScheduleUser> scheduleUsersToInsert = [.. scheduleUsers.SelectMany(su => su.Value)];
-        _destinationContext.BulkInsert(scheduleUsersToInsert);
-
-        // Get all of the schedules
-        SourceDb.Schedule[] schedulesOld = [.. _sourceDBContext.Schedules.AsNoTracking()];
-        Schedule[] schedulesNew = [.. _destinationContext.Schedules.AsNoTracking()];
-
-        if (schedulesOld.Length == schedulesNew.Length)
-        {
             progressCallback.Invoke(new MigrationProgress
             {
-                CurrentStep = "Migrating Schedules",
-                CurrentItem = "Schedules exist",
-                CurrentItemIndex = 0,
-                TotalItems = 0
+                CurrentStep = "Migrating Schedule Tracks",
+                CurrentItem = $"Saving schedule tracks to the database",
+                CurrentItemIndex = scheduletracksOld.Length,
+                TotalItems = scheduletracksOld.Length
             });
-            return;
-        }
+            _destinationContext.AddRange(scheduleTracksToAdd.Values);
+            _destinationContext.SaveChanges();
 
-        // Select all of the valid hash colors from the jobs
-        List<string?> existingColours = [.. schedulesOld.GroupBy(j => j.Colour)
-                .Select(g => g.Key)
-                .Where(c => c is not null && c.StartsWith('#') && c.Length == 7)];
-
-        List<ScheduleColour> scheduleColours = [.. existingColours.Select(x => new ScheduleColour
+            index = 0;
+            // Configure the track Id on the users
+            foreach (KeyValuePair<int, List<ScheduleUser>> scheduleUser in scheduleUsers)
             {
-                Color = x!,
-                CreatedAt = DateTime.UtcNow
-            })];
-        scheduleColours.Add(new ScheduleColour
-        {
-            Color = "#FFFFFF",
-            CreatedAt = DateTime.UtcNow
-        });
-        _destinationContext.AddRange(scheduleColours);
-        _destinationContext.SaveChanges();
+                if (index % 1000 == 0)
+                {
+                    progressCallback.Invoke(new MigrationProgress
+                    {
+                        CurrentStep = "Migrating Schedule Users",
+                        CurrentItem = $"Processing user {index + 1}/{scheduleUsers.Count}",
+                        CurrentItemIndex = index + 1,
+                        TotalItems = scheduleUsers.Count
+                    });
+                }
+                int scheduleTrackId = scheduleTracksToAdd[scheduleUser.Key].Id;
+                foreach (ScheduleUser user in scheduleUser.Value)
+                    user.ScheduleTrackId = scheduleTrackId;
 
-        index = 0;
-        List<Schedule> schedulesToAdd = [];
+                index++;
+            }
+            // bulk insert the schedule users 
+            List<ScheduleUser> scheduleUsersToInsert = [.. scheduleUsers.SelectMany(su => su.Value)];
+            _destinationContext.BulkInsert(scheduleUsersToInsert);
 
-        foreach (SourceDb.Schedule scheduleOld in schedulesOld)
-        {
-            if (index % 1000 == 0)
+            // Get all of the schedules
+            SourceDb.Schedule[] schedulesOld = [.. _sourceDBContext.Schedules.AsNoTracking()];
+            Schedule[] schedulesNew = [.. _destinationContext.Schedules.AsNoTracking()];
+
+            if (schedulesOld.Length == schedulesNew.Length)
             {
                 progressCallback.Invoke(new MigrationProgress
                 {
                     CurrentStep = "Migrating Schedules",
-                    CurrentItem = $"Processing schedule {index + 1}/{schedulesOld.Length}",
-                    CurrentItemIndex = index + 1,
-                    TotalItems = schedulesOld.Length
+                    CurrentItem = "Schedules exist",
+                    CurrentItemIndex = 0,
+                    TotalItems = 0
                 });
+                return;
             }
-            Schedule schedule = new()
+
+            // Select all of the valid hash colors from the jobs
+            List<string?> existingColours = [.. schedulesOld.GroupBy(j => j.Colour)
+                .Select(g => g.Key)
+                .Where(c => c is not null && c.StartsWith('#') && c.Length == 7)];
+
+            List<ScheduleColour> scheduleColours = [.. existingColours.Select(x => new ScheduleColour
             {
-                ScheduleColour = scheduleColours.First(jc => jc.Color == (scheduleOld.Colour is not null && scheduleOld.Colour.StartsWith('#') && scheduleOld.Colour.Length == 7 ? scheduleOld.Colour : "#FFFFFF")),
-                //ScheduleTrackId = scheduleTracksToAdd[scheduleOld.ScheduleTrackId].Id
-            };
+                Color = x!,
+                CreatedAt = DateTime.UtcNow
+            })];
+            scheduleColours.Add(new ScheduleColour
+            {
+                Color = "#FFFFFF",
+                CreatedAt = DateTime.UtcNow
+            });
+            _destinationContext.AddRange(scheduleColours);
+            _destinationContext.SaveChanges();
+            scheduleColours = [.. _destinationContext.ScheduleColours.AsNoTracking()];
 
-            schedulesToAdd.Add(schedule);
+            index = 0;
+            List<Schedule> schedulesToAdd = [];
+
+            foreach (SourceDb.Schedule scheduleOld in schedulesOld)
+            {
+                if (index % 1000 == 0)
+                {
+                    progressCallback.Invoke(new MigrationProgress
+                    {
+                        CurrentStep = "Migrating Schedules",
+                        CurrentItem = $"Processing schedule {index + 1}/{schedulesOld.Length}",
+                        CurrentItemIndex = index + 1,
+                        TotalItems = schedulesOld.Length
+                    });
+                }
+
+                // TODO: fix this later 
+                ScheduleColour color = scheduleColours.FirstOrDefault(c => c.Color == (scheduleOld.Colour is not null && scheduleOld.Colour.StartsWith('#') && scheduleOld.Colour.Length == 7 ? scheduleOld.Colour : "#FFFFFF"))
+                    ?? scheduleColours.First();
+
+                if (scheduleOld.ScheduleTrackId is not null && scheduleTracksToAdd.TryGetValue(scheduleOld.ScheduleTrackId.Value, out Portal.Data.Models.ScheduleTrack? scheduleTrack))
+                {
+                    Schedule schedule = new()
+                    {
+                        ScheduleColourId = color.Id,
+                        ScheduleTrackId = scheduleTrack.Id,
+                        StartTime = Helpers.GetValidDateWithTimezone(scheduleOld.StartTime),
+                        EndTime = Helpers.GetValidDateWithTimezone(scheduleOld.EndTime),
+                        CreatedByUserId = 95,
+                        CreatedOn = Helpers.GetValidDateWithTimezone(scheduleOld.Created),
+                        JobId = _jobsCache!.GetValueOrDefault(scheduleOld.JobId)?.Id,
+                        Notes = scheduleOld.Notes,
+                        LegacyId = (int)scheduleOld.Id
+                    };
+
+                    schedulesToAdd.Add(schedule);
+                }
+            }
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Schedules",
+                CurrentItem = $"Saving schedules to the database",
+                CurrentItemIndex = schedulesOld.Length,
+                TotalItems = schedulesOld.Length
+            });
+            _destinationContext.BulkInsert(schedulesToAdd);
+
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Schedules",
+                CurrentItem = $"Completed migrating Schedules",
+                CurrentItemIndex = schedulesOld.Length,
+                TotalItems = schedulesOld.Length
+            });
         }
-
-        progressCallback.Invoke(new MigrationProgress
+        catch (Exception ex)
         {
-            CurrentStep = "Migrating Schedules",
-            CurrentItem = $"Found {schedulesOld.Length} schedules",
-            CurrentItemIndex = 0,
-            TotalItems = schedulesOld.Length
-        });
+            Console.WriteLine(ex.Message);
+            throw;
+        }
     }
 
     /// <summary>

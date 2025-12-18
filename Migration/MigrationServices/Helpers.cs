@@ -40,6 +40,7 @@ internal static class Helpers
     }
 
     public static DateTime GetValidDateWithTimezone(DateTime? date) => date.HasValue ? DateTime.SpecifyKind(date.Value, DateTimeKind.Utc) : DateTime.UtcNow;
+    public static DateTime? GetValidDateWithTimezoneNull(DateTime? date) => date.HasValue ? DateTime.SpecifyKind(date.Value, DateTimeKind.Utc) : null;
 
     public static string TruncateString(string? value, int maxLength, string fieldName = "", int? contactId = null)
     {

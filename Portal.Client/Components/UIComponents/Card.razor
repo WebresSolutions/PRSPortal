@@ -1,15 +1,14 @@
-﻿<section class="container card-wrapper shadow">
+﻿<section class="card-container shadow">
     @if (TitleContent is not null)
     {
         @TitleContent
     }
     @if (Title != string.Empty)
     {
-        <h3 class="text-center mb-4">@Title</h3>
+        <h1 class="cd-title">@Title</h1>
     }
     @if (IsLoading)
     {
-        @* <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="@_heightString" /> *@
     }
     else
     {
@@ -19,7 +18,6 @@
     }
     @if (Reload is not null)
     {
-        @* <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="Reload" Class="refresh-button" Disabled=IsLoading /> *@
     }
 </section>
 @code {
@@ -64,13 +62,23 @@
     [Parameter]
     public Func<Task>? Reload { get; set; }
 }
+
 <style>
-    .container{
+
+    .card-container {
+        background: var(--color-white);
+        padding: 15px;
+        border-radius: var(--border-rad);
         overflow-x: scroll !important;
+        margin-right: auto;
+        margin-left: auto;
+        overflow: scroll;
     }
 
-    .card-wrapper {
-        position: relative;
+    .cd-title{
+        text-align: left;
+        margin-bottom: 1.5rem;
+        margin-left: 1.5rem;
     }
 
     .refresh-button {
@@ -79,15 +87,31 @@
         right: 0 !important;
     }
 
-    .card-container {
-        max-width: 1000px;
-        overflow: scroll;
+    @@media (min-width: 768px) {
+        .card-container {
+            width: fit-content;
+        }
     }
 
-    @@media (max-width: 1270px) {
+    @@media (min-width: 900px) {
         .card-container {
-            max-width: 800px;
-            overflow: scroll;
+            width: 800px;
+        }
+    }
+
+    @@media (min-width: 992px) {
+        .card-container {
+            width: 970px;
+        }
+    }
+    @@media (min-width: 1060px) {
+        .card-container {
+            width: 1000px;
+        }
+    }
+    @@media (min-width: 1200px) {
+        .card-container {
+            width: auto;
         }
     }
 </style>

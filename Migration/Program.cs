@@ -54,7 +54,9 @@ internal class Program
             migration.MigrateContacts(progressCallback);
             migration.MigrateCouncils(progressCallback);
             migration.MigrateJobs(progressCallback);
+            migration.MigrateUserJobs(progressCallback);
             migration.MigratateJobsSubObjects(progressCallback);
+            migration.MigarateTasks(progressCallback);
             migration.MigrateSchedule(progressCallback);
         }
         catch (Exception)

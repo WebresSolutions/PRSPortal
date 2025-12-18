@@ -1,11 +1,12 @@
 ﻿@page "/jobs"
 @using Portal.Shared
+@using Portal.Shared.DTO.Contact
 @using Portal.Shared.DTO.Job
 @using Portal.Shared.ResponseModels
 @using Portal.Shared.Web
 @inherits BaseDataComponent;
 
-<div>
+<div class="container">
     <Card Title="Jobs">
         <ChildContent>
             <MudDataGrid T="ListJobDto"
@@ -17,19 +18,28 @@
                          RowsPerPageValues="@(new int[] { 10, 25, 50, 100 })"
                          CurrentPage="_sessionData.Page"
                          CurrentPageChanged="@((page) => _sessionData.Page = page)"
-                         Dense=true
-                         @ref="_grid">
+                         Dense=false
+                         @ref="_grid" 
+                         Striped="true">
                 <ToolBarContent>
                     <MudTextField T="string" @bind-Value="_sessionData.SearchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))"
                                   AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Clearable="true" OnClearButtonClick="ClearSearch"></MudTextField>
                 </ToolBarContent>
                 <Columns>
                     <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" />
-                    <PropertyColumn Property="x => x.Contact" ShowFilterIcon="false" />
+                    <TemplateColumn ShowFilterIcon="false" Title="Contact">
+                        <CellTemplate>
+                            <p>@(context.Item.JoinedContactName)</p>
+                        </CellTemplate>
+                    </TemplateColumn>
                     <PropertyColumn Property="x => x.Address.street" ShowFilterIcon="false" Title="Street" />
                     <PropertyColumn Property="x => x.Address.suburb" ShowFilterIcon="false" Title="Suburb" />
                     <PropertyColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number" />
-                    <PropertyColumn Property="x => x.JobType" ShowFilterIcon="false" Title="Job Type" />
+                    <TemplateColumn ShowFilterIcon="false" Title="Job Type">
+                        <CellTemplate>
+                            <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
+                        </CellTemplate>
+                    </TemplateColumn>
                 </Columns>
                 <PagerContent>
                     <MudDataGridPager T="ListJobDto" />
@@ -49,7 +59,7 @@
     private SessionSearchData _sessionData = new();
 
     #region Constants
-    private const string _FacilitiesSessionKey = "FacilitiesSession";
+    private const string _FacilitiesSessionKey = "JobsListSession";
     #endregion
 
     /// <summary>
@@ -96,7 +106,7 @@
                 _sessionData.Order = sortDefinition.Descending ? SortDirectionEnum.Desc : SortDirectionEnum.Asc;
                 _sessionData.OrderBy = sortDefinition.SortBy switch
                 {
-                    var s when s == nameof(ListJobDto.Contact)
+                    string s when s == nameof(ListJobDto.Contact1)
                             || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.postCode)
                             || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.suburb)
                             || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.street)
