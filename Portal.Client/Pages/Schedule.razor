@@ -5,14 +5,14 @@
 
 <PageTitle>Schedule - PRS Portal</PageTitle>
 <div class="container">
-    <div class="mb-3 d-flex">
+    <div class="mb-2 d-flex">
         <h1>Schedule - @JobTypeEnum.GetDisplayName()</h1>
         <i @onclick="@SwapJobType" style="padding-top: 1rem">Swap</i>
     </div>
     <div class="d-flex">
         <MudDatePicker T="DateOnly" Date=DateTime Label="Select Date" Variant="Variant.Outlined" Class="mt-0 mb-3" DateChanged="@((x) => ReloadCalendar(x!.Value))" />
         <div class="mini-container">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadSchedule" StartIcon="@Icons.Material.Filled.Refresh">Refresh</MudButton>
+            <MudIconButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadSchedule" Icon="@Icons.Material.Filled.Refresh" />
             <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="LoadSchedule" StartIcon="@Icons.Material.Filled.Add">Add Staff Track</MudButton>
         </div>
     </div>
@@ -40,7 +40,7 @@
                                  ShowWeek=false
                                  Items="slot.Events"
                                  EnableDragItems="true"
-                                 DayCellHeight="40">
+                                 DayCellHeight="25">
                         <ToolbarContent>
                             <MudButton Variant="Variant.Filled" Color="Color.Success" Class="mx-1"
                                        OnClick="@(() => AddNewSchedule(slot.SlotId))" StartIcon="@Icons.Material.Filled.Add">Schedule</MudButton>

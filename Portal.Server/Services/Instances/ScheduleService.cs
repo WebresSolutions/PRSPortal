@@ -72,4 +72,25 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
             return result.SetError(ErrorType.InternalError, "Failed to get schedule tracks");
         }
     }
+    public async Task<Result<List<ScheduleColourDto>>> GetScheduleColours()
+    {
+        Result<List<ScheduleColourDto>> result = new();
+        try
+        {
+            List<ScheduleColourDto> colours = await _prsDbContext.ScheduleColours
+                  .Select(sc => new ScheduleColourDto()
+                  {
+                      ScheduleColourId = sc.Id,
+                      ColourHex = sc.Color
+                  }).ToListAsync();
+
+            result.Value = colours;
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get all jobs");
+            return result.SetError(ErrorType.InternalError, "Failed to get schedule tracks");
+        }
+    }
 }
