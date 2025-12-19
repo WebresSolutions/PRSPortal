@@ -649,7 +649,7 @@ internal class MigrationService(
                 // Schedule groups currently = 1 = CAD, 2 = Setout
                 Portal.Data.Models.ScheduleTrack newScheduleTrack = new()
                 {
-                    JobTypeId = scheduleTrackOld.ScheduleGroupId == (int)JobTypeEnum.Surveying ? (int)JobTypeEnum.Surveying : (int)JobTypeEnum.Construction,
+                    JobTypeId = scheduleTrackOld.ScheduleGroupId == 1 ? (int)JobTypeEnum.Surveying : (int)JobTypeEnum.Construction,
                     CreatedByUserId = 95,
                     CreatedOn = Helpers.GetValidDateWithTimezone(scheduleTrackOld.Created),
                     Date = scheduleTrackOld.Date.HasValue ? scheduleTrackOld.Date : null,
@@ -763,6 +763,11 @@ internal class MigrationService(
                         CurrentItemIndex = index + 1,
                         TotalItems = schedulesOld.Length
                     });
+                }
+
+                if (scheduleOld.ScheduleTrackId == 33385)
+                {
+                    ;
                 }
 
                 // TODO: fix this later 

@@ -1,22 +1,26 @@
-﻿@import url("open-iconic/font/css/open-iconic-bootstrap.min.css");
+﻿
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@100;300;400;500;700;900&display=swap');
-@import "tailwindcss";
-@import "../bin/lumexui/theme"; /* theme */
-@source "../bin/lumexui/*.cs"; /* styles */
+
 :root {
-    --color-primary: #ff5020;
+    /*--color-primary: #ff5020;*/
+    --color-primary: #27213C;
     --color-primary-light: #ff957d;
-    --color-secondary: #f2ecee;
+    --color-secondary: #F49D37;
     --color-background: #f5f5ff;
     --color-success: #63a46c;
     --color-grey-dark: #808080;
     --color-grey: #f5f3f5;
-    --color-white: #ffffff;
+    --color-white: #FFFFFF;
     --color-yellow: #a16207;
     --border-rad: 10px;
     --padding: 10px;
     --colour-survey: #748CAB;
     --colour-construction: #AEF6C7;
+    --mud-ripple-color: var(--color-primary) !important;
+    --mud-palette-primary: var(--color-primary) !important;
+    --mud-palette-secondary: var(--color-secondary) !important;
+    --mud-palette-info: var(--color-primary) !important;
+    --mud-default-borderradius: var(--border-rad) !important;
 }
 
 html,
@@ -35,6 +39,15 @@ body {
     margin-right: auto; /* Same as the width of the quicksearch */
 }
 
+
+h2 {
+    color: var(--color-primary);
+    font-weight: 800;
+}
+h1 {
+    color: var(--color-primary);
+    font-weight: 800;
+}
 
 a,
 .btn-link {
@@ -103,7 +116,9 @@ ul {
         transition: all ease-in-out 0.2s;
         transform: translateY(-3px);
     }
-
+.mud-elevation-1 {
+     box-shadow: none !important; 
+}
 .mud-table {
     box-shadow: none !important;
 }
@@ -120,6 +135,19 @@ a {
     text-decoration: none !important;
 }
 
+.mud-button-filled.mud-button-filled-primary {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+    background-color: var(--color-primary) !important;
+}
+
+.mud-input.mud-input-filled.mud-input-underline:before {
+    border-bottom: none !important;
+}
+
+.mud-input.mud-input-filled.mud-input-underline:before {
+    border-bottom: none !important;
+}
 
 .mud-table {
     box-shadow: none !important;

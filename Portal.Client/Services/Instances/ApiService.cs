@@ -2,6 +2,7 @@
 using Portal.Client.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Job;
+using Portal.Shared.DTO.Schedule;
 using Portal.Shared.ResponseModels;
 using System.Net.Http.Json;
 
@@ -67,6 +68,43 @@ public class ApiService : IApiService
         return res;
     }
 
+    public async Task<Result<List<ScheduleSlotDTO>>> GetIndividualSchedule(DateOnly date, JobTypeEnum jobType)
+    {
+        Result<List<ScheduleSlotDTO>> res = new();
+        try
+        {
+            Dictionary<string, string> queryParameters = new()
+            {
+                { "date", date.ToString() },
+                { "jobType", jobType.ToString() }
+            };
+
+            FormUrlEncodedContent dictFormUrlEncoded = new(queryParameters);
+            string queryString = await dictFormUrlEncoded.ReadAsStringAsync();
+
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/schedule/slots/?{queryString}");
+
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+
+            if (response.IsSuccessStatusCode)
+            {
+                List<ScheduleSlotDTO>? slots = await response.Content.ReadFromJsonAsync<List<ScheduleSlotDTO>>();
+                res.Value = slots;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get all of the jobs";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            // Handle exception
+        }
+        return res;
+    }
     private async Task NavigationToLoginPage()
     {
         string returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);

@@ -13,7 +13,14 @@ public class Program
     {
         WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
         builder.RootComponents.Add<App>("#app");
-
+        builder.Services.AddMsalAuthentication(options =>
+        {
+            builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
+            options.ProviderOptions.LoginMode = "redirect";
+            options.ProviderOptions.DefaultAccessTokenScopes.Add("profile");
+            options.ProviderOptions.DefaultAccessTokenScopes.Add("offline_access");
+            options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://{builder.Configuration.GetValue<string>("AzureAd:ClientId")}/read_as_user");
+        });
         string httpClient = builder.Configuration.GetValue<string>("HttpClient")
             ?? throw new Exception("Failed to load the http client settings");
 
@@ -50,14 +57,6 @@ public class Program
             config.SnackbarConfiguration.HideTransitionDuration = 500;
             config.SnackbarConfiguration.ShowTransitionDuration = 500;
             config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
-        });
-        _ = builder.Services.AddMsalAuthentication(options =>
-        {
-            builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
-            options.ProviderOptions.LoginMode = "redirect";
-            options.ProviderOptions.DefaultAccessTokenScopes.Add("profile");
-            options.ProviderOptions.DefaultAccessTokenScopes.Add("offline_access");
-            options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://{builder.Configuration.GetValue<string>("AzureAd:ClientId")}/read_as_user");
         });
         builder.Services.AddSingleton<IApiService, ApiService>();
         // The service holds stateful information about the current user session.

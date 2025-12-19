@@ -65,7 +65,7 @@
 
     .nav-item ::deep a {
         color: var(--color-primary);
-        border-radius: 15px;
+        border-radius: var(--border-rad);
         height: 3rem;
         display: flex;
         align-items: center;
@@ -75,7 +75,7 @@
 
         .nav-item ::deep a.active {
             background-color: var(--color-background);
-            color: var(--color-black) !important;
+            color: var(--color-secondary) !important;
         }
 
         .nav-item ::deep a:hover {

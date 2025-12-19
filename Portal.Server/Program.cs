@@ -78,7 +78,10 @@ public class Program
         app.MapRazorPages();
         app.MapControllers();
         app.MapFallbackToFile("index.html");
+
+        // Add API endpoints
         app.AddJobEndpoints();
+        app.AddScheduleEndpoints();
 
         app.Run();
     }

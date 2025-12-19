@@ -72,7 +72,7 @@ footer {
     .main {
         margin-right: auto; /* Same as the width of the quicksearch */
         margin-top: 75px;
-        margin-left: 50px;
+        margin-left: 150px;
     }
 
         .main.full {
@@ -84,7 +84,7 @@ footer {
     .main {
         margin-top: 75px;
         margin-right: auto; /* Same as the width of the quicksearch */
-        margin-left: 50px;
+        margin-left: 150px;
     }
 
         .main.full {

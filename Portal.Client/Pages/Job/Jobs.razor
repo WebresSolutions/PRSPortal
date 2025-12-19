@@ -7,7 +7,17 @@
 @inherits BaseDataComponent;
 
 <div class="container">
-    <Card Title="Jobs">
+    <div class="mb-4">
+        <h1>Jobs</h1>
+    </div>
+    <div class="d-flex flex-row gap-2">
+        <MudTextField T="string" @bind-Value="_sessionData.SearchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))" Variant="Variant.Outlined"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Large" Class="mt-0 mb-4" Clearable="true" OnClearButtonClick="ClearSearch"></MudTextField>
+        <div style="margin: auto">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ClearSearch" StartIcon="@Icons.Material.Filled.Add">New</MudButton>
+        </div>
+    </div>
+    <Card>
         <ChildContent>
             <MudDataGrid T="ListJobDto"
                          ServerData="LoadJobs"
@@ -19,14 +29,15 @@
                          CurrentPage="_sessionData.Page"
                          CurrentPageChanged="@((page) => _sessionData.Page = page)"
                          Dense=false
-                         @ref="_grid" 
+                         @ref="_grid"
                          Striped="true">
-                <ToolBarContent>
-                    <MudTextField T="string" @bind-Value="_sessionData.SearchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))"
-                                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Clearable="true" OnClearButtonClick="ClearSearch"></MudTextField>
-                </ToolBarContent>
                 <Columns>
-                    <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" />
+                    <TemplateColumn StickyLeft="true">
+                        <CellTemplate>
+                            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" Href="@($"/Facilities/{context.Item.JobId}")" StartIcon="@Icons.Material.Filled.RemoveRedEye">View</MudButton>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" />
                     <TemplateColumn ShowFilterIcon="false" Title="Contact">
                         <CellTemplate>
                             <p>@(context.Item.JoinedContactName)</p>
@@ -34,7 +45,7 @@
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.Address.street" ShowFilterIcon="false" Title="Street" />
                     <PropertyColumn Property="x => x.Address.suburb" ShowFilterIcon="false" Title="Suburb" />
-                    <PropertyColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number" />
+                    <PropertyColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number" HeaderStyle="max-width: 75px" />
                     <TemplateColumn ShowFilterIcon="false" Title="Job Type">
                         <CellTemplate>
                             <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
@@ -149,7 +160,7 @@
                 // Handle API error or unsuccessful result
                 string errorMessage = "Failed to load facilities data from the API.";
                 Console.WriteLine($"API Error: {errorMessage}");
-                if (_dialogService is not null)
+                if (_snackbar is not null)
                 {
                     _snackbar.Add("Error", Severity.Error);
                 }

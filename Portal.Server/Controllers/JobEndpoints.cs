@@ -31,7 +31,7 @@ public static class JobEndpoints
 
             Result<PagedResponse<ListJobDto>> result = await jobService.GetAllJobs(page, pageSize, order, nameFilter, orderby);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
-        }).AllowAnonymous();
+        });
 
         // Gets all jobs with pagination and optional filtering/sorting
         appGroup.MapGet("{jobId}", async (
@@ -46,6 +46,6 @@ public static class JobEndpoints
 
             Result<JobDetailsDto> result = await jobService.GetJob(jobId);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
-        }).AllowAnonymous();
+        });
     }
 }

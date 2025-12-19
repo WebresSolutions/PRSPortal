@@ -36,6 +36,7 @@ public static class Dependencies
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
         builder.Services.AddScoped<IJobService, JobService>();
+        builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
         // Add Swagger/OpenAPI services for API debugging
         bool enableSwagger = builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");

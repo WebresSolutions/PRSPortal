@@ -1,15 +1,105 @@
-@page "/schedule"
+@page "/schedule";
+@using Portal.Shared
+@using Portal.Shared.DTO.Schedule
+@inherits BaseDataComponent;
 
 <PageTitle>Schedule - PRS Portal</PageTitle>
-
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-           
+<div class="container">
+    <div class="mb-3 d-flex">
+        <h1>Schedule - @JobTypeEnum.GetDisplayName()</h1>
+        <i @onclick="@SwapJobType" style="padding-top: 1rem">Swap</i>
+    </div>
+    <div class="d-flex">
+        <MudDatePicker T="DateOnly" Date=DateTime Label="Select Date" Variant="Variant.Outlined" Class="mt-0 mb-3" DateChanged="@((x) => ReloadCalendar(x!.Value))" />
+        <div class="mini-container">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadSchedule" StartIcon="@Icons.Material.Filled.Refresh">Refresh</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="LoadSchedule" StartIcon="@Icons.Material.Filled.Add">Add Staff Track</MudButton>
         </div>
     </div>
+
+    @if (!base.IsLoading)
+    {
+        <div class="scheduler-container">
+            @foreach (ScheduleSlotDtoWithCalendar slot in scheduleSlots)
+            {
+                <div class="">
+                    <div class="schedule-users">
+                        <b>Assigned Users:</b>
+                        @foreach (var user in slot.AssignedUsers)
+                        {
+                            <div>@user.displayName</div>
+                        }
+                    </div>
+                    <MudCalendar T="CustomCalendarItem"
+                                 ShowDatePicker="false"
+                                 View="@CalendarView.Day"
+                                 ShowPrevNextButtons="false"
+                                 CurrentDay="slot.Day.ToDateTime(new TimeOnly(9, 0))"
+                                 ShowCurrentTime="true"
+                                 ShowMonth=false
+                                 ShowWeek=false
+                                 Items="slot.Events"
+                                 EnableDragItems="true"
+                                 DayCellHeight="40">
+                        <ToolbarContent>
+                            <MudButton Variant="Variant.Filled" Color="Color.Success" Class="mx-1"
+                                       OnClick="@(() => AddNewSchedule(slot.SlotId))" StartIcon="@Icons.Material.Filled.Add">Schedule</MudButton>
+                        </ToolbarContent>
+                        <CellTemplate>
+                            <div class="schedule-items" style="border: 2px solid black; background-color: @context.Colour;">
+                                @if (context.JobAddress is not null || context.JobNumber is not null)
+                                {
+                                    <small style="background-color: @context.Colour">
+                                        Job: @context.JobNumber - @context.JobAddress
+                                    </small>
+                                    <hr />
+                                }
+                                <small style="background-color: @context.Colour; overflow: scroll">
+                                    Notes: @context.Text
+                                </small>
+                            </div>
+                        </CellTemplate>
+                    </MudCalendar>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <MudSkeleton Height="800px" Width="100%" />
+    }
 </div>
 
-@code {
-    // Add your scheduling logic here
-}
+<style>
+    .mini-container{
+        padding-left: 0.5rem;
+        padding-top: 0.5rem;
+    }
+
+    .scheduler-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-gap: 15px;
+    }
+
+    .schedule-users {
+        height: fit-content;
+        min-height: 80px;
+        background: var(--color-white);
+        padding: var(--padding);
+        border-radius: var(--border-rad);
+        margin-bottom: 0.5rem;
+    }
+
+    .schedule-items {
+        width: 100%;
+        height: 100%;
+        padding: 5px;
+    }
+
+    @@media (max-width: 1200px) {
+        .scheduler-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
