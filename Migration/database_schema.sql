@@ -27,6 +27,7 @@ DROP TABLE IF EXISTS file_type;
 DROP TABLE IF EXISTS job_task_type;
 DROP TABLE IF EXISTS states;
 DROP TABLE IF EXISTS app_user;
+DROP TABLE IF EXISTS application_setting;
 
 -- ============================================================================
 -- EXTENSIONS
@@ -579,7 +580,7 @@ CREATE INDEX idx_schedule_start_time ON schedule(start_time);
 CREATE INDEX idx_schedule_end_time ON schedule(end_time);
 CREATE INDEX idx_schedule_created_by ON schedule(created_by_user_id);
 
-CREATE TABLE application_settings(
+CREATE TABLE application_setting(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     key VARCHAR(255) NOT NULL,
     value TEXT NOT NULL,

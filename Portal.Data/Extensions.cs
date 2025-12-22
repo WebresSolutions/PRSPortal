@@ -22,7 +22,7 @@ public static class Extensions
         if (entities.Count == 0)
             return 0;
 
-        (string[], PropertyInfo[], string?) columnAndProperties = GetColumnAndPropertyInfo<T>(dbContext);
+        (string[], PropertyInfo?[], string?) columnAndProperties = GetColumnAndPropertyInfo<T>(dbContext);
         using NpgsqlConnection connection = new(dbContext.Database.GetConnectionString());
         connection.Open();
 
@@ -33,7 +33,7 @@ public static class Extensions
         {
             await writer.StartRowAsync();
             foreach (PropertyInfo? prop in columnAndProperties.Item2)
-                await writer.WriteAsync(prop.GetValue(entity));
+                await writer.WriteAsync(prop!.GetValue(entity));
         }
 
         await writer.CompleteAsync();
@@ -66,7 +66,7 @@ public static class Extensions
         {
             writer.StartRow();
             foreach (PropertyInfo? prop in columnAndProperties.Item2)
-                writer.Write(prop.GetValue(entity));
+                writer.Write(prop!.GetValue(entity));
         }
         writer.Complete();
         writer.Close();
@@ -130,7 +130,7 @@ public static class Extensions
         }
 
         Expression propertyAccess = propertySelector.Body;
-        MemberExpression efFunctionsProperty = Expression.Property(null, nameof(EF.Functions));
+        MemberExpression efFunctionsProperty = Expression.Property(propertyAccess, nameof(EF.Functions));
 
         MethodCallExpression ilikeCall = Expression.Call(ilikeMethod, efFunctionsProperty, propertyAccess, wrappedSearchTerm);
 

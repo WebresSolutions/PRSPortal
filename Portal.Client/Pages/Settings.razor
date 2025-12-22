@@ -5,7 +5,7 @@
 @inherits BaseDataComponent;
 
 @code {
-    private List<ScheduleColourDto> colours = new();
+    private List<ScheduleColourDto> _colours = new();
     private bool showColourPicker = true;
 
     /// <summary>
@@ -27,7 +27,7 @@
         Result<List<ScheduleColourDto>> res = await _apiService.GetScheduleColours();
         if (res.Error is null && res.Value is not null)
         {
-            colours = res.Value;
+            _colours = res.Value;
         }
         else
         {
@@ -43,12 +43,20 @@
         if (res.Error is null)
         {
             _snackbar.Add("Colour updated successfully", Severity.Success);
+            Result<List<ScheduleColourDto>> colours = await _apiService.GetScheduleColours();
+            if (colours.Error is null && colours.Value is not null)
+            {
+                _colours.ElementAt(_colours.FindIndex(c => c.ScheduleColourId == colour.ScheduleColourId)).ColourHex = colourString;
+            }
+            else
+            {
+                _snackbar.Add(res.ErrorDescription ?? "Error occured while loading the colours", Severity.Error);
+            }
         }
         else
         {
             _snackbar.Add(res.ErrorDescription ?? "Error occured while saving the colour", Severity.Error);
         }
-        await LoadColours();
     }
 }
 
@@ -66,7 +74,7 @@
                 @if (showColourPicker)
                 {
                     <section class="colour-container">
-                        @foreach (ScheduleColourDto colour in colours)
+                        @foreach (ScheduleColourDto colour in _colours)
                         {
                             <div>
                                 <div class="preview" style="background: @colour.ColourHex"></div>

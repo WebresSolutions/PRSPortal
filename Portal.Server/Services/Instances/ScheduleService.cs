@@ -85,7 +85,9 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
                       ScheduleColourId = sc.Id,
                       ColourHex = sc.Color,
 
-                  }).ToListAsync();
+                  })
+                  .OrderBy(sc => sc.ScheduleColourId)
+                  .ToListAsync();
 
             result.Value = colours;
             return result;
@@ -121,9 +123,8 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
                 if (scheduleColour is null)
                     return result.SetError(ErrorType.BadRequest, "Schedule colour not found");
 
-                if (scheduleColour.Color == colour.ColourHex)
+                scheduleColour.Color = colour.ColourHex;
 
-                    scheduleColour.Color = colour.ColourHex;
                 await _prsDbContext.SaveChangesAsync();
             }
             result.Value = new ScheduleColourDto { ScheduleColourId = scheduleColour.Id, ColourHex = scheduleColour.Color };
