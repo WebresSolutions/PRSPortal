@@ -4,17 +4,15 @@ using System.Collections.Generic;
 namespace Portal.Data.Models;
 
 /// <summary>
-/// Colour of the schedule
+/// Type of note
 /// </summary>
-public partial class ScheduleColour
+public partial class NoteType
 {
     public int Id { get; set; }
 
-    public string Color { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
     public string? Description { get; set; }
 
     public DateTime CreatedAt { get; set; }
-
-    public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 }

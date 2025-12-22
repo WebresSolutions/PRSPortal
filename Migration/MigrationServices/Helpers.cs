@@ -1,14 +1,10 @@
-﻿using Portal.Data;
-using Portal.Data.Models;
-using Portal.Shared;
-
-namespace Migration.MigrationServices;
+﻿namespace Migration.MigrationServices;
 
 internal static class Helpers
 {
-    public static List<State> States = [];
+    public static List<Models.State> States = [];
 
-    public static Address CreateAddress(PrsDbContext context, string? state, string streetAddress, string suburb, string? postCode)
+    public static Models.Address CreateAddress(PrsDbContext context, string? state, string streetAddress, string suburb, string? postCode)
     {
         try
         {
@@ -21,7 +17,7 @@ internal static class Helpers
             if (!States.Select(x => x.Id).Contains(stateId))
                 stateId = 3;
 
-            Address? addressObj = new()
+            Models.Address? addressObj = new()
             {
                 Suburb = suburb.ToUpper(),
                 StateId = stateId,

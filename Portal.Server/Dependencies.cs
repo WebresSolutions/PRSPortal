@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
-using Microsoft.OpenApi.Models;
 using Portal.Data;
 using Portal.Server.Services.Instances;
 using Portal.Server.Services.Interfaces;
@@ -46,12 +45,6 @@ public static class Dependencies
             builder.Services.AddOpenApi();
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "Portal API",
-                    Version = "v1",
-                    Description = "API for Portal application debugging"
-                });
             });
         }
         builder.Services.AddCors(options =>

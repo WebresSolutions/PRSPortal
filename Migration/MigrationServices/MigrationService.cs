@@ -1,11 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Migration.Display;
 using Migration.SourceDb;
-using Portal.Data;
-using Portal.Data.Models;
-using Portal.Shared;
 using System.Collections.Frozen;
-using Schedule = Portal.Data.Models.Schedule;
 
 namespace Migration.MigrationServices;
 
@@ -17,15 +13,15 @@ internal class MigrationService(
     /// <summary>
     /// Cache of councils to avoid multiple DB hits. Key is the legacy ID.
     /// </summary>
-    private FrozenDictionary<int, Portal.Data.Models.Council>? _councilsCache;
+    private FrozenDictionary<int, Models.Council>? _councilsCache;
     /// <summary>
     /// Cache of contacts to avoid multiple DB hits. Key is the legacy ID.
     /// </summary>
-    private FrozenDictionary<int, Portal.Data.Models.Contact>? _contactsCache;
+    private FrozenDictionary<int, Models.Contact>? _contactsCache;
     /// <summary>
     /// Cache of jobs to avoid multiple DB hits. Key is the legacy ID.
     /// </summary>
-    private FrozenDictionary<int, Portal.Data.Models.Job>? _jobsCache;
+    private FrozenDictionary<int, Models.Job>? _jobsCache;
 
     /// <summary>
     /// Cashe of users to avoid multiple DB hits. Key is the legacy ID, value is the new user ID.
@@ -45,9 +41,9 @@ internal class MigrationService(
             });
 
             // Get all of the councils
-            List<Portal.Data.Models.Contact> councilsToCreate = [];
+            List<Models.Contact> councilsToCreate = [];
             SourceDb.Contact[] oldContacts = [.. _sourceDBContext.Contacts.AsNoTracking()];
-            List<Portal.Data.Models.Contact> contacts = [.. _destinationContext.Contacts.AsNoTracking()];
+            List<Models.Contact> contacts = [.. _destinationContext.Contacts.AsNoTracking()];
 
             if (contacts.Count == oldContacts.Length)
             {
@@ -63,8 +59,8 @@ internal class MigrationService(
                 TotalItems = oldContacts.Length
             });
 
-            Dictionary<int, Address> addressesToAdd = [];
-            List<Portal.Data.Models.Contact> contactToAdd = [];
+            Dictionary<int, Models.Address> addressesToAdd = [];
+            List<Models.Contact> contactToAdd = [];
             int index = 0;
 
             foreach (SourceDb.Contact oldContact in oldContacts)
@@ -79,7 +75,7 @@ internal class MigrationService(
                         TotalItems = oldContacts.Length
                     });
                 }
-                Portal.Data.Models.Contact newContact = new()
+                Models.Contact newContact = new()
                 {
                     FirstName = Helpers.TruncateString(oldContact.Firstname, 50),
                     LastName = Helpers.TruncateString(oldContact.Lastname ?? "", 50),
@@ -92,7 +88,7 @@ internal class MigrationService(
                     ParentContactId = oldContact.ContactId is 0 ? null : oldContact.ContactId
                 };
 
-                Address address = Helpers.CreateAddress(_destinationContext, oldContact.State, oldContact.Address ?? "", oldContact.Suburb ?? "", oldContact.Postcode);
+                Models.Address address = Helpers.CreateAddress(_destinationContext, oldContact.State, oldContact.Address ?? "", oldContact.Suburb ?? "", oldContact.Postcode);
                 addressesToAdd.Add((int)oldContact.Id, address);
                 contactToAdd.Add(newContact);
                 index++;
@@ -100,7 +96,7 @@ internal class MigrationService(
             _destinationContext.Addresses.AddRange(addressesToAdd.Values);
             _destinationContext.SaveChanges();
 
-            foreach (Portal.Data.Models.Contact contact in contactToAdd)
+            foreach (Models.Contact contact in contactToAdd)
             {
                 contact.Address = addressesToAdd[contact.LegacyId ?? 0];
                 contact.AddressId = addressesToAdd[contact.LegacyId ?? 0].Id;
@@ -119,7 +115,7 @@ internal class MigrationService(
             _contactsCache = contacts.ToFrozenDictionary(x => x.LegacyId ?? 0, y => y);
 
             // update parent contact ids
-            foreach (Portal.Data.Models.Contact contact in contacts)
+            foreach (Models.Contact contact in contacts)
                 contact.ParentContactId = contact.ParentContactId.HasValue ? _contactsCache.GetValueOrDefault(contact.ParentContactId ?? 0)?.Id : null;
 
             _destinationContext.SaveChanges();
@@ -154,7 +150,7 @@ internal class MigrationService(
             });
 
             // Get all of the councils
-            List<Portal.Data.Models.Council> councilsToCreate = [];
+            List<Models.Council> councilsToCreate = [];
             SourceDb.Council[] oldCouncils = [.. _sourceDBContext.Councils.AsNoTracking()];
             if (_destinationContext.CouncilContacts.Count() == oldCouncils.Length)
             {
@@ -169,8 +165,8 @@ internal class MigrationService(
                 TotalItems = oldCouncils.Length
             });
 
-            Dictionary<int, Address> addressesToAdd = [];
-            List<Portal.Data.Models.Council> councilsToAdd = [];
+            Dictionary<int, Models.Address> addressesToAdd = [];
+            List<Models.Council> councilsToAdd = [];
             int index = 0;
 
             foreach (SourceDb.Council oldCouncil in oldCouncils)
@@ -182,7 +178,7 @@ internal class MigrationService(
                     CurrentItemIndex = index + 1,
                     TotalItems = oldCouncils.Length
                 });
-                Portal.Data.Models.Council newCouncil = new()
+                Models.Council newCouncil = new()
                 {
                     Name = oldCouncil.Name,
                     Phone = oldCouncil.Phone,
@@ -194,7 +190,7 @@ internal class MigrationService(
                     LegacyId = (int)oldCouncil.Id
                 };
 
-                Address address = Helpers.CreateAddress(_destinationContext, oldCouncil.State, oldCouncil.Address ?? "", oldCouncil.Suburb ?? "", oldCouncil.Postcode);
+                Models.Address address = Helpers.CreateAddress(_destinationContext, oldCouncil.State, oldCouncil.Address ?? "", oldCouncil.Suburb ?? "", oldCouncil.Postcode);
                 addressesToAdd.Add((int)oldCouncil.Id, address);
                 councilsToAdd.Add(newCouncil);
             }
@@ -202,7 +198,7 @@ internal class MigrationService(
             _destinationContext.Addresses.AddRange(addressesToAdd.Values);
             _destinationContext.SaveChanges();
 
-            foreach (Portal.Data.Models.Council council in councilsToAdd)
+            foreach (Models.Council council in councilsToAdd)
             {
                 council.Address = addressesToAdd[council.LegacyId ?? 0];
                 council.AddressId = addressesToAdd[council.LegacyId ?? 0].Id;
@@ -250,7 +246,7 @@ internal class MigrationService(
 
             // Get all of the jobs
             SourceDb.Job[] jobs = [.. _sourceDBContext.Jobs.AsNoTracking()];
-            Portal.Data.Models.Job[] existingJobsCount = [.. _destinationContext.Jobs.Include(x => x.Address).AsNoTracking()];
+            Models.Job[] existingJobsCount = [.. _destinationContext.Jobs.Include(x => x.Address).AsNoTracking()];
             if (jobs.Length == existingJobsCount.Length)
             {
                 progressCallback.Invoke(new MigrationProgress
@@ -276,12 +272,12 @@ internal class MigrationService(
                 .Select(g => g.Key)
                 .Where(c => c is not null && c.StartsWith('#') && c.Length == 7)];
 
-            List<JobColour> jobColours = [.. existingColours.Select(x => new JobColour
+            List<Models.JobColour> jobColours = [.. existingColours.Select(x => new Models.JobColour
             {
                 Color = x!,
                 CreatedAt = DateTime.UtcNow
             })];
-            jobColours.Add(new JobColour
+            jobColours.Add(new Models.JobColour
             {
                 Color = "#FFFFFF",
                 CreatedAt = DateTime.UtcNow
@@ -289,8 +285,8 @@ internal class MigrationService(
             _destinationContext.AddRange(jobColours);
             _destinationContext.SaveChanges();
 
-            List<Portal.Data.Models.Job> jobsToCreate = [];
-            Dictionary<int, Address> jobAddresses = [];
+            List<Models.Job> jobsToCreate = [];
+            Dictionary<int, Models.Address> jobAddresses = [];
 
             // Find list of duplicates
             int?[] duplicateCads = [.. jobs
@@ -323,19 +319,19 @@ internal class MigrationService(
                 }
 
                 // Find an address
-                Address address = Helpers.CreateAddress(_destinationContext, oldJob.State, oldJob.Address, oldJob.Suburb ?? "", oldJob.Postcode);
+                Models.Address address = Helpers.CreateAddress(_destinationContext, oldJob.State, oldJob.Address, oldJob.Suburb ?? "", oldJob.Postcode);
                 if (_Users.TryGetValue(oldJob.CreatedUser ?? 0, out int userId))
                     userId = _Users.First().Value; // Default to first user if not found
 
-                _councilsCache!.TryGetValue(oldJob.CouncilId ?? 0, out Portal.Data.Models.Council? council);
-                _contactsCache!.TryGetValue(oldJob.ContactId, out Portal.Data.Models.Contact? contact);
+                _councilsCache!.TryGetValue(oldJob.CouncilId ?? 0, out Models.Council? council);
+                _contactsCache!.TryGetValue(oldJob.ContactId, out Models.Contact? contact);
 
                 if (contact is null)
                     throw new Exception($"Contact with LegacyId {oldJob.ContactId} not found for Job LegacyId {oldJob.Id}");
 
                 int? jobNumber = oldJob.CadastralJobNumber ?? oldJob.SetoutJobNumber;
 
-                Portal.Data.Models.Job newJob = new()
+                Models.Job newJob = new()
                 {
                     JobNumber = jobNumber,
                     CreatedByUserId = 95,
@@ -371,7 +367,7 @@ internal class MigrationService(
                 TotalItems = jobs.Length
             });
 
-            foreach (Portal.Data.Models.Job job in jobsToCreate)
+            foreach (Models.Job job in jobsToCreate)
             {
                 job.AddressId = jobAddresses[job.LegacyId ?? 0].Id;
                 job.Address = jobAddresses[job.LegacyId ?? 0];
@@ -423,7 +419,7 @@ internal class MigrationService(
 
             // Get all of the jobs
             Note[] notes = [.. _sourceDBContext.Notes.AsNoTracking()];
-            JobNote[] existingNotes = [.. _destinationContext.JobNotes.AsNoTracking()];
+            Models.JobNote[] existingNotes = [.. _destinationContext.JobNotes.AsNoTracking()];
             if (notes.Length == existingNotes.Length)
             {
                 progressCallback.Invoke(new MigrationProgress
@@ -444,7 +440,7 @@ internal class MigrationService(
                 TotalItems = notes.Length
             });
 
-            List<JobNote> notesToCreate = [];
+            List<Models.JobNote> notesToCreate = [];
             int index = 0;
             foreach (Note note in notes)
             {
@@ -462,7 +458,7 @@ internal class MigrationService(
                 if (_Users.TryGetValue(note.AssignedTo ?? 0, out int userResult))
                     assignedUserId = userResult;
 
-                JobNote newNote = new()
+                Models.JobNote newNote = new()
                 {
                     Note = note.Note1,
                     CreatedByUserId = _Users.GetValueOrDefault(note.CreatedUser ?? 0, 95),
@@ -500,7 +496,7 @@ internal class MigrationService(
     {
         // Get all of the jobs
         JobsUser[] userJobs = [.. _sourceDBContext.JobsUsers.AsNoTracking()];
-        UserJob[] userJobsNew = [.. _destinationContext.UserJobs.AsNoTracking()];
+        Models.UserJob[] userJobsNew = [.. _destinationContext.UserJobs.AsNoTracking()];
         if (userJobs.Length == userJobsNew.Length)
         {
             progressCallback.Invoke(new MigrationProgress
@@ -520,7 +516,7 @@ internal class MigrationService(
             TotalItems = userJobs.Length
         });
 
-        List<UserJob> userJobsToCreate = [];
+        List<Models.UserJob> userJobsToCreate = [];
 
         int index = 0;
         foreach (JobsUser userJob in userJobs)
@@ -539,10 +535,10 @@ internal class MigrationService(
             {
                 if (_Users.TryGetValue(userJob.UserId, out int userId) &&
                     userId > 0 &&
-                    _jobsCache!.TryGetValue(userJob.JobId, out Portal.Data.Models.Job? job) &&
+                    _jobsCache!.TryGetValue(userJob.JobId, out Models.Job? job) &&
                     job is not null)
                 {
-                    UserJob newUserJob = new()
+                    Models.UserJob newUserJob = new()
                     {
                         CreatedByUserId = _Users.GetValueOrDefault(userJob.CreatedUser ?? 0, 95),
                         CreatedOn = Helpers.GetValidDateWithTimezone(userJob.Created),
@@ -565,7 +561,7 @@ internal class MigrationService(
         }
 
         // Validate all UserJobs have valid UserId and JobId before bulk insert
-        List<UserJob> invalidUserJobs = [.. userJobsToCreate.Where(uj => uj.UserId <= 0 || uj.JobId <= 0 || uj.CreatedByUserId <= 0)];
+        List<Models.UserJob> invalidUserJobs = [.. userJobsToCreate.Where(uj => uj.UserId <= 0 || uj.JobId <= 0 || uj.CreatedByUserId <= 0)];
         if (invalidUserJobs.Count != 0)
         {
             throw new Exception($"Found {invalidUserJobs.Count} UserJobs with invalid UserId or JobId. " +
@@ -617,7 +613,7 @@ internal class MigrationService(
             });
             // Get all of the schedule tracks
             SourceDb.ScheduleTrack[] scheduletracksOld = [.. _sourceDBContext.ScheduleTracks.AsNoTracking()];
-            Portal.Data.Models.ScheduleTrack[] scheduletracksNew = [.. _destinationContext.ScheduleTracks];
+            Models.ScheduleTrack[] scheduletracksNew = [.. _destinationContext.ScheduleTracks];
 
             if (scheduletracksOld.Length == scheduletracksNew.Length)
             {
@@ -630,8 +626,8 @@ internal class MigrationService(
                 });
                 return;
             }
-            Dictionary<int, Portal.Data.Models.ScheduleTrack> scheduleTracksToAdd = [];
-            Dictionary<int, List<ScheduleUser>> scheduleUsers = [];
+            Dictionary<int, Models.ScheduleTrack> scheduleTracksToAdd = [];
+            Dictionary<int, List<Models.ScheduleUser>> scheduleUsers = [];
             int index = 0;
             foreach (SourceDb.ScheduleTrack scheduleTrackOld in scheduletracksOld)
             {
@@ -647,7 +643,7 @@ internal class MigrationService(
                 }
 
                 // Schedule groups currently = 1 = CAD, 2 = Setout
-                Portal.Data.Models.ScheduleTrack newScheduleTrack = new()
+                Models.ScheduleTrack newScheduleTrack = new()
                 {
                     JobTypeId = scheduleTrackOld.ScheduleGroupId == 1 ? (int)JobTypeEnum.Surveying : (int)JobTypeEnum.Construction,
                     CreatedByUserId = 95,
@@ -658,10 +654,10 @@ internal class MigrationService(
                 scheduleTracksToAdd.Add((int)scheduleTrackOld.Id, newScheduleTrack);
                 if (scheduleTrackOld.AssigneeUserId1 is not null || scheduleTrackOld.AssigneeUserId2 is not null)
                 {
-                    List<ScheduleUser> userList = [];
+                    List<Models.ScheduleUser> userList = [];
 
                     if (scheduleTrackOld.AssigneeUserId1 is not null && scheduleTrackOld.AssigneeUserId1 is > 0)
-                        userList.Add(new ScheduleUser
+                        userList.Add(new Models.ScheduleUser
                         {
                             CreatedByUserId = 95,
                             CreatedOn = DateTime.UtcNow,
@@ -669,7 +665,7 @@ internal class MigrationService(
                         });
 
                     if (scheduleTrackOld.AssigneeUserId2 is not null && scheduleTrackOld.AssigneeUserId2 is > 0)
-                        userList.Add(new ScheduleUser
+                        userList.Add(new Models.ScheduleUser
                         {
                             CreatedByUserId = 95,
                             CreatedOn = DateTime.UtcNow,
@@ -692,7 +688,7 @@ internal class MigrationService(
 
             index = 0;
             // Configure the track Id on the users
-            foreach (KeyValuePair<int, List<ScheduleUser>> scheduleUser in scheduleUsers)
+            foreach (KeyValuePair<int, List<Models.ScheduleUser>> scheduleUser in scheduleUsers)
             {
                 if (index % 1000 == 0)
                 {
@@ -705,18 +701,18 @@ internal class MigrationService(
                     });
                 }
                 int scheduleTrackId = scheduleTracksToAdd[scheduleUser.Key].Id;
-                foreach (ScheduleUser user in scheduleUser.Value)
+                foreach (Models.ScheduleUser user in scheduleUser.Value)
                     user.ScheduleTrackId = scheduleTrackId;
 
                 index++;
             }
             // bulk insert the schedule users 
-            List<ScheduleUser> scheduleUsersToInsert = [.. scheduleUsers.SelectMany(su => su.Value)];
+            List<Models.ScheduleUser> scheduleUsersToInsert = [.. scheduleUsers.SelectMany(su => su.Value)];
             _destinationContext.BulkInsert(scheduleUsersToInsert);
 
             // Get all of the schedules
             SourceDb.Schedule[] schedulesOld = [.. _sourceDBContext.Schedules.AsNoTracking()];
-            Schedule[] schedulesNew = [.. _destinationContext.Schedules.AsNoTracking()];
+            Models.Schedule[] schedulesNew = [.. _destinationContext.Schedules.AsNoTracking()];
 
             if (schedulesOld.Length == schedulesNew.Length)
             {
@@ -735,12 +731,12 @@ internal class MigrationService(
                 .Select(g => g.Key)
                 .Where(c => c is not null && c.StartsWith('#') && c.Length == 7)];
 
-            List<ScheduleColour> scheduleColours = [.. existingColours.Select(x => new ScheduleColour
+            List<Models.ScheduleColour> scheduleColours = [.. existingColours.Select(x => new Models.ScheduleColour
             {
                 Color = x!,
                 CreatedAt = DateTime.UtcNow
             })];
-            scheduleColours.Add(new ScheduleColour
+            scheduleColours.Add(new Models.ScheduleColour
             {
                 Color = "#FFFFFF",
                 CreatedAt = DateTime.UtcNow
@@ -750,7 +746,7 @@ internal class MigrationService(
             scheduleColours = [.. _destinationContext.ScheduleColours.AsNoTracking()];
 
             index = 0;
-            List<Schedule> schedulesToAdd = [];
+            List<Models.Schedule> schedulesToAdd = [];
 
             foreach (SourceDb.Schedule scheduleOld in schedulesOld)
             {
@@ -771,12 +767,12 @@ internal class MigrationService(
                 }
 
                 // TODO: fix this later 
-                ScheduleColour color = scheduleColours.FirstOrDefault(c => c.Color == (scheduleOld.Colour is not null && scheduleOld.Colour.StartsWith('#') && scheduleOld.Colour.Length == 7 ? scheduleOld.Colour : "#FFFFFF"))
+                Models.ScheduleColour color = scheduleColours.FirstOrDefault(c => c.Color == (scheduleOld.Colour is not null && scheduleOld.Colour.StartsWith('#') && scheduleOld.Colour.Length == 7 ? scheduleOld.Colour : "#FFFFFF"))
                     ?? scheduleColours.First();
 
-                if (scheduleOld.ScheduleTrackId is not null && scheduleTracksToAdd.TryGetValue(scheduleOld.ScheduleTrackId.Value, out Portal.Data.Models.ScheduleTrack? scheduleTrack))
+                if (scheduleOld.ScheduleTrackId is not null && scheduleTracksToAdd.TryGetValue(scheduleOld.ScheduleTrackId.Value, out Models.ScheduleTrack? scheduleTrack))
                 {
-                    Schedule schedule = new()
+                    Models.Schedule schedule = new()
                     {
                         ScheduleColourId = color.Id,
                         ScheduleTrackId = scheduleTrack.Id,
@@ -832,7 +828,7 @@ internal class MigrationService(
 
         // Get all of the jobs
         SourceDb.Task[] tasks = [.. _sourceDBContext.Tasks.AsNoTracking()];
-        JobTask[] jobTasks = [.. _destinationContext.JobTasks.AsNoTracking()];
+        Models.JobTask[] jobTasks = [.. _destinationContext.JobTasks.AsNoTracking()];
         if (tasks.Length == jobTasks.Length)
         {
             progressCallback.Invoke(new MigrationProgress

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Portal.Data.Models;
+using Migration.Models;
 
-namespace Portal.Data;
+namespace Migration;
 
 public partial class PrsDbContext : DbContext
 {
@@ -621,7 +621,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
-            entity.Property(e => e.ActionRequired).HasColumnName("action_required");
+            entity.Property(e => e.ActionRequired)
+                .HasDefaultValue(false)
+                .HasColumnName("action_required");
             entity.Property(e => e.AssignedUserId).HasColumnName("assigned_user_id");
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
@@ -724,7 +726,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Description)
                 .HasMaxLength(255)
                 .HasColumnName("description");
-            entity.Property(e => e.InvoiceRequired).HasColumnName("invoice_required");
+            entity.Property(e => e.InvoiceRequired)
+                .HasDefaultValue(false)
+                .HasColumnName("invoice_required");
             entity.Property(e => e.InvoicedDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("invoiced_date");

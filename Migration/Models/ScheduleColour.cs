@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Portal.Data.Models;
+namespace Migration.Models;
 
 /// <summary>
 /// Colour of the schedule

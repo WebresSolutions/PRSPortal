@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using NpgsqlTypes;
+﻿using NpgsqlTypes;
 
-namespace Portal.Data.Models;
+namespace Migration.Models;
 
 /// <summary>
 /// Physical addresses for contacts and jobs

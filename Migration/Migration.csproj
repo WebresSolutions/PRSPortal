@@ -15,11 +15,8 @@
 		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.11" />
 		<PackageReference Include="Terminal.Gui" Version="1.19.0" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Portal.Data\Portal.Data.csproj" />
-	  <ProjectReference Include="..\Portal.Shared\Portal.Shared.csproj" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.11" />
 	</ItemGroup>
 
 	<ItemGroup>

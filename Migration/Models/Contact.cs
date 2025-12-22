@@ -2,24 +2,32 @@
 using System.Collections.Generic;
 using NpgsqlTypes;
 
-namespace Portal.Data.Models;
+namespace Migration.Models;
 
 /// <summary>
-/// Physical addresses for contacts and jobs
+/// Client or vendor contact information
 /// </summary>
-public partial class Address
+public partial class Contact
 {
     public int Id { get; set; }
 
-    public string Street { get; set; } = null!;
+    public int? ParentContactId { get; set; }
 
-    public string Suburb { get; set; } = null!;
+    public int? LegacyId { get; set; }
 
-    public int? StateId { get; set; }
+    public string FirstName { get; set; } = null!;
 
-    public string PostCode { get; set; } = null!;
+    public string LastName { get; set; } = null!;
 
-    public string Country { get; set; } = null!;
+    public string FullName { get; set; } = null!;
+
+    public string Email { get; set; } = null!;
+
+    public string? Phone { get; set; }
+
+    public string? Fax { get; set; }
+
+    public int? AddressId { get; set; }
 
     public int CreatedByUserId { get; set; }
 
@@ -36,19 +44,17 @@ public partial class Address
 
     public NpgsqlTsVector SearchVector { get; set; } = null!;
 
-    public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();
+    public virtual Address? Address { get; set; }
 
     public virtual ICollection<CouncilContact> CouncilContacts { get; set; } = new List<CouncilContact>();
 
-    public virtual ICollection<Council> Councils { get; set; } = new List<Council>();
-
     public virtual AppUser CreatedByUser { get; set; } = null!;
+
+    public virtual ICollection<Contact> InverseParentContact { get; set; } = new List<Contact>();
 
     public virtual ICollection<Job> Jobs { get; set; } = new List<Job>();
 
     public virtual AppUser? ModifiedByUser { get; set; }
 
-    public virtual ICollection<Quote> Quotes { get; set; } = new List<Quote>();
-
-    public virtual State? State { get; set; }
+    public virtual Contact? ParentContact { get; set; }
 }

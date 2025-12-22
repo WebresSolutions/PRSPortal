@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Migration.Display;
 using Migration.SourceDb;
-using Portal.Data;
-using Portal.Data.Models;
 using System.Collections.Frozen;
 
 namespace Migration.MigrationServices;
@@ -56,12 +54,12 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
         });
 
         DateTime now = DateTime.UtcNow;
-        List<AppUser> destinationUsers = [];
+        List<Models.AppUser> destinationUsers = [];
 
         for (int i = 0; i < sourceUsers.Length; i++)
         {
             User sourceUser = sourceUsers[i];
-            AppUser newUser = new()
+            Models.AppUser newUser = new()
             {
                 IdentityId = Guid.NewGuid().ToString(),
                 Email = Guid.NewGuid().ToString(),
