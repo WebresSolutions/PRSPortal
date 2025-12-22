@@ -541,9 +541,9 @@ CREATE INDEX idx_schedule_users_created_by_id ON schedule_user(created_by_user_i
 CREATE TABLE schedule_colour (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     color VARCHAR(20) NOT NULL,
+    description VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT schedule_colour_format CHECK (color IS NULL OR color LIKE '#%'),
-    CONSTRAINT schedule_colour_unique UNIQUE (color)
+    CONSTRAINT schedule_colour_format CHECK (color IS NULL OR color LIKE '#%')
 );
 
 COMMENT ON TABLE schedule_colour IS 'Colour of the schedule';
@@ -578,3 +578,12 @@ CREATE INDEX idx_schedule_colour_id ON schedule(schedule_colour_id);
 CREATE INDEX idx_schedule_start_time ON schedule(start_time);
 CREATE INDEX idx_schedule_end_time ON schedule(end_time);
 CREATE INDEX idx_schedule_created_by ON schedule(created_by_user_id);
+
+CREATE TABLE application_settings(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    key VARCHAR(255) NOT NULL,
+    value TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT application_settings_key_unique UNIQUE (key)
+);

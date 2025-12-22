@@ -40,13 +40,14 @@
                                  ShowWeek=false
                                  Items="slot.Events"
                                  EnableDragItems="true"
+                                 Style="min-height: 575px !important"
                                  DayCellHeight="25">
                         <ToolbarContent>
                             <MudButton Variant="Variant.Filled" Color="Color.Success" Class="mx-1"
                                        OnClick="@(() => AddNewSchedule(slot.SlotId))" StartIcon="@Icons.Material.Filled.Add">Schedule</MudButton>
                         </ToolbarContent>
                         <CellTemplate>
-                            <div class="schedule-items" style="border: 2px solid black; background-color: @context.Colour;">
+                            <div class="schedule-items" style="border: 2px solid black; background-color: @context.Colour; ">
                                 @if (context.JobAddress is not null || context.JobNumber is not null)
                                 {
                                     <small style="background-color: @context.Colour">
@@ -95,6 +96,7 @@
         width: 100%;
         height: 100%;
         padding: 5px;
+        overflow: scroll !important;
     }
 
     @@media (max-width: 1200px) {

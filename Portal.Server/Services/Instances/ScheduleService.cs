@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Portal.Data;
+using Portal.Data.Models;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Address;
@@ -72,6 +73,7 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
             return result.SetError(ErrorType.InternalError, "Failed to get schedule tracks");
         }
     }
+
     public async Task<Result<List<ScheduleColourDto>>> GetScheduleColours()
     {
         Result<List<ScheduleColourDto>> result = new();
@@ -81,7 +83,8 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
                   .Select(sc => new ScheduleColourDto()
                   {
                       ScheduleColourId = sc.Id,
-                      ColourHex = sc.Color
+                      ColourHex = sc.Color,
+
                   }).ToListAsync();
 
             result.Value = colours;
@@ -91,6 +94,45 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
         {
             _logger.LogError(ex, "Failed to get all jobs");
             return result.SetError(ErrorType.InternalError, "Failed to get schedule tracks");
+        }
+    }
+
+    public async Task<Result<ScheduleColourDto>> UpdateScheduleColour(ScheduleColourDto colour)
+    {
+        Result<ScheduleColourDto> result = new();
+        try
+        {
+            ScheduleColour? scheduleColour;
+            // Adding new colour
+            if (colour.ScheduleColourId is 0)
+            {
+                scheduleColour = new ScheduleColour
+                {
+                    Color = colour.ColourHex
+                };
+                await _prsDbContext.ScheduleColours.AddAsync(scheduleColour);
+                await _prsDbContext.SaveChangesAsync();
+            }
+            else
+            {
+                scheduleColour = await _prsDbContext.ScheduleColours
+                    .FirstOrDefaultAsync(sc => sc.Id == colour.ScheduleColourId);
+
+                if (scheduleColour is null)
+                    return result.SetError(ErrorType.BadRequest, "Schedule colour not found");
+
+                if (scheduleColour.Color == colour.ColourHex)
+
+                    scheduleColour.Color = colour.ColourHex;
+                await _prsDbContext.SaveChangesAsync();
+            }
+            result.Value = new ScheduleColourDto { ScheduleColourId = scheduleColour.Id, ColourHex = scheduleColour.Color };
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update schedule colour");
+            return result.SetError(ErrorType.InternalError, "Failed to update schedule colour");
         }
     }
 }

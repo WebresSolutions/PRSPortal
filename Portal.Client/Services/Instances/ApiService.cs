@@ -105,6 +105,62 @@ public class ApiService : IApiService
         }
         return res;
     }
+
+    public async Task<Result<List<ScheduleColourDto>>> GetScheduleColours()
+    {
+        Result<List<ScheduleColourDto>> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/schedule/colours/");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                List<ScheduleColourDto>? colours = await response.Content.ReadFromJsonAsync<List<ScheduleColourDto>>();
+                res.Value = colours;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get schedule colours";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            // Handle exception
+        }
+        return res;
+    }
+
+    public async Task<Result<ScheduleColourDto>> UpdateScheduleColour(ScheduleColourDto colour)
+    {
+        Result<ScheduleColourDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"api/schedule/colours/", colour);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+
+            if (response.IsSuccessStatusCode)
+            {
+                ScheduleColourDto? colours = await response.Content.ReadFromJsonAsync<ScheduleColourDto>();
+                res.Value = colours;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to save schedule colours";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            // Handle exception
+        }
+        return res;
+    }
+
     private async Task NavigationToLoginPage()
     {
         string returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);

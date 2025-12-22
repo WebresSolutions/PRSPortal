@@ -32,7 +32,7 @@ public partial class Schedule
     {
         base.IsLoading = true;
         await base.OnInitializedAsync();
-        Date ??= DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-2).AddDays(-3));
+        Date ??= DateOnly.FromDateTime(new DateTime(2025, 10, 10));
         DateTime = Date.Value.ToDateTime(new TimeOnly(0, 0));
         JobTypeEnum = JobType is null ? JobTypeEnum.Construction : (JobTypeEnum)JobType;
         await LoadSchedule();
