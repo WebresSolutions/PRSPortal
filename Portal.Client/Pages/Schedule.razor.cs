@@ -4,24 +4,48 @@ using Portal.Client.Webmodels;
 using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.ResponseModels;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Portal.Client.Pages;
 
+/// <summary>
+/// Blazor page component for displaying and managing schedules
+/// Shows schedule slots for a specific date and job type with calendar integration
+/// </summary>
 public partial class Schedule
 {
-    // Add your scheduling logic here
+    /// <summary>
+    /// Gets or sets the navigation manager for page navigation
+    /// </summary>
+    [Inject]
+    private NavigationManager? NavigationManager { get; set; }
+    /// <summary>
+    /// Gets or sets the date to display schedules for, supplied from query parameters
+    /// </summary>
     [SupplyParameterFromQuery]
     [Parameter]
     public DateOnly? Date { get; set; }
 
+    /// <summary>
+    /// Gets or sets the job type filter, supplied from query parameters
+    /// </summary>
     [SupplyParameterFromQuery]
     [Parameter]
     public int? JobType { get; set; }
 
+    /// <summary>
+    /// Gets or sets the date/time value for calendar display
+    /// </summary>
     private DateTime DateTime { get; set; }
 
+    /// <summary>
+    /// Gets or sets the job type enum value
+    /// </summary>
     private JobTypeEnum JobTypeEnum;
 
+    /// <summary>
+    /// Gets or sets the list of schedule slots with calendar event information
+    /// </summary>
     private List<ScheduleSlotDtoWithCalendar> scheduleSlots = [];
     /// <summary>
     /// Called when the component is initialized.
@@ -39,6 +63,10 @@ public partial class Schedule
         base.IsLoading = false;
     }
 
+    /// <summary>
+    /// Loads schedule slots for the current date and job type from the server
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation</returns>
     private async Task LoadSchedule()
     {
         base.IsLoading = true;
@@ -65,6 +93,11 @@ public partial class Schedule
         base.IsLoading = false;
     }
 
+    /// <summary>
+    /// Reloads the calendar with a new date
+    /// </summary>
+    /// <param name="dateTime">The new date/time to load schedules for</param>
+    /// <returns>A task representing the asynchronous operation</returns>
     private async Task ReloadCalendar(DateTime dateTime)
     {
         DateTime = dateTime;
@@ -72,14 +105,31 @@ public partial class Schedule
         await LoadSchedule();
     }
 
+    /// <summary>
+    /// Switches between Construction and Surveying job types and reloads schedules
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation</returns>
     private async Task SwapJobType()
     {
         JobTypeEnum = JobTypeEnum == JobTypeEnum.Construction ? JobTypeEnum.Surveying : JobTypeEnum.Construction;
         await LoadSchedule();
     }
 
+    /// <summary>
+    /// Adds a new schedule entry for the specified track
+    /// </summary>
+    /// <param name="trackId">The schedule track identifier</param>
+    /// <returns>A task representing the asynchronous operation</returns>
     private async Task AddNewSchedule(int trackId)
     {
 
+    }
+
+    /// <summary>
+    /// Navigates back to the previous page
+    /// </summary>
+    private void NavigateBack()
+    {
+        NavigationManager?.NavigateTo("/");
     }
 }

@@ -9,13 +9,14 @@ namespace Portal.Data;
 public static class Extensions
 {
     /// <summary>
-    /// Inserts a large number of entities into the database using PostgreSQL's COPY command for efficiency.
+    /// Inserts a large number of entities into the database using PostgreSQL's COPY command for efficiency
+    /// This method provides significantly better performance than individual inserts for bulk operations
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="dbContext"></param>
-    /// <param name="entitiesToInsert"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <typeparam name="T">The entity type to insert</typeparam>
+    /// <param name="dbContext">The database context to use</param>
+    /// <param name="entitiesToInsert">The collection of entities to insert</param>
+    /// <returns>The number of entities inserted</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the entity type is not found in the model</exception>
     public static async Task<int> BulkInsertAsync<T>(this PrsDbContext dbContext, IEnumerable<T> entitiesToInsert) where T : class
     {
         List<T> entities = [.. entitiesToInsert];
@@ -42,13 +43,14 @@ public static class Extensions
     }
 
     /// <summary>
-    /// Inserts a large number of entities into the database using PostgreSQL's COPY command for efficiency.
+    /// Inserts a large number of entities into the database using PostgreSQL's COPY command for efficiency
+    /// Synchronous version of BulkInsertAsync - use async version when possible
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="dbContext"></param>
-    /// <param name="entitiesToInsert"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <typeparam name="T">The entity type to insert</typeparam>
+    /// <param name="dbContext">The database context to use</param>
+    /// <param name="entitiesToInsert">The collection of entities to insert</param>
+    /// <returns>The number of entities inserted</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the entity type is not found in the model</exception>
     public static int BulkInsert<T>(this PrsDbContext dbContext, IEnumerable<T> entitiesToInsert) where T : class
     {
         List<T> entities = [.. entitiesToInsert];
@@ -74,12 +76,13 @@ public static class Extensions
     }
 
     /// <summary>
-    /// Gets column and property info for the specified entity type.
+    /// Gets column and property information for the specified entity type
+    /// Extracts metadata needed for bulk insert operations
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="dbContext"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <typeparam name="T">The entity type</typeparam>
+    /// <param name="dbContext">The database context to use</param>
+    /// <returns>A tuple containing column names, property infos, and the full table name</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the entity type is not found in the model</exception>
     private static (string[] columns, PropertyInfo?[] properties, string? tableName) GetColumnAndPropertyInfo<T>(PrsDbContext dbContext) where T : class
     {
         IEntityType? entityType = dbContext.Model.FindEntityType(typeof(T));
@@ -108,13 +111,14 @@ public static class Extensions
     }
 
     /// <summary>
-    /// Forms and expression for a case-insensitive LIKE search using PostgreSQL's ILIKE.
+    /// Creates an expression for a case-insensitive LIKE search using PostgreSQL's ILIKE operator
+    /// Wraps the search term with wildcards for pattern matching
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="source"></param>
-    /// <param name="propertySelector"></param>
-    /// <param name="searchTerm"></param>
-    /// <returns></returns>
+    /// <typeparam name="T">The entity type</typeparam>
+    /// <param name="source">The queryable source to filter</param>
+    /// <param name="propertySelector">Expression selecting the string property to search</param>
+    /// <param name="searchTerm">The search term to match (will be wrapped with % wildcards)</param>
+    /// <returns>A filtered queryable with the ILIKE condition applied</returns>
     public static IQueryable<T> ILike<T>(this IQueryable<T> source,
     Expression<Func<T, string>> propertySelector,
     string searchTerm)

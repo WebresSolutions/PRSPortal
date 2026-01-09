@@ -25,10 +25,8 @@ else
         <!-- Header -->
         <div class="job-header">
             <div class="header-left">
-                <h1>Job #@_job.JobId</h1>
+                <h1>Job #@_job.JobNumber</h1>
                 <div class="header-info">
-                    <span style="color: var(--colour-primary)">Job #@_job.JobNumber</span>
-                    <span>•</span>
                     <span>@GetAddressString()</span>
                 </div>
             </div>
@@ -71,28 +69,7 @@ else
                 </Card>
 
                 <!-- Job Info -->
-                <Card Title="Job Information">
-                    <ChildContent>
-                        <div class="info-list">
-                            <div class="info-row">
-                                <span class="info-label">Contact</span>
-                                <span class="info-value">@_dummyData.ContactName</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Phone</span>
-                                <span class="info-value">@_dummyData.Phone</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Council</span>
-                                <span class="info-value">@_dummyData.Council</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Plan Ref</span>
-                                <span class="info-value">@_dummyData.PlanRef</span>
-                            </div>
-                        </div>
-                    </ChildContent>
-                </Card>
+                <JobInfo Contact="_job.Contact" Council="_job.Council" PlanRef="_dummyData.PlanRef" />
 
                 <!-- Quick Actions -->
                 <Card Title="Quick Actions">
@@ -368,7 +345,7 @@ else
     {
         if (_job?.Address is null)
             return "No address";
-        
+
         return $"{_job.Address.suburb.ToUpper()}, {_job.Address.State} {_job.Address.postCode}";
     }
 
@@ -393,7 +370,7 @@ else
         public string Phone { get; set; } = "018 368 142";
         public string Council { get; set; } = "SHIRE OF MACEDON RANGES";
         public string PlanRef { get; set; } = "LP1727490";
-        
+
         public List<TechnicalContact> TechnicalContacts { get; set; } = new();
         public List<TaskItem> Tasks { get; set; } = new();
         public List<InvoiceItem> Invoices { get; set; } = new();

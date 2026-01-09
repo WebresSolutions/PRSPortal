@@ -24,10 +24,15 @@ internal class MigrationService(
     private FrozenDictionary<int, Models.Job>? _jobsCache;
 
     /// <summary>
-    /// Cashe of users to avoid multiple DB hits. Key is the legacy ID, value is the new user ID.
+    /// Cache of users to avoid multiple DB hits. Key is the legacy ID, value is the new user ID.
     /// </summary>
     private readonly FrozenDictionary<int, int> _Users = users;
 
+    /// <summary>
+    /// Migrates contacts from the source database to the destination database
+    /// Includes address creation and parent contact relationship mapping
+    /// </summary>
+    /// <param name="progressCallback">Callback function for reporting migration progress</param>
     public void MigrateContacts(Action<MigrationProgress> progressCallback)
     {
         try
@@ -137,6 +142,11 @@ internal class MigrationService(
         }
     }
 
+    /// <summary>
+    /// Migrates councils from the source database to the destination database
+    /// Includes address creation and council contact information
+    /// </summary>
+    /// <param name="progressCallback">Callback function for reporting migration progress</param>
     public void MigrateCouncils(Action<MigrationProgress> progressCallback)
     {
         try
@@ -231,7 +241,11 @@ internal class MigrationService(
         }
     }
 
-
+    /// <summary>
+    /// Migrates jobs from the source database to the destination database
+    /// Includes job color creation, address linking, and contact/council associations
+    /// </summary>
+    /// <param name="progressCallback">Callback function for reporting migration progress</param>
     public void MigrateJobs(Action<MigrationProgress> progressCallback)
     {
         try
@@ -403,8 +417,9 @@ internal class MigrationService(
 
     /// <summary>
     /// Migrates the job sub-objects such as notes, tasks, attachments, etc.
+    /// Currently migrates job notes with assigned user mapping
     /// </summary>
-    /// <param name="progressCallback"></param>
+    /// <param name="progressCallback">Callback function for reporting migration progress</param>
     public void MigratateJobsSubObjects(Action<MigrationProgress> progressCallback)
     {
         try
@@ -492,6 +507,11 @@ internal class MigrationService(
         }
     }
 
+    /// <summary>
+    /// Migrates user-job associations from the source database to the destination database
+    /// Links users to jobs they are assigned to
+    /// </summary>
+    /// <param name="progressCallback">Callback function for reporting migration progress</param>
     public void MigrateUserJobs(Action<MigrationProgress> progressCallback)
     {
         // Get all of the jobs
@@ -596,9 +616,10 @@ internal class MigrationService(
     }
 
     /// <summary>
-    /// TODO: Lets wait and see how schedules are used before migrating them.
+    /// Migrates schedules and schedule tracks from the source database to the destination database
+    /// Includes schedule color creation, user assignments, and job associations
     /// </summary>
-    /// <param name="progressCallback"></param>
+    /// <param name="progressCallback">Callback function for reporting migration progress</param>
     public void MigrateSchedule(Action<MigrationProgress> progressCallback)
     {
         try
@@ -814,9 +835,10 @@ internal class MigrationService(
     }
 
     /// <summary>
-    /// TODO: Lets wait and see how tasks are used before migrating them.
+    /// Migrates tasks from the source database to the destination database
+    /// Currently a placeholder implementation - task migration logic to be completed
     /// </summary>
-    /// <param name="progressCallback"></param>
+    /// <param name="progressCallback">Callback function for reporting migration progress</param>
     public void MigarateTasks(Action<MigrationProgress> progressCallback)
     {
         progressCallback.Invoke(new MigrationProgress

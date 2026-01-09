@@ -6,8 +6,16 @@ using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Controllers;
 
+/// <summary>
+/// Static class containing settings-related API endpoint definitions
+/// Provides RESTful endpoints for system settings operations
+/// </summary>
 public static class SettingsEndpoints
 {
+    /// <summary>
+    /// Registers settings-related API endpoints with the application
+    /// </summary>
+    /// <param name="app">The web application to register endpoints with</param>
     public static void AddSettingEndpoints(this WebApplication app)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/settings");

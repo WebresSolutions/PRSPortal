@@ -13,7 +13,11 @@ namespace Portal.Server;
 /// </summary>
 public static class Dependencies
 {
-
+    /// <summary>
+    /// Configures database connections for the application
+    /// Sets up the PostgreSQL database context with connection string from configuration
+    /// </summary>
+    /// <param name="builder">The web application builder to configure</param>
     public static void AddDatabases(this WebApplicationBuilder builder)
     {
         Console.WriteLine("Using ENV: " + builder.Environment.EnvironmentName);

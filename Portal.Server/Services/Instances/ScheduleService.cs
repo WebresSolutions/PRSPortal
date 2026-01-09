@@ -10,8 +10,18 @@ using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Services.Instances;
 
+/// <summary>
+/// Service implementation for schedule-related business logic
+/// Handles schedule slot retrieval, color management, and data transformation
+/// </summary>
 public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService> _logger) : IScheduleService
 {
+    /// <summary>
+    /// Retrieves schedule slots for a specific date and job type
+    /// </summary>
+    /// <param name="dateOnly">The date to retrieve schedule slots for</param>
+    /// <param name="jobType">The job type to filter by</param>
+    /// <returns>A result containing a list of schedule slot DTOs</returns>
     public async Task<Result<List<ScheduleSlotDTO>>> GetScheduleSlotsForDate(DateOnly dateOnly, JobTypeEnum jobType)
     {
         Result<List<ScheduleSlotDTO>> result = new();
@@ -74,6 +84,10 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
         }
     }
 
+    /// <summary>
+    /// Retrieves all available schedule colors
+    /// </summary>
+    /// <returns>A result containing a list of schedule color DTOs</returns>
     public async Task<Result<List<ScheduleColourDto>>> GetScheduleColours()
     {
         Result<List<ScheduleColourDto>> result = new();
@@ -99,6 +113,11 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
         }
     }
 
+    /// <summary>
+    /// Updates an existing schedule color or creates a new one if the ID is 0
+    /// </summary>
+    /// <param name="colour">The schedule color DTO containing the color information</param>
+    /// <returns>A result containing the updated or created schedule color DTO</returns>
     public async Task<Result<ScheduleColourDto>> UpdateScheduleColour(ScheduleColourDto colour)
     {
         Result<ScheduleColourDto> result = new();

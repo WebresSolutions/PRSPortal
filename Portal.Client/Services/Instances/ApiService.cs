@@ -9,11 +9,28 @@ using System.Net.Http.Json;
 
 namespace Portal.Client.Services.Instances;
 
+/// <summary>
+/// Service implementation for making API calls to the server
+/// Handles HTTP requests with authentication and error handling
+/// </summary>
 public class ApiService : IApiService
 {
+    /// <summary>
+    /// The HTTP client used for making API requests
+    /// </summary>
     private readonly HttpClient _httpClient;
+    /// <summary>
+    /// Navigation manager for handling page navigation
+    /// </summary>
     private readonly NavigationManager _navigationManager;
 
+    /// <summary>
+    /// Initializes a new instance of the ApiService class
+    /// </summary>
+    /// <param name="httpClientFactory">Factory for creating HTTP clients</param>
+    /// <param name="configuration">Application configuration</param>
+    /// <param name="navigationManager">Navigation manager for redirecting to login</param>
+    /// <exception cref="Exception">Thrown when HTTP client configuration is missing</exception>
     public ApiService(IHttpClientFactory httpClientFactory, IConfiguration configuration, NavigationManager navigationManager)
     {
         string httpClientName = configuration.GetValue<string>("HttpClient")

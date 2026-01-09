@@ -5,12 +5,18 @@ using System.Collections.Frozen;
 
 namespace Migration.MigrationServices;
 
+/// <summary>
+/// Migration service for user data
+/// Handles migration of users from source to destination database
+/// </summary>
 internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBContext) : BaseMigrationClass(destinationContext, sourceDBContext)
 {
     /// <summary>
-    /// This will be a small set so returning an in memory dictionary is fine.
+    /// Migrates users from the source database to the destination database
+    /// Returns a dictionary mapping legacy user IDs to new user IDs
     /// </summary>
-    /// <returns></returns>
+    /// <param name="progressCallback">Optional callback for reporting migration progress</param>
+    /// <returns>A frozen dictionary mapping legacy user IDs to new user IDs</returns>
     public FrozenDictionary<int, int> MigrateUsers(Action<MigrationProgress>? progressCallback = null)
     {
         progressCallback?.Invoke(new MigrationProgress

@@ -3,8 +3,17 @@ using Terminal.Gui;
 
 namespace Migration.Display;
 
+/// <summary>
+/// Graphical user interface for the database migration tool
+/// Provides a terminal-based UI for initiating and monitoring migrations
+/// </summary>
 public class GUI : Window
 {
+    /// <summary>
+    /// Initializes a new instance of the GUI class
+    /// </summary>
+    /// <param name="initapp">Function to initialize the migration (takes resetDatabase parameter)</param>
+    /// <param name="startMigration">Action to start the migration process with progress callback</param>
     public GUI(Func<bool, bool> initapp, Action<Action<MigrationProgress>> startMigration)
     {
         Title = "PRS Database Migration [MySQL ---> PgSQL]";

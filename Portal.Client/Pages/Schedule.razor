@@ -5,26 +5,50 @@
 
 <PageTitle>Schedule - PRS Portal</PageTitle>
 <div class="container">
-    <div class="mb-2 d-flex">
-        <MudIconButton Icon="@Icons.Material.Filled.SwapVert" @onclick="@SwapJobType" Disabled="@base.IsLoading"/>
-        <h1>Schedule - @JobTypeEnum.GetDisplayName()</h1>
-    </div>
-    @if (!base.IsLoading)
-    {
-        <div class="d-flex">
-            <MudDatePicker T="DateOnly" Date=DateTime Label="Select Date" Variant="Variant.Outlined" Class="mt-0 mb-3" DateChanged="@((x) => ReloadCalendar(x!.Value))" />
-            <div class="mini-container">
-                <MudIconButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadSchedule" Icon="@Icons.Material.Filled.Refresh" />
-                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="LoadSchedule" StartIcon="@Icons.Material.Filled.Add">Add Staff Track</MudButton>
+    <!-- Header -->
+    <div class="schedule-header">
+        <div class="header-left">
+            <div class="header-content">
+                <h1>Schedule - @JobTypeEnum.GetDisplayName()</h1>
+                <div class="header-info">
+                    <span>@DateTime.ToString("dddd, MMMM d, yyyy")</span>
+                </div>
             </div>
         </div>
+        <div class="header-right">
+            <div class="header-controls">
+                <MudDatePicker T="DateOnly" Date=DateTime Label="Select Date" Variant="Variant.Outlined" Class="mt-0 mb-0" DateChanged="@((x) => ReloadCalendar(x!.Value))" />
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="LoadSchedule" StartIcon="@Icons.Material.Filled.Add">Add Staff Track</MudButton>
+            </div>
+            <StatusBadge statusEnum="@JobTypeEnum" />
+            <div class="header-actions">
+                <button class="btn-icon" @onclick="SwapJobType" title="Switch Job Type">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 13L13 7M13 7H7M13 7V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+                <button class="btn-icon" @onclick="LoadSchedule" title="Refresh">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.5 10C17.5 14.1421 14.1421 17.5 10 17.5M17.5 10C17.5 5.85786 14.1421 2.5 10 2.5M17.5 10H2.5M2.5 10C2.5 5.85786 5.85786 2.5 10 2.5M2.5 10C2.5 14.1421 5.85786 17.5 10 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+                <button class="btn-icon" title="Print">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 5H15V3H5V5ZM5 13H15V17H5V13ZM15 7H5C3.89543 7 3 7.89543 3 9V11C3 12.1046 3.89543 13 5 13H15C16.1046 13 17 12.1046 17 11V9C17 7.89543 16.1046 7 15 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
 
+    @if (!base.IsLoading)
+    {
         <div class="scheduler-container">
             @foreach (ScheduleSlotDtoWithCalendar slot in scheduleSlots)
             {
                 <div class="">
                     <div class="schedule-users">
-                        <b>Assigned Users:</b>
+                        <h6>Assigned Users</h6>
                         @foreach (var user in slot.AssignedUsers)
                         {
                             <div>@user.displayName</div>
@@ -72,10 +96,96 @@
 </div>
 
 <style>
-    .mini-container {
-        padding-left: 0.5rem;
-        padding-top: 0.5rem;
+    .schedule-header {
+        background: white;
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .btn-back {
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: #f1f5f9;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+        color: #64748b;
+    }
+
+        .btn-back:hover {
+            background: #e2e8f0;
+        }
+
+    .header-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+        .header-content h1 {
+            color: var(--color-primary);
+            font-size: 1.75rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+    .header-info {
+        display: flex;
+        gap: 2rem;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: #f1f5f9;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+        color: #64748b;
+    }
+
+        .btn-icon:hover {
+            background: #e2e8f0;
+        }
 
     .scheduler-container {
         display: grid;
@@ -87,10 +197,15 @@
         height: fit-content;
         min-height: 80px;
         background: var(--color-white);
-        padding: var(--padding);
+        padding: 1rem;
         border-radius: var(--border-rad);
         margin-bottom: 0.5rem;
     }
+
+        .schedule-users > b {
+            border-bottom: 1px solid #f1f5f9 !important;
+            width: 100%;
+        }
 
     .schedule-items {
         width: 100%;

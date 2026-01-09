@@ -11,8 +11,21 @@ using Quartz.Util;
 
 namespace Portal.Server.Services.Instances;
 
+/// <summary>
+/// Service implementation for job-related business logic
+/// Handles job retrieval, filtering, and data transformation
+/// </summary>
 public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : IJobService
 {
+    /// <summary>
+    /// Retrieves a paged list of jobs with optional filtering and sorting
+    /// </summary>
+    /// <param name="page">The page number to retrieve (1-based)</param>
+    /// <param name="pageSize">The number of items per page</param>
+    /// <param name="order">The sort direction (ascending or descending)</param>
+    /// <param name="searchFilter">Optional search filter for job names, addresses, or job numbers</param>
+    /// <param name="orderby">Optional field name to sort by</param>
+    /// <returns>A result containing a paged response of job DTOs</returns>
     public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(int page, int pageSize, SortDirectionEnum? order, string? searchFilter, string? orderby)
     {
         Result<PagedResponse<ListJobDto>> result = new();
@@ -122,6 +135,15 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 Colour = x.JobColour != null
                     ? new JobColourDto(x.JobColourId!.Value, x.JobColour.Color)
                     : null,
+                Contact = x.Contact != null
+                    ? new JobContactDto(
+                        x.ContactId,
+                        x.Contact.FullName,
+                        x.Contact.Email,
+                        x.Contact.Phone ?? ""
+                    )
+                    : null,
+                Council = x.Council != null ? new JobCouncilDto(x.Council.Id, x.Council.Name) : null,
             })
             .FirstOrDefaultAsync();
 

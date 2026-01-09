@@ -7,8 +7,16 @@ using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Controllers;
 
+/// <summary>
+/// Static class containing job-related API endpoint definitions
+/// Provides RESTful endpoints for job operations
+/// </summary>
 public static class JobEndpoints
 {
+    /// <summary>
+    /// Registers job-related API endpoints with the application
+    /// </summary>
+    /// <param name="app">The web application to register endpoints with</param>
     public static void AddJobEndpoints(this WebApplication app)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/jobs");

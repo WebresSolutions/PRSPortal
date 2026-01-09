@@ -8,8 +8,17 @@ using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 namespace Portal.Client;
 
+/// <summary>
+/// Main entry point for the Portal Client Blazor WebAssembly application
+/// Configures authentication, HTTP clients, and application services
+/// </summary>
 public class Program
 {
+    /// <summary>
+    /// Entry point for the application
+    /// Initializes the Blazor WebAssembly host with authentication and service configuration
+    /// </summary>
+    /// <param name="args">Command line arguments</param>
     private static async Task Main(string[] args)
     {
         WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);

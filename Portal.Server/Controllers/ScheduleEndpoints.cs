@@ -8,8 +8,16 @@ using Quartz.Util;
 
 namespace Portal.Server.Controllers;
 
+/// <summary>
+/// Static class containing schedule-related API endpoint definitions
+/// Provides RESTful endpoints for schedule operations
+/// </summary>
 public static class ScheduleEndpoints
 {
+    /// <summary>
+    /// Registers schedule-related API endpoints with the application
+    /// </summary>
+    /// <param name="app">The web application to register endpoints with</param>
     public static void AddScheduleEndpoints(this WebApplication app)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/schedule");

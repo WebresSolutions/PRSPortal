@@ -8,11 +8,26 @@ using Portal.Data;
 using System.Collections.Frozen;
 using Terminal.Gui;
 
+/// <summary>
+/// Main program class for database migration tool
+/// Handles migration from MySQL source database to PostgreSQL destination database
+/// </summary>
 internal class Program
 {
+    /// <summary>
+    /// The destination PostgreSQL database context
+    /// </summary>
     private static PrsDbContext? _destinationContext;
+    /// <summary>
+    /// The source MySQL database context
+    /// </summary>
     private static SourceDBContext? _sourceContext;
 
+    /// <summary>
+    /// Entry point for the migration application
+    /// Initializes the GUI and starts the migration process
+    /// </summary>
+    /// <param name="args">Command line arguments</param>
     private static void Main(string[] args)
     {
         Application.Init();
@@ -36,6 +51,11 @@ internal class Program
         }
     }
 
+    /// <summary>
+    /// Starts the migration process with progress reporting
+    /// Executes all migration steps in sequence
+    /// </summary>
+    /// <param name="progressCallback">Callback function for reporting migration progress</param>
     private static void StartMigration(Action<MigrationProgress> progressCallback)
     {
         progressCallback(new MigrationProgress
@@ -66,6 +86,13 @@ internal class Program
         }
     }
 
+    /// <summary>
+    /// Initializes the database connections and optionally resets the destination database
+    /// </summary>
+    /// <param name="resetDatabase">True to reset the destination database schema before migration</param>
+    /// <returns>True if initialization was successful, otherwise throws an exception</returns>
+    /// <exception cref="Exception">Thrown when database contexts are null or connection fails</exception>
+    /// <exception cref="FileNotFoundException">Thrown when the database schema SQL file is not found</exception>
     private static bool InitMigration(bool resetDatabase)
     {
         IConfigurationBuilder builder = new ConfigurationBuilder()
