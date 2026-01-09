@@ -1,10 +1,11 @@
-﻿@page "/jobs"
+﻿@inherits BaseDataComponent;
 @using Portal.Shared
 @using Portal.Shared.DTO.Contact
 @using Portal.Shared.DTO.Job
 @using Portal.Shared.ResponseModels
 @using Portal.Shared.Web
-@inherits BaseDataComponent;
+
+@page "/jobs"
 
 <div class="container">
     <div class="mb-4">
@@ -25,16 +26,16 @@
                          SortMode="SortMode.Single"
                          Loading="base.IsLoading"
                          RowsPerPage="_rowsPerPage"
-                         RowsPerPageValues="@(new int[] { 10, 25, 50, 100 })"
                          CurrentPage="_sessionData.Page"
                          CurrentPageChanged="@((page) => _sessionData.Page = page)"
-                         Dense=false
+                         
+                         Dense=true
                          @ref="_grid"
                          Striped="true">
                 <Columns>
                     <TemplateColumn StickyLeft="true">
                         <CellTemplate>
-                            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" Href="@($"/Facilities/{context.Item.JobId}")" StartIcon="@Icons.Material.Filled.RemoveRedEye">View</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" Href="@($"/jobs/{context.Item.JobId}")" StartIcon="@Icons.Material.Filled.RemoveRedEye">View</MudButton>
                         </CellTemplate>
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" />
@@ -157,23 +158,17 @@
             }
             else
             {
-                // Handle API error or unsuccessful result
-                string errorMessage = "Failed to load facilities data from the API.";
-                Console.WriteLine($"API Error: {errorMessage}");
                 if (_snackbar is not null)
-                {
                     _snackbar.Add("Error", Severity.Error);
-                }
+
                 return new GridData<ListJobDto>() { Items = [], TotalItems = 0 };
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Unexpected Error: {ex.Message}");
             if (_dialogService != null)
-            {
                 _ = await _dialogService.ShowMessageBox("Error", "An unexpected error occurred while fetching facilities.");
-            }
+
             return new GridData<ListJobDto>() { Items = Enumerable.Empty<ListJobDto>(), TotalItems = 0 };
         }
         finally

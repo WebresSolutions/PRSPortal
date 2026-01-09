@@ -583,7 +583,7 @@ CREATE INDEX idx_schedule_created_by ON schedule(created_by_user_id);
 CREATE TABLE application_setting(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     key VARCHAR(255) NOT NULL,
-    value TEXT NOT NULL,
+    value JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT application_settings_key_unique UNIQUE (key)

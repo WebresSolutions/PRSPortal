@@ -4,6 +4,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using Portal.Client.Services.Instances;
 using Portal.Client.Services.Interfaces;
+using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 namespace Portal.Client;
 
@@ -46,6 +47,7 @@ public class Program
 
         Console.WriteLine($"ClientId: {clientId}");
         Console.WriteLine($"authority: {authority}");
+        builder.Services.AddHotKeys2();
         builder.Services.AddMudServices(config =>
         {
             config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;

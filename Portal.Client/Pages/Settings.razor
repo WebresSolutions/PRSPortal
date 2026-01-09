@@ -2,63 +2,11 @@
 @using Portal.Shared
 @using Portal.Shared.DTO.Schedule
 @using Portal.Shared.ResponseModels
+@using Toolbelt.Blazor.HotKeys2
+@inject HotKeys HotKeys
 @inherits BaseDataComponent;
 
-@code {
-    private List<ScheduleColourDto> _colours = new();
-    private bool showColourPicker = true;
 
-    /// <summary>
-    /// Called when the component is initialized.
-    /// Data loading for the grid is now handled by LoadFacilitiesServerData.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation</returns>
-    protected override async Task OnInitializedAsync()
-    {
-        base.IsLoading = true;
-        await base.OnInitializedAsync();
-        await LoadColours();
-        base.IsLoading = false;
-    }
-
-    private async Task LoadColours()
-    {
-        base.IsLoading = true;
-        Result<List<ScheduleColourDto>> res = await _apiService.GetScheduleColours();
-        if (res.Error is null && res.Value is not null)
-        {
-            _colours = res.Value;
-        }
-        else
-        {
-            _snackbar.Add(res.ErrorDescription ?? "Error occured while loading the colours", Severity.Error);
-        }
-        base.IsLoading = false;
-    }
-
-    private async Task SaveColour(ScheduleColourDto colour, string colourString)
-    {
-        colour.ColourHex = colourString;
-        Result<ScheduleColourDto> res = await _apiService.UpdateScheduleColour(colour);
-        if (res.Error is null)
-        {
-            _snackbar.Add("Colour updated successfully", Severity.Success);
-            Result<List<ScheduleColourDto>> colours = await _apiService.GetScheduleColours();
-            if (colours.Error is null && colours.Value is not null)
-            {
-                _colours.ElementAt(_colours.FindIndex(c => c.ScheduleColourId == colour.ScheduleColourId)).ColourHex = colourString;
-            }
-            else
-            {
-                _snackbar.Add(res.ErrorDescription ?? "Error occured while loading the colours", Severity.Error);
-            }
-        }
-        else
-        {
-            _snackbar.Add(res.ErrorDescription ?? "Error occured while saving the colour", Severity.Error);
-        }
-    }
-}
 
 <PageTitle>Settings - PRS Portal</PageTitle>
 <div class="container">
@@ -66,39 +14,95 @@
         <h1>Settings</h1>
     </div>
 
-    @if (!base.IsLoading)
-    {
-        <Card>
-            <ChildContent>
-                <h3 @onclick="@(() => showColourPicker = !showColourPicker)">Schedule Colours Settings</h3>
-                @if (showColourPicker)
-                {
-                    <section class="colour-container">
-                        @foreach (ScheduleColourDto colour in _colours)
-                        {
+    <Card>
+        <ChildContent>
+            <Collapseable Title="Theme Settings" Show="true">
+                <CollapseableContent>
+                    @if (!base.IsLoading)
+                    {
+                        <section class="theme-container">
                             <div>
-                                <div class="preview" style="background: @colour.ColourHex"></div>
+                                <div class="preview" style="background: @primaryColour"></div>
                                 <MudColorPicker ShowToolbar="true"
-                                                Label="Dialog Picker"
+                                                Label="Primary Colour"
                                                 Variant="Variant.Outlined"
                                                 ColorPickerView="ColorPickerView.GridCompact"
                                                 ColorPickerMode="ColorPickerMode.HEX"
-                                                Value=@colour.ColourHex 
-                                                TextChanged="@((s) => SaveColour(colour, s))"/>
+                                                Value=primaryColour
+                                                TextChanged="@((s) => SetColour(s, true))" />
                             </div>
+                            <div>
+                                <div class="preview" style="background: @secondaryColour"></div>
+                                <MudColorPicker ShowToolbar="true"
+                                                Label="Secondary Colour"
+                                                Variant="Variant.Outlined"
+                                                ColorPickerView="ColorPickerView.GridCompact"
+                                                ColorPickerMode="ColorPickerMode.HEX"
+                                                Value=secondaryColour
+                                                TextChanged="@((s) => SetColour(s, false))" />
+                            </div>
+                        </section>
+                    }
+                    else
+                    {
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="150px" />
+                    }
+                </CollapseableContent>
+            </Collapseable>
+            <Collapseable Title="Schedule Colours Settings" Show="true">
+                <CollapseableContent>
+                    @if (!base.IsLoading)
+                    {
+                        <section class="colour-container">
+                            @foreach (ScheduleColourDto colour in _colours)
+                            {
+                                <div>
+                                    <div class="preview" style="background: @colour.ColourHex"></div>
+                                    <MudColorPicker ShowToolbar="true"
+                                                    Label="Dialog Picker"
+                                                    Variant="Variant.Outlined"
+                                                    ColorPickerView="ColorPickerView.GridCompact"
+                                                    ColorPickerMode="ColorPickerMode.HEX"
+                                                    Value=@colour.ColourHex
+                                                    TextChanged="@((s) => SaveColour(colour, s))" />
+                                </div>
+                            }
+                        </section>
+                    }
+                    else
+                    {
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
+                    }
+                </CollapseableContent>
+            </Collapseable>
+            <Collapseable Title="Hot Keys" Show="false">
+                <CollapseableContent>
+                    <section>
+                        @foreach (HotKeyEntry hotKey in hotKeyEntries)
+                        {
+                            <div>@hotKey.Description</div>
                         }
                     </section>
-                }
-            </ChildContent>
-        </Card>
-    }
-    else
-    {
-        <MudProgressCircular />
-    }
+                </CollapseableContent>
+            </Collapseable>
+        </ChildContent>
+    </Card>
 </div>
 
 <style>
+    .theme-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-gap: 10px;
+    }
+
+        .theme-container > div {
+            background: var(--color-background);
+            border-radius: var(--border-rad);
+            padding: 1rem;
+        }
+
+
     .colour-container {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -110,7 +114,6 @@
             border-radius: var(--border-rad);
             padding: 1rem;
         }
-
 
     @@media (max-width: 1200px) {
         .colour-container {
@@ -127,5 +130,6 @@
         align-items: center;
         gap: 6px;
         width: 40px;
+        margin-bottom: 0.5rem;
     }
 </style>

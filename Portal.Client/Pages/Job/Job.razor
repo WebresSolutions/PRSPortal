@@ -1,0 +1,20 @@
+﻿@page "/jobs/{JobId:int}"
+
+<PageTitle>Job - PRS Portal</PageTitle>
+<div class="container">
+
+    <Card>
+        <ChildContent>
+            <div class="d-flex">
+                <h3>Job - @JobId</h3>
+            </div>
+        </ChildContent>
+    </Card>
+</div>
+
+@code {
+    [Parameter]
+    public required int JobId { get; set; }
+
+
+}

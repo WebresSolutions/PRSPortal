@@ -136,6 +136,15 @@
 
             window.addEventListener('scroll', requestTick);
         };
+
+        function updateCssVariable(variableName, value) {
+            document.documentElement.style.setProperty(variableName, value);
+        }
+
+        function getCssVariable(variableName) {
+            let value = getComputedStyle(document.documentElement).getPropertyValue(variableName);
+            return value.trim(); // trim whitespace
+        }
     </script>
 </body>
 </html>

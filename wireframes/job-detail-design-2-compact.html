@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Detail - Design 2: Compact Layout</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8fafc;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .header-left h1 {
+            color: #2563eb;
+            font-size: 1.75rem;
+            font-weight: 900;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .badge-primary {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .header-info {
+            display: flex;
+            gap: 2rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 1.5rem;
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .card-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .btn-add {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .info-label {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        
+        .info-value {
+            font-size: 0.85rem;
+            color: #1e293b;
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        .content-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        
+        .tab {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: -2px;
+        }
+        
+        .tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        
+        .table th {
+            text-align: left;
+            padding: 0.6rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        
+        .table td {
+            padding: 0.6rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .table tr:hover {
+            background: #f8fafc;
+        }
+        
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .quick-action-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            font-weight: 600;
+            color: #1e293b;
+            transition: all 0.2s;
+        }
+        
+        .quick-action-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        
+        .stats-mini {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .stat-mini {
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-mini-value {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: #2563eb;
+        }
+        
+        .stat-mini-label {
+            font-size: 0.7rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Job #216</h1>
+                <div class="header-info">
+                    <span>Job #45</span>
+                    <span>•</span>
+                    <span>GISBORNE, VIC 3437</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span class="badge badge-primary">Surveying</span>
+                <div class="header-actions">
+                    <button class="btn-icon">✏️</button>
+                    <button class="btn-icon">🔒</button>
+                    <button class="btn-icon">🖨️</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <!-- Quick Stats -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Overview</h3>
+                    </div>
+                    <div class="stats-mini">
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">0</div>
+                            <div class="stat-mini-label">Tasks</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">0</div>
+                            <div class="stat-mini-label">Invoices</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">1</div>
+                            <div class="stat-mini-label">Notes</div>
+                        </div>
+                        <div class="stat-mini">
+                            <div class="stat-mini-value">0</div>
+                            <div class="stat-mini-label">Contacts</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job Info -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Job Information</h3>
+                    </div>
+                    <div class="info-list">
+                        <div class="info-row">
+                            <span class="info-label">Contact</span>
+                            <span class="info-value">ALL HOMES / PERRY</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Phone</span>
+                            <span class="info-value">018 368 142</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Council</span>
+                            <span class="info-value">SHIRE OF MACEDON RANGES</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Plan Ref</span>
+                            <span class="info-value">LP1727490</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn">+ Add Technical Contact</button>
+                        <button class="quick-action-btn">+ Add Task</button>
+                        <button class="quick-action-btn">+ Add Invoice</button>
+                        <button class="quick-action-btn">+ Add Site Visit</button>
+                        <button class="quick-action-btn">+ Add Note</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="content-area">
+                <!-- Technical Contacts -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="tabs">
+                                <button class="tab active">All</button>
+                                <button class="tab">Deleted</button>
+                            </div>
+                        </div>
+                        <button class="btn-add">+ Add</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Contact</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">No records</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tasks -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="tabs">
+                                <button class="tab active">All</button>
+                                <button class="tab">Active</button>
+                                <button class="tab">To Invoice</button>
+                                <button class="tab">Deleted</button>
+                            </div>
+                        </div>
+                        <button class="btn-add">+ Add</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Quoted Price</th>
+                                <th>Active Date</th>
+                                <th>Completed Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">No records</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Invoices -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="tabs">
+                                <button class="tab active">All</button>
+                                <button class="tab">Unsent</button>
+                                <button class="tab">Unpaid</button>
+                                <button class="tab">Overdue</button>
+                            </div>
+                        </div>
+                        <button class="btn-add">+ Add</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Number</th>
+                                <th>Contact</th>
+                                <th>Total Price</th>
+                                <th>Created Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">No records</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Checklist -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Checklist</h3>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Site Work</th>
+                                <th>Checked</th>
+                                <th>Sent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>RE Survey</td>
+                                <td>
+                                    <select style="padding: 0.4rem; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 0.8rem;">
+                                        <option>Not Completed</option>
+                                        <option>Completed</option>
+                                    </select>
+                                </td>
+                                <td><input type="checkbox"></td>
+                                <td><input type="checkbox"></td>
+                            </tr>
+                            <tr>
+                                <td>Feature Plan</td>
+                                <td>
+                                    <select style="padding: 0.4rem; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 0.8rem;">
+                                        <option>Not Completed</option>
+                                        <option>Completed</option>
+                                    </select>
+                                </td>
+                                <td><input type="checkbox"></td>
+                                <td><input type="checkbox"></td>
+                            </tr>
+                            <tr>
+                                <td>MGA</td>
+                                <td>
+                                    <select style="padding: 0.4rem; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 0.8rem;">
+                                        <option>Not Completed</option>
+                                        <option>Completed</option>
+                                    </select>
+                                </td>
+                                <td><input type="checkbox"></td>
+                                <td><input type="checkbox"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="sidebar">
+                <!-- Notes -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="tabs">
+                                <button class="tab active">All</button>
+                                <button class="tab">Action</button>
+                            </div>
+                        </div>
+                        <button class="btn-add">+</button>
+                    </div>
+                    <div style="padding: 0.75rem; background: #f8fafc; border-radius: 8px; margin-bottom: 0.75rem;">
+                        <div style="font-weight: 600; margin-bottom: 0.25rem; font-size: 0.9rem;">File destroyed</div>
+                        <div style="font-size: 0.75rem; color: #64748b;">
+                            Thursday 8-Aug-2024 10:08pm
+                        </div>
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">
+                            by Peter Richards
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Site Visits -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Site Visits</h3>
+                        <button class="btn-add">+</button>
+                    </div>
+                    <div style="text-align: center; color: #94a3b8; padding: 2rem; font-size: 0.85rem;">
+                        No records
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Activity</h3>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div style="padding: 0.6rem; background: #f8fafc; border-radius: 6px;">
+                            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.2rem;">Note Added</div>
+                            <div style="font-size: 0.7rem; color: #94a3b8;">2 hours ago</div>
+                        </div>
+                        <div style="padding: 0.6rem; background: #f8fafc; border-radius: 6px;">
+                            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.2rem;">Job Modified</div>
+                            <div style="font-size: 0.7rem; color: #94a3b8;">Yesterday</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

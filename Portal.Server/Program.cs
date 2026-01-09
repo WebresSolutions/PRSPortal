@@ -82,6 +82,7 @@ public class Program
         // Add API endpoints
         app.AddJobEndpoints();
         app.AddScheduleEndpoints();
+        app.AddSettingEndpoints();
 
         app.Run();
     }

@@ -19,6 +19,7 @@
 		<PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="10.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
 		<PackageReference Include="MudBlazor" Version="8.15.0" />
+		<PackageReference Include="Toolbelt.Blazor.HotKeys2" Version="6.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>

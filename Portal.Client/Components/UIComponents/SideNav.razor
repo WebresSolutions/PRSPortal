@@ -7,42 +7,15 @@
     <button @onclick="@(MinimizeSidebar)" class="nav-hide-button"><i class=@(!minimize ? "bi bi-arrow-left-circle" : "bi bi-arrow-right-circle")></i></button>
     <AuthorizeView>
         <ul class="nav flex-column mt-3">
-            <li class="nav-item px-2">
-                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    <MudIcon Icon="@Icons.Material.Filled.Home" Title="Home" />
-                    Home
-                </NavLink>
-            </li>
-            <li class="nav-item px-2">
-                <NavLink class="nav-link" href="Jobs">
-                    <MudIcon Icon="@Icons.Material.Filled.Warehouse" Title="Favorite" />
-                    Jobs
-                </NavLink>
-            </li>
-            <li class="nav-item px-2">
-                <NavLink class="nav-link" href="Quotes">
-                    <MudIcon Icon="@Icons.Material.Filled.Checklist" Title="Favorite" />
-                    Quotes
-                </NavLink>
-            </li>
-            <li class="nav-item px-2">
-                <NavLink class="nav-link" href="Councils">
-                    <MudIcon Icon="@Icons.Material.Filled.FormatListNumbered" Title="Favorite" />
-                    Councils
-                </NavLink>
-            </li>
-            <li class="nav-item px-2">
-                <NavLink class="nav-link" href="Schedule">
-                    <MudIcon Icon="@Icons.Material.Filled.CalendarViewMonth" Title="Schedule" />
-                    Schedule
-                </NavLink>
-            </li>
-            <li class="nav-item px-2">
-                <NavLink class="nav-link" href="Settings">
-                    <MudIcon Icon="@Icons.Material.Filled.Settings" Title="Settings" />
-                    Settings
-                </NavLink>
-            </li>
+            @foreach (var navItem in navLinks)
+            {
+                <li class="nav-item px-2">
+                    <NavLink class="nav-link" href="@navItem.Link" Match="@(navItem.MatchAll ? NavLinkMatch.All : NavLinkMatch.Prefix)">
+                        <MudIcon Icon="@navItem.Icon" Title="@navItem.Title" />
+                        @navItem.Title
+                    </NavLink>
+                </li>
+            }
         </ul>
     </AuthorizeView>
     <div class="auth-controls">
@@ -51,6 +24,11 @@
                 <i class="bi bi-person-vcard btn" href="authentication/profile"></i>
                 <i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
             </Authorized>
+            <NotAuthorized>
+                <NavLink class="nav-link" href="authentication/login">
+                    <i class="bi bi-box-arrow-in-right btn" />
+                </NavLink>
+            </NotAuthorized>
         </AuthorizeView>
     </div>
 </nav>
@@ -64,6 +42,12 @@
 
     private bool minimize = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _sessionStorage.SetItem("NavbarItems", navLinks);
+    }
+
     private async Task MinimizeSidebar()
     {
         minimize = !minimize;
@@ -72,18 +56,15 @@
 
     private string width() => minimize ? "width: 40px" : "width: 120px";
 
-    private readonly Dictionary<string, NavigationLink> links = new()
+    private readonly List<NavLinkItem> navLinks = new()
     {
-        { "Dashboard", new NavigationLink(){Link = "dashboard", Title = "Dashboard", Icon = "bi bi-speedometer2"} },
-        { "Home", new NavigationLink(){Link = "", Title = "Home", Icon = "bi bi-house"} },
-        { "Jobs", new NavigationLink(){Link = "jobs", Title = "Jobs", Icon = "bi bi-wrench" }},
-        { "Quotes", new NavigationLink(){Link = "quotes", Title = "Quotes", Icon = "bi bi-receipt" } },
-        { "Councils", new NavigationLink(){Link = "councils", Title = "Councils",Icon = "bi bi-people-fill"} },
-        { "Tools", new NavigationLink(){Link = "tools", Title = "Tools",Icon = "bi bi-hammer"} },
-        { "Admin", new NavigationLink(){Link = "admin", Title = "Admin",Icon = "bi bi-sliders"} },
-        { "Schedule", new NavigationLink(){Link = "schedule", Title = "Schedule", Icon = "bi bi-calendar"} }
+        new NavLinkItem { Link = "", Title = "Home", Icon = Icons.Material.Filled.Home, MatchAll = true },
+        new NavLinkItem { Link = "Jobs", Title = "Jobs", Icon = Icons.Material.Filled.Warehouse },
+        new NavLinkItem { Link = "Quotes", Title = "Quotes", Icon = Icons.Material.Filled.Checklist },
+        new NavLinkItem { Link = "Councils", Title = "Councils", Icon = Icons.Material.Filled.FormatListNumbered },
+        new NavLinkItem { Link = "Schedule", Title = "Schedule", Icon = Icons.Material.Filled.CalendarViewMonth },
+        new NavLinkItem { Link = "Settings", Title = "Settings", Icon = Icons.Material.Filled.Settings }
     };
-
 
     private void BeginSignOut(MouseEventArgs args)
     {

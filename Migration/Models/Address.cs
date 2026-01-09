@@ -1,4 +1,6 @@
-﻿using NpgsqlTypes;
+﻿using System;
+using System.Collections.Generic;
+using NpgsqlTypes;
 
 namespace Migration.Models;
 

@@ -34,16 +34,32 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
 .container {
     margin-left: auto; /* Same as the width of the sidenav */
     margin-right: auto; /* Same as the width of the quicksearch */
 }
 
+h5 {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+h4 {
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+h3 {
+    color: var(--color-primary);
+    font-weight: 600;
+}
 
 h2 {
     color: var(--color-primary);
     font-weight: 800;
 }
+
 h1 {
     color: var(--color-primary);
     font-weight: 800;
@@ -116,9 +132,11 @@ ul {
         transition: all ease-in-out 0.2s;
         transform: translateY(-3px);
     }
+
 .mud-elevation-1 {
-     box-shadow: none !important; 
+    box-shadow: none !important;
 }
+
 .mud-table {
     box-shadow: none !important;
 }
@@ -207,4 +225,13 @@ a {
 .mud-input {
     background: white !important;
     border-radius: var(--border-rad) !important;
+}
+
+    .mud-input > input.mud-input-root-outlined, div.mud-input-slot.mud-input-root-outlined {
+        padding: 16px 10px !important;
+    }
+
+.mud-input-control.mud-input-outlined-with-label {
+    margin-bottom: 0px !important;
+    margin-top: 0px !important;
 }

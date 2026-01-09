@@ -260,7 +260,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("modified_at");
-            entity.Property(e => e.Value).HasColumnName("value");
+            entity.Property(e => e.Value)
+                .HasColumnType("jsonb")
+                .HasColumnName("value");
         });
 
         modelBuilder.Entity<Contact>(entity =>

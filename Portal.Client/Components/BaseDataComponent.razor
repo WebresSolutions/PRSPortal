@@ -1,10 +1,22 @@
-﻿
+﻿@using Toolbelt.Blazor.HotKeys2
+@implements IAsyncDisposable
+@inject HotKeys HotKeys
+@inject IDialogService Dialog
+
 @code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
     /// <summary>
     /// Gets or sets the cascading authentication state task for the component
     /// </summary>
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    protected HotKeysContext? _hotKeysContext;
+    private void Submit() => MudDialog?.Close(DialogResult.Ok(true));
+    private void Cancel() => MudDialog?.Cancel();
+    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+    List<NavLinkItem>? navLinks = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether the component is currently loading data
@@ -36,5 +48,58 @@
                 _navigationManager.NavigateTo(loginUrl, true);
             }
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _jsRuntime.InvokeVoidAsync("initializeScrollHeader");
+            if (navLinks?.Count is 0)
+                navLinks = _sessionStorage.GetItem<List<NavLinkItem>>("NavbarItems");
+
+            _hotKeysContext = this.HotKeys.CreateContext()
+                .Add(ModCode.Ctrl | ModCode.Shift, Code.ArrowUp, () => GoToNextNavItem(true), new HotKeyOptions() { Description = "Navigate to the next page up" })
+                .Add(ModCode.Ctrl | ModCode.Shift, Code.ArrowDown, () => GoToNextNavItem(false), new HotKeyOptions() { Description = "Navigate to the next page down" })
+                .Add(ModCode.Ctrl | ModCode.Shift, Code.S, OpenDialogAsync, new HotKeyOptions() { Description = "Opens the quick search for jobs" });
+        }
+    }
+
+    private Task OpenDialogAsync()
+    {
+        return Dialog.ShowAsync<SearchDialog>("", new DialogOptions() { CloseButton = true, CloseOnEscapeKey = true });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hotKeysContext != null)
+            await _hotKeysContext.DisposeAsync();
+    }
+
+    private void GoToNextNavItem(bool up)
+    {
+        if (navLinks is null)
+            return;
+
+        // find the current nav item
+        string uri = _navigationManager.ToBaseRelativePath(_navigationManager.Uri).TrimEnd('/');
+
+        // Find the index of the current nav item
+        int currentIndex = navLinks?.FindIndex(n => n.Link.Equals(uri, StringComparison.OrdinalIgnoreCase)) ?? -1;
+
+        if (up)
+            currentIndex--;
+        else
+            currentIndex++;
+
+        // Loop around: wrap to end if going before start, wrap to start if going past end
+        if (currentIndex < 0)
+            currentIndex = navLinks!.Count - 1;
+        else if (currentIndex >= navLinks!.Count)
+            currentIndex = 0;
+
+        NavLinkItem newNavItem = navLinks[currentIndex];
+        _navigationManager.NavigateTo(newNavItem.Link);
+
     }
 }

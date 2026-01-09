@@ -729,7 +729,8 @@ internal class MigrationService(
             // Select all of the valid hash colors from the jobs
             List<string?> existingColours = [.. schedulesOld.GroupBy(j => j.Colour)
                 .Select(g => g.Key)
-                .Where(c => c is not null && c.StartsWith('#') && c.Length == 7)];
+                .Where(c => c is not null && c.StartsWith('#') && c.Length == 7)
+                .Distinct()];
 
             List<Models.ScheduleColour> scheduleColours = [.. existingColours.Select(x => new Models.ScheduleColour
             {

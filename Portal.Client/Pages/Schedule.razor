@@ -6,19 +6,19 @@
 <PageTitle>Schedule - PRS Portal</PageTitle>
 <div class="container">
     <div class="mb-2 d-flex">
+        <MudIconButton Icon="@Icons.Material.Filled.SwapVert" @onclick="@SwapJobType" Disabled="@base.IsLoading"/>
         <h1>Schedule - @JobTypeEnum.GetDisplayName()</h1>
-        <i @onclick="@SwapJobType" style="padding-top: 1rem">Swap</i>
     </div>
-    <div class="d-flex">
-        <MudDatePicker T="DateOnly" Date=DateTime Label="Select Date" Variant="Variant.Outlined" Class="mt-0 mb-3" DateChanged="@((x) => ReloadCalendar(x!.Value))" />
-        <div class="mini-container">
-            <MudIconButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadSchedule" Icon="@Icons.Material.Filled.Refresh" />
-            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="LoadSchedule" StartIcon="@Icons.Material.Filled.Add">Add Staff Track</MudButton>
-        </div>
-    </div>
-
     @if (!base.IsLoading)
     {
+        <div class="d-flex">
+            <MudDatePicker T="DateOnly" Date=DateTime Label="Select Date" Variant="Variant.Outlined" Class="mt-0 mb-3" DateChanged="@((x) => ReloadCalendar(x!.Value))" />
+            <div class="mini-container">
+                <MudIconButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadSchedule" Icon="@Icons.Material.Filled.Refresh" />
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="LoadSchedule" StartIcon="@Icons.Material.Filled.Add">Add Staff Track</MudButton>
+            </div>
+        </div>
+
         <div class="scheduler-container">
             @foreach (ScheduleSlotDtoWithCalendar slot in scheduleSlots)
             {
@@ -67,12 +67,12 @@
     }
     else
     {
-        <MudSkeleton Height="800px" Width="100%" />
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
     }
 </div>
 
 <style>
-    .mini-container{
+    .mini-container {
         padding-left: 0.5rem;
         padding-top: 0.5rem;
     }
