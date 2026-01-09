@@ -27,7 +27,20 @@ public class JobDetailsDto
     /// </summary>
     public JobColourDto? Colour { get; set; }
     /// <summary>
+    /// Gets or sets the contact information associated with the job.
+    /// </summary>
+    public JobContactDto? Contact { get; set; }
+    /// <summary>
+    /// Gets or sets the council information associated with the job.
+    /// </summary>
+    public JobCouncilDto? Council { get; set; }
+    /// <summary>
     /// Gets or sets the collection of notes associated with the job.
     /// </summary>
     public List<JobNoteDto> Notes { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the collection of site visits associated with the job.
+    /// </summary>
+    public List<JobSiteVisitsDto> SiteVisits { get; set; } = [];
 }

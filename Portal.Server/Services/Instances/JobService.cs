@@ -137,9 +137,30 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 Content = n.Note,
                 AssignedUser = n.AssignedUserId != null
                     ? new(n.AssignedUserId.Value, n.AssignedUser!.DisplayName ?? "")
-                    : null
+                    : null,
+                DateCreated = n.CreatedOn
             })
+            .OrderByDescending(n => n.DateCreated)
             .ToListAsync();
+
+        // Get the job site visits from the schedules table
+        IQueryable<JobSiteVisitsDto> query = _dbContext.Schedules
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Where(s => s.JobId == jobId)
+            .Select(s => new JobSiteVisitsDto
+            {
+                ScheduleId = s.Id,
+                Assignees = s.ScheduleTrack.ScheduleUsers
+                    .Select(su => su.User.DisplayName)
+                    .ToArray(),
+                Start = s.StartTime,
+                End = s.EndTime,
+                Category = s.ScheduleTrack.JobType.Name,
+                Notes = s.Notes ?? string.Empty
+            });
+        string querySiteVisits = query.ToQueryString();
+        job.SiteVisits = await query.ToListAsync();
 
         result.Value = job;
         return result;

@@ -1,0 +1,36 @@
+@using Portal.Shared.DTO.Job
+
+<Card ShowHeaderWithAddButton="true" HeaderTitle="Notes" OnAddButtonClick="OnAdd">
+    <ChildContent>
+        @if (Notes.Count is 0)
+        {
+            <div class="empty-state">No records</div>
+        }
+        else
+        {
+            @foreach (JobNoteDto note in Notes)
+            {
+                <div class="note-item">
+                    <div class="note-title">@((MarkupString)note.Content)</div>
+                    <div class="note-date">@GetNoteDate(note)</div>
+                    <div class="note-author">by @(note.AssignedUser?.displayName ?? "Unknown")</div>
+                </div>
+            }
+        }
+    </ChildContent>
+</Card>
+
+@code {
+    [Parameter]
+    public List<JobNoteDto> Notes { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnAdd { get; set; }
+
+    private string GetNoteDate(JobNoteDto note)
+    {
+        // Dummy date since JobNoteDto doesn't have a date field
+        return note.DateCreated.ToString("dddd d-MMM-yyyy h:mmtt");
+    }
+}
+

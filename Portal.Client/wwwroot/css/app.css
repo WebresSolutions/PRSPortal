@@ -7,7 +7,7 @@
     --color-primary-light: #ff957d;
     --color-secondary: #F49D37;
     --color-background: #f5f5ff;
-    --color-success: #63a46c;
+    --color-success: #10b981;
     --color-grey-dark: #808080;
     --color-grey: #f5f3f5;
     --color-white: #FFFFFF;
@@ -235,3 +235,36 @@ a {
     margin-bottom: 0px !important;
     margin-top: 0px !important;
 }
+
+.btn-add {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+    .btn-add:hover {
+        background: #059669;
+    }
+
+.card-header-simple {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+    .card-header-simple h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
