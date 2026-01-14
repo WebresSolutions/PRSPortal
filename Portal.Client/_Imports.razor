@@ -8,13 +8,22 @@
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.AspNetCore.Components.WebAssembly.Http
 @using Microsoft.JSInterop
-@using MudBlazor
 @using Portal.Client
+@using Portal.Client.Services.Instances
+@using Portal.Client.Services.Interfaces
 @using Portal.Client.Shared
 @using Portal.Client.Components.UIComponents;
 @using Portal.Client.Webmodels;
+@using Portal.Client.Components;
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using MudBlazor
+@using Heron.MudCalendar
+@using Portal.Shared.DTO.Setting
+@using Portal.Shared.ResponseModels
 
-@inject IDialogService _dialogService;
+@inject IApiService _apiService;
 @inject NavigationManager _navigationManager;
 @inject ISnackbar _snackbar;
 @inject IJSRuntime _jsRuntime;
+@inject IAccessTokenProvider AuthorizationService
+@inject SessionStorage _sessionStorage;

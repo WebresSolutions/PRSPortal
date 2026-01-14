@@ -1,0 +1,121 @@
+﻿@using Portal.Shared.Web
+<section class="quicksearch">
+    <div class="quicksearch-header">
+        <strong>Quick Search</strong>
+    </div>
+    <div class="quicksearch-fields">
+        <MudTextField T="string" 
+                      @bind-Value="SearchData.Contact"
+                      Label="Contact" 
+                      Variant="Variant.Outlined" 
+                      Margin="Margin.Dense"
+                      Class="quicksearch-field" />
+        
+        <MudTextField T="string" 
+                      @bind-Value="SearchData.Address"
+                      Label="Address" 
+                      Variant="Variant.Outlined" 
+                      Margin="Margin.Dense"
+                      Class="quicksearch-field" />
+        
+        <MudTextField T="string" 
+                      @bind-Value="SearchData.Suburb" 
+                      Label="Suburb" 
+                      Variant="Variant.Outlined" 
+                      Margin="Margin.Dense"
+                      Class="quicksearch-field" />
+        
+        <MudTextField T="string" 
+                      @bind-Value="SearchData.CadastralNo"
+                      Label="Survey #" 
+                      Variant="Variant.Outlined" 
+                      Margin="Margin.Dense"
+                      Class="quicksearch-field" />
+        
+        <MudTextField T="string" 
+                      @bind-Value="SearchData.SetoutNo"
+                      Label="Construction #" 
+                      Variant="Variant.Outlined" 
+                      Margin="Margin.Dense"
+                      Class="quicksearch-field" />
+    </div>
+    
+    <div class="quicksearch-actions">
+        <MudButton Variant="Variant.Filled" 
+                   FullWidth="true"
+                   OnClick="HandleSearch"
+                   Class="search-button"
+                   Style="background-color: var(--color-primary); color: white;">
+            Search
+        </MudButton>
+        
+        <MudButton Variant="Variant.Text" 
+                   Color="Color.Primary" 
+                   FullWidth="true"
+                   OnClick="ClearFilters"
+                   Class="clear-button">
+            Clear Filters
+        </MudButton>
+    </div>
+</section>
+
+@code {
+    private QuickSearchData SearchData { get; set; } = new();
+
+    private void HandleSearch()
+    {
+    }
+
+    private void ClearFilters()
+    {
+        SearchData.Clear();
+    }
+}
+
+<style>
+    .quicksearch {
+        position: fixed;
+        top: 75px;
+        right: 0px;
+        width: 150px;
+        background-color: var(--color-white);
+        padding: 1rem;
+        overflow-y: auto;
+        z-index: 10;
+        border-radius: var(--border-rad);
+        margin-right: var(--padding);
+    }
+
+    .quicksearch-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--color-grey);
+    }
+
+    .quicksearch-header strong {
+        font-size: 1.1rem;
+    }
+
+    .quicksearch-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .quicksearch-field {
+        width: 100%;
+    }
+
+    .quicksearch-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    @@media (max-width: 900px) {
+        .quicksearch {
+            display: none;
+        }
+    }
+</style>

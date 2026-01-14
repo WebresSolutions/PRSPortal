@@ -1,15 +1,21 @@
-﻿<section class="container card-wrapper shadow">
+﻿<section class="card-container shadow">
     @if (TitleContent is not null)
     {
         @TitleContent
     }
-    @if (Title != string.Empty)
+    @if (ShowHeaderWithAddButton)
     {
-        <h3 class="text-center mb-4">@Title</h3>
+        <div class="card-header-simple">
+            <h3>@HeaderTitle</h3>
+            <button class="btn-add" @onclick="OnAddButtonClick">+</button>
+        </div>
+    }
+    @if (Title != string.Empty && !ShowHeaderWithAddButton)
+    {
+        <h1 class="cd-title">@Title</h1>
     }
     @if (IsLoading)
     {
-        @* <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="@_heightString" /> *@
     }
     else
     {
@@ -19,7 +25,6 @@
     }
     @if (Reload is not null)
     {
-        @* <MudIconButton Icon="@Icons.Material.Filled.Refresh" OnClick="Reload" Class="refresh-button" Disabled=IsLoading /> *@
     }
 </section>
 @code {
@@ -47,6 +52,9 @@
     [Parameter]
     public int Height { get; set; } = 300;
 
+    [Parameter]
+    public Action? TitleActions { get; set; }
+
 	private string _heightString => Height > 0 ? $"{Height}px" : "300px";
 
     /// <summary>
@@ -54,15 +62,81 @@
     /// </summary>
     [Parameter]
     public RenderFragment? TitleContent { get; set; }
+
     /// <summary>
     /// Optionally pass a function to reload the card content
     /// </summary>
     [Parameter]
     public Func<Task>? Reload { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether to show a header with an add button
+    /// </summary>
+    [Parameter]
+    public bool ShowHeaderWithAddButton { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets the title for the header with add button
+    /// </summary>
+    [Parameter]
+    public string HeaderTitle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Event callback for when the add button is clicked
+    /// </summary>
+    [Parameter]
+    public EventCallback OnAddButtonClick { get; set; }
 }
+
 <style>
-    .card-wrapper {
-        position: relative;
+
+    .card-container {
+        background: var(--color-white);
+        padding: 15px;
+        border-radius: var(--border-rad);
+        overflow-x: scroll !important;
+        margin-right: auto;
+        margin-left: auto;
+        overflow: scroll;
+    }
+
+    .cd-title{
+        text-align: left;
+        margin-bottom: 1.5rem;
+        margin-left: 1.5rem;
+    }
+
+    .card-header-simple {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .card-header-simple h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-primary);
+    }
+
+    .btn-add {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-add:hover {
+        background: #059669;
     }
 
     .refresh-button {
@@ -71,15 +145,31 @@
         right: 0 !important;
     }
 
-    .card-container {
-        max-width: 1000px;
-        overflow: scroll;
+    @@media (min-width: 768px) {
+        .card-container {
+            width: fit-content;
+        }
     }
 
-    @@media (max-width: 1270px) {
+    @@media (min-width: 900px) {
         .card-container {
-            max-width: 800px;
-            overflow: scroll;
+            width: 800px;
+        }
+    }
+
+    @@media (min-width: 992px) {
+        .card-container {
+            width: 970px;
+        }
+    }
+    @@media (min-width: 1060px) {
+        .card-container {
+            width: 1000px;
+        }
+    }
+    @@media (min-width: 1200px) {
+        .card-container {
+            width: auto;
         }
     }
 </style>

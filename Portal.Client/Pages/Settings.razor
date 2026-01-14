@@ -1,0 +1,135 @@
+﻿@page "/settings";
+@using Portal.Shared
+@using Portal.Shared.DTO.Schedule
+@using Portal.Shared.ResponseModels
+@using Toolbelt.Blazor.HotKeys2
+@inject HotKeys HotKeys
+@inherits BaseDataComponent;
+
+
+
+<PageTitle>Settings - PRS Portal</PageTitle>
+<div class="container">
+    <div class="mb-2 d-flex">
+        <h1>Settings</h1>
+    </div>
+
+    <Card>
+        <ChildContent>
+            <Collapseable Title="Theme Settings" Show="true">
+                <CollapseableContent>
+                    @if (!base.IsLoading)
+                    {
+                        <section class="theme-container">
+                            <div>
+                                <div class="preview" style="background: @primaryColour"></div>
+                                <MudColorPicker ShowToolbar="true"
+                                                Label="Primary Colour"
+                                                Variant="Variant.Outlined"
+                                                ColorPickerView="ColorPickerView.GridCompact"
+                                                ColorPickerMode="ColorPickerMode.HEX"
+                                                Value=primaryColour
+                                                TextChanged="@((s) => SetColour(s, true))" />
+                            </div>
+                            <div>
+                                <div class="preview" style="background: @secondaryColour"></div>
+                                <MudColorPicker ShowToolbar="true"
+                                                Label="Secondary Colour"
+                                                Variant="Variant.Outlined"
+                                                ColorPickerView="ColorPickerView.GridCompact"
+                                                ColorPickerMode="ColorPickerMode.HEX"
+                                                Value=secondaryColour
+                                                TextChanged="@((s) => SetColour(s, false))" />
+                            </div>
+                        </section>
+                    }
+                    else
+                    {
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="150px" />
+                    }
+                </CollapseableContent>
+            </Collapseable>
+            <Collapseable Title="Schedule Colours Settings" Show="true">
+                <CollapseableContent>
+                    @if (!base.IsLoading)
+                    {
+                        <section class="colour-container">
+                            @foreach (ScheduleColourDto colour in _colours)
+                            {
+                                <div>
+                                    <div class="preview" style="background: @colour.ColourHex"></div>
+                                    <MudColorPicker ShowToolbar="true"
+                                                    Label="Dialog Picker"
+                                                    Variant="Variant.Outlined"
+                                                    ColorPickerView="ColorPickerView.GridCompact"
+                                                    ColorPickerMode="ColorPickerMode.HEX"
+                                                    Value=@colour.ColourHex
+                                                    TextChanged="@((s) => SaveColour(colour, s))" />
+                                </div>
+                            }
+                        </section>
+                    }
+                    else
+                    {
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
+                    }
+                </CollapseableContent>
+            </Collapseable>
+            <Collapseable Title="Hot Keys" Show="false">
+                <CollapseableContent>
+                    <section>
+                        @foreach (HotKeyEntry hotKey in hotKeyEntries)
+                        {
+                            <div>@hotKey.Description</div>
+                        }
+                    </section>
+                </CollapseableContent>
+            </Collapseable>
+        </ChildContent>
+    </Card>
+</div>
+
+<style>
+    .theme-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-gap: 10px;
+    }
+
+        .theme-container > div {
+            background: var(--color-background);
+            border-radius: var(--border-rad);
+            padding: 1rem;
+        }
+
+
+    .colour-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-gap: 10px;
+    }
+
+        .colour-container > div {
+            background: var(--color-background);
+            border-radius: var(--border-rad);
+            padding: 1rem;
+        }
+
+    @@media (max-width: 1200px) {
+        .colour-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .preview {
+        padding: 8px 16px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: 40px;
+        margin-bottom: 0.5rem;
+    }
+</style>

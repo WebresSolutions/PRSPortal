@@ -1,9 +1,9 @@
-﻿@page "/"
-
-
-<h1>Index</h1>
-
-
-<p>
-	This is the home page
-</p>
+﻿
+<AuthorizeView>
+    <Authorized>
+        <User />
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>

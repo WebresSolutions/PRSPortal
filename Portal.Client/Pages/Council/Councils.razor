@@ -1,0 +1,68 @@
+@inherits BaseDataComponent;
+@using Portal.Shared
+@using Portal.Shared.DTO.Councils
+@using Portal.Shared.ResponseModels
+@using Portal.Shared.Web
+
+@page "/councils"
+
+<div class="container">
+    <div class="d-flex flex-row gap-2 header">
+        <h2>Councils</h2>
+        <MudTextField T="string" @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))" Variant="Variant.Outlined"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Large" Class="mt-0 mb-4" Clearable="true" OnClearButtonClick="ClearSearch"></MudTextField>
+        <div style="margin: auto">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ClearSearch" StartIcon="@Icons.Material.Filled.Add">New</MudButton>
+        </div>
+    </div>
+    <Card>
+        <ChildContent>
+            <MudDataGrid T="CouncilPartialDto"
+                         ServerData="LoadCouncils"
+                         Filterable="true"
+                         SortMode="SortMode.Single"
+                         Loading="base.IsLoading"
+                         RowsPerPage="_rowsPerPage"
+                         CurrentPage="_currentPage"
+                         CurrentPageChanged="@((page) => { _currentPage = page; })"
+                         Dense="true"
+                         @ref="_grid"
+                         Striped="true">
+                <Columns>
+                    <TemplateColumn StickyLeft="true">
+                        <CellTemplate>
+                            <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" Href="@($"/councils/{context.Item.councilId}")" StartIcon="@Icons.Material.Filled.RemoveRedEye">View</MudButton>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.councilId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" Title="ID" />
+                    <PropertyColumn Property="x => x.councilName" ShowFilterIcon="false" Title="Council Name" />
+                    <PropertyColumn Property="x => x.phone" ShowFilterIcon="false" Title="Phone" />
+                    <PropertyColumn Property="x => x.email" ShowFilterIcon="false" Title="Email" />
+                    <PropertyColumn Property="x => x.website" ShowFilterIcon="false" Title="Website" >
+                        <CellTemplate>
+                            <a href="@context.Item.website"><small>@context.Item.website</small></a>
+                        </CellTemplate>
+                    </PropertyColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="CouncilPartialDto" />
+                </PagerContent>
+            </MudDataGrid>
+        </ChildContent>
+    </Card>
+</div>
+
+<style>
+    .header {
+        background: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+</style>
+
+

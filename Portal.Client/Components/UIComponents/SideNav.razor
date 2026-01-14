@@ -1,38 +1,74 @@
-﻿<nav class="d-flex ps-2">
-	<ul class="nav flex-column mt-3">
-		<li class="mb-3">
-			<NavLink href="/">
-				<img alt="PRS" src="/images/PRS-Primary-Logo.svg" style="width: 120px" />
-			</NavLink>
-		</li>
-		@foreach (KeyValuePair<string, NavigationLink> link in links)
-		{
-			<li class="nav-item">
-				<NavElement Link=@link.Value />
-			</li>
-		}
-	</ul>
+﻿
+<nav class="sidebar d-flex ps-2 gap-2 flex-column" style="background-color: var(--color-white)">
+    <NavLink href="/">
+        <img alt="PRS" src=@(minimize ? "/images/MinimalLogo.svg" : "/images/PRS-Primary-Logo.svg")
+             style=@(minimize ? "width: 40px" : "width:120px") class="prs-logo ms-2" />
+    </NavLink>
+    <button @onclick="@(MinimizeSidebar)" class="nav-hide-button"><i class=@(!minimize ? "bi bi-arrow-left-circle" : "bi bi-arrow-right-circle")></i></button>
+    <AuthorizeView>
+        <ul class="nav flex-column mt-3">
+            @foreach (var navItem in navLinks)
+            {
+                <li class="nav-item px-2">
+                    <NavLink class="nav-link" href="@navItem.Link" Match="@(navItem.MatchAll ? NavLinkMatch.All : NavLinkMatch.Prefix)">
+                        <MudIcon Icon="@navItem.Icon" Title="@navItem.Title" />
+                        @navItem.Title
+                    </NavLink>
+                </li>
+            }
+        </ul>
+    </AuthorizeView>
+    <div class="auth-controls">
+        <AuthorizeView>
+            <Authorized>
+                <i class="bi bi-person-vcard btn" href="authentication/profile"></i>
+                <i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
+            </Authorized>
+            <NotAuthorized>
+                <NavLink class="nav-link" href="authentication/login">
+                    <i class="bi bi-box-arrow-in-right btn" />
+                </NavLink>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
 </nav>
 
 @code {
-	[Parameter]
-	public required Action ToggleNav { get; set; }
+    [Parameter]
+    public required Action ToggleNav { get; set; }
 
+    [Parameter]
+    public required EventCallback Hide { get; set; }
 
-	private readonly Dictionary<string, NavigationLink> links = new()
-	{
-		// { "Home", new NavigationLink(){Link = "", Title = "Home", Icon = MudBlazor.Icons.Material.Filled.Home } },
-		{ "Jobs", new NavigationLink(){Link = "jobs", Title = "Jobs", Icon = "bi bi-wrench",
-			SubLinks = [
-				new NavigationLink() { Link = "tasks", Title = "Tasks", Icon = "bi bi-list-task"},
-				new NavigationLink() { Link = "notes", Title = "Notes", Icon = "bi bi-journal"},
-				new NavigationLink() { Link = "invoices", Title = "Invoices", Icon = "bi bi-card-text" }
-			]}
-		},
-		{ "Quotes", new NavigationLink(){Link = "quotes", Title = "Quotes", Icon = "bi bi-receipt" } },
-		{ "Councils", new NavigationLink(){Link = "councils", Title = "Councils",Icon = "bi bi-people-fill"} },
-		{ "Tools", new NavigationLink(){Link = "tools", Title = "Tools",Icon = "bi bi-hammer"} },
-		{ "Admin", new NavigationLink(){Link = "admin", Title = "Admin",Icon = "bi bi-sliders"} },
-		{ "Schedule", new NavigationLink(){Link = "schedule", Title = "Schedule", Icon = "bi bi-calendar"} }
-	};
+    private bool minimize = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _sessionStorage.SetItem("NavbarItems", navLinks);
+    }
+
+    private async Task MinimizeSidebar()
+    {
+        minimize = !minimize;
+        await Hide.InvokeAsync();
+    }
+
+    private string width() => minimize ? "width: 40px" : "width: 120px";
+
+    private readonly List<NavLinkItem> navLinks = new()
+    {
+        new NavLinkItem { Link = "", Title = "Home", Icon = Icons.Material.Filled.Home, MatchAll = true },
+        new NavLinkItem { Link = "Jobs", Title = "Jobs", Icon = Icons.Material.Filled.PanTool },
+        new NavLinkItem { Link = "Quotes", Title = "Quotes", Icon = Icons.Material.Filled.Numbers },
+        new NavLinkItem { Link = "Contacts", Title = "Contacts", Icon = Icons.Material.Filled.People },
+        new NavLinkItem { Link = "Councils", Title = "Councils", Icon = Icons.Material.Filled.Home },
+        new NavLinkItem { Link = "Schedule", Title = "Schedule", Icon = Icons.Material.Filled.CalendarViewMonth },
+        new NavLinkItem { Link = "Settings", Title = "Settings", Icon = Icons.Material.Filled.Settings }
+    };
+
+    private void BeginSignOut(MouseEventArgs args)
+    {
+        _navigationManager.NavigateToLogout("authentication/logout");
+    }
 }

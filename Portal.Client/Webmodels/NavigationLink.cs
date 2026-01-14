@@ -1,13 +1,20 @@
 ﻿namespace Portal.Client.Webmodels;
 
+/// <summary>
+/// Represents a navigation link with optional sub-navigation items
+/// Supports hierarchical navigation structures
+/// </summary>
 public class NavigationLink()
 {
 
     /// <summary>
-    /// The display name of the link.
+    /// Gets or sets the URL path for the navigation link
     /// </summary>
     public string Link { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Gets or sets the display title for the navigation link
+    /// </summary>
     public string Title { get; set; } = string.Empty;
 
     /// <summary>

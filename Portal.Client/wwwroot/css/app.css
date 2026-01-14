@@ -1,98 +1,25 @@
-﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
-
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: local('Inter Regular'), url('../fonts/Inter-Regular.woff') format('woff');
-}
-
-
-@font-face {
-    font-family: 'Inter';
-    font-style: italic;
-    font-weight: 400;
-    font-display: swap;
-    src: local('Inter Italic'), url('../fonts/Inter-Italic.woff') format('woff');
-}
-
-
-
-
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 500;
-    font-display: swap;
-    src: local('Inter Medium'), url('../fonts/Inter-Medium.woff') format('woff');
-}
-
-
-@font-face {
-    font-family: 'Inter';
-    font-style: italic;
-    font-weight: 500;
-    font-display: swap;
-    src: local('Inter Medium Italic'), url('../fonts/Inter-MediumItalic.woff') format('woff');
-}
-
-
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 600;
-    font-display: swap;
-    src: local('Inter Semi Bold'), url('../fonts/Inter-SemiBold.woff') format('woff');
-}
-
-
-@font-face {
-    font-family: 'Inter';
-    font-style: italic;
-    font-weight: 600;
-    font-display: swap;
-    src: local('Inter Semi Bold Italic'), url('../fonts/Inter-SemiBoldItalic.woff') format('woff');
-}
-
-
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: local('Inter Bold'), url('../fonts/Inter-Bold.woff') format('woff');
-}
-
-
-@font-face {
-    font-family: 'Inter';
-    font-style: italic;
-    font-weight: 700;
-    font-display: swap;
-    src: local('Inter Bold Italic'), url('../fonts/Inter-BoldItalic.woff') format('woff');
-}
-
-@font-face {
-    font-family: 'Satoshi';
-    font-style: italic;
-    font-weight: 600;
-    font-display: swap;
-    src: local('Satoshi Regular'), url('../fonts/Satoshi-Regular.woff2') format('woff2');
-}
+﻿
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-    --color-primary: #ff5020;
+    --color-primary: #27213C;
     --color-primary-light: #ff957d;
-    --color-secondary: #f2ecee;
-    --color-background: #FAFAFA;
-    --color-success: #63A46C;
+    --color-secondary: #F49D37;
+    --color-background: #f5f5ff;
+    --color-success: #10b981;
     --color-grey-dark: #808080;
-    --color-grey: #F5F3F5;
-    --color-white: #ffffff;
+    --color-grey: #f5f3f5;
+    --color-white: #FFFFFF;
     --color-yellow: #a16207;
-    --border-rad: 12px;
+    --border-rad: 10px;
     --padding: 10px;
+    --colour-survey: #7DCE82;
+    --colour-construction: #FF8360;
+    --mud-ripple-color: var(--color-primary) !important;
+    --mud-palette-primary: var(--color-primary) !important;
+    --mud-palette-secondary: var(--color-secondary) !important;
+    --mud-palette-info: var(--color-primary) !important;
+    --mud-default-borderradius: var(--border-rad) !important;
 }
 
 html,
@@ -100,27 +27,60 @@ body {
     background-color: var(--color-background) !important;
     transition: color 0.5s, background-color 0.5s;
     line-height: 1.6;
-    font-family: Satoshi, -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
-    font-size: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-size: 15px;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-a,
-.btn-link {
+.container {
+    margin-left: auto; /* Same as the width of the sidenav */
+    margin-right: auto; /* Same as the width of the quicksearch */
+}
+
+h6 {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+h5 {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+h4 {
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+h3 {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+h2 {
+    color: var(--color-primary);
+    font-weight: 800;
+}
+
+h1 {
+    color: var(--color-primary);
+    font-weight: 800;
+}
+
+a.btn-link {
     color: #1c1b1d;
     text-decoration: none;
-    font-size: 20px
+    font-size: 20px;
 }
 
 ul {
     padding-left: 0 !important;
 }
 
-ul>li {
-    list-style: none;
-}
+    ul > li {
+        list-style: none;
+    }
 
 .btn-primary {
     color: #fff;
@@ -128,11 +88,7 @@ ul>li {
     border-color: #1861ac;
 }
 
-.content {
-    padding-top: 1.1rem;
-}
-
-.valid.modified:not([type=checkbox]) {
+.valid.modified:not([type="checkbox"]) {
     outline: 1px solid #26b050;
 }
 
@@ -156,13 +112,12 @@ ul>li {
     z-index: 1000;
 }
 
-#blazor-error-ui .dismiss {
-    cursor: pointer;
-    position: absolute;
-    right: 0.75rem;
-    top: 0.5rem;
-}
-
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
 
 .bg-white {
     background: white;
@@ -173,32 +128,59 @@ ul>li {
     font-weight: 600;
 }
 
-.bg-white:hover {
-    background-color: var(--color-background);
-    color: var(--color-secondary);
-    transition: all ease-in-out 0.2s;
-    transform: translateY(-3px);
+    .bg-white:hover {
+        background-color: var(--color-background);
+        color: var(--color-secondary);
+        transition: all ease-in-out 0.2s;
+        transform: translateY(-3px);
+    }
+
+.mud-elevation-1 {
+    box-shadow: none !important;
 }
 
 .mud-table {
     box-shadow: none !important;
 }
 
-.container {
-    background: var(--color-white);
-    padding: 15px;
-    border-radius: var(--border-rad);
-}
-
 .shadow {
     box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px !important;
 }
 
+.border-rad {
+    border-radius: var(--border-rad) !important;
+}
+
+a {
+    text-decoration: none !important;
+}
 
 .mud-button-filled.mud-button-filled-primary {
     border-radius: var(--border-rad);
     box-shadow: none;
     background-color: var(--color-primary) !important;
+}
+
+.mud-input.mud-input-filled.mud-input-underline:before {
+    border-bottom: none !important;
+}
+
+.mud-input.mud-input-filled.mud-input-underline:before {
+    border-bottom: none !important;
+}
+
+.mud-table {
+    box-shadow: none !important;
+}
+
+.mud-button-filled.mud-button-filled-primary {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+    background-color: var(--color-primary) !important;
+}
+.mud-button-filled.mud-button-filled-error {
+    border-radius: var(--border-rad);
+    box-shadow: none;
 }
 
 .mud-button-filled.mud-button-filled-success {
@@ -230,9 +212,9 @@ ul>li {
     color: var(--color-secondary) !important;
 }
 
-.mud-tab .mud-tab-active .mud-ripple .mud-tab-panel>* {
-    color: var(--color-secondary) !important;
-}
+    .mud-tab .mud-tab-active .mud-ripple .mud-tab-panel > * {
+        color: var(--color-secondary) !important;
+    }
 
 .mud-tab-slider {
     background: black !important;
@@ -249,38 +231,46 @@ ul>li {
 .mud-input {
     background: white !important;
     border-radius: var(--border-rad) !important;
-    line-height: 0.7rem !important;
 }
 
-.border-rad {
-    border-radius: var(--border-rad) !important;
+    .mud-input > input.mud-input-root-outlined, div.mud-input-slot.mud-input-root-outlined {
+        padding: 16px 10px !important;
+    }
+
+.mud-input-control.mud-input-outlined-with-label {
+    margin-bottom: 0px !important;
+    margin-top: 0px !important;
 }
 
+.btn-add {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
 
+    .btn-add:hover {
+        background: #059669;
+    }
 
-.nav-item a {
-    padding: 10px 15px;
+.card-header-simple {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     width: 100%;
-    /* align-items: center;*/
-    line-height: 3rem;
-    transition: all ease-in-out 0.2s;
-    font-size: 1rem;
-    height: 3rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
 }
 
-.nav-item a.active {
-    background-color: var(--color-primary-light) !important;
-    color: var(--color-white) !important;
-    border-radius: var(--border-rad);
-    /*font-weight: bold;*/
-}
-
-.nav-item a:hover {
-    color: var(--color-primary) !important;
-    transition: all ease-in-out 0.1s;
-    transform: translateY(-3px);
-}
-
-ul>li>a {
-    font-size: 0.8rem;
-}
+    .card-header-simple h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e293b;
+    }

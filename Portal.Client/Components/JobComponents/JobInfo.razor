@@ -1,0 +1,70 @@
+@using Portal.Shared.DTO.Job
+
+<Card Title="Job Information">
+    <ChildContent>
+        <div class="info-list">
+            @if (Contact is not null)
+            {
+                <div class="info-row">
+                    <span class="info-label">Contact</span>
+                    <span class="info-value">@Contact.ContactName</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">@Contact.Email</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Phone</span>
+                    <span class="info-value">@Contact.Phone</span>
+                </div>
+            }
+            @if (Council is not null)
+            {
+                <div class="info-row">
+                    <span class="info-label">Council</span>
+
+                    <span class="info-value" @onmouseover="@(() => showButton = true)" @onmouseleave="@(() => showButton = false)">
+                        @if (showButton)
+                        {
+                            <MudButton Href=@($"/councils/{Council!.CouncilId}") Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.RemoveRedEye" Class="view-button">View</MudButton>
+                        }
+                        else
+                        {
+                            @Council.CouncilName
+                        }
+                    </span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(PlanRef))
+            {
+                <div class="info-row">
+                    <span class="info-label">Plan Ref</span>
+                    <span class="info-value">@PlanRef</span>
+                </div>
+            }
+        </div>
+    </ChildContent>
+</Card>
+
+@code {
+    /// <summary>
+    /// Gets or sets the contact information for the job
+    /// </summary>
+    [Parameter]
+    public JobContactDto? Contact { get; set; }
+
+    /// <summary>
+    /// Gets or sets the council information for the job
+    /// </summary>
+    [Parameter]
+    public JobCouncilDto? Council { get; set; }
+
+    /// <summary>
+    /// Gets or sets the plan reference number
+    /// </summary>
+    [Parameter]
+    public string? PlanRef { get; set; }
+
+    private bool showButton = false;
+}
+

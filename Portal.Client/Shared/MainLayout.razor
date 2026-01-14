@@ -1,32 +1,95 @@
-﻿@inherits LayoutComponentBase
+﻿@using System.Text.Json
+@using Portal.Shared.DTO.Setting
+
+@inherits LayoutComponentBase
 
 <div class="page">
-	@if (!hideSidebar)
-	{
-		<div class="sidebar">
-			<SideNav ToggleNav=ToggleNav />
-		</div>
-	}
-	<div class="top-row">
-		<NavBar ShowNav="hideSidebar" ToggleNav=ToggleNav />
-	</div>
-	<div class="@MainClass ">
-		<div class="content px-4">
-			@Body
-		</div>
-	</div>
-	<footer>
-		Built by <a href="https://webres.solutions" target="_blank" style="color: #b2424d;">Webres Solutions</a>
-	</footer>
+    <SideNav ToggleNav=ToggleNav Hide="@ToggleNav" />
+
+    <div class="top-row @(headerVisible ? "header-visible" : "header-hidden")">
+        <NavBar ShowNav="hideSidebar" ToggleNav=ToggleNav />
+    </div>
+    @* <QuickSearch /> *@
+    <div class="@MainClass">
+        @Body
+    </div>
+    @*     <footer>
+        Built by <a href="https://webres.solutions" target="_blank" style="color: #b2424d;">Webres Solutions</a>
+    </footer> *@
 </div>
+
 <MudThemeProvider />
 <MudPopoverProvider />
 <MudDialogProvider MaxWidth="MaxWidth.Large" />
-<MudSnackbarProvider />s
+<MudSnackbarProvider />
+
 @code {
-	private bool hideSidebar = false;
+    private bool hideSidebar = false;
+    private bool headerVisible = true;
 
-	private void ToggleNav() => hideSidebar = !hideSidebar;
+    private void ToggleNav() => hideSidebar = !hideSidebar;
 
-	private string MainClass => hideSidebar ? "main-full" : "main";
+    private string MainClass => hideSidebar ? "main full" : "main";
+
+    private string FullWidth => hideSidebar ? "full" : "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _jsRuntime.InvokeVoidAsync("initializeScrollHeader");
+        }
+
+       
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadThemeSettings();
+    }
+
+    private async Task LoadThemeSettings()
+    {
+        // Try to load from session storage first (faster, no API call)
+        ThemeSettingsDto? sessionSettings = _sessionStorage.GetItem<ThemeSettingsDto>("SystemSettings");
+        
+        if (sessionSettings is not null && 
+            !string.IsNullOrWhiteSpace(sessionSettings.PrimaryColour) && 
+            !string.IsNullOrWhiteSpace(sessionSettings.SecondaryColour))
+        {
+            await Helpers.SetColour(_jsRuntime, sessionSettings.PrimaryColour, true);
+            await Helpers.SetColour(_jsRuntime, sessionSettings.SecondaryColour, false);
+            return;
+        }
+
+        // Fallback to API if session storage is empty or invalid
+        Result<SystemSettingDto> appsettings = await _apiService.GetSystemSettings();
+
+        if (appsettings.Error is not null || appsettings.Value is null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(appsettings.Value.SettingJson))
+            return;
+
+        try
+        {
+            ThemeSettingsDto? settings = JsonSerializer.Deserialize<ThemeSettingsDto>(appsettings.Value.SettingJson);
+            
+            if (settings is null || 
+                string.IsNullOrWhiteSpace(settings.PrimaryColour) || 
+                string.IsNullOrWhiteSpace(settings.SecondaryColour))
+                return;
+
+            // Save to session storage for next time
+            _sessionStorage.SetItem("SystemSettings", settings);
+
+            // Apply the colors
+            await Helpers.SetColour(_jsRuntime, settings.PrimaryColour, true);
+            await Helpers.SetColour(_jsRuntime, settings.SecondaryColour, false);
+        }
+        catch (JsonException)
+        {
+            // Invalid JSON, skip setting colors
+        }
+    }
 }

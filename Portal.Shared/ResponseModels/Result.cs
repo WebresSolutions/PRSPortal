@@ -35,10 +35,11 @@ public class Result<T>
     /// </summary>
     /// <param name="errorType">The type of error that occurred</param>
     /// <param name="description">The human-readable description of the error</param>
-    public void SetError(ErrorType errorType, string? description = null)
+    public Result<T> SetError(ErrorType errorType, string? description = null)
     {
         Error = errorType;
         ErrorDescription = description;
+        return this;
     }
 
     /// <summary>
@@ -46,18 +47,15 @@ public class Result<T>
     /// Maps common HTTP status codes to internal error types
     /// </summary>
     /// <param name="code">The HTTP status code to convert</param>
-    public void ConvertHttpResponseToError(HttpStatusCode code)
+    public void ConvertHttpResponseToError(HttpStatusCode code) => Error = code switch
     {
-        Error = code switch
-        {
-            HttpStatusCode.BadRequest => ErrorType.BadRequest,
-            HttpStatusCode.Forbidden => ErrorType.BadRequest,
-            HttpStatusCode.NotFound => ErrorType.BadRequest,
-            HttpStatusCode.InternalServerError => ErrorType.InternalError,
-            HttpStatusCode.NotImplemented => ErrorType.InternalError,
-            HttpStatusCode.Unauthorized => ErrorType.Unauthorized,
-            HttpStatusCode.OK => null,
-            _ => null
-        };
-    }
+        HttpStatusCode.BadRequest => ErrorType.BadRequest,
+        HttpStatusCode.Forbidden => ErrorType.BadRequest,
+        HttpStatusCode.NotFound => ErrorType.BadRequest,
+        HttpStatusCode.InternalServerError => ErrorType.InternalError,
+        HttpStatusCode.NotImplemented => ErrorType.InternalError,
+        HttpStatusCode.Unauthorized => ErrorType.Unauthorized,
+        HttpStatusCode.OK => null,
+        _ => null
+    };
 }

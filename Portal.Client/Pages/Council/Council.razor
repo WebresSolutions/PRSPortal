@@ -1,0 +1,238 @@
+﻿@page "/councils/{CouncilId:int}"
+@inherits BaseDataComponent
+@using Portal.Shared
+@using Portal.Shared.DTO.Councils
+@using Portal.Shared.DTO.Job
+@using Portal.Shared.DTO.Address
+@using Portal.Shared.Helpers
+
+<PageTitle>Council @(_council?.councilName ?? CouncilId.ToString()) - PRS Portal</PageTitle>
+
+@if (IsLoading)
+{
+    <div class="container">
+        <div class="loading-spinner">Loading...</div>
+    </div>
+}
+else if (_council is null)
+{
+    <div class="container">
+        <div class="error-message">Council not found</div>
+    </div>
+}
+else
+{
+    <div class="council-detail-container">
+        <!-- Header -->
+        <div class="council-header">
+            <div class="header-left">
+                <h1>@_council.councilName</h1>
+                <div class="header-info">
+                    <span>@GetAddressString()</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-actions">
+                    <button class="btn-icon" title="Edit">✏️</button>
+                    <button class="btn-icon" title="Lock">🔒</button>
+                    <button class="btn-icon" title="Print">🖨️</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <!-- Quick Stats -->
+                <Card Title="Overview">
+                    <ChildContent>
+                        <div class="stats-mini">
+                            <div class="stat-mini">
+                                <div class="stat-mini-value">@(_pagedJobs?.TotalCount ?? 0)</div>
+                                <div class="stat-mini-label">Jobs</div>
+                            </div>
+                            <div class="stat-mini">
+                                <div class="stat-mini-value">-</div>
+                                <div class="stat-mini-label">Contacts</div>
+                            </div>
+                            <div class="stat-mini">
+                                <div class="stat-mini-value">-</div>
+                                <div class="stat-mini-label">Notes</div>
+                            </div>
+                            <div class="stat-mini">
+                                <div class="stat-mini-value">-</div>
+                                <div class="stat-mini-label">Activity</div>
+                            </div>
+                        </div>
+                    </ChildContent>
+                </Card>
+
+                <!-- Council Info -->
+                <Card Title="Council Information">
+                    <ChildContent>
+                        <div class="info-list">
+                            <div class="info-row">
+                                <span class="info-label">Phone</span>
+                                <span class="info-value">@(_council.phone ?? "-")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email</span>
+                                <span class="info-value">@(_council.email ?? "-")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Website</span>
+                                <span class="info-value">
+                                    @if (!string.IsNullOrWhiteSpace(_council.website))
+                                    {
+                                        <a href="@_council.website" target="_blank" rel="noopener noreferrer">@_council.website</a>
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </span>
+                            </div>
+                            @if (_council.address is not null)
+                            {
+                                <div class="info-row">
+                                    <span class="info-label">Address</span>
+                                    <span class="info-value">@(_council.address.street ?? "-")</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Suburb</span>
+                                    <span class="info-value">@(_council.address.suburb ?? "-")</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">State</span>
+                                    <span class="info-value">@(_council.address.State.ToString() ?? "-")</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Postcode</span>
+                                    <span class="info-value">@(_council.address.postCode ?? "-")</span>
+                                </div>
+                            }
+                        </div>
+                    </ChildContent>
+                </Card>
+
+                <!-- Quick Actions -->
+                <Card Title="Quick Actions">
+                    <ChildContent>
+                        <div class="quick-actions">
+                            <button class="quick-action-btn">+ Add Contact</button>
+                            <button class="quick-action-btn">+ Add Note</button>
+                            <button class="quick-action-btn">+ Add Job</button>
+                        </div>
+                    </ChildContent>
+                </Card>
+            </div>
+
+            <!-- Main Content -->
+            <div class="content-area">
+                <!-- Jobs -->
+                <Card>
+                    <TitleContent>
+                        <div class="card-header-with-tabs">
+                            <div class="tabs">
+                                <button class="tab active">All</button>
+                                <button class="tab">Deleted</button>
+                            </div>
+                            <button class="btn-add">+ Add</button>
+                        </div>
+                    </TitleContent>
+                    <ChildContent>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Contact</th>
+                                    <th>Address</th>
+                                    <th>Suburb</th>
+                                    <th>Job Number</th>
+                                    <th>Job Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_pagedJobs?.Result is null || _pagedJobs.Result.Count == 0)
+                                {
+                                    <tr>
+                                        <td colspan="6" class="empty-state">No records</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @foreach (var job in _pagedJobs.Result)
+                                    {
+                                        <tr>
+                                            <td>@job.JoinedContactName</td>
+                                            <td>@(job.Address?.street ?? "-")</td>
+                                            <td>@(job.Address?.suburb ?? "-")</td>
+                                            <td>@(job.JobNumber?.ToString() ?? "-")</td>
+                                            <td>
+                                                <StatusBadge statusEnum="@((JobTypeEnum)job.JobTypeInt)" />
+                                            </td>
+                                            <td>
+                                                <MudButton Variant="Variant.Text" Color="Color.Info" Size="Size.Small" Href="@($"/jobs/{job.JobId}")" StartIcon="@Icons.Material.Filled.RemoveRedEye">View</MudButton>
+                                                <button class="btn-icon-small">✏️</button>
+                                                <button class="btn-icon-small">🗑️</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                        @if (_pagedJobs is not null && _pagedJobs.TotalCount > 0)
+                        {
+                            <div class="pagination-controls">
+                                <div class="pagination-info">
+                                    Showing @((_currentPage - 1) * _rowsPerPage + 1) to @(Math.Min(_currentPage * _rowsPerPage, _pagedJobs.TotalCount)) of @_pagedJobs.TotalCount jobs
+                                </div>
+                                <div class="pagination-buttons">
+                                    <MudButton Variant="Variant.Text" Disabled="@(_currentPage <= 1)" OnClick="@(() => LoadJobs(_currentPage - 1))">Previous</MudButton>
+                                    <span class="page-info">Page @_currentPage of @_pagedJobs.TotalNumberPages</span>
+                                    <MudButton Variant="Variant.Text" Disabled="@(_currentPage >= _pagedJobs.TotalNumberPages)" OnClick="@(() => LoadJobs(_currentPage + 1))">Next</MudButton>
+                                </div>
+                            </div>
+                        }
+                    </ChildContent>
+                </Card>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="sidebar">
+                <!-- Notes -->
+                <Card>
+                    <TitleContent>
+                        <div class="card-header-with-tabs">
+                            <div class="tabs">
+                                <button class="tab active">All</button>
+                                <button class="tab">Action</button>
+                            </div>
+                            <button class="btn-add">+</button>
+                        </div>
+                    </TitleContent>
+                    <ChildContent>
+                        <div class="empty-state" style="text-align: center; padding: 2rem;">
+                            No records
+                        </div>
+                    </ChildContent>
+                </Card>
+
+                <!-- Activity -->
+                <Card Title="Activity">
+                    <ChildContent>
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <div class="activity-title">Council Modified</div>
+                                <div class="activity-time">Recently</div>
+                            </div>
+                        </div>
+                    </ChildContent>
+                </Card>
+            </div>
+        </div>
+    </div>
+}
+
+

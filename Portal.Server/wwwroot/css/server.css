@@ -8,7 +8,7 @@
     --color-grey: #f5f3f5;
     --color-white: #ffffff;
     --color-yellow: #a16207;
-    --border-rad: 12px;
+    --border-rad: 15px;
     --padding: 10px;
 }
 
@@ -99,3 +99,4 @@ body {
 .btn-secondary {
     background-color: var(--color-secondary);
 }
+

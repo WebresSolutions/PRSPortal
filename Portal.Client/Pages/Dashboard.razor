@@ -1,0 +1,120 @@
+@inherits BaseDataComponent
+@page "/"
+
+<AuthorizeView  Context="c">
+    <Authorized>
+        <div class="dashboard-container">
+            <div class="header-section">
+                <h1>@c?.User?.Identity?.Name</h1>
+                <p class="text-muted">Welcome back! Here's what's happening today.</p>
+            </div>
+
+            <div class="grid-row">
+                @* Quick Stats Row *@
+                <div class="grid-col col-sm-6 col-md-3">
+                    <div class="stat-card shadow">
+                        <div class="stat-title">Total Leads</div>
+                        <div class="stat-value" style="color: var(--color-primary);">124</div>
+                        <div class="stat-change text-success">+12% this week</div>
+                    </div>
+                </div>
+                <div class="grid-col col-sm-6 col-md-3">
+                    <div class="stat-card shadow">
+                        <div class="stat-title">Active Quotes</div>
+                        <div class="stat-value" style="color: var(--color-yellow);">$45,200</div>
+                        <div class="stat-change">18 pending</div>
+                    </div>
+                </div>
+                <div class="grid-col col-sm-6 col-md-3">
+                    <div class="stat-card shadow">
+                        <div class="stat-title">Active Jobs</div>
+                        <div class="stat-value" style="color: var(--color-success);">32</div>
+                        <div class="stat-change">8 due this week</div>
+                    </div>
+                </div>
+                <div class="grid-col col-sm-6 col-md-3">
+                    <div class="stat-card shadow">
+                        <div class="stat-title">Conversion Rate</div>
+                        <div class="stat-value" style="color: var(--colour-survey);">24%</div>
+                        <div class="stat-change">Above target</div>
+                    </div>
+                </div>
+
+                <div class="grid-col col-md-8">
+                    <div class="dashboard-card shadow">
+                        <div class="card-header">
+                            <h3 style="color: var(--color-grey-dark);">Recent Pipeline Activity</h3>
+                            <button class="btn-primary-manual">View All</button>
+                        </div>
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <div class="activity-marker" style="background-color: var(--colour-survey);"></div>
+                                <div class="activity-content">
+                                    <strong>New Survey Scheduled</strong>
+                                    <span>Smith Residence - 12 High St</span>
+                                    <small>2 hours ago</small>
+                                </div>
+                                <div class="activity-status">
+                                    <span class="badge" style="background-color: var(--color-primary-light);">Urgent</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-marker" style="background-color: var(--colour-construction);"></div>
+                                <div class="activity-content">
+                                    <strong>Construction Started</strong>
+                                    <span>Greenwood Apt - Phase 1</span>
+                                    <small>Yesterday</small>
+                                </div>
+                                <div class="activity-status">
+                                    <span class="badge" style="background-color: var(--color-success);">In Progress</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-marker" style="background-color: var(--color-yellow);"></div>
+                                <div class="activity-content">
+                                    <strong>Quote Sent</strong>
+                                    <span>Riverside Commercial - HVAC</span>
+                                    <small>Yesterday</small>
+                                </div>
+                                <div class="activity-status">
+                                    <span class="badge" style="background-color: var(--color-grey);">Pending</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-col col-md-4">
+                    <div class="dashboard-card shadow">
+                        <div class="card-header">
+                            <h3 style="color: var(--color-grey-dark);">Task Focus</h3>
+                        </div>
+                        <div class="task-list">
+                            <div class="task-item">
+                                <input type="checkbox" class="custom-checkbox" />
+                                <span>Call back Mr. Jenkins</span>
+                            </div>
+                            <div class="task-item">
+                                <input type="checkbox" class="custom-checkbox" />
+                                <span>Upload survey photos</span>
+                            </div>
+                            <div class="task-item">
+                                <input type="checkbox" class="custom-checkbox" />
+                                <span>Review construction specs</span>
+                            </div>
+                            <div class="task-item">
+                                <input type="checkbox" class="custom-checkbox" />
+                                <span>Approve invoice #2045</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>
+

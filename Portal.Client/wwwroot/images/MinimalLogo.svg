@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1"
+     viewBox="832.9 3 146.9 149.2">
+	    <defs>
+		    <style>
+			      .st0 {
+			        fill: #bfb7ac;
+			      }
+			      .st1 {
+			        fill: #ff5020;
+			      }
+			   
+		</style>
+		 
+	</defs>
+	  <g>
+		    <path class="st1" fill="#ff5020" d="M832.9,77.4h73.5v74.6h-39.7v-37.6h-33.8v-37h0Z"/>
+		    <path class="st1" fill="#ff5020" d="M979.8,77.6h-73.5V3h39.7v37.7h33.8v37h0Z"/>
+		 
+	</g>
+</svg>

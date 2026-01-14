@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Detail - Editable Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8fafc;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        
+        .card-header h2 {
+            color: #1e293b;
+            font-size: 1.5rem;
+        }
+        
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #475569;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        /* View Mode Styles */
+        .view-mode .field-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .field-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .field-value {
+            font-size: 1rem;
+            color: #1e293b;
+            font-weight: 500;
+        }
+        
+        .field-value.empty {
+            color: #cbd5e1;
+            font-style: italic;
+        }
+        
+        /* Edit Mode Styles */
+        .edit-mode {
+            display: none;
+        }
+        
+        .edit-mode.active {
+            display: block;
+        }
+        
+        .view-mode.hidden {
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        
+        .form-input:disabled {
+            background: #f8fafc;
+            cursor: not-allowed;
+        }
+        
+        /* Inline Editable Field */
+        .inline-editable {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+            display: inline-block;
+            min-width: 100px;
+        }
+        
+        .inline-editable:hover {
+            background: #f1f5f9;
+        }
+        
+        .inline-editable.editing {
+            background: #eff6ff;
+        }
+        
+        .inline-editable input {
+            border: 2px solid #2563eb;
+            border-radius: 6px;
+            padding: 0.5rem;
+            font-size: 1rem;
+            width: 100%;
+        }
+        
+        /* Status Badge Editable */
+        .badge-editable {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .badge-editable:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+        
+        .badge-primary {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        /* Saving Indicator */
+        .saving {
+            display: none;
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-left: 1rem;
+        }
+        
+        .saving.active {
+            display: inline-block;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .changed {
+            background: #fef3c7 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Example 1: Edit Mode Toggle (Recommended) -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Pattern 1: Edit Mode Toggle (Recommended)</h2>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="editBtn" onclick="toggleEditMode()">Edit</button>
+                    <button class="btn btn-success" id="saveBtn" onclick="saveChanges()" style="display: none;">Save</button>
+                    <button class="btn btn-secondary" id="cancelBtn" onclick="cancelEdit()" style="display: none;">Cancel</button>
+                </div>
+            </div>
+            
+            <!-- View Mode -->
+            <div class="view-mode" id="viewMode">
+                <div class="info-grid">
+                    <div class="field-group">
+                        <div class="field-label">Job Number</div>
+                        <div class="field-value">45</div>
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">Location</div>
+                        <div class="field-value">GISBORNE, VIC 3437</div>
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">Contact</div>
+                        <div class="field-value">ALL HOMES / PERRY</div>
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">Phone</div>
+                        <div class="field-value">018 368 142</div>
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">Council</div>
+                        <div class="field-value">SHIRE OF MACEDON RANGES</div>
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">Last Plan Reference</div>
+                        <div class="field-value">LP1727490</div>
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">Map Reference</div>
+                        <div class="field-value empty">-</div>
+                    </div>
+                    <div class="field-group">
+                        <div class="field-label">Schedule Colour</div>
+                        <div class="field-value">Default</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Edit Mode -->
+            <div class="edit-mode" id="editMode">
+                <div class="info-grid">
+                    <div class="form-group">
+                        <label class="form-label">Job Number</label>
+                        <input type="text" class="form-input" value="45" id="jobNumber">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" value="GISBORNE, VIC 3437" id="location">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact</label>
+                        <input type="text" class="form-input" value="ALL HOMES / PERRY" id="contact">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="text" class="form-input" value="018 368 142" id="phone">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Council</label>
+                        <input type="text" class="form-input" value="SHIRE OF MACEDON RANGES" id="council">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Plan Reference</label>
+                        <input type="text" class="form-input" value="LP1727490" id="planRef">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Map Reference</label>
+                        <input type="text" class="form-input" value="" placeholder="Enter map reference" id="mapRef">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Schedule Colour</label>
+                        <input type="text" class="form-input" value="Default" id="scheduleColour">
+                    </div>
+                </div>
+            </div>
+            
+            <span class="saving" id="savingIndicator">Saving...</span>
+        </div>
+        
+        <!-- Example 2: Inline Editing -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Pattern 2: Inline Editing (Quick Edits)</h2>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <div class="field-label">Job Number</div>
+                <div class="inline-editable" onclick="editInline(this)">
+                    <span class="display-text">45</span>
+                    <input type="text" class="edit-input" value="45" style="display: none;" onblur="saveInline(this)" onkeypress="handleInlineKey(event, this)">
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <div class="field-label">Status</div>
+                <span class="badge-editable badge-primary" onclick="editStatus(this)">Surveying</span>
+            </div>
+        </div>
+        
+        <!-- Example 3: Always Visible Disabled (Not Recommended) -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Pattern 3: Always Visible Disabled (Not Recommended)</h2>
+                <button class="btn btn-primary" onclick="enableFields()">Edit</button>
+            </div>
+            
+            <div class="info-grid">
+                <div class="form-group">
+                    <label class="form-label">Job Number</label>
+                    <input type="text" class="form-input" value="45" disabled id="disabled1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" class="form-input" value="GISBORNE, VIC 3437" disabled id="disabled2">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Pattern 1: Edit Mode Toggle
+        function toggleEditMode() {
+            const viewMode = document.getElementById('viewMode');
+            const editMode = document.getElementById('editMode');
+            const editBtn = document.getElementById('editBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            
+            viewMode.classList.add('hidden');
+            editMode.classList.add('active');
+            editBtn.style.display = 'none';
+            saveBtn.style.display = 'inline-block';
+            cancelBtn.style.display = 'inline-block';
+        }
+        
+        function cancelEdit() {
+            const viewMode = document.getElementById('viewMode');
+            const editMode = document.getElementById('editMode');
+            const editBtn = document.getElementById('editBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            
+            // Reset form values (in real app, restore from original data)
+            viewMode.classList.remove('hidden');
+            editMode.classList.remove('active');
+            editBtn.style.display = 'inline-block';
+            saveBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+        }
+        
+        function saveChanges() {
+            const savingIndicator = document.getElementById('savingIndicator');
+            savingIndicator.classList.add('active');
+            
+            // Simulate API call
+            setTimeout(() => {
+                savingIndicator.classList.remove('active');
+                cancelEdit();
+                alert('Changes saved successfully!');
+            }, 1000);
+        }
+        
+        // Pattern 2: Inline Editing
+        function editInline(element) {
+            const span = element.querySelector('.display-text');
+            const input = element.querySelector('.edit-input');
+            
+            if (span && input) {
+                span.style.display = 'none';
+                input.style.display = 'block';
+                input.focus();
+                input.select();
+                element.classList.add('editing');
+            }
+        }
+        
+        function saveInline(input) {
+            const element = input.parentElement;
+            const span = element.querySelector('.display-text');
+            
+            span.textContent = input.value;
+            span.style.display = 'inline';
+            input.style.display = 'none';
+            element.classList.remove('editing');
+            
+            // In real app, save to API
+            console.log('Saved:', input.value);
+        }
+        
+        function handleInlineKey(event, input) {
+            if (event.key === 'Enter') {
+                saveInline(input);
+            } else if (event.key === 'Escape') {
+                const element = input.parentElement;
+                const span = element.querySelector('.display-text');
+                input.value = span.textContent; // Reset value
+                saveInline(input);
+            }
+        }
+        
+        function editStatus(element) {
+            const current = element.textContent;
+            const newStatus = prompt('Enter new status:', current);
+            if (newStatus && newStatus !== current) {
+                element.textContent = newStatus;
+                // In real app, save to API
+                console.log('Status changed to:', newStatus);
+            }
+        }
+        
+        // Pattern 3: Enable Disabled Fields
+        function enableFields() {
+            document.getElementById('disabled1').disabled = false;
+            document.getElementById('disabled2').disabled = false;
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+E or Cmd+E to edit
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                e.preventDefault();
+                if (document.getElementById('editBtn').style.display !== 'none') {
+                    toggleEditMode();
+                }
+            }
+            
+            // Escape to cancel
+            if (e.key === 'Escape') {
+                if (document.getElementById('cancelBtn').style.display !== 'none') {
+                    cancelEdit();
+                }
+            }
+            
+            // Ctrl+S or Cmd+S to save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (document.getElementById('saveBtn').style.display !== 'none') {
+                    saveChanges();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

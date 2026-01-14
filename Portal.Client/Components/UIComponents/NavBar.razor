@@ -2,23 +2,32 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 
 @inject NavigationManager Navigation
-<nav class="w-100 d-flex justify-content-between">
-	<MudTextField @bind-Value="SearchValue" Variant="Variant.Outlined" Placeholder="Search..." Style="width: 250px"></MudTextField>
+<nav class="w-100 d-flex justify-content-between py-2" style="background-color: var(--color-white)">
+@* 	<NavLink href="/">
+		<img alt="PRS" src=@("/images/PRS-Primary-Logo.svg") style=@("width:120px") class="prs-logo" />
+	</NavLink> *@
 	<div class="mt-4 d-flex flex-row pe-4">
 		<div class="auth-controls">
 			<AuthorizeView>
-				<Authorized>
-					<a href="authentication/profile">Hello, @context.User!.Identity!.Name!</a>
-					<button class="nav-link btn btn-link" @onclick="BeginSignOut">Log out</button>
-				</Authorized>
 				<NotAuthorized>
 					<div class="d-flex flex-row gap-2">
-						<a href="authentication/login">Log in</a>
+						<a href="authentication/login" class="btn">Log in</a>
 					</div>
 				</NotAuthorized>
+				<Authorized>
+					@* <ul class="nav flex-row gap-1">
+						@foreach (KeyValuePair<string, NavigationLink> link in links)
+						{
+							<NavElement Link=@link.Value />
+						}
+					</ul> *@
+					<i class="bi bi-person-vcard btn" href="authentication/profile"></i>
+					<i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
+				</Authorized>
 			</AuthorizeView>
 		</div>
 	</div>
+	<div/>
 </nav>
 
 
@@ -31,6 +40,18 @@
 	public required Action ToggleNav { get; set; }
 
 	public string SearchValue { get; set; } = "";
+
+	private readonly Dictionary<string, NavigationLink> links = new()
+	{
+		{ "Dashboard", new NavigationLink(){Link = "dashboard", Title = "Dashboard", Icon = "bi bi-speedometer2"} },
+		{ "Home", new NavigationLink(){Link = "", Title = "Home", Icon = "bi bi-house"} },
+		{ "Jobs", new NavigationLink(){Link = "jobs", Title = "Jobs", Icon = "bi bi-wrench" }},
+		{ "Quotes", new NavigationLink(){Link = "quotes", Title = "Quotes", Icon = "bi bi-receipt" } },
+		{ "Councils", new NavigationLink(){Link = "councils", Title = "Councils",Icon = "bi bi-people-fill"} },
+		{ "Tools", new NavigationLink(){Link = "tools", Title = "Tools",Icon = "bi bi-hammer"} },
+		{ "Admin", new NavigationLink(){Link = "admin", Title = "Admin",Icon = "bi bi-sliders"} },
+		{ "Schedule", new NavigationLink(){Link = "schedule", Title = "Schedule", Icon = "bi bi-calendar"} }
+	};
 
 	private void BeginSignOut(MouseEventArgs args)
 	{

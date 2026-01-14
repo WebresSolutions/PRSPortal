@@ -1,0 +1,72 @@
+﻿@inherits BaseDataComponent;
+@using Portal.Shared
+@using Portal.Shared.DTO.Contact
+@using Portal.Shared.DTO.Job
+@using Portal.Shared.ResponseModels
+@using Portal.Shared.Web
+
+@page "/jobs"
+
+<div class="container">
+    <div class="d-flex flex-row gap-2 header">
+        <h2>Jobs</h2>
+        <MudTextField T="string" @bind-Value="_sessionData.SearchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))" Variant="Variant.Outlined"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Large" Class="mt-0 mb-4" Clearable="true" OnClearButtonClick="ClearSearch"></MudTextField>
+        <div style="margin: auto">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ClearSearch" StartIcon="@Icons.Material.Filled.Add">New</MudButton>
+        </div>
+    </div>
+    <Card>
+        <ChildContent>
+            <MudDataGrid T="ListJobDto"
+                         ServerData="LoadJobs"
+                         Filterable="true"
+                         SortMode="SortMode.Single"
+                         Loading="base.IsLoading"
+                         RowsPerPage="_rowsPerPage"
+                         CurrentPage="_sessionData.Page"
+                         CurrentPageChanged="@((page) => { _sessionData.Page = page; SaveSessionData(); })"
+                         Dense=true
+                         @ref="_grid"
+                         Striped="true">
+                <Columns>
+                    <TemplateColumn StickyLeft="true" Style="max-width:80px">
+                        <CellTemplate>
+                            <MudButton Variant="Variant.Text" Color="Color.Info" Size="Size.Small" Href="@($"/jobs/{context.Item.JobId}")" StartIcon="@Icons.Material.Filled.RemoveRedEye">View</MudButton>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" />
+                    <TemplateColumn ShowFilterIcon="false" Title="Contact">
+                        <CellTemplate>
+                            <p>@(context.Item.JoinedContactName)</p>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.Address.street" ShowFilterIcon="false" Title="Street" />
+                    <PropertyColumn Property="x => x.Address.suburb" ShowFilterIcon="false" Title="Suburb" />
+                    <PropertyColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number" HeaderStyle="max-width: 75px" />
+                    <TemplateColumn ShowFilterIcon="false" Title="Job Type">
+                        <CellTemplate>
+                            <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="ListJobDto" />
+                </PagerContent>
+            </MudDataGrid>
+        </ChildContent>
+    </Card>
+</div>
+
+<style>
+    .header {
+        background: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+</style>

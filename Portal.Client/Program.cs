@@ -2,63 +2,78 @@ using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
 using MudBlazor.Services;
-using Portal.Client;
+using Portal.Client.Services.Instances;
+using Portal.Client.Services.Interfaces;
+using Toolbelt.Blazor.Extensions.DependencyInjection;
 
-WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
-builder.RootComponents.Add<App>("#app");
+namespace Portal.Client;
 
-string httpClient = builder.Configuration.GetValue<string>("HttpClient")
-    ?? throw new Exception("Failed to load the http client settings");
-
-builder.Services.AddHttpClient(httpClient)
-    .ConfigureHttpClient(client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-
-// Supply HttpClient instances that include access tokens when making requests to the server project.
-builder.Services.AddScoped(provider =>
+/// <summary>
+/// Main entry point for the Portal Client Blazor WebAssembly application
+/// Configures authentication, HTTP clients, and application services
+/// </summary>
+public class Program
 {
-    IHttpClientFactory factory = provider.GetRequiredService<IHttpClientFactory>();
-    return factory.CreateClient(httpClient);
-});
+    /// <summary>
+    /// Entry point for the application
+    /// Initializes the Blazor WebAssembly host with authentication and service configuration
+    /// </summary>
+    /// <param name="args">Command line arguments</param>
+    private static async Task Main(string[] args)
+    {
+        WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
+        builder.RootComponents.Add<App>("#app");
+        builder.Services.AddMsalAuthentication(options =>
+        {
+            builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
+            options.ProviderOptions.LoginMode = "redirect";
+            options.ProviderOptions.DefaultAccessTokenScopes.Add("profile");
+            options.ProviderOptions.DefaultAccessTokenScopes.Add("offline_access");
+            options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://{builder.Configuration.GetValue<string>("AzureAd:ClientId")}/read_as_user");
+        });
+        string httpClient = builder.Configuration.GetValue<string>("HttpClient")
+            ?? throw new Exception("Failed to load the http client settings");
 
-builder.Services.AddOidcAuthentication(options =>
-{
-    string baseAddress = builder.HostEnvironment.BaseAddress;
-    options.ProviderOptions.ClientId = builder.Configuration.GetValue<string>("ClientId");
-    options.ProviderOptions.Authority = baseAddress;
-    options.ProviderOptions.ResponseType = "code";
+        string? baseUri = builder.Configuration.GetValue<string>("APIUrl");
+        if (string.IsNullOrEmpty(baseUri))
+            baseUri = builder.HostEnvironment.BaseAddress;
 
-    // Note: response_mode=fragment is the best option for a SPA. Unfortunately, the Blazor WASM
-    // authentication stack is impacted by a bug that prevents it from correctly extracting
-    // authorization error responses (e.g error=access_denied responses) from the URL fragment.
-    // For more information about this bug, visit https://github.com/dotnet/aspnetcore/issues/28344.
-    //
-    options.ProviderOptions.ResponseMode = "query";
+        // 1. Register the HttpClient with the AuthorizationMessageHandler
+        _ = builder.Services.AddHttpClient(httpClient)
+            .ConfigureHttpClient(client => client.BaseAddress = new Uri(baseUri))
+            .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
-    // Use dynamic base URL for authentication paths instead of hardcoded configuration
-    options.AuthenticationPaths.RemoteRegisterPath = $"{baseAddress}Identity/Account/Register";
+        // 2. Register the authorized HttpClient as the default
+        _ = builder.Services.AddScoped(provider =>
+        {
+            IHttpClientFactory factory = provider.GetRequiredService<IHttpClientFactory>();
+            return factory.CreateClient(httpClient); // This is the authorized client
+        });
 
-    // Add the "roles" (OpenIddictConstants.Scopes.Roles) scope and the "role" (OpenIddictConstants.Claims.Role) claim
-    // (the same ones used in the Startup class of the Server) in order for the roles to be validated.
-    // See the Counter component for an example of how to use the Authorize attribute with roles
-    options.ProviderOptions.DefaultScopes.Add("roles");
-    options.UserOptions.RoleClaim = "role";
-});
+        Console.WriteLine("Configuring MSAL Authentication");
+        string? clientId = builder.Configuration.GetValue<string>("AzureAd:ClientId");
+        string? authority = builder.Configuration.GetValue<string>("AzureAd:Authority");
 
-//builder.Services.AddScoped<IApiService, ApiService>();
-builder.Services.AddMudServices(config =>
-{
-    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+        Console.WriteLine($"ClientId: {clientId}");
+        Console.WriteLine($"authority: {authority}");
+        builder.Services.AddHotKeys2();
+        builder.Services.AddMudServices(config =>
+        {
+            config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
 
-    config.SnackbarConfiguration.PreventDuplicates = true;
-    config.SnackbarConfiguration.NewestOnTop = false;
-    config.SnackbarConfiguration.ShowCloseIcon = true;
-    config.SnackbarConfiguration.VisibleStateDuration = 8000;
-    config.SnackbarConfiguration.HideTransitionDuration = 500;
-    config.SnackbarConfiguration.ShowTransitionDuration = 500;
-    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
-});
+            config.SnackbarConfiguration.PreventDuplicates = true;
+            config.SnackbarConfiguration.NewestOnTop = false;
+            config.SnackbarConfiguration.ShowCloseIcon = true;
+            config.SnackbarConfiguration.VisibleStateDuration = 8000;
+            config.SnackbarConfiguration.HideTransitionDuration = 500;
+            config.SnackbarConfiguration.ShowTransitionDuration = 500;
+            config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+        });
+        builder.Services.AddSingleton<IApiService, ApiService>();
+        // The service holds stateful information about the current user session.
+        builder.Services.AddSingleton<SessionStorage>();
 
-
-WebAssemblyHost host = builder.Build();
-await host.RunAsync();
+        WebAssemblyHost host = builder.Build();
+        await host.RunAsync();
+    }
+}

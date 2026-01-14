@@ -1,5 +1,5 @@
-using Portal.Server.Helpers;
-using Portal.Server.Models;
+using Portal.Server.Controllers;
+using Scalar.AspNetCore;
 
 namespace Portal.Server;
 
@@ -18,15 +18,14 @@ public class Program
 
         Console.WriteLine("Adding databases and identity services");
         builder.AddDatabases();
-        builder.AddIdentityServices();
 
         Console.WriteLine("Skipping databases and identity services for IntegrationTests");
 
-        builder.AddOtherServices();
+        builder.AddServices();
 
         WebApplication? app = builder.Build();
 
-        _ = app.Use((context, next) =>
+        app.Use((context, next) =>
         {
             if (context.Request.Scheme != "https")
             {
@@ -34,43 +33,57 @@ public class Program
             }
             return next(context);
         });
-        _ = app.UseForwardedHeaders();
+        app.UseForwardedHeaders();
 
         // Configure the HTTP request pipeline
         if (app.Environment.IsDevelopment())
         {
-            _ = app.UseDeveloperExceptionPage();
+            app.UseDeveloperExceptionPage();
             app.UseWebAssemblyDebugging();
-            //_ = app.MapOpenApi();
+
+            // Enable Swagger/OpenAPI for API debugging
+            bool enableSwagger = app.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");
+            if (enableSwagger)
+            {
+                app.MapOpenApi();
+                app.MapScalarApiReference();
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Portal API v1");
+                    c.RoutePrefix = "swagger";
+                });
+            }
         }
         else
         {
-            _ = app.UseExceptionHandler("/Error");
-            _ = app.UseHsts();
+            app.UseExceptionHandler("/Error");
+            app.UseHsts();
         }
 
         // Only use HTTPS redirection in development or when not behind a proxy
         if (!app.Environment.IsDevelopment())
         {
-            _ = app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
         }
 
-        _ = app.UseBlazorFrameworkFiles();
-        _ = app.UseStaticFiles();
-        _ = app.UseRouting();
-        _ = app.UseCors("CorsPolicy");
+        app.UseBlazorFrameworkFiles();
+        app.UseStaticFiles();
+        app.UseRouting();
+        app.UseCors("CorsPolicy");
 
-        _ = app.UseAuthentication();
-        _ = app.UseAuthorization();
+        app.UseAuthentication();
+        app.UseAuthorization();
 
-        _ = app.MapRazorPages();
-        _ = app.MapControllers();
-        _ = app.MapFallbackToFile("index.html");
+        app.MapRazorPages();
+        app.MapControllers();
+        app.MapFallbackToFile("index.html");
 
-        _ = app.MapGroup("/api/identity")
-            .MapIdentityApi<ApplicationUser>();
-
-        app.Seed();
+        // Add API endpoints
+        app.AddJobEndpoints();
+        app.AddScheduleEndpoints();
+        app.AddSettingEndpoints();
+        app.AddCouncilEndpoints();
 
         app.Run();
     }

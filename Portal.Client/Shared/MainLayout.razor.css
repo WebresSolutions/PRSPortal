@@ -4,58 +4,91 @@
     flex-direction: column;
 }
 
-.sidebar {
-    margin: 0;
-    padding: 0;
-    width: 150px !important;
-    position: fixed;
-    height: 100%;
-    overflow: auto;
-    background-color: var(--color-white);
-}
-
 .main {
-    margin-left: 150px; /* Same as the width of the sidenav */
-    margin-top: 75px;
-}
-
-.main-full {
-    margin-left: 0;
-}
-
-.content {
+    margin-top: 100px;
+    margin-bottom: 100px;
+    /*    display: flex;
+    flex-direction: row;
+    gap: var(--padding)*/
     min-height: 100vh;
+    margin-left: 150px;
 }
+
+    .main.full {
+        margin-left: 150px;
+        /*margin-right: 150px;*/
+    }
 
 .top-row {
     background-color: var(--color-white);
     justify-content: flex-end;
-    height: 5rem;
+    height: fit-content;
     display: flex;
     align-items: center;
     position: fixed;
-    width: calc(100% - 150px);
-    margin-left: 150px;
-    padding-left: 50px;
+    width: 100vw;
+    padding-left: 0px;
+    transition: transform 0.3s ease-in-out;
+    z-index: 11;
+    /* box-shadow: 0 2px 4px rgba(0,0,0,0.1); */
 }
 
-    .top-row ::deep a, .top-row .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
+    .top-row.header-hidden {
+        transform: translateY(-100%);
     }
 
-    .top-row a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
+    .top-row.header-visible {
+        transform: translateY(0);
     }
+
+/* When sidebar is hidden, adjust header width */
+.main-full + .top-row {
+    width: 100%;
+    margin-left: 0;
+}
+
+.top-row ::deep a, .top-row .btn-link {
+    white-space: nowrap;
+    margin-left: 1.5rem;
+}
+
+.top-row a:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 footer {
     text-align: center;
     padding: 1rem 0;
     width: 100%;
     margin-top: 2rem;
-    
 }
+
     footer > a {
         font-size: 0.9rem;
     }
+
+@media(max-width: 768px) {
+    .main {
+        margin-right: auto; /* Same as the width of the quicksearch */
+        margin-top: 75px;
+        margin-left: 150px;
+    }
+
+        .main.full {
+            margin-top: 75px;
+        }
+}
+
+@media (max-width: 450px) {
+    .main {
+        margin-top: 75px;
+        margin-right: auto; /* Same as the width of the quicksearch */
+        margin-left: 150px;
+    }
+
+        .main.full {
+            margin-top: 75px;
+            margin-left: 65px;
+        }
+}

@@ -1,0 +1,79 @@
+﻿<MudDialog>
+    <DialogContent>
+        <div>
+            <section class="search-container">
+                <h5>Job Search</h5>
+                <form>
+                    <div class="search-fields">
+                        <MudTextField T="string" Label="Contact" Variant="Variant.Outlined" FullWidth="true" AutoFocus="true"/>
+                        <MudTextField T="string" Label="Address" Variant="Variant.Outlined" FullWidth="true" />
+                        <MudTextField T="string" Label="Suburb" Variant="Variant.Outlined" FullWidth="true" />
+                        <MudTextField T="string" Label="Construction #" Variant="Variant.Outlined" FullWidth="true" />
+                        <MudTextField T="string" Label="Survey #" Variant="Variant.Outlined" FullWidth="true" />
+                    </div>
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Submit" Class="search-button">Search</MudButton>
+                </form>
+            </section>
+            <section class="search-container">
+                <h5>Contact Search</h5>
+                <form>
+                    <div class="search-fields">
+                        <MudTextField T="string" Label="Name" Variant="Variant.Outlined" FullWidth="true" />
+                        <MudTextField T="string" Label="Email" Variant="Variant.Outlined" FullWidth="true" />
+                        <MudTextField T="string" Label="Phone" Variant="Variant.Outlined" FullWidth="true" />
+                    </div>
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Submit" Class="search-button">Search</MudButton>
+                </form>
+            </section>
+            <section class="search-container">
+                <h5>Task Search</h5>
+                <form>
+                    <div class="search-fields">
+                        <MudTextField T="string" Label="Checklist" Variant="Variant.Outlined" FullWidth="true" />
+                    </div>
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Submit" Class="search-button">Search</MudButton>
+                </form>
+            </section>
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+        }
+    }
+
+    private void Submit() => MudDialog?.Close(DialogResult.Ok(true));
+    private void Cancel() => MudDialog?.Cancel();
+}
+<style>
+    .search-container {
+        margin-bottom: 1rem;
+    }
+
+    .search-container form {
+        background: var(--color-background);
+        border-radius: var(--border-rad);
+        padding: 1rem;
+    }
+
+    .search-fields {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-gap: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .search-button {
+        width: auto;
+        min-width: 120px;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.875rem;
+    }
+</style>

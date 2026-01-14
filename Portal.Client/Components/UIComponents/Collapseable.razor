@@ -1,0 +1,50 @@
+﻿
+<h4 @onclick=@(() => Show = !Show) class="collapseable-heading">
+    @Title 
+    <i class=@(Show ? "i bi-caret-down-fill" : "bi bi-caret-right-fill")></i>
+</h4>
+<section class=@(Show ? "content show" : "content")>
+    @CollapseableContent
+</section>
+
+
+@code {
+    [Parameter]
+    public required string Title { get; set; }
+    
+    [Parameter]
+    public bool Show { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the child content to be displayed within the card
+    /// </summary>
+    [Parameter]
+    public required RenderFragment CollapseableContent { get; set; }
+
+}
+
+
+<style>
+    .collapseable-heading {
+        cursor: pointer;
+    }
+
+    .content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        scrollbar-width: none;
+        margin-bottom: 2rem;
+    }
+
+        .content.show {
+            max-height: 1000px; /* Adjust as needed */
+            overflow: scroll;
+            transition: max-height 0.2s ease-in;
+        }
+
+    h3 {
+        cursor: pointer;
+        user-select: none;
+    }
+</style>
