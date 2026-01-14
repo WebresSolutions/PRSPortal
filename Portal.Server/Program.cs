@@ -83,6 +83,7 @@ public class Program
         app.AddJobEndpoints();
         app.AddScheduleEndpoints();
         app.AddSettingEndpoints();
+        app.AddCouncilEndpoints();
 
         app.Run();
     }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Migration.Display;
+using Migration.Models;
 using Migration.SourceDb;
 using System.Collections.Frozen;
 
@@ -871,5 +872,32 @@ internal class MigrationService(
             CurrentItemIndex = 0,
             TotalItems = tasks.Length
         });
+
+        List<JobTask> createdTasks = [];
+        foreach (SourceDb.Task task in tasks)
+        {
+            if (_jobsCache!.GetValueOrDefault(task.JobId) is Models.Job job)
+            {
+                JobTask newTask = new()
+                {
+                    ActiveDate = task.ActiveDate.HasValue ? Helpers.GetValidDateWithTimezone(task.ActiveDate.Value) : DateTime.UtcNow,
+                    CreatedByUserId = _Users.GetValueOrDefault(task.CreatedUser ?? 0, 95),
+                    Description = task.Details,
+                    JobId = job.Id,
+                    LegacyId = (int)task.Id,
+                    QuotedPrice = task.QuotedPrice.HasValue ? (decimal?)Convert.ToDecimal(task.QuotedPrice.Value) : null,
+                    ModifiedByUserId = task.ModifiedUser is not null ? _Users.GetValueOrDefault(task.ModifiedUser ?? 0, 95) : null,
+                    CreatedOn = Helpers.GetValidDateWithTimezone(task.Created),
+                    ModifiedOn = Helpers.GetValidDateWithTimezoneNull(task.Modified),
+                    InvoicedDate = task.InvoicedDate.HasValue ? Helpers.GetValidDateWithTimezone(task.InvoicedDate.Value) : DateTime.MinValue,
+                    CompletedDate = task.CompletedDate.HasValue ? Helpers.GetValidDateWithTimezone(task.CompletedDate.Value) : DateTime.MinValue,
+                    InvoiceRequired = !task.InvoiceNotRequired,
+                };
+                createdTasks.Add(newTask);
+            }
+        }
+
+
+        _destinationContext.BulkInsert(createdTasks);
     }
 }

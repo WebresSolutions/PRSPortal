@@ -11,9 +11,13 @@
             @foreach (JobNoteDto note in Notes)
             {
                 <div class="note-item">
-                    <div class="note-title">@((MarkupString)note.Content)</div>
-                    <div class="note-date">@GetNoteDate(note)</div>
-                    <div class="note-author">by @(note.AssignedUser?.displayName ?? "Unknown")</div>
+                    <div class="note-content">
+                        <div class="note-title">@((MarkupString)note.Content)</div>
+                    </div>
+                    <div class="note-meta">
+                        <div class="note-date">@GetNoteDate(note)</div>
+                        <div class="note-author">by @(note.AssignedUser?.displayName ?? "Unknown")</div>
+                    </div>
                 </div>
             }
         }

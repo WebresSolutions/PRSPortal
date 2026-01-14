@@ -181,8 +181,25 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 Category = s.ScheduleTrack.JobType.Name,
                 Notes = s.Notes ?? string.Empty
             });
-        string querySiteVisits = query.ToQueryString();
         job.SiteVisits = await query.ToListAsync();
+
+        job.Tasks = await _dbContext.JobTasks
+            .AsNoTracking()
+            .Where(t => t.JobId == jobId && t.DeletedAt == null)
+            .Select(t => new JobTaskDto
+            {
+                Id = t.Id,
+                JobId = t.JobId,
+                Description = t.Description,
+                InvoiceRequired = t.InvoiceRequired,
+                ActiveDate = t.ActiveDate,
+                CompletedDate = t.CompletedDate,
+                InvoicedDate = t.InvoicedDate,
+                CreatedOn = t.CreatedOn,
+                CreatedByUser = t.CreatedByUser.DisplayName ?? "",
+                QuotedPrice = t.QuotedPrice
+            })
+            .ToListAsync();
 
         result.Value = job;
         return result;

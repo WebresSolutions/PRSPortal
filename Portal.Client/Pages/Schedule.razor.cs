@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Portal.Client.Components.ScheduleComponents;
 using Portal.Client.Webmodels;
 using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.ResponseModels;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace Portal.Client.Pages;
 
@@ -19,17 +19,18 @@ public partial class Schedule
     /// </summary>
     [Inject]
     private NavigationManager? NavigationManager { get; set; }
-    /// <summary>
-    /// Gets or sets the date to display schedules for, supplied from query parameters
-    /// </summary>
-    [SupplyParameterFromQuery]
-    [Parameter]
-    public DateOnly? Date { get; set; }
+    [Inject]
+    private IDialogService _dialogService { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the job type filter, supplied from query parameters
+    /// Gets or sets the date to display schedules for, supplied from route parameters (format: yyyy-MM-dd)
     /// </summary>
-    [SupplyParameterFromQuery]
+    [Parameter]
+    public string? Date { get; set; }
+
+    /// <summary>
+    /// Gets or sets the job type filter, supplied from route parameters
+    /// </summary>
     [Parameter]
     public int? JobType { get; set; }
 
@@ -56,11 +57,69 @@ public partial class Schedule
     {
         base.IsLoading = true;
         await base.OnInitializedAsync();
-        Date ??= DateOnly.FromDateTime(new DateTime(2025, 10, 10));
-        DateTime = Date.Value.ToDateTime(new TimeOnly(0, 0));
-        JobTypeEnum = JobType is null ? JobTypeEnum.Construction : (JobTypeEnum)JobType;
+
+        // Parse date from route parameter or default to today
+        if (string.IsNullOrEmpty(Date) || !DateOnly.TryParse(Date, out DateOnly dateOnly))
+        {
+            dateOnly = DateOnly.FromDateTime(DateTime.Today);
+            Date = dateOnly.ToString("yyyy-MM-dd");
+        }
+
+        // If no job type provided, default to Construction
+        if (JobType == null)
+        {
+            JobType = (int)JobTypeEnum.Construction;
+        }
+
+        DateTime = dateOnly.ToDateTime(new TimeOnly(0, 0));
+        JobTypeEnum = (JobTypeEnum)JobType.Value;
+
+        // Navigate to URL with parameters if they weren't provided
+        if (NavigationManager != null)
+        {
+            string currentUri = NavigationManager.Uri;
+            string expectedUri = $"/schedule/{Date}/{JobType.Value}";
+            if (!currentUri.Contains(expectedUri))
+            {
+                NavigationManager.NavigateTo(expectedUri);
+                return;
+            }
+        }
+
         await LoadSchedule();
         base.IsLoading = false;
+    }
+
+    private async Task OpenDialogAsync(CustomCalendarItem cal)
+    {
+        Console.WriteLine("Opening dialog for calendar item: " + cal?.Text);
+
+        if (cal == null)
+        {
+            Console.WriteLine("Calendar item is null!");
+            return;
+        }
+
+        DialogParameters parameter = new DialogParameters<CustomCalendarItem> { { "CalendarItem", cal } };
+        DialogOptions options = new() { CloseButton = true, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
+
+        IDialogReference result = await _dialogService.ShowAsync<ViewScheduleIndividualDialog>("", parameter, options);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        // Update internal state when parameters change
+        if (!string.IsNullOrEmpty(Date) && JobType.HasValue)
+        {
+            if (DateOnly.TryParse(Date, out DateOnly dateOnly))
+            {
+                DateTime = dateOnly.ToDateTime(new TimeOnly(0, 0));
+                JobTypeEnum = (JobTypeEnum)JobType.Value;
+                await LoadSchedule();
+            }
+        }
     }
 
     /// <summary>
@@ -70,7 +129,8 @@ public partial class Schedule
     private async Task LoadSchedule()
     {
         base.IsLoading = true;
-        Result<List<ScheduleSlotDTO>> res = await _apiService.GetIndividualSchedule(Date!.Value, JobTypeEnum);
+        DateOnly dateOnly = DateOnly.FromDateTime(DateTime);
+        Result<List<ScheduleSlotDTO>> res = await _apiService.GetIndividualSchedule(dateOnly, JobTypeEnum);
         if (res.Error is null && res.Value is not null)
         {
             scheduleSlots = [.. res.Value.Select(x =>
@@ -96,23 +156,27 @@ public partial class Schedule
     /// <summary>
     /// Reloads the calendar with a new date
     /// </summary>
-    /// <param name="dateTime">The new date/time to load schedules for</param>
+    /// <param name="dateOnly">The new date to load schedules for</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    private async Task ReloadCalendar(DateTime dateTime)
+    private void ReloadCalendar(DateOnly dateOnly)
     {
-        DateTime = dateTime;
-        Date = DateOnly.FromDateTime(dateTime);
-        await LoadSchedule();
+        if (NavigationManager != null && JobType.HasValue)
+        {
+            NavigationManager.NavigateTo($"/schedule/{dateOnly:yyyy-MM-dd}/{JobType.Value}");
+        }
     }
 
     /// <summary>
     /// Switches between Construction and Surveying job types and reloads schedules
     /// </summary>
     /// <returns>A task representing the asynchronous operation</returns>
-    private async Task SwapJobType()
+    private void SwapJobType()
     {
-        JobTypeEnum = JobTypeEnum == JobTypeEnum.Construction ? JobTypeEnum.Surveying : JobTypeEnum.Construction;
-        await LoadSchedule();
+        JobTypeEnum newJobType = JobTypeEnum == JobTypeEnum.Construction ? JobTypeEnum.Surveying : JobTypeEnum.Construction;
+        if (NavigationManager != null && !string.IsNullOrEmpty(Date))
+        {
+            NavigationManager.NavigateTo($"/schedule/{Date}/{(int)newJobType}");
+        }
     }
 
     /// <summary>

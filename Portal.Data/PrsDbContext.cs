@@ -7,6 +7,10 @@ namespace Portal.Data;
 
 public partial class PrsDbContext : DbContext
 {
+    public PrsDbContext()
+    {
+    }
+
     public PrsDbContext(DbContextOptions<PrsDbContext> options)
         : base(options)
     {
@@ -61,6 +65,9 @@ public partial class PrsDbContext : DbContext
     public virtual DbSet<TimesheetEntry> TimesheetEntries { get; set; }
 
     public virtual DbSet<UserJob> UserJobs { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseNpgsql("Name=PrsConnection");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -734,6 +741,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.QuotedPrice)
+                .HasPrecision(10, 2)
+                .HasColumnName("quoted_price");
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.JobTaskCreatedByUsers)
                 .HasForeignKey(d => d.CreatedByUserId)

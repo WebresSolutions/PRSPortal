@@ -13,6 +13,8 @@ public partial class JobTask
 
     public string? Description { get; set; }
 
+    public decimal? QuotedPrice { get; set; }
+
     public bool InvoiceRequired { get; set; }
 
     public DateTime ActiveDate { get; set; }

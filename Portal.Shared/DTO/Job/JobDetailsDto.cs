@@ -43,4 +43,7 @@ public class JobDetailsDto
     /// Gets or sets the collection of site visits associated with the job.
     /// </summary>
     public List<JobSiteVisitsDto> SiteVisits { get; set; } = [];
+
+
+    public List<JobTaskDto> Tasks { get; set; } = [];
 }

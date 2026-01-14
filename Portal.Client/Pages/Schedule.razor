@@ -1,3 +1,4 @@
+@page "/schedule/{date}/{jobType:int}";
 @page "/schedule";
 @using Portal.Shared
 @using Portal.Shared.DTO.Schedule
@@ -17,7 +18,7 @@
         </div>
         <div class="header-right">
             <div class="header-controls">
-                <MudDatePicker T="DateOnly" Date=DateTime Label="Select Date" Variant="Variant.Outlined" Class="mt-0 mb-0" DateChanged="@((x) => ReloadCalendar(x!.Value))" />
+                <MudDatePicker T="DateTime?" Date="@((DateTime?)DateTime)" Label="Select Date" Variant="Variant.Outlined" Class="mt-0 mb-0" DateChanged="@((x) => ReloadCalendar(DateOnly.FromDateTime(x!.Value)))" />
                 <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="LoadSchedule" StartIcon="@Icons.Material.Filled.Add">Add Staff Track</MudButton>
             </div>
             <StatusBadge statusEnum="@JobTypeEnum" />
@@ -47,7 +48,7 @@
             @foreach (ScheduleSlotDtoWithCalendar slot in scheduleSlots)
             {
                 <div class="">
-                    <div class="schedule-users">
+                    <div class="schedule-users shadow">
                         <h6>Assigned Users</h6>
                         @foreach (var user in slot.AssignedUsers)
                         {
@@ -63,16 +64,20 @@
                                  ShowMonth=false
                                  ShowWeek=false
                                  Items="slot.Events"
-                                 EnableDragItems="true"
+                                 EnableDragItems="false"
                                  Style="min-height: 575px !important"
-                                 DayCellHeight="25">
+                                 DayCellHeight="25"
+                                 Class="shadow">
                         <ToolbarContent>
                             <MudButton Variant="Variant.Filled" Color="Color.Success" Class="mx-1"
                                        OnClick="@(() => AddNewSchedule(slot.SlotId))" StartIcon="@Icons.Material.Filled.Add">Schedule</MudButton>
+                            <MudIconButton Variant="Variant.Filled" Color="Color.Error" Class=""
+                                       OnClick="@(() => AddNewSchedule(slot.SlotId))" Icon="@Icons.Material.Filled.Remove"/>
                         </ToolbarContent>
                         <CellTemplate>
-                            <div class="schedule-items" style="border: 2px solid black; background-color: @context.Colour; ">
-                                @if (context.JobAddress is not null || context.JobNumber is not null)
+                            <div class="schedule-items shadow" style="background-color: @context.Colour; ">
+                                <MudIconButton OnClick="@(() => OpenDialogAsync(context))" Size="Size.Small" Variant="Variant.Text" Color="Color.Info" Icon="@Icons.Material.Filled.RemoveRedEye" />
+                                @if (context.JobAddress is not null && context.JobNumber is not null && context.JobId is not null )
                                 {
                                     <small style="background-color: @context.Colour">
                                         Job: @context.JobNumber - @context.JobAddress
@@ -80,7 +85,7 @@
                                     <hr />
                                 }
                                 <small style="background-color: @context.Colour; overflow: scroll">
-                                    Notes: @context.Text
+                                    <strong>Notes:</strong> @context.Text
                                 </small>
                             </div>
                         </CellTemplate>
@@ -112,24 +117,6 @@
         align-items: center;
         gap: 1rem;
     }
-
-    .btn-back {
-        width: 36px;
-        height: 36px;
-        border: none;
-        background: #f1f5f9;
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.2s;
-        color: #64748b;
-    }
-
-        .btn-back:hover {
-            background: #e2e8f0;
-        }
 
     .header-content {
         display: flex;
@@ -168,6 +155,78 @@
         gap: 0.5rem;
     }
 
+    @@media (max-width: 1200px) {
+        .schedule-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .header-left {
+            width: 100%;
+        }
+
+        .header-right {
+            width: 100%;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .header-controls {
+            flex-wrap: wrap;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .schedule-header {
+            padding: 1rem;
+        }
+
+        .header-content h1 {
+            font-size: 1.5rem;
+        }
+
+        .header-info {
+            font-size: 0.85rem;
+        }
+
+        .header-right {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .header-controls {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .header-controls .mud-input-control {
+            width: 100%;
+        }
+
+        .header-controls .mud-button {
+            width: 100%;
+        }
+
+        .header-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .header-content h1 {
+            font-size: 1.25rem;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+        }
+    }
+
     .btn-icon {
         width: 36px;
         height: 36px;
@@ -195,23 +254,20 @@
 
     .schedule-users {
         height: fit-content;
-        min-height: 80px;
+        min-height: 100px;
         background: var(--color-white);
         padding: 1rem;
         border-radius: var(--border-rad);
         margin-bottom: 0.5rem;
     }
 
-        .schedule-users > b {
-            border-bottom: 1px solid #f1f5f9 !important;
-            width: 100%;
-        }
-
     .schedule-items {
         width: 100%;
         height: 100%;
         padding: 5px;
         overflow: scroll !important;
+        border-radius: 8px;
+        border: 1px solid var(--color-grey);
     }
 
     @@media (max-width: 1200px) {

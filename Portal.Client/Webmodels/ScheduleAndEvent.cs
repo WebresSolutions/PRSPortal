@@ -27,7 +27,9 @@ public class ScheduleSlotDtoWithCalendar : ScheduleSlotDTO
             Text = s.Description,
             Colour = s.Colour.ColourHex,
             JobNumber = s.Job?.JobNumber,
-            JobAddress = s.Job?.Address is not null ? $"{s.Job.Address.street}, {s.Job.Address.suburb}, {s.Job.Address.postCode}" : string.Empty
+            JobAddress = s.Job?.Address is not null ? $"{s.Job.Address.street}, {s.Job.Address.suburb}, {s.Job.Address.postCode}" : string.Empty,
+            JobId = s.Job?.JobId,
+            ColourId = s.Colour.ScheduleColourId
         })];
     }
 }
@@ -50,4 +52,12 @@ public class CustomCalendarItem : CalendarItem
     /// Gets or sets the formatted job address string
     /// </summary>
     public string JobAddress { get; set; } = string.Empty;
+    /// <summary>
+    /// Gets or sets the unique identifier of the job associated with this entity.
+    /// </summary>
+    public int? JobId { get; set; }
+    /// <summary>
+    /// Gets or sets the unique identifier for the colour.
+    /// </summary>
+    public int ColourId { get; set; }
 }

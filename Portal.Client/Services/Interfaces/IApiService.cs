@@ -1,4 +1,5 @@
 ﻿using Portal.Shared;
+using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
@@ -79,4 +80,35 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with the updated
     /// system settings if the update is successful; otherwise, contains error information.</returns>
     Task<Result<SystemSettingDto>> UpdateSystemSettings(SystemSettingDto settings);
+    /// <summary>
+    /// Retrieves all councils from the server asynchronously.
+    /// </summary>
+    /// <remarks>If the user is not authorized, the method may trigger navigation to the login page. The returned
+    /// result object includes error details if the operation fails.</remarks>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
+    /// cref="Result{CouncilPartialDto[]}"/> object with the list of councils if the request is successful;
+    /// otherwise, contains error information.</returns>
+    Task<Result<CouncilPartialDto[]>> GetCouncils();
+    /// <summary>
+    /// Retrieves the details of a council with the specified identifier.
+    /// </summary>
+    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
+    /// result will contain error information if the council is not found or if the request fails.</remarks>
+    /// <param name="councilId">The unique identifier of the council to retrieve.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
+    /// cref="Result{CouncilDetailsDto}"/> object with the council details if found; otherwise, contains error information.</returns>
+    Task<Result<CouncilDetailsDto>> GetCouncilDetails(int councilId);
+    /// <summary>
+    /// Retrieves the jobs associated with a council with pagination.
+    /// </summary>
+    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
+    /// result will contain error information if the request fails.</remarks>
+    /// <param name="councilId">The unique identifier of the council.</param>
+    /// <param name="page">The page number (1-based).</param>
+    /// <param name="pageSize">The number of items per page.</param>
+    /// <param name="order">The sort direction (ascending or descending).</param>
+    /// <param name="orderby">Optional field name to sort by.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
+    /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
+    Task<Result<PagedResponse<ListJobDto>>> GetCouncilJobs(int councilId, int page, int pageSize, SortDirectionEnum order, string? orderby);
 }

@@ -1,5 +1,6 @@
 ﻿@page "/jobs/{JobId:int}"
 @inherits BaseDataComponent
+@using Portal.Client.Components.JobComponents
 @using Portal.Shared
 @using Portal.Shared.DTO.Job
 @using Portal.Shared.DTO.Address
@@ -49,7 +50,7 @@ else
                     <ChildContent>
                         <div class="stats-mini">
                             <div class="stat-mini">
-                                <div class="stat-mini-value">@_dummyData.TasksCount</div>
+                                <div class="stat-mini-value">@_job.Tasks.Count</div>
                                 <div class="stat-mini-label">Tasks</div>
                             </div>
                             <div class="stat-mini">
@@ -89,7 +90,7 @@ else
             <!-- Right Sidebar -->
             <div class="sidebar">
                 <!-- Site Visits -->
-                <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" />
+                <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" JobType="@_job.JobType" />
 
                 <!-- Notes -->
                 <JobNotes Notes="@(_job.Notes ?? new List<JobNoteDto>())" OnAdd="HandleAddNote" />
@@ -171,7 +172,7 @@ else
                                 </tr>
                             </thead>
                             <tbody>
-                                @if (_dummyData.Tasks.Count == 0)
+                                @if (_job.Tasks.Count == 0)
                                 {
                                     <tr>
                                         <td colspan="5" class="empty-state">No records</td>
@@ -179,13 +180,13 @@ else
                                 }
                                 else
                                 {
-                                    @foreach (var task in _dummyData.Tasks)
+                                    @foreach (var task in _job.Tasks)
                                     {
                                         <tr>
-                                            <td>@task.Name</td>
-                                            <td>@task.QuotedPrice</td>
-                                            <td>@task.ActiveDate</td>
-                                            <td>@task.CompletedDate</td>
+                                            <td>@task.InvoiceRequired</td>
+                                            <td>@(task.QuotedPrice is null ? "" : task.QuotedPrice.Value)</td>
+                                            <td>@task.ActiveDate.ToString("dd/MM/yyyy")</td>
+                                            <td>@task.CompletedDate.ToString("dd/MM/yyyy")</td>
                                             <td>
                                                 <button class="btn-icon-small">✏️</button>
                                                 <button class="btn-icon-small">🗑️</button>
@@ -301,133 +302,4 @@ else
     </div>
 }
 
-@code {
-    [Parameter]
-    public required int JobId { get; set; }
 
-    private JobDetailsDto? _job;
-    private DummyJobData _dummyData = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        await LoadJobData();
-    }
-
-    private async Task LoadJobData()
-    {
-        IsLoading = true;
-        try
-        {
-            Result<JobDetailsDto>? result = await _apiService.Job(JobId);
-            if (result is not null && result.IsSuccess && result.Value is not null)
-            {
-                _job = result.Value;
-            }
-            else
-            {
-                if (_snackbar is not null)
-                    _snackbar.Add("Error loading job details", Severity.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            if (_snackbar is not null)
-                _snackbar.Add($"Error: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    private string GetAddressString()
-    {
-        if (_job?.Address is null)
-            return "No address";
-
-        return $"{_job.Address.suburb.ToUpper()}, {_job.Address.State} {_job.Address.postCode}";
-    }
-
-    private Task HandleAddNote()
-    {
-        // TODO: Implement add note functionality
-        return Task.CompletedTask;
-    }
-
-    private Task HandleAddSiteVisit()
-    {
-        // TODO: Implement add site visit functionality
-        return Task.CompletedTask;
-    }
-
-    private class DummyJobData
-    {
-        public int TasksCount { get; set; } = 0;
-        public int InvoicesCount { get; set; } = 0;
-        public int ContactsCount { get; set; } = 0;
-        public string ContactName { get; set; } = "ALL HOMES / PERRY";
-        public string Phone { get; set; } = "018 368 142";
-        public string Council { get; set; } = "SHIRE OF MACEDON RANGES";
-        public string PlanRef { get; set; } = "LP1727490";
-
-        public List<TechnicalContact> TechnicalContacts { get; set; } = new();
-        public List<TaskItem> Tasks { get; set; } = new();
-        public List<InvoiceItem> Invoices { get; set; } = new();
-        public List<ChecklistItem> ChecklistItems { get; set; } = new()
-        {
-            new ChecklistItem { Name = "RE Survey", Checked = false, Sent = false },
-            new ChecklistItem { Name = "Feature Plan", Checked = false, Sent = false },
-            new ChecklistItem { Name = "MGA", Checked = false, Sent = false }
-        };
-        public List<SiteVisit> SiteVisits { get; set; } = new();
-        public List<ActivityItem> Activities { get; set; } = new()
-        {
-            new ActivityItem { Title = "Note Added", Time = "2 hours ago" },
-            new ActivityItem { Title = "Job Modified", Time = "Yesterday" }
-        };
-    }
-
-    private class TechnicalContact
-    {
-        public string Role { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string Phone { get; set; } = "";
-        public string Email { get; set; } = "";
-    }
-
-    private class TaskItem
-    {
-        public string Name { get; set; } = "";
-        public string QuotedPrice { get; set; } = "";
-        public string ActiveDate { get; set; } = "";
-        public string CompletedDate { get; set; } = "";
-    }
-
-    private class InvoiceItem
-    {
-        public string Number { get; set; } = "";
-        public string Contact { get; set; } = "";
-        public string TotalPrice { get; set; } = "";
-        public string CreatedDate { get; set; } = "";
-    }
-
-    private class ChecklistItem
-    {
-        public string Name { get; set; } = "";
-        public bool Checked { get; set; }
-        public bool Sent { get; set; }
-    }
-
-    private class SiteVisit
-    {
-        public string Date { get; set; } = "";
-        public string Details { get; set; } = "";
-    }
-
-    private class ActivityItem
-    {
-        public string Title { get; set; } = "";
-        public string Time { get; set; } = "";
-    }
-}

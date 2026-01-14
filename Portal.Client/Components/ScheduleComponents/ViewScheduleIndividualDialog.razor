@@ -1,0 +1,136 @@
+﻿<MudDialog>
+    <DialogContent>
+        <section>
+            <div class="quicksearch-header">
+                <h4>Edit Schedule</h4>
+            </div>
+            <div class="item-container">
+                <div class="time-selectors">
+                    <MudTimePicker Label="Time From"
+                                   Variant="Variant.Outlined"
+                                   Time="@TimeFrom" />
+                    <MudTimePicker Label="Time To"
+                                   Variant="Variant.Outlined"
+                                   Time="@TimeTo" />
+                </div>
+
+                <div class="item-row">
+                    <span class="item-label">Colour</span>
+                    <span class="item-value">@CalendarItem.Colour</span>
+                </div>
+
+
+                @if (CalendarItem is { JobNumber: null })
+                {
+
+                }
+                else
+                {
+                    <b>Job Details</b>
+                    <div class="item-row">
+                        <span class="item-label">View Job</span>
+                        <span class="item-value">
+                            <MudButton Href=@($"/jobs/{CalendarItem.JobId}") Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.RemoveRedEye" Class="view-button">View</MudButton>
+                        </span>
+                    </div>
+                    <div class="item-row">
+                        <span class="item-label">Job #</span>
+                        <span class="item-value">@CalendarItem.JobNumber</span>
+                    </div>
+                    <div class="item-row">
+                        <span class="item-label">Address</span>
+                        <span class="item-value">@CalendarItem.JobAddress</span>
+                    </div>
+                }
+                <MudTextField T="string" Label="Notes" Variant="Variant.Outlined" Text="@CalendarItem.Text" Lines="4" />
+            </div>
+        </section>
+    </DialogContent>
+</MudDialog>
+
+
+@code {
+    [Parameter]
+    public required CustomCalendarItem CalendarItem { get; set; }
+
+    private TimeSpan? TimeFrom;
+
+    private TimeSpan? TimeTo;
+
+    protected override void OnInitialized()
+    {
+        TimeFrom = CalendarItem.Start.TimeOfDay;
+
+        if (CalendarItem.End is not null)
+            TimeTo = CalendarItem.End.Value.TimeOfDay;
+    }
+
+}
+
+<style>
+    .item-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-height: 600px;
+        min-width: 350px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    .item-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0.35rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+        .item-row:last-of-type {
+            border-bottom: none;
+            padding-bottom: 0.25rem;
+        }
+
+    .item-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 500;
+        min-width: 100px;
+        flex-shrink: 0;
+    }
+
+    .item-value {
+        font-size: 0.85rem;
+        color: #1e293b;
+        font-weight: 600;
+        text-align: right;
+        flex: 1;
+        word-break: break-word;
+    }
+
+    .view-button {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.7rem !important;
+        min-height: 24px !important;
+        height: 24px !important;
+        min-width: auto !important;
+        width: auto !important;
+        margin: 0 !important;
+    }
+
+    .time-selectors {
+        display: flex;
+        gap: 1rem;
+        margin: 0.5rem 0;
+    }
+
+        .time-selectors .mud-input-control {
+            flex: 1;
+        }
+</style>

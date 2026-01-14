@@ -22,7 +22,17 @@
             {
                 <div class="info-row">
                     <span class="info-label">Council</span>
-                    <span class="info-value">@Council.CouncilName</span>
+
+                    <span class="info-value" @onmouseover="@(() => showButton = true)" @onmouseleave="@(() => showButton = false)">
+                        @if (showButton)
+                        {
+                            <MudButton Href=@($"/councils/{Council!.CouncilId}") Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.RemoveRedEye" Class="view-button">View</MudButton>
+                        }
+                        else
+                        {
+                            @Council.CouncilName
+                        }
+                    </span>
                 </div>
             }
             @if (!string.IsNullOrEmpty(PlanRef))
@@ -54,5 +64,7 @@
     /// </summary>
     [Parameter]
     public string? PlanRef { get; set; }
+
+    private bool showButton = false;
 }
 

@@ -8,10 +8,8 @@
 @page "/jobs"
 
 <div class="container">
-    <div class="mb-4">
-        <h1>Jobs</h1>
-    </div>
-    <div class="d-flex flex-row gap-2">
+    <div class="d-flex flex-row gap-2 header">
+        <h2>Jobs</h2>
         <MudTextField T="string" @bind-Value="_sessionData.SearchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))" Variant="Variant.Outlined"
                       AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Large" Class="mt-0 mb-4" Clearable="true" OnClearButtonClick="ClearSearch"></MudTextField>
         <div style="margin: auto">
@@ -27,15 +25,14 @@
                          Loading="base.IsLoading"
                          RowsPerPage="_rowsPerPage"
                          CurrentPage="_sessionData.Page"
-                         CurrentPageChanged="@((page) => _sessionData.Page = page)"
-                         
+                         CurrentPageChanged="@((page) => { _sessionData.Page = page; SaveSessionData(); })"
                          Dense=true
                          @ref="_grid"
                          Striped="true">
                 <Columns>
-                    <TemplateColumn StickyLeft="true">
+                    <TemplateColumn StickyLeft="true" Style="max-width:80px">
                         <CellTemplate>
-                            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Size="Size.Small" Href="@($"/jobs/{context.Item.JobId}")" StartIcon="@Icons.Material.Filled.RemoveRedEye">View</MudButton>
+                            <MudButton Variant="Variant.Text" Color="Color.Info" Size="Size.Small" Href="@($"/jobs/{context.Item.JobId}")" StartIcon="@Icons.Material.Filled.RemoveRedEye">View</MudButton>
                         </CellTemplate>
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" />
@@ -61,162 +58,15 @@
     </Card>
 </div>
 
-@code {
-    private PagedResponse<ListJobDto>? _pagedResponse;
-    private readonly int _rowsPerPage = 25;
-    private MudDataGrid<ListJobDto>? _grid;
-    /// <summary>
-    /// Session data for the facilities page
-    /// </summary>
-    private SessionSearchData _sessionData = new();
-
-    #region Constants
-    private const string _FacilitiesSessionKey = "JobsListSession";
-    #endregion
-
-    /// <summary>
-    /// Called when the component is initialized.
-    /// Data loading for the grid is now handled by LoadFacilitiesServerData.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation</returns>
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-
-        // Restore session data
-        SessionSearchData? savedSession = _sessionStorage.GetItem<SessionSearchData>(_FacilitiesSessionKey);
-        if (savedSession is not null)
-            _sessionData = savedSession;
+<style>
+    .header {
+        background: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
-
-    /// <summary>
-    /// Saves the current session data to session storage
-    /// </summary>
-    private void SaveSessionData() => _sessionStorage.SetItem(_FacilitiesSessionKey, _sessionData);
-
-    /// <summary>
-    /// This method is called by the MudDataGrid to fetch data when needed (paging, sorting, filtering).
-    /// Implements server-side data loading with pagination and search capabilities.
-    /// </summary>
-    /// <param name="state">The current grid state containing pagination and sorting information</param>
-    /// <returns>A GridData object containing the current page of facilities and total count</returns>
-    private async Task<GridData<ListJobDto>> LoadJobs(GridState<ListJobDto> state)
-    {
-        IsLoading = true;
-
-        try
-        {
-            int apiPageNumber = state.Page;
-            int apiPageSize = state.PageSize;
-            apiPageNumber++;
-
-            // Handle sorting from grid state
-            SortDefinition<ListJobDto>? sortDefinition = state.SortDefinitions.FirstOrDefault();
-            if (sortDefinition != null)
-            {
-                // Set order direction
-                _sessionData.Order = sortDefinition.Descending ? SortDirectionEnum.Desc : SortDirectionEnum.Asc;
-                _sessionData.OrderBy = sortDefinition.SortBy switch
-                {
-                    string s when s == nameof(ListJobDto.Contact1)
-                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.postCode)
-                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.suburb)
-                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.street)
-                            || s == nameof(ListJobDto.JobNumber) => s,
-                    _ => nameof(ListJobDto.JobId)
-                };
-            }
-            else
-            {
-                // Default sorting if no sort definition
-                _sessionData.OrderBy = nameof(ListJobDto.JobId);
-                _sessionData.Order = SortDirectionEnum.Desc;
-            }
-
-            // Save current state to session
-            _sessionData.Page = state.Page;
-            _sessionData.PageSize = state.PageSize;
-            _sessionData.PageSize = state.PageSize;
-            SaveSessionData();
-
-            Result<PagedResponse<ListJobDto>>? apiResult = await _apiService.GetAllJobs(
-                apiPageSize,
-                apiPageNumber,
-                _sessionData.SearchString,
-                _sessionData.OrderBy,
-                _sessionData.Order);
-
-            if (apiResult is not null && apiResult.IsSuccess && apiResult.Value is not null)
-            {
-                _pagedResponse = apiResult.Value;
-                // MudDataGrid requires GridData with Items for the current page and TotalItems count
-                return new GridData<ListJobDto>()
-                {
-                    Items = _pagedResponse.Result ?? Enumerable.Empty<ListJobDto>(),
-                    TotalItems = _pagedResponse.TotalCount
-                };
-            }
-            else
-            {
-                if (_snackbar is not null)
-                    _snackbar.Add("Error", Severity.Error);
-
-                return new GridData<ListJobDto>() { Items = [], TotalItems = 0 };
-            }
-        }
-        catch (Exception ex)
-        {
-            if (_dialogService != null)
-                _ = await _dialogService.ShowMessageBox("Error", "An unexpected error occurred while fetching facilities.");
-
-            return new GridData<ListJobDto>() { Items = Enumerable.Empty<ListJobDto>(), TotalItems = 0 };
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    /// <summary>
-    /// Manually refreshes the grid's data from another action (e.g., after adding/editing a facility)
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation</returns>
-    public async Task RefreshGridData()
-    {
-        if (_grid is not null)
-            await _grid.ReloadServerData();
-    }
-
-    /// <summary>
-    /// Handles search input changes and triggers grid data reload with the new search criteria
-    /// </summary>
-    /// <param name="text">The search text entered by the user</param>
-    /// <returns>A task representing the asynchronous operation</returns>
-    private Task OnSearch(string text)
-    {
-        _sessionData.SearchString = text;
-        // Reset to first page when search changes
-        _sessionData.Page = 0;
-        SaveSessionData();
-        return _grid!.ReloadServerData();
-    }
-
-    private Task ClearSearch()
-    {
-        _sessionData.SearchString = string.Empty;
-        _sessionData.Page = 0;
-        _sessionStorage.RemoveItem(_FacilitiesSessionKey);
-        _sessionData = new SessionSearchData(); // Reset to defaults
-        return _grid!.ReloadServerData();
-    }
-
-    /// <summary>
-    /// Handles marker click navigation to job page
-    /// </summary>
-    /// <param name="facilityId">The facility ID to navigate to</param>
-    private Task NavigateToFacility(int facilityId)
-    {
-        _navigationManager.NavigateTo($"/Jobs/{facilityId}");
-        return Task.CompletedTask;
-    }
-}
+</style>
