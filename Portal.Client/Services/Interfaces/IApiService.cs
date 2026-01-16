@@ -1,4 +1,5 @@
 ﻿using Portal.Shared;
+using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
@@ -111,4 +112,40 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a <see
     /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
     Task<Result<PagedResponse<ListJobDto>>> GetCouncilJobs(int councilId, int page, int pageSize, SortDirectionEnum order, string? orderby);
+    /// <summary>
+    /// Retrieves a paged list of contacts, optionally filtered by search term and sorted according to the specified criteria.
+    /// </summary>
+    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The method does
+    /// not throw exceptions for HTTP errors; instead, error information is included in the returned result.</remarks>
+    /// <param name="pageSize">The maximum number of contacts to include in each page of results. Must be a positive integer.</param>
+    /// <param name="pageNumber">The 1-based index of the page to retrieve. Must be greater than or equal to 1.</param>
+    /// <param name="searchFilter">An optional filter to return only contacts whose names, emails, or phone numbers contain the specified value. If null, no filtering is
+    /// applied.</param>
+    /// <param name="orderby">An optional field name by which to sort the results. If null, the default sort order is used.</param>
+    /// <param name="order">The direction in which to sort the results. Specify ascending or descending.</param>
+    /// <returns>A result containing a paged response of contact data transfer objects. If no contacts match the criteria, the response
+    /// contains an empty collection.</returns>
+    Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(int pageSize, int pageNumber, string? searchFilter, string? orderby, SortDirectionEnum order);
+    /// <summary>
+    /// Retrieves the details of a contact with the specified identifier.
+    /// </summary>
+    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
+    /// result will contain error information if the contact is not found or if the request fails.</remarks>
+    /// <param name="contactId">The unique identifier of the contact to retrieve.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
+    /// cref="Result{ContactDetailsDto}"/> object with the contact details if found; otherwise, contains error information.</returns>
+    Task<Result<ContactDetailsDto>> GetContactDetails(int contactId);
+    /// <summary>
+    /// Retrieves the jobs associated with a contact with pagination.
+    /// </summary>
+    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
+    /// result will contain error information if the request fails.</remarks>
+    /// <param name="contactId">The unique identifier of the contact.</param>
+    /// <param name="page">The page number (1-based).</param>
+    /// <param name="pageSize">The number of items per page.</param>
+    /// <param name="order">The sort direction (ascending or descending).</param>
+    /// <param name="orderby">Optional field name to sort by.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
+    /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
+    Task<Result<PagedResponse<ListJobDto>>> GetContactJobs(int contactId, int page, int pageSize, SortDirectionEnum order, string? orderby);
 }

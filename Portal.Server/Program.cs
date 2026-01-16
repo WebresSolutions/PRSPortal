@@ -84,6 +84,7 @@ public class Program
         app.AddScheduleEndpoints();
         app.AddSettingEndpoints();
         app.AddCouncilEndpoints();
+        app.AddContactEndpoints();
 
         app.Run();
     }

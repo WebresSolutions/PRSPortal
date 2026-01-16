@@ -1,18 +1,18 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Portal.Shared;
-using Portal.Shared.DTO.Councils;
+using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
-namespace Portal.Client.Pages.Council;
+namespace Portal.Client.Pages.Contact;
 
-public partial class Council
+public partial class Contact
 {
     [Parameter]
-    public required int CouncilId { get; set; }
+    public required int ContactId { get; set; }
 
-    private CouncilDetailsDto? _council;
+    private ContactDetailsDto? _contact;
     private PagedResponse<ListJobDto>? _pagedJobs;
     private readonly int _rowsPerPage = 15;
     private int _currentPage = 1;
@@ -20,26 +20,23 @@ public partial class Council
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        IsLoading = true;
-
-        await LoadCouncilData();
-        IsLoading = false;
+        await LoadContactData();
     }
 
-    private async Task LoadCouncilData()
+    private async Task LoadContactData()
     {
         IsLoading = true;
         try
         {
-            // Load council details
-            Result<CouncilDetailsDto>? result = await _apiService.GetCouncilDetails(CouncilId);
+            // Load contact details
+            Result<ContactDetailsDto>? result = await _apiService.GetContactDetails(ContactId);
             if (result is not null && result.IsSuccess && result.Value is not null)
             {
-                _council = result.Value;
+                _contact = result.Value;
             }
             else
             {
-                _snackbar?.Add("Error loading council details", Severity.Error);
+                _snackbar?.Add("Error loading contact details", Severity.Error);
             }
 
             // Load jobs separately with pagination
@@ -57,9 +54,10 @@ public partial class Council
 
     private async Task LoadJobs(int page)
     {
+        IsLoading = true;
         try
         {
-            Result<PagedResponse<ListJobDto>>? jobsResult = await _apiService.GetCouncilJobs(CouncilId, page, _rowsPerPage, SortDirectionEnum.Desc, null);
+            Result<PagedResponse<ListJobDto>>? jobsResult = await _apiService.GetContactJobs(ContactId, page, _rowsPerPage, SortDirectionEnum.Desc, null);
             if (jobsResult is not null && jobsResult.IsSuccess && jobsResult.Value is not null)
             {
                 _pagedJobs = jobsResult.Value;
@@ -67,7 +65,7 @@ public partial class Council
             }
             else
             {
-                _snackbar?.Add("Error loading council jobs", Severity.Error);
+                _snackbar?.Add("Error loading contact jobs", Severity.Error);
             }
         }
         catch (Exception ex)
@@ -76,22 +74,24 @@ public partial class Council
         }
         finally
         {
+            IsLoading = false;
         }
     }
 
     private string GetAddressString()
     {
-        if (_council?.address is null)
+        if (_contact?.address is null)
             return "No address";
 
         List<string> parts = [];
-        if (!string.IsNullOrWhiteSpace(_council.address.suburb))
-            parts.Add(_council.address.suburb.ToUpper());
-        if (!string.IsNullOrWhiteSpace(_council.address.State.ToString()))
-            parts.Add(_council.address.State.ToString());
-        if (!string.IsNullOrWhiteSpace(_council.address.postCode))
-            parts.Add(_council.address.postCode);
+        if (!string.IsNullOrWhiteSpace(_contact.address.suburb))
+            parts.Add(_contact.address.suburb.ToUpper());
+        if (!string.IsNullOrWhiteSpace(_contact.address.State?.ToString()))
+            parts.Add(_contact.address.State.ToString());
+        if (!string.IsNullOrWhiteSpace(_contact.address.postCode))
+            parts.Add(_contact.address.postCode);
 
         return parts.Count > 0 ? string.Join(" ", parts) : "No address";
     }
 }
+

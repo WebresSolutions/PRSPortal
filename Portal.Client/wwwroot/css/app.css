@@ -5,7 +5,7 @@
     --color-primary: #27213C;
     --color-primary-light: #ff957d;
     --color-secondary: #F49D37;
-    --color-background: #f5f5ff;
+    --color-background: #f4f5f4;
     --color-success: #10b981;
     --color-grey-dark: #808080;
     --color-grey: #f5f3f5;
@@ -35,8 +35,8 @@ body {
 }
 
 .container {
-    margin-left: auto; /* Same as the width of the sidenav */
-    margin-right: auto; /* Same as the width of the quicksearch */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 h6 {
@@ -273,4 +273,42 @@ a {
         font-size: 1rem;
         font-weight: 700;
         color: #1e293b;
+    }
+
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f1f5f9;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+    .btn-icon:hover {
+        background: #e2e8f0;
+    }
+
+.btn-icon-small {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: #f1f5f9;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.25rem;
+    transition: background 0.2s;
+}
+
+    .btn-icon-small:hover {
+        background: #e2e8f0;
     }

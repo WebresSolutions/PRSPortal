@@ -1,5 +1,5 @@
 ﻿
-<nav class="sidebar d-flex ps-2 gap-2 flex-column" style="background-color: var(--color-white)">
+<nav class="sidebar d-flex ps-2 gap-2 flex-column shadow" style="background-color: var(--color-white)">
     <NavLink href="/">
         <img alt="PRS" src=@(minimize ? "/images/MinimalLogo.svg" : "/images/PRS-Primary-Logo.svg")
              style=@(minimize ? "width: 40px" : "width:120px") class="prs-logo ms-2" />
@@ -7,22 +7,56 @@
     <button @onclick="@(MinimizeSidebar)" class="nav-hide-button"><i class=@(!minimize ? "bi bi-arrow-left-circle" : "bi bi-arrow-right-circle")></i></button>
     <AuthorizeView>
         <ul class="nav flex-column mt-3">
-            @foreach (var navItem in navLinks)
+            @foreach (NavLinkItem navItem in NavLinks)
             {
-                <li class="nav-item px-2">
-                    <NavLink class="nav-link" href="@navItem.Link" Match="@(navItem.MatchAll ? NavLinkMatch.All : NavLinkMatch.Prefix)">
-                        <MudIcon Icon="@navItem.Icon" Title="@navItem.Title" />
-                        @navItem.Title
-                    </NavLink>
+                <li class="nav-item px-1 @(minimize ? "min" : "")">
+                    <div class="nav-link-container">
+                        <NavLink class="nav-link" href="@(navItem.Link is null ? null : navItem.Link)" Match="@(navItem.MatchAll? NavLinkMatch.All: NavLinkMatch.Prefix)">
+                            <MudIcon Icon="@navItem.Icon" Title="@navItem.Title" />
+                            @if (!minimize)
+                            {
+                                <span class="nav-link-text">@navItem.Title</span>
+                            }
+                        </NavLink>
+                        @if (navItem.SubLinks.Count > 0 && !minimize)
+                        {
+                            <i class="@(expandedItems.ContainsKey(navItem) && expandedItems[navItem] ? "bi bi-chevron-up" : "bi bi-chevron-down") nav-chevron"
+                               role="button"
+                               @onclick="@(() => ToggleSubLinks(navItem))"
+                               title="@(expandedItems.ContainsKey(navItem) && expandedItems[navItem] ? "Collapse" : "Expand")"></i>
+                        }
+                    </div>
                 </li>
+                @if (!minimize && navItem.SubLinks.Count > 0 && expandedItems.ContainsKey(navItem) && expandedItems[navItem])
+                {
+                    <li class="sublinks-container">
+                        <ul class="sublinks">
+                            @foreach (NavLinkItem subLink in navItem.SubLinks)
+                            {
+                                <li class="sublink-item nav-item">
+                                    <NavLink class="nav-link sublink" href="@subLink.Link" Match="NavLinkMatch.Prefix">
+                                        @if (!string.IsNullOrEmpty(subLink.Icon))
+                                        {
+                                            <MudIcon Icon="@subLink.Icon" Title="@subLink.Title" />
+                                        }
+                                        @subLink.Title
+                                    </NavLink>
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                }
             }
         </ul>
     </AuthorizeView>
     <div class="auth-controls">
         <AuthorizeView>
             <Authorized>
-                <i class="bi bi-person-vcard btn" href="authentication/profile"></i>
-                <i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
+                <div style="display:grid; grid-template-columns: 1fr">
+                    <i class="bi bi-search btn" href="authentication/profile" @onclick="OpenDialogAsync"></i>
+                    <i class="bi bi-person-vcard btn" href="authentication/profile"></i>
+                    <i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
+                </div>
             </Authorized>
             <NotAuthorized>
                 <NavLink class="nav-link" href="authentication/login">
@@ -40,12 +74,28 @@
     [Parameter]
     public required EventCallback Hide { get; set; }
 
+    [Parameter]
+    public required List<NavLinkItem> NavLinks { get; set; }
+
     private bool minimize = false;
+    private Dictionary<NavLinkItem, bool> expandedItems = new();
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _sessionStorage.SetItem("NavbarItems", navLinks);
+    }
+
+    private void ToggleSubLinks(NavLinkItem navItem)
+    {
+        if (!expandedItems.ContainsKey(navItem))
+        {
+            expandedItems[navItem] = true;
+        }
+        else
+        {
+            expandedItems[navItem] = !expandedItems[navItem];
+        }
+        StateHasChanged();
     }
 
     private async Task MinimizeSidebar()
@@ -56,19 +106,14 @@
 
     private string width() => minimize ? "width: 40px" : "width: 120px";
 
-    private readonly List<NavLinkItem> navLinks = new()
-    {
-        new NavLinkItem { Link = "", Title = "Home", Icon = Icons.Material.Filled.Home, MatchAll = true },
-        new NavLinkItem { Link = "Jobs", Title = "Jobs", Icon = Icons.Material.Filled.PanTool },
-        new NavLinkItem { Link = "Quotes", Title = "Quotes", Icon = Icons.Material.Filled.Numbers },
-        new NavLinkItem { Link = "Contacts", Title = "Contacts", Icon = Icons.Material.Filled.People },
-        new NavLinkItem { Link = "Councils", Title = "Councils", Icon = Icons.Material.Filled.Home },
-        new NavLinkItem { Link = "Schedule", Title = "Schedule", Icon = Icons.Material.Filled.CalendarViewMonth },
-        new NavLinkItem { Link = "Settings", Title = "Settings", Icon = Icons.Material.Filled.Settings }
-    };
 
     private void BeginSignOut(MouseEventArgs args)
     {
         _navigationManager.NavigateToLogout("authentication/logout");
+    }
+
+    private Task OpenDialogAsync()
+    {
+        return _dialog.ShowAsync<SearchDialog>("", new DialogOptions() { CloseButton = true, CloseOnEscapeKey = true });
     }
 }

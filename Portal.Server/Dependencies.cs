@@ -2,8 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Portal.Data;
+using Portal.Server.Options;
 using Portal.Server.Services.Instances;
 using Portal.Server.Services.Interfaces;
+using Xero.NetStandard.OAuth2.Api;
 
 namespace Portal.Server;
 
@@ -35,13 +37,20 @@ public static class Dependencies
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
+        builder.Services.Configure<XeroOptions>(builder.Configuration.GetSection("XeroSettings"));
+
         builder.WebHost.UseStaticWebAssets();
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
+
+        // Inject Services
+        builder.Services.AddScoped<IAccountingApi, AccountingApi>();
+        builder.Services.AddScoped<IXeroIntegrationService, XeroIntegrationService>();
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IScheduleService, ScheduleService>();
         builder.Services.AddScoped<ISettingService, SettingService>();
         builder.Services.AddScoped<ICouncilService, CouncilService>();
+        builder.Services.AddScoped<IContactService, ContactService>();
 
         // Add Swagger/OpenAPI services for API debugging
         bool enableSwagger = builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");

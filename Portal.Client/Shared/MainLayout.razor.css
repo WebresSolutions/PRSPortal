@@ -1,21 +1,21 @@
-﻿.page {
+.page {
     position: relative;
     display: flex;
     flex-direction: column;
 }
 
 .main {
-    margin-top: 100px;
+    margin-top: 50px;
     margin-bottom: 100px;
     /*    display: flex;
     flex-direction: row;
     gap: var(--padding)*/
     min-height: 100vh;
-    margin-left: 150px;
+    margin-left: 180px;
 }
 
     .main.full {
-        margin-left: 150px;
+        margin-left: 80px;
         /*margin-right: 150px;*/
     }
 

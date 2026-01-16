@@ -40,7 +40,6 @@ public partial class Settings
         base.IsLoading = true;
         await base.OnInitializedAsync();
         primaryColour = await GetColour("--color-primary");
-        hotKeyEntries = base._hotKeysContext?.HotKeyEntries.ToArray() ?? [];
         await LoadColours();
         base.IsLoading = false;
     }

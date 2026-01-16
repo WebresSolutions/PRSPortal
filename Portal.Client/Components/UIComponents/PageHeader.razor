@@ -1,0 +1,22 @@
+﻿<div class="d-flex flex-row gap-4 header">
+    @Content
+</div>
+
+@code {
+
+    [Parameter]
+    public required RenderFragment Content { get; set; }
+}
+
+<style>
+    .header {
+        background: var(--color-white);
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+</style>

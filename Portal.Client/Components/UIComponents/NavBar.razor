@@ -10,9 +10,9 @@
 		<div class="auth-controls">
 			<AuthorizeView>
 				<NotAuthorized>
-					<div class="d-flex flex-row gap-2">
+					@* <div class="d-flex flex-row gap-2">
 						<a href="authentication/login" class="btn">Log in</a>
-					</div>
+					</div> *@
 				</NotAuthorized>
 				<Authorized>
 					@* <ul class="nav flex-row gap-1">
@@ -21,8 +21,8 @@
 							<NavElement Link=@link.Value />
 						}
 					</ul> *@
-					<i class="bi bi-person-vcard btn" href="authentication/profile"></i>
-					<i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
+@* 					<i class="bi bi-person-vcard btn" href="authentication/profile"></i>
+					<i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" /> *@
 				</Authorized>
 			</AuthorizeView>
 		</div>
@@ -40,18 +40,6 @@
 	public required Action ToggleNav { get; set; }
 
 	public string SearchValue { get; set; } = "";
-
-	private readonly Dictionary<string, NavigationLink> links = new()
-	{
-		{ "Dashboard", new NavigationLink(){Link = "dashboard", Title = "Dashboard", Icon = "bi bi-speedometer2"} },
-		{ "Home", new NavigationLink(){Link = "", Title = "Home", Icon = "bi bi-house"} },
-		{ "Jobs", new NavigationLink(){Link = "jobs", Title = "Jobs", Icon = "bi bi-wrench" }},
-		{ "Quotes", new NavigationLink(){Link = "quotes", Title = "Quotes", Icon = "bi bi-receipt" } },
-		{ "Councils", new NavigationLink(){Link = "councils", Title = "Councils",Icon = "bi bi-people-fill"} },
-		{ "Tools", new NavigationLink(){Link = "tools", Title = "Tools",Icon = "bi bi-hammer"} },
-		{ "Admin", new NavigationLink(){Link = "admin", Title = "Admin",Icon = "bi bi-sliders"} },
-		{ "Schedule", new NavigationLink(){Link = "schedule", Title = "Schedule", Icon = "bi bi-calendar"} }
-	};
 
 	private void BeginSignOut(MouseEventArgs args)
 	{

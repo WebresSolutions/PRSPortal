@@ -56,7 +56,6 @@ public class Program
 
         Console.WriteLine($"ClientId: {clientId}");
         Console.WriteLine($"authority: {authority}");
-        builder.Services.AddHotKeys2();
         builder.Services.AddMudServices(config =>
         {
             config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
@@ -72,6 +71,7 @@ public class Program
         builder.Services.AddSingleton<IApiService, ApiService>();
         // The service holds stateful information about the current user session.
         builder.Services.AddSingleton<SessionStorage>();
+        builder.Services.AddHotKeys2();
 
         WebAssemblyHost host = builder.Build();
         await host.RunAsync();

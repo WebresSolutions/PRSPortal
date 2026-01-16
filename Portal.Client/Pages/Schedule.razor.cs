@@ -19,8 +19,6 @@ public partial class Schedule
     /// </summary>
     [Inject]
     private NavigationManager? NavigationManager { get; set; }
-    [Inject]
-    private IDialogService _dialogService { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the date to display schedules for, supplied from route parameters (format: yyyy-MM-dd)
@@ -103,7 +101,7 @@ public partial class Schedule
         DialogParameters parameter = new DialogParameters<CustomCalendarItem> { { "CalendarItem", cal } };
         DialogOptions options = new() { CloseButton = true, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
 
-        IDialogReference result = await _dialogService.ShowAsync<ViewScheduleIndividualDialog>("", parameter, options);
+        IDialogReference result = await _dialog.ShowAsync<ViewScheduleIndividualDialog>("", parameter, options);
     }
 
     protected override async Task OnParametersSetAsync()

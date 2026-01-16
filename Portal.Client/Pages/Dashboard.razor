@@ -3,45 +3,45 @@
 
 <AuthorizeView  Context="c">
     <Authorized>
-        <div class="dashboard-container">
+        <div class="container">
             <div class="header-section">
-                <h1>@c?.User?.Identity?.Name</h1>
-                <p class="text-muted">Welcome back! Here's what's happening today.</p>
+                <h2>@c?.User?.Identity?.Name</h2>
+                <p class="welcome-text">Welcome back! Here's what's happening today.</p>
             </div>
 
-            <div class="grid-row">
+            <div class="dashboard-grid">
                 @* Quick Stats Row *@
-                <div class="grid-col col-sm-6 col-md-3">
-                    <div class="stat-card shadow">
+                <div class="stat-card-wrapper">
+                    <div class="stat-card">
                         <div class="stat-title">Total Leads</div>
                         <div class="stat-value" style="color: var(--color-primary);">124</div>
-                        <div class="stat-change text-success">+12% this week</div>
+                        <div class="stat-change stat-change-success">+12% this week</div>
                     </div>
                 </div>
-                <div class="grid-col col-sm-6 col-md-3">
-                    <div class="stat-card shadow">
+                <div class="stat-card-wrapper">
+                    <div class="stat-card">
                         <div class="stat-title">Active Quotes</div>
                         <div class="stat-value" style="color: var(--color-yellow);">$45,200</div>
                         <div class="stat-change">18 pending</div>
                     </div>
                 </div>
-                <div class="grid-col col-sm-6 col-md-3">
-                    <div class="stat-card shadow">
+                <div class="stat-card-wrapper">
+                    <div class="stat-card">
                         <div class="stat-title">Active Jobs</div>
                         <div class="stat-value" style="color: var(--color-success);">32</div>
                         <div class="stat-change">8 due this week</div>
                     </div>
                 </div>
-                <div class="grid-col col-sm-6 col-md-3">
-                    <div class="stat-card shadow">
+                <div class="stat-card-wrapper">
+                    <div class="stat-card">
                         <div class="stat-title">Conversion Rate</div>
                         <div class="stat-value" style="color: var(--colour-survey);">24%</div>
                         <div class="stat-change">Above target</div>
                     </div>
                 </div>
 
-                <div class="grid-col col-md-8">
-                    <div class="dashboard-card shadow">
+                <div class="activity-card-wrapper">
+                    <div class="dashboard-card">
                         <div class="card-header">
                             <h3 style="color: var(--color-grey-dark);">Recent Pipeline Activity</h3>
                             <button class="btn-primary-manual">View All</button>
@@ -84,8 +84,8 @@
                     </div>
                 </div>
 
-                <div class="grid-col col-md-4">
-                    <div class="dashboard-card shadow">
+                <div class="task-card-wrapper">
+                    <div class="dashboard-card">
                         <div class="card-header">
                             <h3 style="color: var(--color-grey-dark);">Task Focus</h3>
                         </div>

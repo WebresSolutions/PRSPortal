@@ -1,17 +1,16 @@
-﻿@inherits BaseDataComponent;
+@inherits BaseDataComponent;
 @using Portal.Shared
 @using Portal.Shared.DTO.Contact
-@using Portal.Shared.DTO.Job
 @using Portal.Shared.ResponseModels
 @using Portal.Shared.Web
 
-@page "/jobs"
+@page "/contacts"
 
 <div class="container">
     <PageHeader>
         <Content>
             <div class="">
-                <h2>Jobs</h2>
+                <h2>Contacts</h2>
                 <div>
                     <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">New</MudButton>
                 </div>
@@ -22,8 +21,8 @@
     </PageHeader>
     <Card>
         <ChildContent>
-            <MudDataGrid T="ListJobDto"
-                         ServerData="LoadJobs"
+            <MudDataGrid T="ListContactDto"
+                         ServerData="LoadContacts"
                          Filterable="true"
                          SortMode="SortMode.Single"
                          Loading="base.IsLoading"
@@ -37,29 +36,43 @@
                     <TemplateColumn StickyLeft="true" Title="Action">
                         <CellTemplate>
                             <div class="d-flex flex-row">
-                                <MudIconButton Variant="Variant.Text" Color="Color.Info" Size="Size.Small" Href="@($"/jobs/{context.Item.JobId}")" Icon="@Icons.Material.Filled.RemoveRedEye" />
+                                <MudIconButton Variant="Variant.Text" Color="Color.Info" Size="Size.Small" Href="@($"/contacts/{context.Item.ContactId}")" Icon="@Icons.Material.Filled.RemoveRedEye" />
                                 <button class="btn-icon-small">✏️</button>
                                 <button class="btn-icon-small">🗑️</button>
                             </div>
                         </CellTemplate>
                     </TemplateColumn>
-                    <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" />
-                    <TemplateColumn ShowFilterIcon="false" Title="Contact">
+                    <PropertyColumn Property="x => x.ContactId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" />
+                    <PropertyColumn Property="x => x.FullName" ShowFilterIcon="false" Title="Name" />
+                    <PropertyColumn Property="x => x.Email" ShowFilterIcon="false" Title="Email" />
+                    <PropertyColumn Property="x => x.Phone" ShowFilterIcon="false" Title="Phone" />
+                    <TemplateColumn ShowFilterIcon="false" Title="Address">
                         <CellTemplate>
-                            <p>@(context.Item.JoinedContactName)</p>
+                            @if (context.Item.Address != null)
+                            {
+                                <p>@($"{context.Item.Address.street}, {context.Item.Address.suburb} {context.Item.Address.postCode}")</p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No address</p>
+                            }
                         </CellTemplate>
                     </TemplateColumn>
-                    <PropertyColumn Property="x => x.Address.street" ShowFilterIcon="false" Title="Street" />
-                    <PropertyColumn Property="x => x.Address.suburb" ShowFilterIcon="false" Title="Suburb" />
-                    <PropertyColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number" HeaderStyle="max-width: 75px" />
-                    <TemplateColumn ShowFilterIcon="false" Title="Job Type">
+                    <TemplateColumn ShowFilterIcon="false" Title="Parent Contact">
                         <CellTemplate>
-                            <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
+                            @if (context.Item.ParentContact != null)
+                            {
+                                <p>@context.Item.ParentContact.fullName</p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">-</p>
+                            }
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
                 <PagerContent>
-                    <MudDataGridPager T="ListJobDto" />
+                    <MudDataGridPager T="ListContactDto" />
                 </PagerContent>
             </MudDataGrid>
         </ChildContent>
@@ -68,3 +81,4 @@
 
 <style>
 </style>
+

@@ -47,9 +47,6 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                             || job.Contact.SearchVector != null && job.Contact.SearchVector.Matches(searchFilter));
             }
             string stringQUery = jobQuery.ToQueryString();
-            string? addressSuburb = nameof(ListJobDto.Address.suburb);
-            Console.WriteLine(addressSuburb);
-
             bool isDescending = order is SortDirectionEnum.Desc;
             jobQuery = orderby switch
             {

@@ -142,10 +142,13 @@ public static class EnumExtensions
     /// <exception cref="Exception">Thrown when the enum member cannot be found or accessed</exception>
     public static string GetDisplayName(this Enum enumValue)
     {
-        return enumValue.GetType()
+
+        string? res = enumValue.GetType()
                         .GetMember(enumValue.ToString())
                         .First()
                         .GetCustomAttribute<DisplayAttribute>()
                         ?.GetName() ?? throw new Exception("Failed to get enum string");
+
+        return res;
     }
 }

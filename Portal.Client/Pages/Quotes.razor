@@ -4,9 +4,18 @@
 
 <PageTitle>Quotes - PRS Portal</PageTitle>
 <div class="container">
-    <div class="mb-2 d-flex">
-        <h1>Quotes</h1>
-    </div>
+    <PageHeader>
+        <Content>
+            <div>
+                <h2>Quotes</h2>
+                <div style="margin: auto">
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">New</MudButton>
+                </div>
+            </div>
+            <MudTextField T="string" Placeholder="Search" Adornment="Adornment.Start" Variant="Variant.Outlined"
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Large" Class="mt-0 mb-4" Clearable="true"></MudTextField>
+        </Content>
+    </PageHeader>
 
     <Card>
 

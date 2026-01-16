@@ -341,3 +341,26 @@
     color: #dc2626;
     font-weight: 600;
 }
+
+.job-file-container {
+    display:grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+}
+
+.job-file {
+    background-color: #f1f5f9;
+    width: 100%;
+    height: fit-content;
+    border-radius: var(--border-rad);
+    padding: 4px 8px;
+    transition: ease-in-out 0.2s;
+    display: flex;
+    flex-direction:column;
+}
+
+.job-file:hover {
+    background-color: #e2e8f0;
+    cursor: pointer;
+    transition: ease-in-out 0.2s;
+}

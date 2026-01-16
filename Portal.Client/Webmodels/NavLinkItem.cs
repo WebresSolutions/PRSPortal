@@ -23,4 +23,12 @@ public class NavLinkItem
     /// When true, the link will be active for all paths starting with the Link value
     /// </summary>
     public bool MatchAll { get; set; } = false;
+    /// <summary>
+    /// Gets or sets the sub-navigation links for this navigation item
+    /// </summary>
+    public List<NavLinkItem> SubLinks { get; set; } = [];
+    /// <summary>
+    /// An optional action to be performed when the link is activated
+    /// </summary>
+    public Action? DoAction;
 }

@@ -66,15 +66,31 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
                         }).ToList()
                 });
 
-            string queriedSql = query.ToQueryString();
-
             // Get the schedule tracks 
             List<ScheduleSlotDTO> trackForDate = await query
                 .ToListAsync();
 
+            List<ScheduleTrack> newTracks = [];
+            if (trackForDate.Count == 0)
+            {
+                AppUser createdByUser = await _prsDbContext.AppUsers.FirstOrDefaultAsync(x => x.Id == 1)
+                    ?? throw new Exception("Could not find user");
+                // Create four tracks 
+                for (int i = 0; i < 4; i++)
+                    newTracks.Add(new ScheduleTrack()
+                    {
+                        CreatedByUserId = 1, // System User
+                        CreatedOn = DateTime.UtcNow,
+                        Date = dateOnly,
+                        JobTypeId = (int)jobType,
+                        CreatedByUser = createdByUser
+                    });
+                await _prsDbContext.ScheduleTracks.AddRangeAsync(newTracks);
+                await _prsDbContext.SaveChangesAsync();
+                trackForDate = await query.ToListAsync();
+            }
+
             result.Value = trackForDate;
-
-
             return result;
         }
         catch (Exception ex)

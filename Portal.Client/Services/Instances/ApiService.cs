@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Portal.Client.Services.Interfaces;
 using Portal.Shared;
+using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
@@ -437,6 +438,151 @@ public class ApiService : IApiService
             {
                 res.ConvertHttpResponseToError(response.StatusCode);
                 res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get council jobs";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            // Handle exception
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Retrieves a paged list of contacts, optionally filtered by search term and sorted according to the specified criteria.
+    /// </summary>
+    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The method does
+    /// not throw exceptions for HTTP errors; instead, error information is included in the returned result.</remarks>
+    /// <param name="pageSize">The maximum number of contacts to include in each page of results. Must be a positive integer.</param>
+    /// <param name="pageNumber">The 1-based index of the page to retrieve. Must be greater than or equal to 1.</param>
+    /// <param name="searchFilter">An optional filter to return only contacts whose names, emails, or phone numbers contain the specified value. If null, no filtering is
+    /// applied.</param>
+    /// <param name="orderby">An optional field name by which to sort the results. If null, the default sort order is used.</param>
+    /// <param name="order">The direction in which to sort the results. Specify ascending or descending.</param>
+    /// <returns>A result containing a paged response of contact data transfer objects. If no contacts match the criteria, the response
+    /// contains an empty collection.</returns>
+    public async Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(int pageSize, int pageNumber, string? searchFilter, string? orderby, SortDirectionEnum order)
+    {
+        Result<PagedResponse<ListContactDto>> res = new();
+        try
+        {
+            Dictionary<string, string> queryParameters = new()
+            {
+                { "pageSize", pageSize.ToString() },
+                { "page", pageNumber.ToString() },
+                { "order", ((int)order).ToString() }
+            };
+
+            if (searchFilter is not null)
+                queryParameters.Add("searchFilter", searchFilter ?? string.Empty);
+
+            if (orderby is not null)
+                queryParameters.Add("orderby", orderby ?? string.Empty);
+
+            FormUrlEncodedContent dictFormUrlEncoded = new(queryParameters);
+            string queryString = await dictFormUrlEncoded.ReadAsStringAsync();
+
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/contacts/?{queryString}");
+
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+
+            if (response.IsSuccessStatusCode)
+            {
+                PagedResponse<ListContactDto>? contacts = await response.Content.ReadFromJsonAsync<PagedResponse<ListContactDto>>();
+                res.Value = contacts;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get all contacts";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            // Handle exception
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Retrieves the details of a contact with the specified identifier.
+    /// </summary>
+    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
+    /// result will contain error information if the contact is not found or if the request fails.</remarks>
+    /// <param name="contactId">The unique identifier of the contact to retrieve.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
+    /// cref="Result{ContactDetailsDto}"/> object with the contact details if found; otherwise, contains error information.</returns>
+    public async Task<Result<ContactDetailsDto>> GetContactDetails(int contactId)
+    {
+        Result<ContactDetailsDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/contacts/{contactId}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                ContactDetailsDto? contact = await response.Content.ReadFromJsonAsync<ContactDetailsDto>();
+                res.Value = contact;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get contact details";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            // Handle exception
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Retrieves the jobs associated with a contact with pagination.
+    /// </summary>
+    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
+    /// result will contain error information if the request fails.</remarks>
+    /// <param name="contactId">The unique identifier of the contact.</param>
+    /// <param name="page">The page number (1-based).</param>
+    /// <param name="pageSize">The number of items per page.</param>
+    /// <param name="order">The sort direction (ascending or descending).</param>
+    /// <param name="orderby">Optional field name to sort by.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
+    /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
+    public async Task<Result<PagedResponse<ListJobDto>>> GetContactJobs(int contactId, int page, int pageSize, SortDirectionEnum order, string? orderby)
+    {
+        Result<PagedResponse<ListJobDto>> res = new();
+        try
+        {
+            Dictionary<string, string> queryParameters = new()
+            {
+                { "page", page.ToString() },
+                { "pageSize", pageSize.ToString() },
+                { "order", ((int)order).ToString() }
+            };
+
+            if (orderby is not null)
+                queryParameters.Add("orderby", orderby ?? string.Empty);
+
+            FormUrlEncodedContent dictFormUrlEncoded = new(queryParameters);
+            string queryString = await dictFormUrlEncoded.ReadAsStringAsync();
+
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/contacts/{contactId}/jobs?{queryString}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                PagedResponse<ListJobDto>? jobs = await response.Content.ReadFromJsonAsync<PagedResponse<ListJobDto>>();
+                res.Value = jobs;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get contact jobs";
             }
         }
         catch (Exception ex)

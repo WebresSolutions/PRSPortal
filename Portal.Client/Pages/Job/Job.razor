@@ -89,6 +89,19 @@ else
 
             <!-- Right Sidebar -->
             <div class="sidebar">
+                <Card ShowHeaderWithAddButton="true" HeaderTitle="Job Files">
+                    <ChildContent>
+                        <div class="job-file-container">
+                            @for (int i = 0; i < 6; i++)
+                            {
+                                <div class="job-file">
+                                    <strong>File @i</strong>
+                                    <small>Uploaded on 2024-01-0@(i + 1)</small>
+                                </div>
+                            }
+                        </div>
+                    </ChildContent>
+                </Card>
                 <!-- Site Visits -->
                 <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" JobType="@_job.JobType" />
 

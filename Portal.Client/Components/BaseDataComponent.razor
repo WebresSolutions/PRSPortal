@@ -1,7 +1,5 @@
-﻿@using Toolbelt.Blazor.HotKeys2
-@implements IAsyncDisposable
-@inject HotKeys HotKeys
-@inject IDialogService Dialog
+﻿@using System.Text.Json
+
 
 @code {
     [CascadingParameter]
@@ -11,12 +9,6 @@
     /// </summary>
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationStateTask { get; set; }
-
-    protected HotKeysContext? _hotKeysContext;
-    private void Submit() => MudDialog?.Close(DialogResult.Ok(true));
-    private void Cancel() => MudDialog?.Cancel();
-    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-    List<NavLinkItem>? navLinks = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether the component is currently loading data
@@ -44,9 +36,12 @@
                 string returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
                 Console.WriteLine("ReturnURL: " + returnUrl);
                 // Use the current website's base URL instead of hardcoded Authority
-                string loginUrl = $"{_navigationManager.BaseUri}Identity/Account/Login?returnUrl={returnUrl}";
+                string loginUrl = $"{_navigationManager.BaseUri}Authentication/Login?returnUrl={returnUrl}";
                 _navigationManager.NavigateTo(loginUrl, true);
             }
+
+
+            await LoadThemeSettings();
         }
     }
 
@@ -55,51 +50,51 @@
         if (firstRender)
         {
             await _jsRuntime.InvokeVoidAsync("initializeScrollHeader");
-            if (navLinks?.Count is 0)
-                navLinks = _sessionStorage.GetItem<List<NavLinkItem>>("NavbarItems");
-
-            _hotKeysContext = this.HotKeys.CreateContext()
-                .Add(ModCode.Ctrl | ModCode.Shift, Code.ArrowUp, () => GoToNextNavItem(true), new HotKeyOptions() { Description = "Navigate to the next page up" })
-                .Add(ModCode.Ctrl | ModCode.Shift, Code.ArrowDown, () => GoToNextNavItem(false), new HotKeyOptions() { Description = "Navigate to the next page down" })
-                .Add(ModCode.Ctrl | ModCode.Shift, Code.S, OpenDialogAsync, new HotKeyOptions() { Description = "Opens the quick search for jobs" });
         }
     }
 
-    private Task OpenDialogAsync()
+    private async Task LoadThemeSettings()
     {
-        return Dialog.ShowAsync<SearchDialog>("", new DialogOptions() { CloseButton = true, CloseOnEscapeKey = true });
-    }
+        // Try to load from session storage first (faster, no API call)
+        ThemeSettingsDto? sessionSettings = _sessionStorage.GetItem<ThemeSettingsDto>("SystemSettings");
 
-    public async ValueTask DisposeAsync()
-    {
-        if (_hotKeysContext != null)
-            await _hotKeysContext.DisposeAsync();
-    }
+        if (sessionSettings is not null &&
+            !string.IsNullOrWhiteSpace(sessionSettings.PrimaryColour) &&
+            !string.IsNullOrWhiteSpace(sessionSettings.SecondaryColour))
+        {
+            await Helpers.SetColour(_jsRuntime, sessionSettings.PrimaryColour, true);
+            await Helpers.SetColour(_jsRuntime, sessionSettings.SecondaryColour, false);
+            return;
+        }
 
-    private void GoToNextNavItem(bool up)
-    {
-        if (navLinks is null)
+        // Fallback to API if session storage is empty or invalid
+        Result<SystemSettingDto> appsettings = await _apiService.GetSystemSettings();
+
+        if (appsettings.Error is not null || appsettings.Value is null)
             return;
 
-        // find the current nav item
-        string uri = _navigationManager.ToBaseRelativePath(_navigationManager.Uri).TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(appsettings.Value.SettingJson))
+            return;
 
-        // Find the index of the current nav item
-        int currentIndex = navLinks?.FindIndex(n => n.Link.Equals(uri, StringComparison.OrdinalIgnoreCase)) ?? -1;
+        try
+        {
+            ThemeSettingsDto? settings = JsonSerializer.Deserialize<ThemeSettingsDto>(appsettings.Value.SettingJson);
 
-        if (up)
-            currentIndex--;
-        else
-            currentIndex++;
+            if (settings is null ||
+                string.IsNullOrWhiteSpace(settings.PrimaryColour) ||
+                string.IsNullOrWhiteSpace(settings.SecondaryColour))
+                return;
 
-        // Loop around: wrap to end if going before start, wrap to start if going past end
-        if (currentIndex < 0)
-            currentIndex = navLinks!.Count - 1;
-        else if (currentIndex >= navLinks!.Count)
-            currentIndex = 0;
+            // Save to session storage for next time
+            _sessionStorage.SetItem("SystemSettings", settings);
 
-        NavLinkItem newNavItem = navLinks[currentIndex];
-        _navigationManager.NavigateTo(newNavItem.Link);
-
+            // Apply the colors
+            await Helpers.SetColour(_jsRuntime, settings.PrimaryColour, true);
+            await Helpers.SetColour(_jsRuntime, settings.SecondaryColour, false);
+        }
+        catch (JsonException)
+        {
+            // Invalid JSON, skip setting colors
+        }
     }
 }

@@ -13,6 +13,7 @@
 
 .prs-logo {
     height: 48px;
+    transition: ease-in-out all 0.1s;
 }
 
 .sidebar-top {
@@ -48,6 +49,8 @@
     }
 }
 
+
+
 .nav-item {
     font-size: 1rem;
     padding-bottom: 0.5rem;
@@ -63,26 +66,84 @@
         padding-bottom: 1rem;
     }
 
+
     .nav-item ::deep a {
         color: var(--color-primary);
         border-radius: var(--border-rad);
-
         height: 3rem;
         display: flex;
         align-items: center;
         line-height: 3rem;
         transition: all ease-in-out 0.2s;
+        min-width: 120px;
     }
 
-        .nav-item ::deep a.active {
+    .nav-item.min ::deep a {
+        min-width: unset;
+    }
+
+    .nav-item ::deep a.active {
+        background-color: var(--color-background);
+        color: var(--color-secondary) !important;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .nav-item ::deep a:hover {
+        background-color: var(--color-background);
+        /*color: var(--color-grey-dark);*/
+        transition: all ease-in-out 0.2s;
+        transform: translateY(-3px);
+    }
+
+.nav-link-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.nav-chevron {
+    cursor: pointer;
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    padding: 0.25rem;
+    margin-left: auto;
+    transition: all ease-in-out 0.2s;
+}
+
+    .nav-chevron:hover {
+        color: var(--color-secondary);
+        transform: scale(1.1);
+    }
+
+.sublinks-container {
+    margin-left: 1rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid var(--color-primary);
+    margin-bottom: 1rem;
+}
+
+.sublinks {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    margin-top: 0.25rem;
+}
+
+.sublink-item {
+    padding-left: 0rem;
+    /*margin-bottom: 0.25rem;*/
+}
+
+    .sublink-item ::deep a {
+        padding-left: 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        height: 2.5rem;
+    }
+
+        .sublink-item ::deep a.active {
             background-color: var(--color-background);
             color: var(--color-secondary) !important;
-            border: 1px solid #e2e8f0;
-        }
-
-        .nav-item ::deep a:hover {
-            background-color: var(--color-background);
-            /*color: var(--color-grey-dark);*/
-            transition: all ease-in-out 0.2s;
-            transform: translateY(-3px);
+            border-bottom: 2px solid #e2e8f0;
         }
