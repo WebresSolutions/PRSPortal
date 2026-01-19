@@ -64,10 +64,7 @@ public partial class Schedule
         }
 
         // If no job type provided, default to Construction
-        if (JobType == null)
-        {
-            JobType = (int)JobTypeEnum.Construction;
-        }
+        JobType ??= (int)JobTypeEnum.Construction;
 
         DateTime = dateOnly.ToDateTime(new TimeOnly(0, 0));
         JobTypeEnum = (JobTypeEnum)JobType.Value;
@@ -84,7 +81,7 @@ public partial class Schedule
             }
         }
 
-        await LoadSchedule();
+        //await LoadSchedule();
         base.IsLoading = false;
     }
 
@@ -101,7 +98,7 @@ public partial class Schedule
         DialogParameters parameter = new DialogParameters<CustomCalendarItem> { { "CalendarItem", cal } };
         DialogOptions options = new() { CloseButton = true, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
 
-        IDialogReference result = await _dialog.ShowAsync<ViewScheduleIndividualDialog>("", parameter, options);
+        IDialogReference _ = await _dialog.ShowAsync<ViewScheduleIndividualDialog>("", parameter, options);
     }
 
     protected override async Task OnParametersSetAsync()

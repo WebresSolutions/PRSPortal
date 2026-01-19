@@ -15,7 +15,7 @@ public static class CouncilEnpoints
  /// <param name="app">The web application to register endpoints with</param>
     public static void AddCouncilEndpoints(this WebApplication app)
     {
-        RouteGroupBuilder appGroup = app.MapGroup("/api/councils");
+        RouteGroupBuilder appGroup = app.MapGroup("/api/councils").RequireAuthorization();
 
         // Gets all jobs with pagination and optional filtering/sorting
         appGroup.MapGet("", async (

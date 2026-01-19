@@ -30,6 +30,7 @@ public class Program
             options.ProviderOptions.DefaultAccessTokenScopes.Add("profile");
             options.ProviderOptions.DefaultAccessTokenScopes.Add("offline_access");
             options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://{builder.Configuration.GetValue<string>("AzureAd:ClientId")}/read_as_user");
+
         });
         string httpClient = builder.Configuration.GetValue<string>("HttpClient")
             ?? throw new Exception("Failed to load the http client settings");
@@ -39,12 +40,12 @@ public class Program
             baseUri = builder.HostEnvironment.BaseAddress;
 
         // 1. Register the HttpClient with the AuthorizationMessageHandler
-        _ = builder.Services.AddHttpClient(httpClient)
+        builder.Services.AddHttpClient(httpClient)
             .ConfigureHttpClient(client => client.BaseAddress = new Uri(baseUri))
             .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
         // 2. Register the authorized HttpClient as the default
-        _ = builder.Services.AddScoped(provider =>
+        builder.Services.AddScoped(provider =>
         {
             IHttpClientFactory factory = provider.GetRequiredService<IHttpClientFactory>();
             return factory.CreateClient(httpClient); // This is the authorized client

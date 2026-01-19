@@ -9,14 +9,19 @@
     <!-- Header -->
     <PageHeader>
         <Content>
-            @if(!base.IsLoading){
             <div class="header-left">
                 <div class="header-content">
 
-                    <h1>Schedule - @JobTypeEnum.GetDisplayName()</h1>
-                    <div class="header-info">
-                        <span>@DateTime.ToString("dddd, MMMM d, yyyy")</span>
-                    </div>
+                    @if (!base.IsLoading)
+                    {
+                        <h1>
+                            Schedule -
+                            @JobTypeEnum.GetDisplayName()
+                        </h1>
+                        <div class="header-info">
+                            <span>@DateTime.ToString("dddd, MMMM d, yyyy")</span>
+                        </div>
+                    }
                 </div>
             </div>
             <div class="header-right">
@@ -24,7 +29,10 @@
                     <MudDatePicker T="DateTime?" Date="@((DateTime?)DateTime)" Label="Select Date" Variant="Variant.Outlined" Class="mt-0 mb-0" DateChanged="@((x) => ReloadCalendar(DateOnly.FromDateTime(x!.Value)))" />
                     <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="LoadSchedule" StartIcon="@Icons.Material.Filled.Add">Add Staff Track</MudButton>
                 </div>
-                <StatusBadge statusEnum="@JobTypeEnum" />
+                @if (!base.IsLoading)
+                {
+                    <StatusBadge statusEnum="@JobTypeEnum" />
+                }
                 <div class="header-actions">
                     <button class="btn-icon" @onclick="SwapJobType" title="Switch Job Type">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -43,7 +51,6 @@
                     </button>
                 </div>
             </div>
-            }
         </Content>
     </PageHeader>
 

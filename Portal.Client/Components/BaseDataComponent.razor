@@ -39,9 +39,6 @@
                 string loginUrl = $"{_navigationManager.BaseUri}Authentication/Login?returnUrl={returnUrl}";
                 _navigationManager.NavigateTo(loginUrl, true);
             }
-
-
-            await LoadThemeSettings();
         }
     }
 
@@ -49,52 +46,7 @@
     {
         if (firstRender)
         {
-            await _jsRuntime.InvokeVoidAsync("initializeScrollHeader");
-        }
-    }
-
-    private async Task LoadThemeSettings()
-    {
-        // Try to load from session storage first (faster, no API call)
-        ThemeSettingsDto? sessionSettings = _sessionStorage.GetItem<ThemeSettingsDto>("SystemSettings");
-
-        if (sessionSettings is not null &&
-            !string.IsNullOrWhiteSpace(sessionSettings.PrimaryColour) &&
-            !string.IsNullOrWhiteSpace(sessionSettings.SecondaryColour))
-        {
-            await Helpers.SetColour(_jsRuntime, sessionSettings.PrimaryColour, true);
-            await Helpers.SetColour(_jsRuntime, sessionSettings.SecondaryColour, false);
-            return;
-        }
-
-        // Fallback to API if session storage is empty or invalid
-        Result<SystemSettingDto> appsettings = await _apiService.GetSystemSettings();
-
-        if (appsettings.Error is not null || appsettings.Value is null)
-            return;
-
-        if (string.IsNullOrWhiteSpace(appsettings.Value.SettingJson))
-            return;
-
-        try
-        {
-            ThemeSettingsDto? settings = JsonSerializer.Deserialize<ThemeSettingsDto>(appsettings.Value.SettingJson);
-
-            if (settings is null ||
-                string.IsNullOrWhiteSpace(settings.PrimaryColour) ||
-                string.IsNullOrWhiteSpace(settings.SecondaryColour))
-                return;
-
-            // Save to session storage for next time
-            _sessionStorage.SetItem("SystemSettings", settings);
-
-            // Apply the colors
-            await Helpers.SetColour(_jsRuntime, settings.PrimaryColour, true);
-            await Helpers.SetColour(_jsRuntime, settings.SecondaryColour, false);
-        }
-        catch (JsonException)
-        {
-            // Invalid JSON, skip setting colors
+            // await _jsRuntime.InvokeVoidAsync("initializeScrollHeader");
         }
     }
 }

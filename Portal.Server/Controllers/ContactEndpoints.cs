@@ -20,7 +20,7 @@ public static class ContactEndpoints
     /// <param name="app">The web application to register endpoints with</param>
     public static void AddContactEndpoints(this WebApplication app)
     {
-        RouteGroupBuilder appGroup = app.MapGroup("/api/contacts");
+        RouteGroupBuilder appGroup = app.MapGroup("/api/contacts").RequireAuthorization();
 
         // Gets all contacts with pagination and optional filtering/sorting
         appGroup.MapGet("", async (

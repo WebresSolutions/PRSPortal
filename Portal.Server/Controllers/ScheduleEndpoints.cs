@@ -20,7 +20,7 @@ public static class ScheduleEndpoints
     /// <param name="app">The web application to register endpoints with</param>
     public static void AddScheduleEndpoints(this WebApplication app)
     {
-        RouteGroupBuilder appGroup = app.MapGroup("/api/schedule");
+        RouteGroupBuilder appGroup = app.MapGroup("/api/schedule").RequireAuthorization();
 
         // Gets all jobs with pagination and optional filtering/sorting
         appGroup.MapGet("slots", async (

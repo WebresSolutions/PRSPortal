@@ -603,7 +603,7 @@ public class ApiService : IApiService
     private async Task NavigationToLoginPage()
     {
         string returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
-        string loginUrl = $"{_navigationManager.BaseUri}Identity/Account/Login?returnUrl={returnUrl}";
-        _navigationManager.NavigateTo(loginUrl, true);
+        string loginUrl = $"{_navigationManager.BaseUri}Authentication/Login?returnUrl={returnUrl}";
+        //_navigationManager.NavigateTo(loginUrl, true);
     }
 }

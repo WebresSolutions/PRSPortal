@@ -34,9 +34,11 @@ public static class Dependencies
     public static void AddServices(this WebApplicationBuilder builder)
     {
         // Add the custom services
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        builder.Services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
+        builder.Services.AddAuthorization();
         builder.Services.Configure<XeroOptions>(builder.Configuration.GetSection("XeroSettings"));
 
         builder.WebHost.UseStaticWebAssets();
@@ -66,6 +68,7 @@ public static class Dependencies
         {
             options.AddPolicy("CorsPolicy",
                 builder => builder.WithOrigins(
+                        "http://localhost:8080",      //Angular Dev Server
                         "http://localhost:44310",      //Local port
                         "https://localhost:44310",
                         "https://localhost:44331",

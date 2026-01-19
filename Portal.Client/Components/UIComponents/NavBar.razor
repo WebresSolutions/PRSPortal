@@ -1,28 +1,21 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-
+@using System.Security.Claims
 @inject NavigationManager Navigation
+@attribute [Authorize];
+
+
 <nav class="w-100 d-flex justify-content-between py-2" style="background-color: var(--color-white)">
-@* 	<NavLink href="/">
-		<img alt="PRS" src=@("/images/PRS-Primary-Logo.svg") style=@("width:120px") class="prs-logo" />
-	</NavLink> *@
-	<div class="mt-4 d-flex flex-row pe-4">
+	<div class="">
 		<div class="auth-controls">
 			<AuthorizeView>
 				<NotAuthorized>
-					@* <div class="d-flex flex-row gap-2">
+					<div class="d-flex flex-row gap-2">
 						<a href="authentication/login" class="btn">Log in</a>
-					</div> *@
+					</div> 
 				</NotAuthorized>
 				<Authorized>
-					@* <ul class="nav flex-row gap-1">
-						@foreach (KeyValuePair<string, NavigationLink> link in links)
-						{
-							<NavElement Link=@link.Value />
-						}
-					</ul> *@
-@* 					<i class="bi bi-person-vcard btn" href="authentication/profile"></i>
-					<i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" /> *@
+					<h1>@AuthenticatedUser?.Identity?.Name</h1>
 				</Authorized>
 			</AuthorizeView>
 		</div>
@@ -33,6 +26,11 @@
 
 
 @code {
+	/// <summary>
+	/// Gets or sets the authenticated user's claims principal
+	/// </summary>
+	public ClaimsPrincipal? AuthenticatedUser { get; set; }
+
 	[Parameter]
 	public bool ShowNav { get; set; }
 

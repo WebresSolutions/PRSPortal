@@ -16,11 +16,14 @@ public partial class Contact
     private PagedResponse<ListJobDto>? _pagedJobs;
     private readonly int _rowsPerPage = 15;
     private int _currentPage = 1;
-
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        await LoadContactData();
+    }
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await LoadContactData();
     }
 
     private async Task LoadContactData()

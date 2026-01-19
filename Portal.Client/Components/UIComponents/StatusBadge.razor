@@ -1,7 +1,9 @@
 ﻿@using Portal.Client.Components.UIComponents
 @using Portal.Shared
 
-<div class="status-badge" style=@($"background-color: {color}")>@statusEnum.GetDisplayName()</div>
+<div class="status-badge" style=@($"background-color: {color}")>
+    @statusEnum.GetDisplayName()
+</div>
 
 @code {
     /// <summary>
@@ -26,14 +28,11 @@
 
 <style>
     .status-badge {
-        color: black;
+        color: var(--color-white);
         padding: 6px 12px;
         border-radius: 25px;
         font-weight: 600;
         font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
         text-align: center;
     }
 
