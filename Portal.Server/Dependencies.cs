@@ -38,6 +38,14 @@ public static class Dependencies
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
+        // Configure JWT validation parameters
+        builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+        {
+            options.TokenValidationParameters.ValidateIssuer = true;
+            options.TokenValidationParameters.ValidateAudience = true;
+            options.TokenValidationParameters.ValidateLifetime = true;
+        });
+
         builder.Services.AddAuthorization();
         builder.Services.Configure<XeroOptions>(builder.Configuration.GetSection("XeroSettings"));
 

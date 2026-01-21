@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor;
@@ -23,15 +24,17 @@ public class Program
     {
         WebAssemblyHostBuilder builder = WebAssemblyHostBuilder.CreateDefault(args);
         builder.RootComponents.Add<App>("#app");
+        string clientId = builder.Configuration.GetValue<string>("AzureAd:ClientId") ?? throw new Exception("Azure Client Id is null ");
+        string? authority = builder.Configuration.GetValue<string>("AzureAd:Authority");
         builder.Services.AddMsalAuthentication(options =>
         {
             builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
             options.ProviderOptions.LoginMode = "redirect";
             options.ProviderOptions.DefaultAccessTokenScopes.Add("profile");
             options.ProviderOptions.DefaultAccessTokenScopes.Add("offline_access");
-            options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://{builder.Configuration.GetValue<string>("AzureAd:ClientId")}/read_as_user");
-
+            options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://{clientId}/read_as_user");
         });
+
         string httpClient = builder.Configuration.GetValue<string>("HttpClient")
             ?? throw new Exception("Failed to load the http client settings");
 
@@ -40,9 +43,27 @@ public class Program
             baseUri = builder.HostEnvironment.BaseAddress;
 
         // 1. Register the HttpClient with the AuthorizationMessageHandler
+        // BaseAddressAuthorizationMessageHandler only works for same-origin requests.
+        // Since API is on a different URL (https://localhost:5001), we need AuthorizationMessageHandler
+        // with explicit configuration for cross-origin requests.
         builder.Services.AddHttpClient(httpClient)
             .ConfigureHttpClient(client => client.BaseAddress = new Uri(baseUri))
-            .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+            .AddHttpMessageHandler(sp =>
+            {
+                IAccessTokenProvider tokenProvider = sp.GetRequiredService<IAccessTokenProvider>();
+                NavigationManager navigationManager = sp.GetRequiredService<NavigationManager>();
+                string apiScope = $"api://{clientId}/read_as_user";
+
+                AuthorizationMessageHandler handler = new(
+                    tokenProvider,
+                    navigationManager);
+
+                handler.ConfigureHandler(
+                    authorizedUrls: [baseUri],
+                    scopes: [apiScope]);
+
+                return handler;
+            });
 
         // 2. Register the authorized HttpClient as the default
         builder.Services.AddScoped(provider =>
@@ -52,8 +73,6 @@ public class Program
         });
 
         Console.WriteLine("Configuring MSAL Authentication");
-        string? clientId = builder.Configuration.GetValue<string>("AzureAd:ClientId");
-        string? authority = builder.Configuration.GetValue<string>("AzureAd:Authority");
 
         Console.WriteLine($"ClientId: {clientId}");
         Console.WriteLine($"authority: {authority}");

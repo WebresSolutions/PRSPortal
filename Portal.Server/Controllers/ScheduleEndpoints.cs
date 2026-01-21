@@ -18,7 +18,7 @@ public static class ScheduleEndpoints
     /// Registers schedule-related API endpoints with the application
     /// </summary>
     /// <param name="app">The web application to register endpoints with</param>
-    public static void AddScheduleEndpoints(this WebApplication app)
+    public static void AddScheduleEndpoints(this WebApplication app, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/schedule").RequireAuthorization();
 
@@ -57,5 +57,10 @@ public static class ScheduleEndpoints
             Result<ScheduleColourDto> result = await schService.UpdateScheduleColour(colour);
             return EndpointsHelper.ProcessResult(result, "An error occured while loading colours");
         });
+
+        if (reqAuth)
+            appGroup.RequireAuthorization();
+        else
+            appGroup.AllowAnonymous();
     }
 }

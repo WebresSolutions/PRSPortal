@@ -13,7 +13,7 @@ public static class CouncilEnpoints
  /// Registers job-related API endpoints with the application
  /// </summary>
  /// <param name="app">The web application to register endpoints with</param>
-    public static void AddCouncilEndpoints(this WebApplication app)
+    public static void AddCouncilEndpoints(this WebApplication app, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/councils").RequireAuthorization();
 
@@ -63,5 +63,10 @@ public static class CouncilEnpoints
             Result<PagedResponse<ListJobDto>> result = await councilService.GetCouncilJobs(councilId, page, pageSize, order, orderby);
             return EndpointsHelper.ProcessResult(result, "An Error occurred getting council jobs");
         });
+
+        if (reqAuth)
+            appGroup.RequireAuthorization();
+        else
+            appGroup.AllowAnonymous();
     }
 }

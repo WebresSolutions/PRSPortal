@@ -7,6 +7,6 @@
 > dotnet ef dbcontext scaffold 'Host=localhost;Port=5433;Database=prs_database;Username=postgres;Password=145269;Include Error Detail=true;' Npgsql.EntityFrameworkCore.PostgreSQL --output-dir ../Migration/Models --context PrsDbContext --force --no-onconfiguring --context-namespace Migration --namespace Migration.Models
 
 
-### To Create a databse in docker: 
+### To Create a persistent database in docker: 
 	docker pull postgres
 	docker run --name pgdev -e POSTGRES_PASSWORD=145269 -p 5433:5432 -v pgdev-data:/var/lib/postgresql -d postgres

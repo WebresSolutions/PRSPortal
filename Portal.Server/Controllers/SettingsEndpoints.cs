@@ -16,7 +16,7 @@ public static class SettingsEndpoints
     /// Registers settings-related API endpoints with the application
     /// </summary>
     /// <param name="app">The web application to register endpoints with</param>
-    public static void AddSettingEndpoints(this WebApplication app)
+    public static void AddSettingEndpoints(this WebApplication app, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/settings").RequireAuthorization();
 
@@ -39,5 +39,9 @@ public static class SettingsEndpoints
             Result<SystemSettingDto> result = await setService.UpdateSystemSettings(settingsDto);
             return EndpointsHelper.ProcessResult(result, "An Error occured while saving system settings");
         });
+        if (reqAuth)
+            appGroup.RequireAuthorization();
+        else
+            appGroup.AllowAnonymous();
     }
 }

@@ -28,9 +28,8 @@ public class Program
         app.Use((context, next) =>
         {
             if (context.Request.Scheme != "https")
-            {
                 context.Request.Scheme = "https";
-            }
+
             return next(context);
         });
         app.UseForwardedHeaders();
@@ -43,6 +42,7 @@ public class Program
 
             // Enable Swagger/OpenAPI for API debugging
             bool enableSwagger = app.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");
+
             if (enableSwagger)
             {
                 app.MapOpenApi();
@@ -63,9 +63,7 @@ public class Program
 
         // Only use HTTPS redirection in development or when not behind a proxy
         if (!app.Environment.IsDevelopment())
-        {
             app.UseHttpsRedirection();
-        }
 
         app.UseBlazorFrameworkFiles();
         app.UseStaticFiles();
@@ -79,12 +77,13 @@ public class Program
         app.MapControllers();
         app.MapFallbackToFile("index.html");
 
+        bool enableAuth = app.Configuration.GetValue<bool>("ApiSettings:AuthRequired");
         // Add API endpoints
-        app.AddJobEndpoints();
-        app.AddScheduleEndpoints();
-        app.AddSettingEndpoints();
-        app.AddCouncilEndpoints();
-        app.AddContactEndpoints();
+        app.AddJobEndpoints(enableAuth);
+        app.AddScheduleEndpoints(enableAuth);
+        app.AddSettingEndpoints(enableAuth);
+        app.AddCouncilEndpoints(enableAuth);
+        app.AddContactEndpoints(enableAuth);
 
         app.Run();
     }

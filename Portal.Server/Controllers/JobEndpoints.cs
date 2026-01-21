@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
@@ -17,7 +18,7 @@ public static class JobEndpoints
     /// Registers job-related API endpoints with the application
     /// </summary>
     /// <param name="app">The web application to register endpoints with</param>
-    public static void AddJobEndpoints(this WebApplication app)
+    public static void AddJobEndpoints(this WebApplication app, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/jobs");
 
@@ -32,6 +33,16 @@ public static class JobEndpoints
             HttpContext httpContext
             ) =>
         {
+            if (await httpContext.AuthenticateAsync() is AuthenticateResult auth)
+            {
+                if (auth.Succeeded)
+                    Console.WriteLine("Auth success");
+                else
+                    Console.WriteLine("Auth failed");
+            }
+            else
+                Console.WriteLine("No auth result");
+
             if (page <= 0)
                 page = 1;
 
@@ -55,5 +66,10 @@ public static class JobEndpoints
             Result<JobDetailsDto> result = await jobService.GetJob(jobId);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         });
+
+        if (reqAuth)
+            appGroup.RequireAuthorization();
+        else
+            appGroup.AllowAnonymous();
     }
 }

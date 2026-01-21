@@ -18,7 +18,7 @@ public static class ContactEndpoints
     /// Registers contact-related API endpoints with the application
     /// </summary>
     /// <param name="app">The web application to register endpoints with</param>
-    public static void AddContactEndpoints(this WebApplication app)
+    public static void AddContactEndpoints(this WebApplication app, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/contacts").RequireAuthorization();
 
@@ -78,6 +78,11 @@ public static class ContactEndpoints
             Result<PagedResponse<ListJobDto>> result = await contactService.GetContactJobs(contactId, page, pageSize, order, orderby);
             return EndpointsHelper.ProcessResult(result, "An error occurred while getting contact jobs");
         });
+
+        if (reqAuth)
+            appGroup.RequireAuthorization();
+        else
+            appGroup.AllowAnonymous();
     }
 }
 
