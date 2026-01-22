@@ -82,6 +82,7 @@ public static class Dependencies
                         "https://localhost:44331",
                         "https://localhost:3000",
                         "http://localhost:5000",       //API Standalone HTTP
+                        "https://localhost:5000",       //API Standalone HTTP
                         "https://localhost:5001"     //API Standalone HTTPS
                     )
                     .AllowAnyHeader()

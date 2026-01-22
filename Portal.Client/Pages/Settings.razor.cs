@@ -40,6 +40,7 @@ public partial class Settings
         base.IsLoading = true;
         await base.OnInitializedAsync();
         primaryColour = await GetColour("--color-primary");
+        secondaryColour = await GetColour("--color-secondary");
         await LoadColours();
         base.IsLoading = false;
     }
@@ -111,7 +112,7 @@ public partial class Settings
 
         await Helpers.SetColour(_jsRuntime, colour, primary);
 
-        ThemeSettingsDto settingsObject = new()
+        SystemSettingsDto settingsObject = new()
         {
             PrimaryColour = primaryColour,
             SecondaryColour = secondaryColour

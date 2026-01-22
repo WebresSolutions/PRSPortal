@@ -35,7 +35,7 @@
 	public bool ShowNav { get; set; }
 
 	[Parameter]
-	public required Action ToggleNav { get; set; }
+	public required EventCallback<Task> ToggleNav { get; set; }
 
 	public string SearchValue { get; set; } = "";
 

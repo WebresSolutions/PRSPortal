@@ -82,10 +82,7 @@ public static class Extensions
     /// <exception cref="InvalidOperationException"></exception>
     private static (string[] columns, PropertyInfo?[] properties, string? tableName) GetColumnAndPropertyInfo<T>(PrsDbContext dbContext) where T : class
     {
-        IEntityType? entityType = dbContext.Model.FindEntityType(typeof(T));
-        if (entityType == null)
-            throw new InvalidOperationException($"Entity type {typeof(T).Name} not found in the model.");
-
+        IEntityType? entityType = dbContext.Model.FindEntityType(typeof(T)) ?? throw new InvalidOperationException($"Entity type {typeof(T).Name} not found in the model.");
         string? tableName = entityType.GetTableName();
         string? schema = entityType.GetSchema();
         string? fullTableName = schema != null ? $"{schema}.{tableName}" : tableName;
@@ -99,10 +96,9 @@ public static class Extensions
 
         string[] columnNames = [.. properties.Select(p => p.GetColumnName())];
 
-        PropertyInfo?[] propertyInfos = properties
+        PropertyInfo?[] propertyInfos = [.. properties
             .Select(p => typeof(T).GetProperty(p.Name))
-            .Where(p => p != null)
-            .ToArray();
+            .Where(p => p != null)];
 
         return (columnNames, propertyInfos, fullTableName);
     }
@@ -122,13 +118,7 @@ public static class Extensions
         ParameterExpression parameter = propertySelector.Parameters[0];
         ConstantExpression wrappedSearchTerm = Expression.Constant($"%{searchTerm}%");
         Type extensionsType = typeof(NpgsqlDbFunctionsExtensions);
-        MethodInfo? ilikeMethod = extensionsType.GetMethod("ILike", [typeof(DbFunctions), typeof(string), typeof(string)]);
-
-        if (ilikeMethod is null)
-        {
-            throw new Exception("Failed ot get the ILike method.");
-        }
-
+        MethodInfo? ilikeMethod = extensionsType.GetMethod("ILike", [typeof(DbFunctions), typeof(string), typeof(string)]) ?? throw new Exception("Failed ot get the ILike method.");
         Expression propertyAccess = propertySelector.Body;
         MemberExpression efFunctionsProperty = Expression.Property(propertyAccess, nameof(EF.Functions));
 

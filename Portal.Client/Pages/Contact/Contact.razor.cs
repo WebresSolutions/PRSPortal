@@ -12,10 +12,14 @@ public partial class Contact
     [Parameter]
     public required int ContactId { get; set; }
 
+    #region Private Fields
     private ContactDetailsDto? _contact;
     private PagedResponse<ListJobDto>? _pagedJobs;
     private readonly int _rowsPerPage = 15;
     private int _currentPage = 1;
+    private bool isLoadingJobs = false;
+    #endregion
+
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
@@ -57,7 +61,7 @@ public partial class Contact
 
     private async Task LoadJobs(int page)
     {
-        IsLoading = true;
+        isLoadingJobs = true;
         try
         {
             Result<PagedResponse<ListJobDto>>? jobsResult = await _apiService.GetContactJobs(ContactId, page, _rowsPerPage, SortDirectionEnum.Desc, null);
@@ -77,7 +81,7 @@ public partial class Contact
         }
         finally
         {
-            IsLoading = false;
+            isLoadingJobs = false;
         }
     }
 

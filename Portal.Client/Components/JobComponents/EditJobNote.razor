@@ -1,0 +1,55 @@
+﻿@using Portal.Shared.DTO.Job
+@inject ISnackbar Snackbar
+
+<MudExRichTextEdit @ref="@Editor"
+                   ReadOnly="@_readOnly"
+                   Height="500"
+                   Class="m-2"
+                   Value="@_safeContent"
+                   ValueChanged="OnContentChanged"
+                   Placeholder="Start typing...">
+</MudExRichTextEdit>
+
+@code {
+    [Parameter] public required JobNoteDto Note { get; set; }
+
+    private MudExRichTextEdit Editor = null!;
+    private string _safeContent = "";
+    private bool _readOnly = false;
+    private bool _isActuallyLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isActuallyLoading = true;
+        StateHasChanged();
+
+        await Task.Yield();
+        await Task.Delay(300);
+
+        if (!string.IsNullOrEmpty(Note.Content))
+        {
+            Console.WriteLine($"[Debug] Content Length: {Note.Content.Length}");
+
+            // Check for massive Base64 strings that cause 30s hangs
+            if (Note.Content.Contains("data:image") && Note.Content.Length > 100000)
+            {
+                Snackbar.Add("Large images detected. Performance may be affected.", Severity.Warning);
+                _safeContent = Note.Content;
+            }
+            else
+            {
+                _safeContent = Note.Content;
+            }
+        }
+
+        // STEP 3: Reveal the editor
+        _isActuallyLoading = false;
+        StateHasChanged();
+    }
+
+    private void OnContentChanged(string value)
+    {
+        _safeContent = value;
+        // Note.Content = value;
+    }
+}
