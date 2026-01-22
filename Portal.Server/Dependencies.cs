@@ -74,20 +74,20 @@ public static class Dependencies
         }
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy("CorsPolicy",
-                builder => builder.WithOrigins(
-                        "http://localhost:8080",      //Angular Dev Server
-                        "http://localhost:44310",      //Local port
+            options.AddPolicy("CorsPolicy", policy =>
+            {
+                policy.WithOrigins(
+                        "http://localhost:5000",
+                        "https://localhost:5001",
+                        "http://localhost:44310",
                         "https://localhost:44310",
-                        "https://localhost:44331",
-                        "https://localhost:3000",
-                        "http://localhost:5000",       //API Standalone HTTP
-                        "https://localhost:5000",       //API Standalone HTTP
-                        "https://localhost:5001"     //API Standalone HTTPS
+                        "http://localhost:5555",
+                        "http://localhost:7357"
                     )
                     .AllowAnyHeader()
                     .AllowAnyMethod()
-                    .AllowCredentials()); // Allow credentials for authentication
+                    .AllowCredentials();
+            });
         });
 
     }
