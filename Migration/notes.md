@@ -10,3 +10,7 @@
 ### To Create a persistent database in docker: 
 	docker pull postgres
 	docker run --name pgdev -e POSTGRES_PASSWORD=145269 -p 5433:5432 -v pgdev-data:/var/lib/postgresql -d postgres
+
+
+	docker pull mysql
+	docker run --name mysqldev -e MYSQL_ROOT_PASSWORD=145269 -p 3307:3306 -v mysqldev-data:/var/lib/mysql -d mysql

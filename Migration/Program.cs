@@ -4,7 +4,6 @@ using Migration;
 using Migration.Display;
 using Migration.MigrationServices;
 using Migration.SourceDb;
-using Portal.Data;
 using System.Collections.Frozen;
 using Terminal.Gui;
 
@@ -72,6 +71,7 @@ internal class Program
         {
 
             MigrationService migration = new(_destinationContext!, _sourceContext!, users);
+            migration.SeedBaseData();
             migration.MigrateContacts(progressCallback);
             migration.MigrateCouncils(progressCallback);
             migration.MigrateJobs(progressCallback);
@@ -109,6 +109,7 @@ internal class Program
             .Options;
 
         _destinationContext = new(dbContextOptions);
+        // This connection is hard wired into the context
         _sourceContext = new();
 
         if (_destinationContext is null || _sourceContext is null)

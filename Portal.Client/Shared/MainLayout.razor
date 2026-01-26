@@ -6,7 +6,7 @@
 @inject HotKeys _hotKeys
 
 <div class="page">
-    <SideNav ToggleNav=ToggleNav Hide="@ToggleNav" NavLinks="navLinks" />
+    <SideNav NavToggled="@ToggleNav" NavLinks="navLinks" Minimize="hideSidebar"/>
     <div class="top-row @(headerVisible ? "header-visible" : "header-hidden")">
         <NavBar ShowNav="hideSidebar" ToggleNav=ToggleNav />
     </div>
@@ -58,7 +58,28 @@
         };
     }
 
-    private void ToggleNav() => hideSidebar = !hideSidebar;
+    private async Task ToggleNav()
+    {
+        hideSidebar = !hideSidebar;
+        SystemSettingsDto? sessionSettings = _sessionStorage.GetItem<SystemSettingsDto>("SystemSettings");
+
+        if (sessionSettings is null)
+        {
+            Result<SystemSettingDto> appsettings = await _apiService.GetSystemSettings();
+            if (appsettings.IsSuccess && appsettings.Value is not null)
+                sessionSettings = JsonSerializer.Deserialize<SystemSettingsDto>(appsettings.Value.SettingJson);
+            else
+                return;
+        }
+
+        sessionSettings.NavbarCollapsed = hideSidebar;
+        // Save to session storage for next time
+        _sessionStorage.SetItem("SystemSettings", sessionSettings);
+        string settingsJson = JsonSerializer.Serialize(sessionSettings);
+        SystemSettingDto obj = new() { SettingJson = settingsJson };
+        _ = await _apiService.UpdateSystemSettings(obj);
+    }
+
 
     private string MainClass => hideSidebar ? "main full" : "main";
 
@@ -73,7 +94,7 @@
                 .Add(ModCode.Ctrl | ModCode.Shift, Code.ArrowDown, () => GoToNextNavItem(false), new HotKeyOptions() { Description = "Navigate to the next page down" })
                 .Add(ModCode.Ctrl | ModCode.Shift, Code.S, OpenDialogAsync, new HotKeyOptions() { Description = "Opens the quick search for jobs" });
             await _jsRuntime.InvokeVoidAsync("initializeScrollHeader");
-            await LoadThemeSettings();
+            await LoadSystemSettings();
         }
     }
 
@@ -119,10 +140,10 @@
     }
 
 
-    private async Task LoadThemeSettings()
+    private async Task LoadSystemSettings()
     {
         // Try to load from session storage first (faster, no API call)
-        ThemeSettingsDto? sessionSettings = _sessionStorage.GetItem<ThemeSettingsDto>("SystemSettings");
+        SystemSettingsDto? sessionSettings = _sessionStorage.GetItem<SystemSettingsDto>("SystemSettings");
 
         if (sessionSettings is not null &&
             !string.IsNullOrWhiteSpace(sessionSettings.PrimaryColour) &&
@@ -144,13 +165,13 @@
 
         try
         {
-            ThemeSettingsDto? settings = JsonSerializer.Deserialize<ThemeSettingsDto>(appsettings.Value.SettingJson);
-
+            SystemSettingsDto? settings = JsonSerializer.Deserialize<SystemSettingsDto>(appsettings.Value.SettingJson);
             if (settings is null ||
                 string.IsNullOrWhiteSpace(settings.PrimaryColour) ||
                 string.IsNullOrWhiteSpace(settings.SecondaryColour))
                 return;
 
+            hideSidebar = settings.NavbarCollapsed;
             // Save to session storage for next time
             _sessionStorage.SetItem("SystemSettings", settings);
 

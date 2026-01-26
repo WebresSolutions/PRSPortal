@@ -23,11 +23,25 @@ internal class MigrationService(
     /// Cache of jobs to avoid multiple DB hits. Key is the legacy ID.
     /// </summary>
     private FrozenDictionary<int, Models.Job>? _jobsCache;
-
     /// <summary>
     /// Cache of users to avoid multiple DB hits. Key is the legacy ID, value is the new user ID.
     /// </summary>
     private readonly FrozenDictionary<int, int> _Users = users;
+
+    public void SeedBaseData()
+    {
+        string systemSettings = "{\r\n    \"settingJson\": \"{\\\"primaryColour\\\": \\\"#020402\\\", \\\"secondaryColour\\\": \\\"#F37748\\\"}\"\r\n}";
+        const string settingsKey = "SystemSettings";
+        ApplicationSetting applicationSetting = new()
+        {
+            Key = settingsKey,
+            Value = systemSettings,
+            CreatedAt = DateTime.UtcNow,
+            ModifiedAt = DateTime.UtcNow
+        };
+        _destinationContext.ApplicationSettings.Add(applicationSetting);
+        _destinationContext.SaveChanges();
+    }
 
     /// <summary>
     /// Migrates contacts from the source database to the destination database

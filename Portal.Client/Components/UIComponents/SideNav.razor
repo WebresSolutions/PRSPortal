@@ -1,24 +1,24 @@
 ﻿
 <nav class="sidebar d-flex ps-2 gap-2 flex-column shadow" style="background-color: var(--color-white)">
     <NavLink href="/">
-        <img alt="PRS" src=@(minimize ? "/images/MinimalLogo.svg" : "/images/PRS-Primary-Logo.svg")
-             style=@(minimize ? "width: 40px" : "width:120px") class="prs-logo ms-2" />
+        <img alt="PRS" src=@(Minimize ? "/images/MinimalLogo.svg" : "/images/PRS-Primary-Logo.svg")
+             style=@(Minimize ? "width: 40px" : "width:120px") class="prs-logo ms-2" />
     </NavLink>
-    <button @onclick="@(MinimizeSidebar)" class="nav-hide-button"><i class=@(!minimize ? "bi bi-arrow-left-circle" : "bi bi-arrow-right-circle")></i></button>
+    <button @onclick="@(MinimizeSidebar)" class="nav-hide-button"><i class=@(!Minimize ? "bi bi-arrow-left-circle" : "bi bi-arrow-right-circle")></i></button>
     <AuthorizeView>
         <ul class="nav flex-column mt-3">
             @foreach (NavLinkItem navItem in NavLinks)
             {
-                <li class="nav-item px-1 @(minimize ? "min" : "")">
+                <li class="nav-item px-1 @(Minimize ? "min" : "")">
                     <div class="nav-link-container">
                         <NavLink class="nav-link" href="@(navItem.Link is null ? null : navItem.Link)" Match="@(navItem.MatchAll? NavLinkMatch.All: NavLinkMatch.Prefix)">
                             <MudIcon Icon="@navItem.Icon" Title="@navItem.Title" />
-                            @if (!minimize)
+                            @if (!Minimize)
                             {
                                 <span class="nav-link-text">@navItem.Title</span>
                             }
                         </NavLink>
-                        @if (navItem.SubLinks.Count > 0 && !minimize)
+                        @if (navItem.SubLinks.Count > 0 && !Minimize)
                         {
                             <i class="@(expandedItems.ContainsKey(navItem) && expandedItems[navItem] ? "bi bi-chevron-up" : "bi bi-chevron-down") nav-chevron"
                                role="button"
@@ -27,7 +27,7 @@
                         }
                     </div>
                 </li>
-                @if (!minimize && navItem.SubLinks.Count > 0 && expandedItems.ContainsKey(navItem) && expandedItems[navItem])
+                @if (!Minimize && navItem.SubLinks.Count > 0 && expandedItems.ContainsKey(navItem) && expandedItems[navItem])
                 {
                     <li class="sublinks-container">
                         <ul class="sublinks">
@@ -69,15 +69,14 @@
 
 @code {
     [Parameter]
-    public required Action ToggleNav { get; set; }
-
-    [Parameter]
-    public required EventCallback Hide { get; set; }
+    public required EventCallback NavToggled { get; set; }
 
     [Parameter]
     public required List<NavLinkItem> NavLinks { get; set; }
 
-    private bool minimize = false;
+    [Parameter]
+    public bool Minimize { get; set; }
+
     private Dictionary<NavLinkItem, bool> expandedItems = new();
 
     protected override async Task OnInitializedAsync()
@@ -100,11 +99,11 @@
 
     private async Task MinimizeSidebar()
     {
-        minimize = !minimize;
-        await Hide.InvokeAsync();
+        Minimize = !Minimize;
+        await NavToggled.InvokeAsync();
     }
 
-    private string width() => minimize ? "width: 40px" : "width: 120px";
+    private string width() => Minimize ? "width: 40px" : "width: 120px";
 
 
     private void BeginSignOut(MouseEventArgs args)

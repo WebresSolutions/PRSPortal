@@ -10,7 +10,11 @@
         {
             @foreach (JobNoteDto note in Notes)
             {
-                <div class="note-item">
+                <div class="note-item" @onmouseover="@(() => editButtonToShow = note.NoteId)" @onmouseleave="@(() => editButtonToShow = 0)">
+                    @if (editButtonToShow == note.NoteId)
+                    {
+                        <MudButton OnClick="@(async() => await OpenDialogAsync(note))" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.RemoveRedEye" Class="view-button">View</MudButton>
+                    }
                     <div class="note-content">
                         <div class="note-title">@((MarkupString)note.Content)</div>
                     </div>
@@ -31,10 +35,20 @@
     [Parameter]
     public EventCallback OnAdd { get; set; }
 
+    private int editButtonToShow = 0;
+
     private string GetNoteDate(JobNoteDto note)
     {
         // Dummy date since JobNoteDto doesn't have a date field
         return note.DateCreated.ToString("dddd d-MMM-yyyy h:mmtt");
+    }
+
+    private async Task OpenDialogAsync(JobNoteDto note)
+    {
+        DialogParameters parameter = new DialogParameters<JobNoteDto> { { "Note", note } };
+        DialogOptions options = new() { CloseButton = false, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
+
+        IDialogReference _ = await _dialog.ShowAsync<EditJobNote>("", parameter, options);
     }
 }
 
