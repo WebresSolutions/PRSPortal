@@ -1,0 +1,25 @@
+services:
+  prs-portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prs-portal-app
+    environment:
+      - ASPNETCORE_ENVIRONMENT=LocalDocker
+      - ASPNETCORE_URLS=http://+:9900;https://+:9901
+      - BlazorWebAssembly__PublicHost=https://localhost:9901
+      - BlazorWebAssembly__DetailedErrors=true
+    ports:
+      - "9900:9900"
+      - "9901:9901"
+    volumes:
+      - ~/.aspnet/https:/https/
+    networks:
+      - prs-portal-network
+
+volumes:
+  postgres-data:
+
+networks:
+  prs-portal-network:
+    driver: bridge

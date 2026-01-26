@@ -4,7 +4,7 @@ using Scalar.AspNetCore;
 namespace Portal.Server;
 
 /// <summary>
-/// Main entry point for the Casimo Server application
+/// Main entry point for the PRS Portal Server application
 /// Configures and runs the ASP.NET Core web application with authentication, database, and API endpoints
 /// </summary>
 
