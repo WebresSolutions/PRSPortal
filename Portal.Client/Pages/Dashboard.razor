@@ -114,7 +114,7 @@
                  @ondragover="() => { }"
                  @ondrop="HandleDrop">
 
-                @foreach (var item in GridState)
+                @foreach (GridItem item in GridState.Items)
                 {
                     <div class="grid-item"
                          style="@item.AsCss()"

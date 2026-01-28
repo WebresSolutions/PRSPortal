@@ -258,19 +258,27 @@
     display: grid;
     grid-template-columns: repeat(8, 120px);
     grid-template-rows: repeat(8, 120px);
-
+    max-height: calc((120 + 8) * 8);
+    max-width: calc((120 + 8) * 8);
+    gap: 8px;
     /* Create the grid background */
-    background-size: calc(150px + 1rem) calc(150px + 1rem);
-    background-image:
-        linear-gradient(to right, #e0e0e0 1px, transparent 1px),
-        linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
-    background-color: #f9f9f9; 
-    min-height: 100vh;
+    background-size: calc(120px + 8px) calc(120px + 8px);
+    background-image: linear-gradient(to right, #e0e0e0 1px, transparent 1px), linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
+    background-color: var(--color-background);
+    border-radius: var(--border-rad);
+    overflow: hidden;
 }
 
 .grid-item {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     background: var(--color-white);
     color: var(--color-primary);
     border-radius: var(--border-rad);
     padding: 1rem;
+}
+
+@media(min-width: 700px) {
+    .custom-grid {
+        grid-auto-columns: 1fr 1fr;
+    }
 }

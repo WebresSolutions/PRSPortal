@@ -13,7 +13,7 @@ public partial class Dashboard
         [
             new GridItem { X = 0, Y = 0, ItemId = "item1", ColSpan = 3, RowSpan = 2},
             new GridItem { X = 3, Y = 2, ItemId = "item2", ColSpan = 2},
-            new GridItem { X = 0, Y = 5, ItemId = "item3" , RowSpan=  6},
+            new GridItem { X = 0, Y = 5, ItemId = "item3" , RowSpan=  2},
         ];
     }
 
@@ -35,8 +35,8 @@ public partial class Dashboard
         // Note: e.OffsetX/Y can be tricky depending on which child element you drop on.
         // For a production app, you might use a JS helper to get precise coordinates,
         // but here is the logic for a basic implementation:
-        draggedItem.X = Math.Round(e.ClientX / step);
-        draggedItem.Y = Math.Round(e.ClientY / step);
+        draggedItem.X = Math.Round(e.OffsetX / step);
+        draggedItem.Y = Math.Round(e.OffsetY / step);
 
         draggedItem = null; // Reset
     }
