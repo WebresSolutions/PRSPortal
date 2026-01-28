@@ -1,7 +1,7 @@
 @inherits BaseDataComponent
 @page "/"
 
-<AuthorizeView  Context="c">
+<AuthorizeView Context="c">
     <Authorized>
         <div class="container">
             <div class="header-section">
@@ -9,8 +9,7 @@
                 <p class="welcome-text">Welcome back! Here's what's happening today.</p>
             </div>
 
-            <div class="dashboard-grid">
-                @* Quick Stats Row *@
+            @* <div class="dashboard-grid">
                 <div class="stat-card-wrapper">
                     <div class="stat-card">
                         <div class="stat-title">Total Leads</div>
@@ -109,6 +108,22 @@
                         </div>
                     </div>
                 </div>
+            </div> *@
+            <div class="custom-grid"
+                 @ondragover:preventDefault
+                 @ondragover="() => { }"
+                 @ondrop="HandleDrop">
+
+                @foreach (var item in GridState)
+                {
+                    <div class="grid-item"
+                         style="@item.AsCss()"
+                         draggable="true"
+                         @ondragstart="() => HandleDragStart(item)">
+                        <h4>@item.ItemId</h4>
+                        <small>Pos: @item.X, @item.Y</small>
+                    </div>
+                }
             </div>
         </div>
 
