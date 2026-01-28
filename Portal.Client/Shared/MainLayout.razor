@@ -98,10 +98,7 @@
         }
     }
 
-    private Task OpenDialogAsync()
-    {
-        return _dialog.ShowAsync<SearchDialog>("", new DialogOptions() { CloseButton = true, CloseOnEscapeKey = true });
-    }
+    private async Task OpenDialogAsync() => await _dialog.ShowAsync<SearchDialog>("", new DialogOptions() { CloseButton = true, CloseOnEscapeKey = true });
 
     public async ValueTask DisposeAsync()
     {

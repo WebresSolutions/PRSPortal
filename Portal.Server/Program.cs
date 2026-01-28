@@ -84,6 +84,7 @@ public class Program
         app.AddSettingEndpoints(enableAuth);
         app.AddCouncilEndpoints(enableAuth);
         app.AddContactEndpoints(enableAuth);
+        app.TimeSheetendpoints(enableAuth);
 
         app.Run();
     }
