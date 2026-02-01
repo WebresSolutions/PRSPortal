@@ -53,6 +53,12 @@ public static class Dependencies
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
 
+        string tenantId = builder.Configuration.GetValue<string>("AzureAd:TenantId") ?? throw new Exception("tenantid missing");
+        string clientId = builder.Configuration.GetValue<string>("AzureAd:ClientId") ?? throw new Exception("tenantid missing");
+
+        // Use a factory lambda to register the instance
+        builder.Services.AddSingleton<IGraphService>(sp => new GraphService(clientId, tenantId));
+
         // Inject Services
         builder.Services.AddScoped<IAccountingApi, AccountingApi>();
         builder.Services.AddScoped<IXeroIntegrationService, XeroIntegrationService>();

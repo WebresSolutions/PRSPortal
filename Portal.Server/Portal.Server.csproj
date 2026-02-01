@@ -23,8 +23,10 @@
 		<PackageReference Include="Quartz.Extensions.Hosting" Version="3.15.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
-		<PackageReference Include="Scalar.AspNetCore" Version="2.12.18" />
-		<PackageReference Include="Xero.NetStandard.OAuth2" Version="12.4.0" />
+		<PackageReference Include="Scalar.AspNetCore" Version="2.12.24" />
+		<PackageReference Include="Xero.NetStandard.OAuth2" Version="12.5.0" />
+		<PackageReference Include="Azure.Identity" Version="1.17.1" />
+		<PackageReference Include="Microsoft.Graph" Version="5.101.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Update="Properties\Resources.Designer.cs">

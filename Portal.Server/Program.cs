@@ -1,4 +1,7 @@
+using Portal.Data;
 using Portal.Server.Controllers;
+using Portal.Server.Helpers;
+using Portal.Server.Services.Interfaces;
 using Scalar.AspNetCore;
 
 namespace Portal.Server;
@@ -85,6 +88,15 @@ public class Program
         app.AddCouncilEndpoints(enableAuth);
         app.AddContactEndpoints(enableAuth);
         app.TimeSheetendpoints(enableAuth);
+
+        // Seed database with an initial client application and test user
+        using (IServiceScope scope = app.Services.CreateScope())
+        {
+            IGraphService graphService = scope.ServiceProvider.GetService<IGraphService>() ?? throw new Exception("Graph service not registered.");
+            PrsDbContext dbContext = scope.ServiceProvider.GetService<PrsDbContext>() ?? throw new Exception("Database not registered.");
+
+            MigrateUsers.MigrateUsersFromAzure(dbContext, graphService);
+        }
 
         app.Run();
     }

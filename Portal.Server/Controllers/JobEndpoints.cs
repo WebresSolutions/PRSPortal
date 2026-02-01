@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
@@ -33,15 +32,6 @@ public static class JobEndpoints
             HttpContext httpContext
             ) =>
         {
-            if (await httpContext.AuthenticateAsync() is AuthenticateResult auth)
-            {
-                if (auth.Succeeded)
-                    Console.WriteLine("Auth success");
-                else
-                    Console.WriteLine("Auth failed");
-            }
-            else
-                Console.WriteLine("No auth result");
 
             if (page <= 0)
                 page = 1;
@@ -62,8 +52,21 @@ public static class JobEndpoints
             if (jobId <= 0)
                 return Results.BadRequest("Bad Request");
 
-
             Result<JobDetailsDto> result = await jobService.GetJob(jobId);
+            return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
+        });
+
+        appGroup.MapGet("notes/{userId}", async (
+            [FromServices] IJobService jobService,
+            [FromRoute] int userId,
+            [FromQuery] bool includeDeleted,
+            HttpContext httpContext
+            ) =>
+        {
+            if (userId < 0)
+                return Results.BadRequest("Bad Request");
+
+            Result<List<JobNoteDto>> result = await jobService.GetUserAssignedJobsNotes(httpContext, userId, includeDeleted);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         });
 
@@ -72,4 +75,5 @@ public static class JobEndpoints
         else
             appGroup.AllowAnonymous();
     }
+
 }

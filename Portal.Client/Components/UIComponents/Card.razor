@@ -52,10 +52,16 @@
     [Parameter]
     public int Height { get; set; } = 300;
 
+    /// <summary>
+    /// The title actions to be displayed alongside the title.
+    /// </summary>
     [Parameter]
     public Action? TitleActions { get; set; }
 
-	private string _heightString => Height > 0 ? $"{Height}px" : "300px";
+    /// <summary> 
+    /// Gets the height string for CSS styling
+    /// </summary>
+    private string _heightString => Height > 0 ? $"{Height}px" : "300px";
 
     /// <summary>
     /// Gets or sets the title content to be displayed within the card
@@ -144,32 +150,4 @@
         bottom: 0px !important;
         right: 0 !important;
     }
-
-  /*   @@media (min-width: 768px) {
-        .card-container {
-            width: fit-content;
-        }
-    }
-
-    @@media (min-width: 900px) {
-        .card-container {
-            width: 800px;
-        }
-    }
-
-    @@media (min-width: 992px) {
-        .card-container {
-            width: 970px;
-        }
-    }
-    @@media (min-width: 1060px) {
-        .card-container {
-            width: 1000px;
-        }
-    }
-    @@media (min-width: 1200px) {
-        .card-container {
-            width: auto;
-        }
-    } */
 </style>

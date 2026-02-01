@@ -201,4 +201,40 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         result.Value = job;
         return result;
     }
+
+    public async Task<Result<List<JobNoteDto>>> GetUserAssignedJobsNotes(HttpContext httpContext, int userId, bool includeDeleted)
+    {
+        Result<List<JobNoteDto>> result = new();
+
+        try
+        {
+            if (userId is 0)
+            {
+                // Get the calling user
+            }
+
+            result.Value = await _dbContext.JobNotes
+                .Where(x => x.AssignedUserId == userId &&
+                    includeDeleted || x.DeletedAt == null
+                )
+                .Select(n => new JobNoteDto
+                {
+                    NoteId = n.Id,
+                    Content = n.Note,
+                    AssignedUser = n.AssignedUserId != null
+                    ? new(n.AssignedUserId.Value, n.AssignedUser!.DisplayName ?? "")
+                    : null,
+                    DateCreated = n.CreatedOn
+                })
+                .OrderByDescending(n => n.DateCreated)
+                .ToListAsync();
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get user assigned job notes");
+            return result.SetError(ErrorType.InternalError, "Failed to get user assigned job notes");
+        }
+    }
 }

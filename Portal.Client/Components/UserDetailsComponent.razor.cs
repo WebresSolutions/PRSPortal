@@ -10,7 +10,7 @@ namespace Portal.Client.Components;
 /// Blazor component for displaying and managing authenticated user information
 /// Handles authentication state and access token retrieval
 /// </summary>
-public partial class User
+public partial class UserDetailsComponent
 {
     /// <summary>
     /// Gets or sets the cascading authentication state parameter
