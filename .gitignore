@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Local HTTPS cert for Docker (export dev cert here)
+https/
+
 # User-specific files
 *.rsuser
 *.suo

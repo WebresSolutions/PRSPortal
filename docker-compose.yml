@@ -1,3 +1,4 @@
+
 services:
   prs-portal:
     build:
@@ -6,19 +7,22 @@ services:
     container_name: prs-portal-app
     environment:
       - ASPNETCORE_ENVIRONMENT=LocalDocker
-      - ASPNETCORE_URLS=http://+:9900;https://+:9901
+      - ASPNETCORE_URLS=https://+:9901;http://+:9900
+      - ASPNETCORE_HTTPS_PORTS=9901
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=dev
       - BlazorWebAssembly__PublicHost=https://localhost:9901
       - BlazorWebAssembly__DetailedErrors=true
+      # Connect to existing Postgres on host (pgdev @ localhost:5433)
+      - ConnectionStrings__PrsConnection=Host=host.docker.internal;Port=5433;Database=prs_database;Username=postgres;Password=145269;
     ports:
       - "9900:9900"
       - "9901:9901"
     volumes:
-      - ~/.aspnet/https:/https/
+      # Cert from Option A (./https). For Option B use: ${USERPROFILE}/.aspnet/https:/https:ro
+      - ./https:/https:ro
     networks:
       - prs-portal-network
-
-volumes:
-  postgres-data:
 
 networks:
   prs-portal-network:

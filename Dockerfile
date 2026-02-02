@@ -13,11 +13,14 @@ COPY ["Portal.Data/Portal.Data.csproj", "Portal.Data/"]
 COPY ["Portal.Shared/Portal.Shared.csproj", "Portal.Shared/"]
 COPY ["Portal.Client/Portal.Client.csproj", "Portal.Client/"]
 
-# Restore dependencies
+# Restore Server and all referenced projects (Shared, Data, Client)
 RUN dotnet restore "Portal.Server/Portal.Server.csproj"
 
 # Copy all source code
 COPY . .
+
+# Re-restore after copy so obj/ and project.assets.json use container paths only (avoids Windows NuGet path errors)
+RUN dotnet restore "Portal.Server/Portal.Server.csproj"
 
 # Build Shared project first
 WORKDIR "/src/Portal.Shared"
@@ -38,6 +41,8 @@ RUN dotnet build -c $BUILD_CONFIGURATION --no-restore
 RUN dotnet publish "Portal.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --no-restore
 
 FROM base AS final
+# Required by Npgsql for PostgreSQL connection (GSSAPI/Kerberos)
+RUN apt-get update && apt-get install -y --no-install-recommends libgssapi-krb5-2 && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Copy the published server application

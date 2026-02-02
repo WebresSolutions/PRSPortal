@@ -22,8 +22,7 @@ public class Program
         Console.WriteLine("Adding databases and identity services");
         builder.AddDatabases();
 
-        Console.WriteLine("Skipping databases and identity services for IntegrationTests");
-
+        Console.WriteLine("Adding application services");
         builder.AddServices();
 
         WebApplication? app = builder.Build();

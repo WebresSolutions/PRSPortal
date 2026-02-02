@@ -16,7 +16,9 @@ docker-compose.yml
 *.swo
 *~
 
-# Build results
+# Build results (explicit patterns so Windows/Docker context never copies host obj/bin)
+**/bin/
+**/obj/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
