@@ -31,65 +31,76 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         Result<PagedResponse<ListJobDto>> result = new();
         try
         {
-            IQueryable<Job> jobQuery = _dbContext.Jobs
+            // 1. Define the base query with standard non-deleted filter
+            IQueryable<Job> baseQuery = _dbContext.Jobs
                 .AsNoTracking()
-                .Where(x => x.DeletedAt == null)
-                .AsQueryable();
+                .Where(x => x.DeletedAt == null);
+
+            IQueryable<Job> jobQuery;
 
             if (!searchFilter.IsNullOrWhiteSpace())
             {
                 searchFilter = searchFilter!.Trim();
                 bool isNumeric = int.TryParse(searchFilter, out int numericValue);
-                jobQuery = jobQuery.Where(job =>
-                            (isNumeric && job.Id == numericValue)
-                            || (isNumeric && job.JobNumber != null && job.JobNumber.Value == numericValue)
-                            || job.Address != null && job.Address.SearchVector != null && job.Address.SearchVector.Matches(searchFilter)
-                            || job.Contact.SearchVector != null && job.Contact.SearchVector.Matches(searchFilter));
+
+                // Branch A: Text Search (Uses GIN indexes on SearchVectors)
+                IQueryable<Job> textSearchQuery = baseQuery.Where(job =>
+                    (job.Address != null && job.Address.SearchVector.Matches(searchFilter)) ||
+                    (job.Contact != null && job.Contact.SearchVector.Matches(searchFilter)));
+
+                if (isNumeric)
+                {
+                    // Branch B: Numeric Search (Uses B-Tree indexes on Id/JobNumber)
+                    IQueryable<Job> numericSearchQuery = baseQuery.Where(job =>
+                        job.Id == numericValue ||
+                        (job.JobNumber != null && job.JobNumber.Value == numericValue));
+
+                    // Combine them using UNION. 
+                    // This allows Postgres to use both GIN and B-Tree indexes independently.
+                    jobQuery = textSearchQuery.Union(numericSearchQuery);
+                }
+                else
+                {
+                    jobQuery = textSearchQuery;
+                }
             }
-            string stringQUery = jobQuery.ToQueryString();
+            else
+            {
+                jobQuery = baseQuery;
+            }
+
+            // 2. Sorting (remains the same, now acting on the Union-ed set)
             bool isDescending = order is SortDirectionEnum.Desc;
             jobQuery = orderby switch
             {
-                nameof(ListJobDto.JobId) => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Id)
-                    : jobQuery.OrderBy(x => x.Id),
-                nameof(ListJobDto.Contact1.fullName) => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Contact.FullName)
-                    : jobQuery.OrderBy(x => x.Contact.FullName),
-                nameof(ListJobDto.JobNumber) => isDescending
-                    ? jobQuery.OrderByDescending(x => x.JobNumber)
-                    : jobQuery.OrderBy(x => x.JobNumber),
-                // Address sub-properties - EF Core can handle null navigation properties
-                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.suburb)}" => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Address!.Suburb)
-                    : jobQuery.OrderBy(x => x.Address!.Suburb),
-                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.street)}" => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Address!.Street)
-                    : jobQuery.OrderBy(x => x.Address!.Street),
-                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.postCode)}" => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Address!.PostCode)
-                    : jobQuery.OrderBy(x => x.Address!.PostCode),
-                _ => jobQuery.OrderByDescending(x => x.Id) // Default ordering by JobId
+                nameof(ListJobDto.JobId) => isDescending ? jobQuery.OrderByDescending(x => x.Id) : jobQuery.OrderBy(x => x.Id),
+                nameof(ListJobDto.Contact1.fullName) => isDescending ? jobQuery.OrderByDescending(x => x.Contact.FullName) : jobQuery.OrderBy(x => x.Contact.FullName),
+                nameof(ListJobDto.JobNumber) => isDescending ? jobQuery.OrderByDescending(x => x.JobNumber) : jobQuery.OrderBy(x => x.JobNumber),
+                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.suburb)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.Suburb) : jobQuery.OrderBy(x => x.Address!.Suburb),
+                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.street)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.Street) : jobQuery.OrderBy(x => x.Address!.Street),
+                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.postCode)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.PostCode) : jobQuery.OrderBy(x => x.Address!.PostCode),
+                _ => jobQuery.OrderByDescending(x => x.Id)
             };
 
+            // 3. Execution & Paging
+            int total = await jobQuery.CountAsync(); // Note: Count the union-ed set
             int skipValue = (page - 1) * pageSize;
+
             List<ListJobDto> jobs = await jobQuery
-                        .Skip(skipValue)
-                        .Take(pageSize)
-                        .Select(x => new ListJobDto(
-                            x.Id,
-                            new AddressDTO(x.AddressId ?? 1, (StateEnum)x.Address!.StateId!, x.Address.StateId ?? 3, x.Address.Suburb, x.Address.Street, x.Address.PostCode),
-                            x.Contact != null ? new ContactDto(x.ContactId, x.Contact.FullName) : null,
-                            x.Contact != null && x.Contact.ParentContact != null ? new ContactDto(x.Contact.ParentContactId ?? 0, x.Contact.ParentContact!.FullName) : null,
-                            x.JobNumber,
-                            x.JobType.Name,
-                            x.JobTypeId
-                            ))
-                        .ToListAsync();
-            int total = await jobQuery.CountAsync();
-            // Create the paged response
-            PagedResponse<ListJobDto> pagedResponse = new(jobs, pageSize, page, total);
-            result.Value = pagedResponse;
+                .Skip(skipValue)
+                .Take(pageSize)
+                .Select(x => new ListJobDto(
+                    x.Id,
+                    new AddressDTO(x.AddressId ?? 1, (StateEnum)x.Address!.StateId!, x.Address.StateId ?? 3, x.Address.Suburb, x.Address.Street, x.Address.PostCode),
+                    x.Contact != null ? new ContactDto(x.ContactId, x.Contact.FullName) : null,
+                    x.Contact != null && x.Contact.ParentContact != null ? new ContactDto(x.Contact.ParentContactId ?? 0, x.Contact.ParentContact!.FullName) : null,
+                    x.JobNumber,
+                    x.JobType.Name,
+                    x.JobTypeId
+                ))
+                .ToListAsync();
+
+            result.Value = new PagedResponse<ListJobDto>(jobs, pageSize, page, total);
             return result;
         }
         catch (Exception ex)
@@ -214,8 +225,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
             }
 
             result.Value = await _dbContext.JobNotes
-                .Where(x => x.AssignedUserId == userId &&
-                    includeDeleted || x.DeletedAt == null
+                .Where(x => (x.AssignedUserId == userId &&
+                    includeDeleted) || x.DeletedAt == null
                 )
                 .Select(n => new JobNoteDto
                 {

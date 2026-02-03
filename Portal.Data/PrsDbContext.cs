@@ -7,10 +7,6 @@ namespace Portal.Data;
 
 public partial class PrsDbContext : DbContext
 {
-    public PrsDbContext()
-    {
-    }
-
     public PrsDbContext(DbContextOptions<PrsDbContext> options)
         : base(options)
     {
@@ -29,6 +25,12 @@ public partial class PrsDbContext : DbContext
     public virtual DbSet<Council> Councils { get; set; }
 
     public virtual DbSet<CouncilContact> CouncilContacts { get; set; }
+
+    public virtual DbSet<Dashboard> Dashboards { get; set; }
+
+    public virtual DbSet<DashboardContent> DashboardContents { get; set; }
+
+    public virtual DbSet<DashboardItem> DashboardItems { get; set; }
 
     public virtual DbSet<FileType> FileTypes { get; set; }
 
@@ -65,9 +67,6 @@ public partial class PrsDbContext : DbContext
     public virtual DbSet<TimesheetEntry> TimesheetEntries { get; set; }
 
     public virtual DbSet<UserJob> UserJobs { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql("Name=PrsConnection");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -455,6 +454,93 @@ public partial class PrsDbContext : DbContext
                 .HasConstraintName("council_contact_modified_by_user_id_fkey");
         });
 
+        modelBuilder.Entity<Dashboard>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("dashboard_pkey");
+
+            entity.ToTable("dashboard");
+
+            entity.HasIndex(e => e.UserId, "idx_user_dashboard_user");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.DashboardX)
+                .HasDefaultValue(12)
+                .HasColumnName("dashboard_x");
+            entity.Property(e => e.DashboardY)
+                .HasDefaultValue(12)
+                .HasColumnName("dashboard_y");
+            entity.Property(e => e.IsDefault)
+                .HasDefaultValue(false)
+                .HasColumnName("is_default");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .HasDefaultValueSql("'Dashboard'::character varying")
+                .HasColumnName("name");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Dashboards)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("dashboard_user_id_fkey");
+        });
+
+        modelBuilder.Entity<DashboardContent>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("dashboard_content_pkey");
+
+            entity.ToTable("dashboard_content", tb => tb.HasComment("Holds widgets defined in the front end."));
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<DashboardItem>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("dashboard_item_pkey");
+
+            entity.ToTable("dashboard_item");
+
+            entity.HasIndex(e => e.ContentId, "idx_dashboard_item_content");
+
+            entity.HasIndex(e => e.DashboardId, "idx_dashboard_item_dashboard_id");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.Colspan).HasColumnName("colspan");
+            entity.Property(e => e.ContentId).HasColumnName("content_id");
+            entity.Property(e => e.CustomTitle)
+                .HasMaxLength(100)
+                .HasColumnName("custom_title");
+            entity.Property(e => e.DashboardId).HasColumnName("dashboard_id");
+            entity.Property(e => e.IsHidden).HasColumnName("is_hidden");
+            entity.Property(e => e.PositionX).HasColumnName("position_x");
+            entity.Property(e => e.PositionY).HasColumnName("position_y");
+            entity.Property(e => e.Rowspan).HasColumnName("rowspan");
+            entity.Property(e => e.Settings)
+                .HasDefaultValueSql("'{}'::jsonb")
+                .HasColumnType("jsonb")
+                .HasColumnName("settings");
+
+            entity.HasOne(d => d.Content).WithMany(p => p.DashboardItems)
+                .HasForeignKey(d => d.ContentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("dashboard_item_content_id_fkey");
+
+            entity.HasOne(d => d.Dashboard).WithMany(p => p.DashboardItems)
+                .HasForeignKey(d => d.DashboardId)
+                .HasConstraintName("dashboard_item_dashboard_id_fkey");
+        });
+
         modelBuilder.Entity<FileType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("file_type_pkey");
@@ -730,9 +816,7 @@ public partial class PrsDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
             entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
-            entity.Property(e => e.Description)
-                .HasMaxLength(255)
-                .HasColumnName("description");
+            entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.InvoiceRequired).HasColumnName("invoice_required");
             entity.Property(e => e.InvoicedDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")

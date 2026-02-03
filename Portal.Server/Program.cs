@@ -1,6 +1,5 @@
 using Portal.Data;
 using Portal.Server.Controllers;
-using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Scalar.AspNetCore;
 
@@ -94,7 +93,7 @@ public class Program
             IGraphService graphService = scope.ServiceProvider.GetService<IGraphService>() ?? throw new Exception("Graph service not registered.");
             PrsDbContext dbContext = scope.ServiceProvider.GetService<PrsDbContext>() ?? throw new Exception("Database not registered.");
 
-            MigrateUsers.MigrateUsersFromAzure(dbContext, graphService);
+            //MigrateUsers.MigrateUsersFromAzure(dbContext, graphService);
         }
 
         app.Run();

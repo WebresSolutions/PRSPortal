@@ -1,4 +1,7 @@
 -- Tier 1: Tables with FKs pointing to other tables (Junction/Child tables)
+drop table if exists dashboard_item;
+drop table if exists dashboard_content;
+drop table if exists dashboard;
 DROP TABLE IF EXISTS schedule;
 DROP TABLE IF EXISTS schedule_user;
 DROP TABLE IF EXISTS timesheet_entry;
@@ -33,6 +36,7 @@ DROP TABLE IF EXISTS application_setting;
 -- EXTENSIONS
 -- ============================================================================
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
+-- CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- ============================================================================
 -- APP USER TABLE
@@ -94,6 +98,7 @@ CREATE TABLE address (
     modified_by_user_id INT REFERENCES app_user(id),
     modified_on TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ DEFAULT NULL,
+    geohash VARCHAR(12),
     search_vector tsvector GENERATED ALWAYS AS (
             setweight(to_tsvector('english', coalesce(street, '')), 'A') ||
             setweight(to_tsvector('english', coalesce(suburb, '')), 'B')
@@ -109,7 +114,8 @@ CREATE INDEX idx_address_created_by ON address(created_by_user_id);
 -- Add trigram indexes for text search on address fields
 CREATE INDEX idx_address_street_trgm ON address USING GIN(street gin_trgm_ops);
 CREATE INDEX idx_address_suburb_trgm ON address USING GIN(suburb gin_trgm_ops);
-
+CREATE INDEX idx_address_geo_hash ON address(geohash);
+CREATE INDEX idx_address_search_vector ON address USING GIN(search_vector);
 -- Optional: Combined trigram index if users often search across both fields
 CREATE INDEX idx_address_street_suburb_trgm ON address USING GIN((street || ' ' || suburb) gin_trgm_ops);
 
@@ -151,6 +157,7 @@ CREATE INDEX idx_contact_created_by ON contact(created_by_user_id);
 CREATE INDEX idx_contact_name_trgm ON contact USING GIN(full_name gin_trgm_ops);
 CREATE INDEX idx_contact_email_trgm ON contact USING GIN(email gin_trgm_ops);
 CREATE INDEX idx_contact_phone_trgm ON contact USING GIN(phone gin_trgm_ops);
+CREATE INDEX idx_contact_search_vector ON contact USING GIN(search_vector);
 
 -- ============================================================================
 -- COUNCIL TABLE
@@ -581,6 +588,9 @@ CREATE INDEX idx_schedule_start_time ON schedule(start_time);
 CREATE INDEX idx_schedule_end_time ON schedule(end_time);
 CREATE INDEX idx_schedule_created_by ON schedule(created_by_user_id);
 
+-- ============================================================================
+-- APPLICATION SETTINGS TABLE
+-- ============================================================================
 CREATE TABLE application_setting(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     key VARCHAR(255) NOT NULL,
@@ -589,3 +599,51 @@ CREATE TABLE application_setting(
     modified_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT application_settings_key_unique UNIQUE (key)
 );
+
+-- ============================================================================
+-- USER DASHBOARD TABLE
+-- ============================================================================
+CREATE TABLE dashboard(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id INT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL DEFAULT 'Dashboard',
+    is_default BOOLEAN DEFAULT FALSE,
+    dashboard_y INT NOT NULL DEFAULT 12,
+    dashboard_x INT NOT NULL DEFAULT 12,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_on TIMESTAMPTZ
+);
+
+-- Index for fast loading of a specific user's dashboards
+CREATE INDEX idx_user_dashboard_user ON dashboard(user_id);
+
+-- ============================================================================
+-- DASHBOARD ITEM CONTENT
+-- ============================================================================
+CREATE TABLE dashboard_content(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(50) NOT NULL -- Removed trailing comma
+);
+
+COMMENT ON TABLE dashboard_content IS 'Holds widgets defined in the front end.';
+
+-- ============================================================================
+-- DASHBOARD ITEM TABLE
+-- ============================================================================
+CREATE TABLE dashboard_item (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    dashboard_id INT NOT NULL REFERENCES dashboard(id) ON DELETE CASCADE,
+    content_id INT NOT NULL REFERENCES dashboard_content(id),
+    -- Layout
+    position_x INT NOT NULL,
+    position_y INT NOT NULL,
+    colspan INT NOT NULL,
+    rowspan INT NOT NULL,
+    -- Customization
+    custom_title VARCHAR(100),
+    settings JSONB DEFAULT '{}'::jsonb,
+    is_hidden BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX idx_dashboard_item_dashboard_id ON dashboard_item(dashboard_id);
+CREATE INDEX idx_dashboard_item_content ON dashboard_item(content_id);

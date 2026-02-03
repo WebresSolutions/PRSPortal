@@ -51,6 +51,8 @@ public partial class AppUser
 
     public virtual ICollection<Council> CouncilModifiedByUsers { get; set; } = new List<Council>();
 
+    public virtual ICollection<Dashboard> Dashboards { get; set; } = new List<Dashboard>();
+
     public virtual ICollection<AppUser> InverseModifiedByUser { get; set; } = new List<AppUser>();
 
     public virtual ICollection<Job> JobCreatedByUsers { get; set; } = new List<Job>();
