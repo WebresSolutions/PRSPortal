@@ -74,24 +74,26 @@
         display: flex;
         align-items: center;
         line-height: 3rem;
-        transition: all ease-in-out 0.2s;
+        transition: all ease-in-out 0.5s;
         min-width: 120px;
     }
 
     .nav-item.min ::deep a {
         min-width: unset;
+        transition: all ease-in-out 0.5s;
     }
 
     .nav-item ::deep a.active {
         background-color: var(--color-background);
         color: var(--color-secondary) !important;
         border-bottom: 2px solid #e2e8f0;
+        transition: all ease-in-out 0.5s;
     }
 
     .nav-item ::deep a:hover {
         background-color: var(--color-background);
         /*color: var(--color-grey-dark);*/
-        transition: all ease-in-out 0.2s;
+        transition: all ease-in-out 0.5s;
         transform: translateY(-3px);
     }
 

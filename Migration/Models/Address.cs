@@ -34,6 +34,8 @@ public partial class Address
     /// </summary>
     public DateTime? DeletedAt { get; set; }
 
+    public string? Geohash { get; set; }
+
     public NpgsqlTsVector SearchVector { get; set; } = null!;
 
     public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();

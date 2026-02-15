@@ -82,6 +82,10 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.DeletedAt, "idx_address_deleted_at");
 
+            entity.HasIndex(e => e.Geohash, "idx_address_geo_hash");
+
+            entity.HasIndex(e => e.SearchVector, "idx_address_search_vector").HasMethod("gin");
+
             entity.HasIndex(e => e.StateId, "idx_address_state_id");
 
             entity.HasIndex(e => e.Street, "idx_address_street_trgm")
@@ -107,6 +111,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.DeletedAt)
                 .HasComment("Soft delete TIMESTAMPTZ - NULL means active")
                 .HasColumnName("deleted_at");
+            entity.Property(e => e.Geohash)
+                .HasMaxLength(12)
+                .HasColumnName("geohash");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.PostCode)
@@ -298,6 +305,8 @@ public partial class PrsDbContext : DbContext
             entity.HasIndex(e => e.Phone, "idx_contact_phone_trgm")
                 .HasMethod("gin")
                 .HasOperators(new[] { "gin_trgm_ops" });
+
+            entity.HasIndex(e => e.SearchVector, "idx_contact_search_vector").HasMethod("gin");
 
             entity.HasIndex(e => e.Id, "idx_council_contact_contact_id");
 

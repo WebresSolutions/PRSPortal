@@ -592,6 +592,37 @@ public class ApiService : IApiService
         }
         return res;
     }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public async Task<Result<JobNoteDto[]>> GetUserNotes()
+    {
+        Result<JobNoteDto[]> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/jobs/assignedUserNotes/0");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+
+            if (response.IsSuccessStatusCode)
+            {
+                JobNoteDto[]? jobs = await response.Content.ReadFromJsonAsync<JobNoteDto[]>();
+                res.Value = jobs;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get contact jobs";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            // Handle exception
+        }
+        return res;
+    }
 
     /// <summary>
     /// Navigates asynchronously to the login page, preserving the current URL as the return destination after
@@ -606,4 +637,5 @@ public class ApiService : IApiService
         string loginUrl = $"{_navigationManager.BaseUri}Authentication/Login?returnUrl={returnUrl}";
         //_navigationManager.NavigateTo(loginUrl, true);
     }
+
 }

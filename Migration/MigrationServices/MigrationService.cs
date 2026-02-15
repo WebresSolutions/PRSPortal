@@ -911,7 +911,53 @@ internal class MigrationService(
             }
         }
 
-
         _destinationContext.BulkInsert(createdTasks);
+    }
+
+    /// <summary>
+    /// Migrates quotes from the source database to the destination database
+    /// </summary>
+    /// <param name="progressCallback"></param>
+    public void MigrateQuotes(Action<MigrationProgress> progressCallback)
+    {
+        progressCallback.Invoke(new MigrationProgress
+        {
+            CurrentStep = "Migrating Quotes",
+            CurrentItem = "Loading quotes from source database...",
+            CurrentItemIndex = 0,
+            TotalItems = 0
+        });
+
+        SourceDb.Quote[] quotesOld = [.. _sourceDBContext.Quotes.AsNoTracking()];
+        Models.Quote[] quotesNew = [.. _destinationContext.Quotes.AsNoTracking()];
+
+        if (quotesOld.Length == quotesNew.Length)
+        {
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Tasks",
+                CurrentItem = "Task already exist",
+                CurrentItemIndex = 0,
+                TotalItems = 0
+            });
+            return;
+        }
+
+        progressCallback.Invoke(new MigrationProgress
+        {
+            CurrentStep = "Migrating Quotes",
+            CurrentItem = $"Found {quotesOld.Length} jobs",
+            CurrentItemIndex = 0,
+            TotalItems = quotesOld.Length
+        });
+
+        foreach (SourceDb.Quote quoteOld in quotesOld)
+        {
+            // Create the new quotes
+            Models.Quote q = new()
+            {
+
+            };
+        }
     }
 }

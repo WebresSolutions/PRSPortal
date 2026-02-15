@@ -42,7 +42,7 @@ public static class JobEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         });
 
-        // Gets all jobs with pagination and optional filtering/sorting
+        // Gets a single job by the ID.
         appGroup.MapGet("{jobId}", async (
             [FromServices] IJobService jobService,
             [FromRoute] int jobId,
@@ -56,17 +56,19 @@ public static class JobEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         });
 
-        appGroup.MapGet("notes/{userId}", async (
+        appGroup.MapGet("assignedUserNotes/{userId}", async (
             [FromServices] IJobService jobService,
             [FromRoute] int userId,
-            [FromQuery] bool includeDeleted,
+            [FromQuery] bool? includeDeleted,
             HttpContext httpContext
             ) =>
         {
             if (userId < 0)
                 return Results.BadRequest("Bad Request");
 
-            Result<List<JobNoteDto>> result = await jobService.GetUserAssignedJobsNotes(httpContext, userId, includeDeleted);
+            includeDeleted ??= false;
+
+            Result<List<JobNoteDto>> result = await jobService.GetUserAssignedJobsNotes(httpContext, userId, includeDeleted.Value);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         });
 

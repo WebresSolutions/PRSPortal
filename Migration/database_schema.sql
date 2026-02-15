@@ -1,7 +1,7 @@
 -- Tier 1: Tables with FKs pointing to other tables (Junction/Child tables)
-drop table if exists dashboard_item;
-drop table if exists dashboard_content;
-drop table if exists dashboard;
+DROP TABLE IF EXISTS dashboard_item;
+DROP TABLE IF EXISTS dashboard_content;
+DROP TABLE IF EXISTS dashboard;
 DROP TABLE IF EXISTS schedule;
 DROP TABLE IF EXISTS schedule_user;
 DROP TABLE IF EXISTS timesheet_entry;
@@ -424,6 +424,28 @@ CREATE INDEX idx_task_created_by ON job_task(created_by_user_id);
 -- ============================================================================
 -- QUOTE TABLE
 -- ============================================================================
+CREATE TABLE invoice(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    legacy_id INT,
+    contact_id INT REFERENCES contact(id),
+    job_id INT REFERENCES job(id),
+    total_price DECIMAL(10, 2) NOT NULL,
+    created_by_user_id INT NOT NULL REFERENCES app_user(id),
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_by_user_id INT REFERENCES app_user(id),
+    modified_on TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ DEFAULT NULL
+);
+
+CREATE INDEX idx_invoice_contact_id ON invoice(contact_id);
+CREATE INDEX idx_invoice_job_id ON invoice(job_id);
+CREATE INDEX idx_invoice_created_by ON invoice(created_by_user_id);
+CREATE INDEX idx_invoice_modified_by ON invoice(modified_by_user_id);
+CREATE INDEX idx_invoice_deleted_at ON invoice(deleted_at);
+
+-- ============================================================================
+-- QUOTE TABLE
+-- ============================================================================
 
 CREATE TABLE quote (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -622,7 +644,7 @@ CREATE INDEX idx_user_dashboard_user ON dashboard(user_id);
 -- ============================================================================
 CREATE TABLE dashboard_content(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name VARCHAR(50) NOT NULL -- Removed trailing comma
+    name VARCHAR(50) NOT NULL
 );
 
 COMMENT ON TABLE dashboard_content IS 'Holds widgets defined in the front end.';
@@ -634,14 +656,12 @@ CREATE TABLE dashboard_item (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     dashboard_id INT NOT NULL REFERENCES dashboard(id) ON DELETE CASCADE,
     content_id INT NOT NULL REFERENCES dashboard_content(id),
-    -- Layout
     position_x INT NOT NULL,
     position_y INT NOT NULL,
     colspan INT NOT NULL,
     rowspan INT NOT NULL,
-    -- Customization
     custom_title VARCHAR(100),
-    settings JSONB DEFAULT '{}'::jsonb,
+    settings JSONB NOT NULL,
     is_hidden BOOLEAN NOT NULL DEFAULT FALSE
 );
 

@@ -1,0 +1,11 @@
+﻿<h3>UserAssignedNotes</h3>
+
+@code {
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await _apiService.GetUserNotes();
+    }
+
+}

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Portal.Data;
 using Portal.Data.Models;
+using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Address;
@@ -33,8 +34,12 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         {
             // 1. Define the base query with standard non-deleted filter
             IQueryable<Job> baseQuery = _dbContext.Jobs
-                .AsNoTracking()
-                .Where(x => x.DeletedAt == null);
+            .AsNoTracking()
+            .Include(x => x.Address)
+            .Include(x => x.JobType)
+            .Include(x => x.Contact)
+                .ThenInclude(c => c.ParentContact)
+            .Where(x => x.DeletedAt == null);
 
             IQueryable<Job> jobQuery;
 
@@ -222,6 +227,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
             if (userId is 0)
             {
                 // Get the calling user
+                userId = await httpContext.GetMyUserIdAsInt(_dbContext);
             }
 
             result.Value = await _dbContext.JobNotes

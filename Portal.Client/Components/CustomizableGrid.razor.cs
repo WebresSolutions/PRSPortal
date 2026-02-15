@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Portal.Client.Components.JobComponents;
 using Portal.Client.Pages;
 using Portal.Client.Webmodels;
 
@@ -27,6 +28,12 @@ public partial class CustomizableGrid
             (builder) => {
                 builder.OpenComponent<Settings>(0);
                 builder.CloseComponent();}
+        },
+        {
+            "UserNotes",
+            (builder) => {
+                builder.OpenComponent<UserAssignedNotes>(0);
+                builder.CloseComponent();}
         }
     };
 
@@ -40,7 +47,7 @@ public partial class CustomizableGrid
             [
                 new GridItem { X = 0, Y = 0, ItemId = "item1", ColSpan = 5, RowSpan = 3, Content = displayOptions["UserDetails"]},
                 new GridItem { X = 5, Y = 0, ItemId = "item2", ColSpan = 5, RowSpan = 3, Content = displayOptions["SystemSettings"]},
-                new GridItem { X = 0, Y = 3, ItemId = "item3", ColSpan = 6, RowSpan = 2},
+                new GridItem { X = 0, Y = 3, ItemId = "item3", ColSpan = 6, RowSpan = 2, Content = displayOptions["UserNotes"]},
                 new GridItem { X = 6, Y = 3, ItemId = "item4", ColSpan = 4, RowSpan = 2},
                 new GridItem { X = 0, Y = 5, ItemId = "item5", ColSpan = 10, RowSpan = 1},
             ]

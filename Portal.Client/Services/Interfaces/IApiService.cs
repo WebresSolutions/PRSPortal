@@ -148,4 +148,10 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a <see
     /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
     Task<Result<PagedResponse<ListJobDto>>> GetContactJobs(int contactId, int page, int pageSize, SortDirectionEnum order, string? orderby);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    Task<Result<JobNoteDto[]>> GetUserNotes();
 }
