@@ -34,6 +34,8 @@ public partial class PrsDbContext : DbContext
 
     public virtual DbSet<FileType> FileTypes { get; set; }
 
+    public virtual DbSet<Invoice> Invoices { get; set; }
+
     public virtual DbSet<Job> Jobs { get; set; }
 
     public virtual DbSet<JobColour> JobColours { get; set; }
@@ -70,7 +72,9 @@ public partial class PrsDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasPostgresExtension("pg_trgm");
+        modelBuilder
+            .HasPostgresExtension("pg_trgm")
+            .HasPostgresExtension("postgis");
 
         modelBuilder.Entity<Address>(entity =>
         {
@@ -83,6 +87,8 @@ public partial class PrsDbContext : DbContext
             entity.HasIndex(e => e.DeletedAt, "idx_address_deleted_at");
 
             entity.HasIndex(e => e.Geohash, "idx_address_geo_hash");
+
+            entity.HasIndex(e => e.Geom, "idx_address_geom").HasMethod("gist");
 
             entity.HasIndex(e => e.SearchVector, "idx_address_search_vector").HasMethod("gin");
 
@@ -114,6 +120,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Geohash)
                 .HasMaxLength(12)
                 .HasColumnName("geohash");
+            entity.Property(e => e.Geom)
+                .HasColumnType("geometry(Point,4326)")
+                .HasColumnName("geom");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.PostCode)
@@ -538,7 +547,6 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.PositionY).HasColumnName("position_y");
             entity.Property(e => e.Rowspan).HasColumnName("rowspan");
             entity.Property(e => e.Settings)
-                .HasDefaultValueSql("'{}'::jsonb")
                 .HasColumnType("jsonb")
                 .HasColumnName("settings");
 
@@ -568,6 +576,57 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<Invoice>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("invoice_pkey");
+
+            entity.ToTable("invoice");
+
+            entity.HasIndex(e => e.ContactId, "idx_invoice_contact_id");
+
+            entity.HasIndex(e => e.CreatedByUserId, "idx_invoice_created_by");
+
+            entity.HasIndex(e => e.DeletedAt, "idx_invoice_deleted_at");
+
+            entity.HasIndex(e => e.JobId, "idx_invoice_job_id");
+
+            entity.HasIndex(e => e.ModifiedByUserId, "idx_invoice_modified_by");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.ContactId).HasColumnName("contact_id");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(e => e.JobId).HasColumnName("job_id");
+            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
+            entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.TotalPrice)
+                .HasPrecision(10, 2)
+                .HasColumnName("total_price");
+
+            entity.HasOne(d => d.Contact).WithMany(p => p.Invoices)
+                .HasForeignKey(d => d.ContactId)
+                .HasConstraintName("invoice_contact_id_fkey");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.InvoiceCreatedByUsers)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("invoice_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.Job).WithMany(p => p.Invoices)
+                .HasForeignKey(d => d.JobId)
+                .HasConstraintName("invoice_job_id_fkey");
+
+            entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.InvoiceModifiedByUsers)
+                .HasForeignKey(d => d.ModifiedByUserId)
+                .HasConstraintName("invoice_modified_by_user_id_fkey");
         });
 
         modelBuilder.Entity<Job>(entity =>

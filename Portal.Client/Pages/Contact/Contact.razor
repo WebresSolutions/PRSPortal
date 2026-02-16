@@ -109,11 +109,11 @@ else
                             {
                                 <div class="info-row">
                                     <span class="info-label">Address</span>
-                                    <span class="info-value">@(_contact.address.street ?? "-")</span>
+                                    <span class="info-value">@(_contact.address.Street ?? "-")</span>
                                 </div>
                                 <div class="info-row">
                                     <span class="info-label">Suburb</span>
-                                    <span class="info-value">@(_contact.address.suburb ?? "-")</span>
+                                    <span class="info-value">@(_contact.address.Suburb ?? "-")</span>
                                 </div>
                                 <div class="info-row">
                                     <span class="info-label">State</span>
@@ -121,7 +121,7 @@ else
                                 </div>
                                 <div class="info-row">
                                     <span class="info-label">Postcode</span>
-                                    <span class="info-value">@(_contact.address.postCode ?? "-")</span>
+                                    <span class="info-value">@(_contact.address.PostCode ?? "-")</span>
                                 </div>
                             }
                             <div class="info-row">
@@ -186,8 +186,8 @@ else
                                     {
                                         <tr>
                                             <td>@job.JoinedContactName</td>
-                                            <td>@(job.Address?.street ?? "-")</td>
-                                            <td>@(job.Address?.suburb ?? "-")</td>
+                                            <td>@(job.Address?.Street ?? "-")</td>
+                                            <td>@(job.Address?.Suburb ?? "-")</td>
                                             <td>@(job.JobNumber?.ToString() ?? "-")</td>
                                             <td>
                                                 <StatusBadge statusEnum="@((JobTypeEnum)job.JobTypeInt)" />

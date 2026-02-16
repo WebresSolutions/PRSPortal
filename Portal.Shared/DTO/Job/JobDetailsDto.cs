@@ -14,9 +14,17 @@ public class JobDetailsDto
     /// </summary>
     public int JobNumber { get; set; }
     /// <summary>
+    /// Details about the job, such as scope, requirements, or any relevant information that provides context for the job.
+    /// </summary>
+    public string? Details { get; set; }
+    /// <summary>
     /// Gets or sets the type of job to be processed.
     /// </summary>
     public JobTypeEnum JobType { get; set; }
+    /// <summary>
+    /// Get or set the job colour ID
+    /// </summary>
+    public int? JobColourId { get; set; }
     /// <summary>
     /// Gets or sets the address information associated with this entity.
     /// </summary>

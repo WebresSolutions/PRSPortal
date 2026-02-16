@@ -1,21 +1,35 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Portal.Data;
-using Portal.Data.Models;
 
 namespace Portal.Server.Helpers;
 
 public static class HttpContextExtensions
 {
-    public static string GetMyUserId(this HttpContext httpContext)
+    public static int UserId(this HttpContext httpContext)
     {
-        string res = httpContext.User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value ?? string.Empty;
+        // Should be set by CustomMiddleware, so we can safely assume it exists if the middleware is properly configured and executed.
+        object? userIdObj = httpContext.Items["UserId"]
+            ?? throw new Exception("UserId not found in HttpContext.Items. Ensure that the CustomMiddleware is properly configured and executed before accessing UserId.");
+
+        if (userIdObj is int userId)
+        {
+            return userId;
+        }
+        else
+        {
+            throw new Exception($"UserId in HttpContext.Items is not of type int. Actual type: {userIdObj.GetType()}");
+        }
+    }
+
+    public static string IdentityId(this HttpContext httpContext)
+    {
+        string res = httpContext.User.Claims.FirstOrDefault(c => c.Type == "sid")?.Value ?? string.Empty;
         return res;
     }
 
-    public static async Task<int> GetMyUserIdAsInt(this HttpContext httpContext, PrsDbContext context)
+    public static string GetMyUserEmail(this HttpContext httpContext)
     {
-        string userIdStr = httpContext.GetMyUserId();
-        AppUser? appUser = await context.AppUsers.FirstOrDefaultAsync(u => u.IdentityId == userIdStr);
-        return appUser?.Id ?? throw new Exception("Could not find the logged in users ID");
+        string res = httpContext.User.Claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value ?? string.Empty;
+        return res;
     }
+
 }

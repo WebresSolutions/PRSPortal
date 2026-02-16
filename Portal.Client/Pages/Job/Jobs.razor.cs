@@ -178,9 +178,9 @@ public partial class Jobs
                 _sessionData.OrderBy = sortDefinition.SortBy switch
                 {
                     string s when s == nameof(ListJobDto.Contact1)
-                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.postCode)
-                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.suburb)
-                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.street)
+                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.PostCode)
+                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.Suburb)
+                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.Street)
                             || s == nameof(ListJobDto.JobNumber) => s,
                     _ => nameof(ListJobDto.JobId)
                 };

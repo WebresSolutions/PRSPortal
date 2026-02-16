@@ -62,13 +62,13 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                     ? contactQuery.OrderByDescending(x => x.Phone)
                     : contactQuery.OrderBy(x => x.Phone),
                 // Address sub-properties - EF Core can handle null navigation properties
-                $"{nameof(ListContactDto.Address)}.{nameof(AddressDTO.suburb)}" => isDescending
+                $"{nameof(ListContactDto.Address)}.{nameof(AddressDTO.Suburb)}" => isDescending
                     ? contactQuery.OrderByDescending(x => x.Address!.Suburb)
                     : contactQuery.OrderBy(x => x.Address!.Suburb),
-                $"{nameof(ListContactDto.Address)}.{nameof(AddressDTO.street)}" => isDescending
+                $"{nameof(ListContactDto.Address)}.{nameof(AddressDTO.Street)}" => isDescending
                     ? contactQuery.OrderByDescending(x => x.Address!.Street)
                     : contactQuery.OrderBy(x => x.Address!.Street),
-                $"{nameof(ListContactDto.Address)}.{nameof(AddressDTO.postCode)}" => isDescending
+                $"{nameof(ListContactDto.Address)}.{nameof(AddressDTO.PostCode)}" => isDescending
                     ? contactQuery.OrderByDescending(x => x.Address!.PostCode)
                     : contactQuery.OrderBy(x => x.Address!.PostCode),
                 _ => contactQuery.OrderByDescending(x => x.Id) // Default ordering by ContactId
@@ -208,13 +208,13 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                 nameof(ListJobDto.JobNumber) => isDescending
                     ? jobQuery.OrderByDescending(x => x.JobNumber)
                     : jobQuery.OrderBy(x => x.JobNumber),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.suburb)}" => isDescending
+                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.Suburb)}" => isDescending
                     ? jobQuery.OrderByDescending(x => x.Address!.Suburb)
                     : jobQuery.OrderBy(x => x.Address!.Suburb),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.street)}" => isDescending
+                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.Street)}" => isDescending
                     ? jobQuery.OrderByDescending(x => x.Address!.Street)
                     : jobQuery.OrderBy(x => x.Address!.Street),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.postCode)}" => isDescending
+                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.PostCode)}" => isDescending
                     ? jobQuery.OrderByDescending(x => x.Address!.PostCode)
                     : jobQuery.OrderBy(x => x.Address!.PostCode),
                 _ => jobQuery.OrderByDescending(x => x.Id) // Default ordering by JobId descending

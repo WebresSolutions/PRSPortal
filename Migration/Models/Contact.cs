@@ -52,6 +52,8 @@ public partial class Contact
 
     public virtual ICollection<Contact> InverseParentContact { get; set; } = new List<Contact>();
 
+    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+
     public virtual ICollection<Job> Jobs { get; set; } = new List<Job>();
 
     public virtual AppUser? ModifiedByUser { get; set; }

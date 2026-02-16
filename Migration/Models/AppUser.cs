@@ -55,6 +55,10 @@ public partial class AppUser
 
     public virtual ICollection<AppUser> InverseModifiedByUser { get; set; } = new List<AppUser>();
 
+    public virtual ICollection<Invoice> InvoiceCreatedByUsers { get; set; } = new List<Invoice>();
+
+    public virtual ICollection<Invoice> InvoiceModifiedByUsers { get; set; } = new List<Invoice>();
+
     public virtual ICollection<Job> JobCreatedByUsers { get; set; } = new List<Job>();
 
     public virtual ICollection<JobFile> JobFiles { get; set; } = new List<JobFile>();

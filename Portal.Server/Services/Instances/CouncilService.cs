@@ -106,13 +106,13 @@ public class CouncilService(PrsDbContext _dbContext, ILogger<CouncilService> _lo
                 nameof(ListJobDto.JobNumber) => isDescending
                     ? jobQuery.OrderByDescending(x => x.JobNumber)
                     : jobQuery.OrderBy(x => x.JobNumber),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.suburb)}" => isDescending
+                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.Suburb)}" => isDescending
                     ? jobQuery.OrderByDescending(x => x.Address!.Suburb)
                     : jobQuery.OrderBy(x => x.Address!.Suburb),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.street)}" => isDescending
+                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.Street)}" => isDescending
                     ? jobQuery.OrderByDescending(x => x.Address!.Street)
                     : jobQuery.OrderBy(x => x.Address!.Street),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.postCode)}" => isDescending
+                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.PostCode)}" => isDescending
                     ? jobQuery.OrderByDescending(x => x.Address!.PostCode)
                     : jobQuery.OrderBy(x => x.Address!.PostCode),
                 _ => jobQuery.OrderByDescending(x => x.Id) // Default ordering by JobId descending

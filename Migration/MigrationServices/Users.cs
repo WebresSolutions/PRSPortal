@@ -68,7 +68,7 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
             Models.AppUser newUser = new()
             {
                 IdentityId = Guid.NewGuid().ToString(),
-                Email = Guid.NewGuid().ToString(),
+                Email = sourceUser.Id == 149 ? "jordan@ws1.com.au" : Guid.NewGuid().ToString(),
                 DisplayName = $"{sourceUser.Firstname} {sourceUser.Lastname}",
                 CreatedAt = now,
                 LegacyUserId = (int)sourceUser.Id

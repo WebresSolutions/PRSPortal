@@ -52,7 +52,7 @@ public partial class Job
         if (_job?.Address is null)
             return "No address";
 
-        return $"{_job.Address.suburb.ToUpper()}, {_job.Address.State} {_job.Address.postCode}";
+        return $"{_job.Address.Suburb.ToUpper()}, {_job.Address.State} {_job.Address.PostCode}";
     }
 
     private Task HandleAddNote()

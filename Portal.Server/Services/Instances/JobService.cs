@@ -81,9 +81,9 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 nameof(ListJobDto.JobId) => isDescending ? jobQuery.OrderByDescending(x => x.Id) : jobQuery.OrderBy(x => x.Id),
                 nameof(ListJobDto.Contact1.fullName) => isDescending ? jobQuery.OrderByDescending(x => x.Contact.FullName) : jobQuery.OrderBy(x => x.Contact.FullName),
                 nameof(ListJobDto.JobNumber) => isDescending ? jobQuery.OrderByDescending(x => x.JobNumber) : jobQuery.OrderBy(x => x.JobNumber),
-                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.suburb)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.Suburb) : jobQuery.OrderBy(x => x.Address!.Suburb),
-                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.street)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.Street) : jobQuery.OrderBy(x => x.Address!.Street),
-                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.postCode)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.PostCode) : jobQuery.OrderBy(x => x.Address!.PostCode),
+                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.Suburb)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.Suburb) : jobQuery.OrderBy(x => x.Address!.Suburb),
+                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.Street)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.Street) : jobQuery.OrderBy(x => x.Address!.Street),
+                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.PostCode)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.PostCode) : jobQuery.OrderBy(x => x.Address!.PostCode),
                 _ => jobQuery.OrderByDescending(x => x.Id)
             };
 
@@ -148,6 +148,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 Colour = x.JobColour != null
                     ? new JobColourDto(x.JobColourId!.Value, x.JobColour.Color)
                     : null,
+                JobColourId = x.JobColourId,
+                Details = x.Details,
                 Contact = x.Contact != null
                     ? new JobContactDto(
                         x.ContactId,
@@ -218,6 +220,63 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         return result;
     }
 
+    public async Task<Result<JobDetailsDto>> UpdateJob(int jobId, JobDetailsDto updateJobDto)
+    {
+        Result<JobDetailsDto> result = new();
+        try
+        {
+            Job? job = await _dbContext.Jobs
+                .Include(j => j.Address)
+                .Where(j => j.Id == jobId && j.DeletedAt == null)
+                .FirstOrDefaultAsync();
+
+            if (job is null)
+                return result.SetError(ErrorType.NotFound, "Invalid job Id");
+
+            job.JobTypeId = (int)updateJobDto.JobType;
+            job.JobColourId = updateJobDto.JobColourId;
+
+            // Enforce uniqueness of job number if it has changed
+            if (job.JobNumber != updateJobDto.JobNumber)
+            {
+                if (_dbContext.Jobs.Any(j => j.JobNumber == updateJobDto.JobNumber))
+                    return result.SetError(ErrorType.Conflict, "Job number already exists");
+
+                job.JobNumber = updateJobDto.JobNumber;
+            }
+
+            if (job.Address is not null)
+            {
+                job.Address.Street = updateJobDto.Address.Street;
+                job.Address.PostCode = updateJobDto.Address.PostCode;
+                job.Address.Suburb = updateJobDto.Address.Suburb;
+                job.Address.StateId = updateJobDto.Address.State is null ? (int)StateEnum.VIC : updateJobDto.Address.StateId;
+            }
+            else
+            {
+                job.Address = new Address
+                {
+                    Street = updateJobDto.Address.Street,
+                    PostCode = updateJobDto.Address.PostCode,
+                    Suburb = updateJobDto.Address.Suburb,
+                    StateId = updateJobDto.Address.State is null ? (int)StateEnum.VIC : updateJobDto.Address.StateId,
+                };
+                await _dbContext.AddAsync(job.Address);
+                await _dbContext.SaveChangesAsync();
+                job.AddressId = job.Address.Id;
+            }
+
+            await _dbContext.SaveChangesAsync();
+            // Return the updated job details
+            return await GetJob(jobId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update job with ID {JobId}", jobId);
+            return result.SetError(ErrorType.InternalError, "Failed to update job");
+        }
+    }
+
     public async Task<Result<List<JobNoteDto>>> GetUserAssignedJobsNotes(HttpContext httpContext, int userId, bool includeDeleted)
     {
         Result<List<JobNoteDto>> result = new();
@@ -227,12 +286,12 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
             if (userId is 0)
             {
                 // Get the calling user
-                userId = await httpContext.GetMyUserIdAsInt(_dbContext);
+                userId = httpContext.UserId();
             }
 
             result.Value = await _dbContext.JobNotes
-                .Where(x => (x.AssignedUserId == userId &&
-                    includeDeleted) || x.DeletedAt == null
+                .Where(x => x.AssignedUserId == userId &&
+                    (includeDeleted || x.DeletedAt == null)
                 )
                 .Select(n => new JobNoteDto
                 {

@@ -44,7 +44,7 @@ public class ListJobDto
     /// <summary>
     /// Gets a formatted string representation of the job address
     /// </summary>
-    public string AddressAsString => $"{Address.street}, {Address.suburb} {Address.State}";
+    public string AddressAsString => $"{Address.Street}, {Address.Suburb} {Address.State}";
     /// <summary>
     /// Gets a formatted string combining contact names
     /// Returns both contacts if available, otherwise returns the available contact or "No Contact"

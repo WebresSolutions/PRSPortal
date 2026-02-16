@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS job_note;
 DROP TABLE IF EXISTS job_task;
 DROP TABLE IF EXISTS job_file;
 DROP TABLE IF EXISTS user_job;
+DROP TABLE IF EXISTS invoice;
 
 -- Tier 2: Tables with FKs pointing to core entities (Parents/Reference tables)
 DROP TABLE IF EXISTS job;
@@ -36,7 +37,7 @@ DROP TABLE IF EXISTS application_setting;
 -- EXTENSIONS
 -- ============================================================================
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
--- CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- ============================================================================
 -- APP USER TABLE
@@ -98,6 +99,7 @@ CREATE TABLE address (
     modified_by_user_id INT REFERENCES app_user(id),
     modified_on TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ DEFAULT NULL,
+    geom geometry(Point, 4326),
     geohash VARCHAR(12),
     search_vector tsvector GENERATED ALWAYS AS (
             setweight(to_tsvector('english', coalesce(street, '')), 'A') ||
@@ -118,6 +120,7 @@ CREATE INDEX idx_address_geo_hash ON address(geohash);
 CREATE INDEX idx_address_search_vector ON address USING GIN(search_vector);
 -- Optional: Combined trigram index if users often search across both fields
 CREATE INDEX idx_address_street_suburb_trgm ON address USING GIN((street || ' ' || suburb) gin_trgm_ops);
+CREATE INDEX idx_address_geom ON address USING GIST (geom);
 
 -- ============================================================================
 -- CONTACT TABLE
@@ -422,7 +425,7 @@ CREATE INDEX idx_task_deleted_at ON job_task(deleted_at);
 CREATE INDEX idx_task_created_by ON job_task(created_by_user_id);
 
 -- ============================================================================
--- QUOTE TABLE
+-- INVOICE TABLE
 -- ============================================================================
 CREATE TABLE invoice(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,

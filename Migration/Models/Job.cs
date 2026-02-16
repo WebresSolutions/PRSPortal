@@ -52,6 +52,8 @@ public partial class Job
 
     public virtual AppUser CreatedByUser { get; set; } = null!;
 
+    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+
     public virtual JobColour? JobColour { get; set; }
 
     public virtual ICollection<JobFile> JobFiles { get; set; } = new List<JobFile>();

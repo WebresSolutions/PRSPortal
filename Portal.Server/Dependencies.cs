@@ -60,6 +60,7 @@ public static class Dependencies
         builder.Services.AddSingleton<IGraphService>(sp => new GraphService(clientId, tenantId));
 
         // Inject Services
+        builder.Services.AddMemoryCache();
         builder.Services.AddScoped<IAccountingApi, AccountingApi>();
         builder.Services.AddScoped<IXeroIntegrationService, XeroIntegrationService>();
         builder.Services.AddScoped<IJobService, JobService>();

@@ -27,7 +27,7 @@ public class ScheduleSlotDtoWithCalendar : ScheduleSlotDTO
             Text = s.Description,
             Colour = s.Colour.ColourHex,
             JobNumber = s.Job?.JobNumber,
-            JobAddress = s.Job?.Address is not null ? $"{s.Job.Address.street}, {s.Job.Address.suburb}, {s.Job.Address.postCode}" : string.Empty,
+            JobAddress = s.Job?.Address is not null ? $"{s.Job.Address.Street}, {s.Job.Address.Suburb}, {s.Job.Address.PostCode}" : string.Empty,
             JobId = s.Job?.JobId,
             ColourId = s.Colour.ScheduleColourId
         })];

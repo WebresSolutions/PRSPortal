@@ -85,12 +85,12 @@ public partial class Council
             return "No address";
 
         List<string> parts = [];
-        if (!string.IsNullOrWhiteSpace(_council.address.suburb))
-            parts.Add(_council.address.suburb.ToUpper());
+        if (!string.IsNullOrWhiteSpace(_council.address.Suburb))
+            parts.Add(_council.address.Suburb.ToUpper());
         if (!string.IsNullOrWhiteSpace(_council.address.State.ToString()))
             parts.Add(_council.address.State.ToString());
-        if (!string.IsNullOrWhiteSpace(_council.address.postCode))
-            parts.Add(_council.address.postCode);
+        if (!string.IsNullOrWhiteSpace(_council.address.PostCode))
+            parts.Add(_council.address.PostCode);
 
         return parts.Count > 0 ? string.Join(" ", parts) : "No address";
     }

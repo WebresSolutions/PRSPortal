@@ -1,5 +1,6 @@
 using Portal.Data;
 using Portal.Server.Controllers;
+using Portal.Server.Middleware;
 using Portal.Server.Services.Interfaces;
 using Scalar.AspNetCore;
 
@@ -73,6 +74,8 @@ public class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
+
+        app.UseMiddleware<CustomMiddleware>();
 
         app.MapRazorPages();
         app.MapControllers();

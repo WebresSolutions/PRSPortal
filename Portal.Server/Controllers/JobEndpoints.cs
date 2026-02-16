@@ -42,6 +42,30 @@ public static class JobEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         });
 
+        // Create a new job with the provided details
+        appGroup.MapPost("", async (
+            [FromServices] IJobService jobService,
+            HttpContext httpContext
+            ) =>
+        {
+            Result<PagedResponse<ListJobDto>> result = new();
+            return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
+        });
+
+        // Update a job with the provided details
+        appGroup.MapPut("{id}", async (
+            [FromServices] IJobService jobService,
+            [FromRoute] int jobId,
+            HttpContext httpContext
+            ) =>
+        {
+            if (jobId <= 0)
+                jobId = 1;
+
+            Result<PagedResponse<ListJobDto>> result = new();
+            return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
+        });
+
         // Gets a single job by the ID.
         appGroup.MapGet("{jobId}", async (
             [FromServices] IJobService jobService,
@@ -56,6 +80,7 @@ public static class JobEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         });
 
+        // Gets notes for jobs assigned to a specific user, with optional inclusion of deleted notes
         appGroup.MapGet("assignedUserNotes/{userId}", async (
             [FromServices] IJobService jobService,
             [FromRoute] int userId,

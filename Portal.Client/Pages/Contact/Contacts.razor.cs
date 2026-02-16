@@ -180,9 +180,9 @@ public partial class Contacts
                     string s when s == nameof(ListContactDto.FullName)
                             || s == nameof(ListContactDto.Email)
                             || s == nameof(ListContactDto.Phone)
-                            || s == nameof(ListContactDto.Address) + "." + nameof(ListContactDto.Address.suburb)
-                            || s == nameof(ListContactDto.Address) + "." + nameof(ListContactDto.Address.street)
-                            || s == nameof(ListContactDto.Address) + "." + nameof(ListContactDto.Address.postCode) => s,
+                            || s == nameof(ListContactDto.Address) + "." + nameof(ListContactDto.Address.Suburb)
+                            || s == nameof(ListContactDto.Address) + "." + nameof(ListContactDto.Address.Street)
+                            || s == nameof(ListContactDto.Address) + "." + nameof(ListContactDto.Address.PostCode) => s,
                     _ => nameof(ListContactDto.ContactId)
                 };
             }

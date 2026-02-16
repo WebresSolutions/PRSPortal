@@ -91,12 +91,12 @@ public partial class Contact
             return "No address";
 
         List<string> parts = [];
-        if (!string.IsNullOrWhiteSpace(_contact.address.suburb))
-            parts.Add(_contact.address.suburb.ToUpper());
+        if (!string.IsNullOrWhiteSpace(_contact.address.Suburb))
+            parts.Add(_contact.address.Suburb.ToUpper());
         if (!string.IsNullOrWhiteSpace(_contact.address.State?.ToString()))
             parts.Add(_contact.address.State.ToString());
-        if (!string.IsNullOrWhiteSpace(_contact.address.postCode))
-            parts.Add(_contact.address.postCode);
+        if (!string.IsNullOrWhiteSpace(_contact.address.PostCode))
+            parts.Add(_contact.address.PostCode);
 
         return parts.Count > 0 ? string.Join(" ", parts) : "No address";
     }
