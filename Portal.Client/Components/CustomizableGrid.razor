@@ -1,6 +1,7 @@
 ﻿@if (GridState is not null)
 {
-    <div class="custom-grid"
+    <button @onclick="@(() => isEditing = !isEditing)">Edit</button>
+    <div class=@(isEditing ? "custom-grid edit" : "custom-grid")
          style="@GridState.AsCss()"
          @ondragover:preventDefault
          @ondragover="() => { }"
@@ -10,9 +11,9 @@
         {
             if (!item.IsHidden)
             {
-                <div class="outer-grid-item" style="@item.AsCss()">
+                <div class=@(isEditing ? "outer-grid-item edit" : "outer-grid-item") style="@item.AsCss()">
                     <div class="grid-item @(draggedItem == item ? "selected" : "")"
-                         draggable="true"
+                         draggable="@isEditing"
                          @ondragstart="() => HandleDragStart(item)">
                         @if (item.Content is not null)
                         {
@@ -24,13 +25,16 @@
                             <small>Pos: @item.X, @item.Y</small>
                         }
                     </div>
-                    <div class="resize-item drag-right"
-                         draggable="true"
-                         @ondrag="HandleResize"
-                         @ondragstart="(e) => HandleResizeStart(e, item)"
-                         @ondragend="HandleResizeEnd">
-                        ↔
-                    </div>
+                    @if (isEditing)
+                    {
+                        <div class="resize-item drag-right"
+                             draggable="true"
+                             @ondrag="HandleResize"
+                             @ondragstart="(e) => HandleResizeStart(e, item)"
+                             @ondragend="HandleResizeEnd">
+                            ↔
+                        </div>
+                    }
                 </div>
             }
         }
@@ -46,7 +50,7 @@
         transition: ease-in-out all 1s;
     }
 
-        .custom-grid:hover {
+        .custom-grid.edit:hover {
             background-image: linear-gradient(to right, #e0e0e0 1px, transparent 1px), linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
             opacity: 0.8;
             transition: ease-in-out all 1s;

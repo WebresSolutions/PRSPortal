@@ -40,7 +40,9 @@ public static class ContactEndpoints
 
             Result<PagedResponse<ListContactDto>> result = await contactService.GetAllContacts(page, pageSize, order, searchFilter, orderby);
             return EndpointsHelper.ProcessResult(result, "An error occurred while loading contacts");
-        });
+        })
+            .WithSummary("List contacts")
+            .WithDescription("Returns a paginated list of contacts with optional search filter and sorting by page, pageSize, searchFilter, orderby, and order.");
 
         // Gets contact details without jobs
         appGroup.MapGet("{contactId}", async (
@@ -54,7 +56,9 @@ public static class ContactEndpoints
 
             Result<ContactDetailsDto> result = await contactService.GetContactDetails(contactId);
             return EndpointsHelper.ProcessResult(result, "An error occurred getting contact details");
-        });
+        })
+            .WithSummary("Get contact by ID")
+            .WithDescription("Returns full details for a single contact by contact ID. Returns 400 if contactId is invalid.");
 
         // Gets jobs for a specific contact with pagination
         appGroup.MapGet("{contactId}/jobs", async (
@@ -77,7 +81,9 @@ public static class ContactEndpoints
 
             Result<PagedResponse<ListJobDto>> result = await contactService.GetContactJobs(contactId, page, pageSize, order, orderby);
             return EndpointsHelper.ProcessResult(result, "An error occurred while getting contact jobs");
-        });
+        })
+            .WithSummary("Get jobs for a contact")
+            .WithDescription("Returns a paginated list of jobs associated with the specified contact. Supports ordering via orderby and order query parameters.");
 
         if (reqAuth)
             appGroup.RequireAuthorization();

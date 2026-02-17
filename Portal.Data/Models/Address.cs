@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NetTopologySuite.Geometries;
 using NpgsqlTypes;
 
 namespace Portal.Data.Models;
@@ -33,6 +34,8 @@ public partial class Address
     /// Soft delete TIMESTAMPTZ - NULL means active
     /// </summary>
     public DateTime? DeletedAt { get; set; }
+
+    public Point? Geom { get; set; }
 
     public string? Geohash { get; set; }
 

@@ -19,7 +19,7 @@ public class CustomMiddleware(RequestDelegate next) // Remove dbContext from con
     /// <param name="memoryCache">The memory cache for caching recurring user request</param>
     /// <returns></returns>
     /// <exception cref="Exception">Throws if the user does not exist</exception>
-    public async Task InvokeAsync(HttpContext context, PrsDbContext dbContext, IMemoryCache memoryCache, ILogger logger)
+    public async Task InvokeAsync(HttpContext context, PrsDbContext dbContext, IMemoryCache memoryCache, ILogger<Program> logger)
     {
         AuthenticateResult res = await context.AuthenticateAsync();
 

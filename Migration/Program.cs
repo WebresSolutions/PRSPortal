@@ -22,6 +22,7 @@ internal class Program
     /// </summary>
     private static SourceDBContext? _sourceContext;
 
+    public static string _connectionString = string.Empty;
     /// <summary>
     /// Entry point for the migration application
     /// Initializes the GUI and starts the migration process
@@ -70,7 +71,7 @@ internal class Program
         try
         {
 
-            MigrationService migration = new(_destinationContext!, _sourceContext!, users);
+            MigrationService migration = new(_destinationContext!, _sourceContext!, users, _connectionString);
             migration.SeedBaseData();
             migration.MigrateContacts(progressCallback);
             migration.MigrateCouncils(progressCallback);
@@ -102,19 +103,20 @@ internal class Program
 
         IConfiguration config = builder.Build();
 
-        string? destinationConnection = config.GetConnectionString("PSQLConnection");
+        _connectionString = config.GetConnectionString("PSQLConnection") ?? throw new Exception("Failed to get the connection string");
 
         DbContextOptions<PrsDbContext> dbContextOptions = new DbContextOptionsBuilder<PrsDbContext>()
-            .UseNpgsql(destinationConnection)
+            .UseNpgsql(_connectionString, x => x.UseNetTopologySuite())
             .Options;
 
         _destinationContext = new(dbContextOptions);
         // This connection is hard wired into the context
         _sourceContext = new();
-
         if (_destinationContext is null || _sourceContext is null)
             throw new Exception("Context found to be null.");
 
+        bool canConnect = _destinationContext.Database.CanConnect();
+        Console.WriteLine($"Can connect: {canConnect}");
         if (resetDatabase)
         {
             string solutionDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory()));

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared.DTO.Setting;
@@ -28,7 +28,9 @@ public static class SettingsEndpoints
         {
             Result<SystemSettingDto> result = await setService.GetSystemSettings();
             return EndpointsHelper.ProcessResult(result, "An Error occured while getting system settings");
-        });
+        })
+            .WithSummary("Get system settings")
+            .WithDescription("Returns the current system settings configuration.");
 
         appGroup.MapPut("systemsettings", async (
             [FromServices] ISettingService setService,
@@ -38,7 +40,9 @@ public static class SettingsEndpoints
         {
             Result<SystemSettingDto> result = await setService.UpdateSystemSettings(settingsDto);
             return EndpointsHelper.ProcessResult(result, "An Error occured while saving system settings");
-        });
+        })
+            .WithSummary("Update system settings")
+            .WithDescription("Updates system settings with the provided SystemSettingDto. Returns the updated settings on success.");
 
         if (reqAuth)
             appGroup.RequireAuthorization();

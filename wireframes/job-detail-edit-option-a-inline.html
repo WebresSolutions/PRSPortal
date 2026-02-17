@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Edit – Option A: Inline Edit (all fields in place)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 1500px; margin: 0 auto; }
+
+        /* Sticky save bar */
+        .edit-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #1e293b;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .edit-bar .edit-label { font-weight: 600; font-size: 0.9rem; }
+        .edit-bar .edit-actions { display: flex; gap: 0.75rem; }
+        .btn-cancel {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-save {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-cancel:hover { background: #64748b; }
+        .btn-save:hover { background: #059669; }
+
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .header-left { flex: 1; }
+        .header-left .field-group { margin-bottom: 1rem; }
+        .header-left .field-group:last-child { margin-bottom: 0; }
+        .field-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+        .field-input {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .field-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        .header .job-id { font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem; }
+        .header select.field-input { max-width: 200px; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .stat-title { font-size: 0.85rem; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .stat-value input.field-input { font-size: 1.1rem; font-weight: 700; }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .card-header h3 { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
+        .btn-add {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-add:hover { background: #059669; }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .info-item { padding: 0.75rem; background: #f8fafc; border-radius: 8px; }
+        .info-item .field-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 0.25rem; }
+        .info-item .field-input { padding: 0.5rem; font-size: 0.95rem; }
+
+        .table { width: 100%; border-collapse: collapse; }
+        .table th {
+            text-align: left;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #f1f5f9; }
+        .table input.field-input, .table select.field-input {
+            width: 100%;
+            padding: 0.4rem 0.5rem;
+            font-size: 0.9rem;
+        }
+        .table .cell-actions { display: flex; gap: 0.35rem; }
+        .btn-icon {
+            width: 32px; height: 32px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-icon:hover { background: #e2e8f0; }
+        .btn-icon.danger:hover { background: #fee2e2; }
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 0; }
+        .tab {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .tab.active { color: #2563eb; border-bottom-color: #2563eb; }
+        .full-width { grid-column: 1 / -1; }
+        .note-item {
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+        .note-item textarea { width: 100%; min-height: 60px; padding: 0.5rem; border-radius: 6px; border: 1px solid #e2e8f0; resize: vertical; }
+        .note-meta { font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Edit mode bar -->
+        <div class="edit-bar">
+            <span class="edit-label">Editing Job #216 · All changes saved when you click Save</span>
+            <div class="edit-actions">
+                <button class="btn-cancel">Cancel</button>
+                <button class="btn-save">Save changes</button>
+            </div>
+        </div>
+
+        <!-- Header (editable) -->
+        <div class="header">
+            <div class="header-left">
+                <div class="job-id">Job #216</div>
+                <div class="field-group">
+                    <label class="field-label">Location</label>
+                    <input type="text" class="field-input" value="GISBORNE, VIC 3437" placeholder="Address or suburb">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Job type</label>
+                    <select class="field-input">
+                        <option>Surveying</option>
+                        <option>Construction</option>
+                        <option>Engineering</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats (editable) -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Job Number</div>
+                <div class="stat-value"><input type="text" class="field-input" value="45" readonly style="background:#f1f5f9;"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Location</div>
+                <div class="stat-value"><input type="text" class="field-input" value="GISBORNE, VIC 3437"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Contact</div>
+                <div class="stat-value"><input type="text" class="field-input" value="ALL HOMES / PERRY"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Status</div>
+                <div class="stat-value">
+                    <select class="field-input">
+                        <option>Active</option>
+                        <option>On hold</option>
+                        <option>Completed</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div>
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header">
+                        <h3>Job Details</h3>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="field-label">Council</div>
+                            <input type="text" class="field-input" value="SHIRE OF MACEDON RANGES">
+                        </div>
+                        <div class="info-item">
+                            <div class="field-label">Map Reference</div>
+                            <input type="text" class="field-input" value="" placeholder="-">
+                        </div>
+                        <div class="info-item">
+                            <div class="field-label">Last Plan Reference</div>
+                            <input type="text" class="field-input" value="LP1727490">
+                        </div>
+                        <div class="info-item">
+                            <div class="field-label">Schedule Colour</div>
+                            <select class="field-input"><option>Default</option><option>Red</option><option>Green</option></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="tabs">
+                            <button class="tab active">All</button>
+                            <button class="tab">Requiring Action</button>
+                            <button class="tab">Deleted</button>
+                        </div>
+                        <button class="btn-add">+ Add Note</button>
+                    </div>
+                    <div class="note-item">
+                        <textarea>File destroyed</textarea>
+                        <div class="note-meta">Created: Thursday 8-Aug-2024 10:08pm by Peter Richards</div>
+                        <div style="margin-top: 0.5rem;">
+                            <button class="btn-icon danger">🗑</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header"><h3>Quick Actions</h3></div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button class="btn-add" style="width: 100%; text-align: left;">+ Technical Contact</button>
+                        <button class="btn-add" style="width: 100%; text-align: left;">+ Task</button>
+                        <button class="btn-add" style="width: 100%; text-align: left;">+ Invoice</button>
+                        <button class="btn-add" style="width: 100%; text-align: left;">+ Site Visit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contacts table (editable rows) -->
+        <div class="card full-width" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <div class="tabs"><button class="tab active">All</button><button class="tab">Deleted</button></div>
+                <button class="btn-add">+ Add Technical Contact</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Role</th>
+                        <th>Contact</th>
+                        <th>Phone</th>
+                        <th>Mobile</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" class="field-input" placeholder="Role"></td>
+                        <td><input type="text" class="field-input" placeholder="Name"></td>
+                        <td><input type="text" class="field-input" placeholder="Phone"></td>
+                        <td><input type="text" class="field-input" placeholder="Mobile"></td>
+                        <td><input type="email" class="field-input" placeholder="Email"></td>
+                        <td class="cell-actions"><button class="btn-icon">✏️</button><button class="btn-icon danger">🗑</button></td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #94a3b8; padding: 1.5rem;">No other contacts. Click + Add to create one.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tasks table -->
+        <div class="card full-width" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <div class="tabs">
+                    <button class="tab active">All</button>
+                    <button class="tab">Active</button>
+                    <button class="tab">To Invoice</button>
+                    <button class="tab">Deleted</button>
+                </div>
+                <button class="btn-add">+ Add Task</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Quoted Price</th>
+                        <th>Active Date</th>
+                        <th>Completed Date</th>
+                        <th>Invoiced Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #94a3b8; padding: 2rem;">No tasks. Click + Add Task.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Invoices table -->
+        <div class="card full-width" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <div class="tabs">
+                    <button class="tab active">All</button>
+                    <button class="tab">Unsent</button>
+                    <button class="tab">Unpaid</button>
+                    <button class="tab">Overdue</button>
+                    <button class="tab">Deleted</button>
+                </div>
+                <button class="btn-add">+ Add Invoice</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Number</th>
+                        <th>Contact</th>
+                        <th>Total Price</th>
+                        <th>Created Date</th>
+                        <th>Sent Date</th>
+                        <th>Paid Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #94a3b8; padding: 2rem;">No invoices.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Checklist (already editable in original) -->
+        <div class="card full-width">
+            <div class="card-header"><h3>Checklist</h3></div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Site Work Completed</th>
+                        <th>Checked</th>
+                        <th>Sent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>RE Survey</td>
+                        <td><select class="field-input"><option>Not Completed</option><option>Completed</option></select></td>
+                        <td><input type="checkbox"></td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                    <tr>
+                        <td>Feature Plan</td>
+                        <td><select class="field-input"><option>Not Completed</option><option>Completed</option></select></td>
+                        <td><input type="checkbox"></td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                    <tr>
+                        <td>MGA</td>
+                        <td><select class="field-input"><option>Not Completed</option><option>Completed</option></select></td>
+                        <td><input type="checkbox"></td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

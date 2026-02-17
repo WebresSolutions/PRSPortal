@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Edit – Option C: Inline header + modal for contacts/tasks</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 1500px; margin: 0 auto; }
+
+        .edit-bar {
+            position: sticky;
+            top: 0;
+            z-index: 90;
+            background: #1e293b;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .edit-bar .edit-actions { display: flex; gap: 0.75rem; }
+        .btn-cancel { background: #475569; color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-save { background: #10b981; color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-save:hover { background: #059669; }
+        .btn-cancel:hover { background: #64748b; }
+
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .header-left .field-group { margin-bottom: 1rem; }
+        .field-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 0.35rem; }
+        .field-input {
+            width: 100%;
+            max-width: 320px;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .field-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+        .header .job-id { font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem; }
+
+        .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #f1f5f9; }
+        .card-header h3 { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
+        .btn-add {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-add:hover { background: #059669; }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .info-item { padding: 0.75rem; background: #f8fafc; border-radius: 8px; }
+        .info-item .field-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 0.25rem; }
+        .info-item .field-input { padding: 0.5rem; font-size: 0.95rem; max-width: none; }
+
+        .table { width: 100%; border-collapse: collapse; }
+        .table th {
+            text-align: left;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .table td { padding: 0.75rem; border-bottom: 1px solid #f1f5f9; }
+        .table tr:hover { background: #f8fafc; }
+        .btn-row {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.25rem 0;
+        }
+        .btn-row:hover { text-decoration: underline; }
+        .full-width { grid-column: 1 / -1; }
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 0; }
+        .tab { padding: 0.5rem 1rem; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: #64748b; }
+        .tab.active { color: #2563eb; border-bottom-color: #2563eb; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-width: 520px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
+        .modal-close {
+            width: 36px; height: 36px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+        .modal-close:hover { background: #e2e8f0; }
+        .modal-body { padding: 1.5rem; }
+        .modal-body .field-group { margin-bottom: 1rem; }
+        .modal-body .field-input { max-width: none; }
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="edit-bar">
+            <span class="edit-label" style="font-weight:600;">Editing Job #216</span>
+            <div class="edit-actions">
+                <button class="btn-cancel">Cancel</button>
+                <button class="btn-save">Save changes</button>
+            </div>
+        </div>
+
+        <!-- Header: only job-level fields inline -->
+        <div class="header">
+            <div class="header-left">
+                <div class="job-id">Job #216</div>
+                <div class="field-group">
+                    <label class="field-label">Location</label>
+                    <input type="text" class="field-input" value="GISBORNE, VIC 3437">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Job type</label>
+                    <select class="field-input">
+                        <option>Surveying</option>
+                        <option>Construction</option>
+                        <option>Engineering</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div>
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header"><h3>Job Details</h3></div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="field-label">Council</div>
+                            <input type="text" class="field-input" value="SHIRE OF MACEDON RANGES">
+                        </div>
+                        <div class="info-item">
+                            <div class="field-label">Map Reference</div>
+                            <input type="text" class="field-input" value="" placeholder="-">
+                        </div>
+                        <div class="info-item">
+                            <div class="field-label">Last Plan Reference</div>
+                            <input type="text" class="field-input" value="LP1727490">
+                        </div>
+                        <div class="info-item">
+                            <div class="field-label">Schedule Colour</div>
+                            <select class="field-input"><option>Default</option><option>Red</option><option>Green</option></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="tabs"><button class="tab active">All</button><button class="tab">Requiring Action</button><button class="tab">Deleted</button></div>
+                        <button class="btn-add">+ Add Note</button>
+                    </div>
+                    <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                        <strong>File destroyed</strong>
+                        <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.25rem;">Created: Thursday 8-Aug-2024 10:08pm by Peter Richards</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header"><h3>Quick Actions</h3></div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button class="btn-add open-modal" data-modal="contact" style="width: 100%; text-align: left;">+ Technical Contact</button>
+                        <button class="btn-add open-modal" data-modal="task" style="width: 100%; text-align: left;">+ Task</button>
+                        <button class="btn-add open-modal" data-modal="invoice" style="width: 100%; text-align: left;">+ Invoice</button>
+                        <button class="btn-add" style="width: 100%; text-align: left;">+ Site Visit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables: read-only list + "Add" opens modal -->
+        <div class="card full-width" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <div class="tabs"><button class="tab active">All</button><button class="tab">Deleted</button></div>
+                <button class="btn-add open-modal" data-modal="contact">+ Add Technical Contact</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Role</th>
+                        <th>Contact</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">No contacts. Click + Add Technical Contact to open the form.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card full-width" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <div class="tabs">
+                    <button class="tab active">All</button>
+                    <button class="tab">Active</button>
+                    <button class="tab">To Invoice</button>
+                    <button class="tab">Deleted</button>
+                </div>
+                <button class="btn-add open-modal" data-modal="task">+ Add Task</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Quoted Price</th>
+                        <th>Active Date</th>
+                        <th>Completed Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">No tasks. Click + Add Task.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card full-width" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <div class="tabs">
+                    <button class="tab active">All</button>
+                    <button class="tab">Unsent</button>
+                    <button class="tab">Unpaid</button>
+                    <button class="tab">Overdue</button>
+                    <button class="tab">Deleted</button>
+                </div>
+                <button class="btn-add open-modal" data-modal="invoice">+ Add Invoice</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Number</th>
+                        <th>Contact</th>
+                        <th>Total Price</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">No invoices.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card full-width">
+            <div class="card-header"><h3>Checklist</h3></div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Site Work Completed</th>
+                        <th>Checked</th>
+                        <th>Sent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>RE Survey</td>
+                        <td><select class="field-input" style="max-width:140px;"><option>Not Completed</option><option>Completed</option></select></td>
+                        <td><input type="checkbox"></td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                    <tr>
+                        <td>Feature Plan</td>
+                        <td><select class="field-input" style="max-width:140px;"><option>Not Completed</option><option>Completed</option></select></td>
+                        <td><input type="checkbox"></td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                    <tr>
+                        <td>MGA</td>
+                        <td><select class="field-input" style="max-width:140px;"><option>Not Completed</option><option>Completed</option></select></td>
+                        <td><input type="checkbox"></td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit Contact -->
+    <div id="modal-contact" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add technical contact</h3>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Role</label>
+                    <input type="text" class="field-input" placeholder="e.g. Builder">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Contact name</label>
+                    <input type="text" class="field-input" placeholder="Name">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Phone</label>
+                    <input type="tel" class="field-input" placeholder="Phone">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Email</label>
+                    <input type="email" class="field-input" placeholder="Email">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel modal-close">Cancel</button>
+                <button class="btn-save">Save contact</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit Task -->
+    <div id="modal-task" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add task</h3>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Task description</label>
+                    <input type="text" class="field-input" placeholder="Task name">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Quoted price</label>
+                    <input type="number" class="field-input" placeholder="0.00" step="0.01">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Active date</label>
+                    <input type="date" class="field-input">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Completed date</label>
+                    <input type="date" class="field-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel modal-close">Cancel</button>
+                <button class="btn-save">Save task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add/Edit Invoice -->
+    <div id="modal-invoice" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add invoice</h3>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Number</label>
+                    <input type="text" class="field-input" placeholder="Invoice #">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Contact</label>
+                    <input type="text" class="field-input" placeholder="Contact">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Total price</label>
+                    <input type="number" class="field-input" placeholder="0.00" step="0.01">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Created date</label>
+                    <input type="date" class="field-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel modal-close">Cancel</button>
+                <button class="btn-save">Save invoice</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.open-modal').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const modalId = 'modal-' + btn.dataset.modal;
+                const modal = document.getElementById(modalId);
+                if (modal) modal.classList.add('open');
+            });
+        });
+        document.querySelectorAll('.modal-overlay .modal-close').forEach(btn => {
+            btn.addEventListener('click', () => {
+                btn.closest('.modal-overlay').classList.remove('open');
+            });
+        });
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.classList.remove('open');
+            });
+        });
+    </script>
+</body>
+</html>

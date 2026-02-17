@@ -23,7 +23,7 @@ public static class Dependencies
     public static void AddDatabases(this WebApplicationBuilder builder)
     {
         Console.WriteLine("Using ENV: " + builder.Environment.EnvironmentName);
-        builder.Services.AddDbContext<PrsDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("PrsConnection")));
+        builder.Services.AddDbContext<PrsDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("PrsConnection"), x => x.UseNetTopologySuite()));
     }
 
     /// <summary>
@@ -68,6 +68,8 @@ public static class Dependencies
         builder.Services.AddScoped<ISettingService, SettingService>();
         builder.Services.AddScoped<ICouncilService, CouncilService>();
         builder.Services.AddScoped<IContactService, ContactService>();
+        builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<ITimeSheetService, TimeSheetService>();
 
         // Add Swagger/OpenAPI services for API debugging
         bool enableSwagger = builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");

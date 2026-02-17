@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
@@ -25,7 +25,9 @@ public static class CouncilEnpoints
 
             Result<CouncilPartialDto[]> result = await councilService.GetCouncils();
             return EndpointsHelper.ProcessResult(result, "An error occured while getting all councils");
-        });
+        })
+            .WithSummary("List councils")
+            .WithDescription("Returns a list of all councils (partial DTOs).");
 
         // Gets council details without jobs
         appGroup.MapGet("{councilId}", async (
@@ -39,7 +41,9 @@ public static class CouncilEnpoints
 
             Result<CouncilDetailsDto> result = await councilService.GetCouncilDetails(councilId);
             return EndpointsHelper.ProcessResult(result, "An Error occurred getting council details");
-        });
+        })
+            .WithSummary("Get council by ID")
+            .WithDescription("Returns full details for a single council by council ID. Returns 400 if councilId is invalid.");
 
         // Gets jobs for a specific council with pagination
         appGroup.MapGet("{councilId}/jobs", async (
@@ -62,7 +66,9 @@ public static class CouncilEnpoints
 
             Result<PagedResponse<ListJobDto>> result = await councilService.GetCouncilJobs(councilId, page, pageSize, order, orderby);
             return EndpointsHelper.ProcessResult(result, "An Error occurred getting council jobs");
-        });
+        })
+            .WithSummary("Get jobs for a council")
+            .WithDescription("Returns a paginated list of jobs associated with the specified council. Supports ordering via orderby and order query parameters.");
 
         if (reqAuth)
             appGroup.RequireAuthorization();

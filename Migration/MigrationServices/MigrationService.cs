@@ -9,7 +9,9 @@ namespace Migration.MigrationServices;
 internal class MigrationService(
     PrsDbContext _destinationContext,
     SourceDBContext _sourceDBContext,
-    FrozenDictionary<int, int> users) : BaseMigrationClass(_destinationContext, _sourceDBContext)
+    FrozenDictionary<int, int> users,
+    string connectionString
+    ) : BaseMigrationClass(_destinationContext, _sourceDBContext)
 {
     /// <summary>
     /// Cache of councils to avoid multiple DB hits. Key is the legacy ID.
@@ -130,7 +132,7 @@ internal class MigrationService(
                 TotalItems = oldContacts.Length
             });
 
-            _destinationContext.BulkInsert(contactToAdd);
+            _destinationContext.BulkInsert(contactToAdd, connectionString);
             contacts = [.. _destinationContext.Contacts];
             _contactsCache = contacts.ToFrozenDictionary(x => x.LegacyId ?? 0, y => y);
 
@@ -410,7 +412,7 @@ internal class MigrationService(
                 TotalItems = jobs.Length
             });
 
-            int result = _destinationContext.BulkInsert(jobsToCreate);
+            int result = _destinationContext.BulkInsert(jobsToCreate, connectionString);
 
             progressCallback.Invoke(new MigrationProgress
             {
@@ -506,7 +508,7 @@ internal class MigrationService(
                 index++;
             }
 
-            _destinationContext.BulkInsert(notesToCreate);
+            _destinationContext.BulkInsert(notesToCreate, connectionString);
             progressCallback.Invoke(new MigrationProgress
             {
                 CurrentStep = "Migrating Job Notes",
@@ -613,7 +615,7 @@ internal class MigrationService(
         });
         try
         {
-            _destinationContext.BulkInsert(userJobsToCreate);
+            _destinationContext.BulkInsert(userJobsToCreate, connectionString);
         }
         catch (Exception ex)
         {
@@ -744,7 +746,7 @@ internal class MigrationService(
             }
             // bulk insert the schedule users 
             List<Models.ScheduleUser> scheduleUsersToInsert = [.. scheduleUsers.SelectMany(su => su.Value)];
-            _destinationContext.BulkInsert(scheduleUsersToInsert);
+            _destinationContext.BulkInsert(scheduleUsersToInsert, connectionString);
 
             // Get all of the schedules
             SourceDb.Schedule[] schedulesOld = [.. _sourceDBContext.Schedules.AsNoTracking()];
@@ -832,7 +834,7 @@ internal class MigrationService(
                 CurrentItemIndex = schedulesOld.Length,
                 TotalItems = schedulesOld.Length
             });
-            _destinationContext.BulkInsert(schedulesToAdd);
+            _destinationContext.BulkInsert(schedulesToAdd, connectionString);
 
             progressCallback.Invoke(new MigrationProgress
             {
@@ -911,7 +913,7 @@ internal class MigrationService(
             }
         }
 
-        _destinationContext.BulkInsert(createdTasks);
+        _destinationContext.BulkInsert(createdTasks, connectionString);
     }
 
     /// <summary>

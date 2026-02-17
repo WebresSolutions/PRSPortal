@@ -49,15 +49,19 @@ public static class Extensions
     /// <param name="entitiesToInsert"></param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public static int BulkInsert<T>(this PrsDbContext dbContext, IEnumerable<T> entitiesToInsert) where T : class
+    public static int BulkInsert<T>(this PrsDbContext dbContext, IEnumerable<T> entitiesToInsert, string connectionString) where T : class
     {
         List<T> entities = [.. entitiesToInsert];
         if (entities.Count == 0)
             return 0;
 
         (string[], PropertyInfo?[], string?) columnAndProperties = GetColumnAndPropertyInfo<T>(dbContext);
-        using NpgsqlConnection connection = new(dbContext.Database.GetConnectionString());
-        connection.Open();
+        // Create a data source with NetTopologySuite enabled
+        NpgsqlDataSourceBuilder dataSourceBuilder = new(connectionString);
+        dataSourceBuilder.UseNetTopologySuite();
+        using NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+
+        using NpgsqlConnection connection = dataSource.OpenConnection();
 
         using NpgsqlBinaryImporter writer = connection.BeginBinaryImport(
             $"COPY {columnAndProperties.Item3} ({string.Join(", ", columnAndProperties.Item1)}) FROM STDIN (FORMAT BINARY)");
@@ -68,8 +72,10 @@ public static class Extensions
             foreach (PropertyInfo? prop in columnAndProperties.Item2)
                 writer.Write(prop!.GetValue(entity));
         }
+
         writer.Complete();
         writer.Close();
+
         return entities.Count;
     }
 

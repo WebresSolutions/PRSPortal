@@ -21,7 +21,7 @@ public partial class DashboardItem
 
     public string? CustomTitle { get; set; }
 
-    public string? Settings { get; set; }
+    public string Settings { get; set; } = null!;
 
     public bool IsHidden { get; set; }
 

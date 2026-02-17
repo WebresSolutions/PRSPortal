@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Edit – Option B: Edit by section (tabs)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .edit-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #1e293b;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .edit-bar .edit-label { font-weight: 600; font-size: 0.9rem; }
+        .edit-bar .edit-actions { display: flex; gap: 0.75rem; }
+        .btn-cancel { background: #475569; color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-save { background: #10b981; color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-save:hover { background: #059669; }
+        .btn-cancel:hover { background: #64748b; }
+
+        .header-mini {
+            background: white;
+            padding: 1.25rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-mini h1 { color: #2563eb; font-size: 1.5rem; font-weight: 900; }
+        .header-mini .subtitle { color: #64748b; font-size: 0.9rem; margin-top: 0.25rem; }
+
+        /* Section tabs (main nav for edit mode) */
+        .section-tabs {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        .section-tab {
+            padding: 0.75rem 1.25rem;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .section-tab:hover { background: #f1f5f9; color: #1e293b; }
+        .section-tab.active { background: #2563eb; color: white; }
+
+        .section-panel {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section-panel.active { display: block; }
+
+        .field-group { margin-bottom: 1.25rem; }
+        .field-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+        .field-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .field-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .form-grid .field-group { margin-bottom: 0; }
+        .form-grid .span-2 { grid-column: 1 / -1; }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .card-header h3 { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
+        .btn-add {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-add:hover { background: #059669; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .table th {
+            text-align: left;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #f1f5f9; }
+        .table input.field-input, .table select.field-input { width: 100%; padding: 0.4rem; font-size: 0.9rem; }
+        .btn-icon { width: 32px; height: 32px; border: none; background: #f1f5f9; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-icon.danger:hover { background: #fee2e2; }
+        .section-save { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="edit-bar">
+            <span class="edit-label">Editing Job #216</span>
+            <div class="edit-actions">
+                <button class="btn-cancel">Cancel</button>
+                <button class="btn-save">Save all</button>
+            </div>
+        </div>
+
+        <div class="header-mini">
+            <div>
+                <h1>Job #216</h1>
+                <div class="subtitle">GISBORNE, VIC 3437 · Surveying</div>
+            </div>
+        </div>
+
+        <!-- Section switcher -->
+        <div class="section-tabs">
+            <button class="section-tab active" data-section="job-info">Job info</button>
+            <button class="section-tab" data-section="contacts-tasks">Contacts &amp; tasks</button>
+            <button class="section-tab" data-section="files-notes">Files &amp; notes</button>
+            <button class="section-tab" data-section="invoices-checklist">Invoices &amp; checklist</button>
+        </div>
+
+        <!-- Panel: Job info -->
+        <div id="panel-job-info" class="section-panel active">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.1rem; color: #64748b;">Job information</h2>
+            <div class="form-grid">
+                <div class="field-group">
+                    <label class="field-label">Location</label>
+                    <input type="text" class="field-input" value="GISBORNE, VIC 3437">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Job type</label>
+                    <select class="field-input">
+                        <option>Surveying</option>
+                        <option>Construction</option>
+                        <option>Engineering</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Council</label>
+                    <input type="text" class="field-input" value="SHIRE OF MACEDON RANGES">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Map reference</label>
+                    <input type="text" class="field-input" value="" placeholder="-">
+                </div>
+                <div class="field-group span-2">
+                    <label class="field-label">Last plan reference</label>
+                    <input type="text" class="field-input" value="LP1727490">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Primary contact</label>
+                    <input type="text" class="field-input" value="ALL HOMES / PERRY">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Status</label>
+                    <select class="field-input">
+                        <option>Active</option>
+                        <option>On hold</option>
+                        <option>Completed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="section-save">
+                <button class="btn-save">Save job info</button>
+            </div>
+        </div>
+
+        <!-- Panel: Contacts & tasks -->
+        <div id="panel-contacts-tasks" class="section-panel">
+            <div class="card-header">
+                <h3>Technical contacts</h3>
+                <button class="btn-add">+ Add contact</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Role</th>
+                        <th>Contact</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">No contacts. Click + Add contact.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="card-header" style="margin-top: 2rem;">
+                <h3>Tasks</h3>
+                <button class="btn-add">+ Add task</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Quoted price</th>
+                        <th>Active date</th>
+                        <th>Completed</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">No tasks. Click + Add task.</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-save">
+                <button class="btn-save">Save contacts &amp; tasks</button>
+            </div>
+        </div>
+
+        <!-- Panel: Files & notes -->
+        <div id="panel-files-notes" class="section-panel">
+            <div class="card-header">
+                <h3>Job files</h3>
+                <button class="btn-add">+ Upload file</button>
+            </div>
+            <div style="padding: 1.5rem; background: #f8fafc; border-radius: 8px; margin-bottom: 2rem;">
+                <p style="color: #64748b; font-size: 0.9rem;">No files uploaded. Drag and drop or click to upload.</p>
+            </div>
+
+            <div class="card-header">
+                <h3>Notes</h3>
+                <button class="btn-add">+ Add note</button>
+            </div>
+            <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                <div style="margin-bottom: 0.5rem;"><strong>File destroyed</strong></div>
+                <div style="font-size: 0.85rem; color: #64748b;">Created: Thursday 8-Aug-2024 10:08pm by Peter Richards</div>
+                <div style="margin-top: 0.75rem;">
+                    <textarea class="field-input" style="min-height: 80px;">File destroyed</textarea>
+                </div>
+                <button class="btn-icon danger" style="margin-top: 0.5rem;">🗑 Delete note</button>
+            </div>
+            <div class="section-save">
+                <button class="btn-save">Save files &amp; notes</button>
+            </div>
+        </div>
+
+        <!-- Panel: Invoices & checklist -->
+        <div id="panel-invoices-checklist" class="section-panel">
+            <div class="card-header">
+                <h3>Invoices</h3>
+                <button class="btn-add">+ Add invoice</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Number</th>
+                        <th>Contact</th>
+                        <th>Total</th>
+                        <th>Created</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">No invoices.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="card-header" style="margin-top: 2rem;">
+                <h3>Checklist</h3>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Site work completed</th>
+                        <th>Checked</th>
+                        <th>Sent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>RE Survey</td>
+                        <td><select class="field-input"><option>Not Completed</option><option>Completed</option></select></td>
+                        <td><input type="checkbox"></td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                    <tr>
+                        <td>Feature Plan</td>
+                        <td><select class="field-input"><option>Not Completed</option><option>Completed</option></select></td>
+                        <td><input type="checkbox"></td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                    <tr>
+                        <td>MGA</td>
+                        <td><select class="field-input"><option>Not Completed</option><option>Completed</option></select></td>
+                        <td><input type="checkbox"></td>
+                        <td><input type="checkbox"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="section-save">
+                <button class="btn-save">Save invoices &amp; checklist</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.section-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const section = tab.dataset.section;
+                document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                const panel = document.getElementById('panel-' + section);
+                if (panel) panel.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

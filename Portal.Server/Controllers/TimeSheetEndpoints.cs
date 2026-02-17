@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using Portal.Server.Helpers;
+using Portal.Server.Services.Interfaces;
+using Portal.Shared.DTO.TimeSheet;
+using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Controllers;
 
@@ -9,21 +12,24 @@ namespace Portal.Server.Controllers;
 /// </summary>
 public static class TimeSheetEndpoints
 {
-    public static void TimeSheetendpoints(this WebApplication app, bool reqAuth = true)
+    public static void AddTimeSheetendpoints(this WebApplication app, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/timesheet");
 
-        appGroup.MapGet("",
+        appGroup.MapGet("{userId}",
             async (
-                [FromQuery] string? id,
+                [FromRoute] int userId,
+                [FromQuery] DateTime start,
+                [FromQuery] DateTime? end,
+                [FromServices] ITimeSheetService timesheetService,
                 HttpContext httpContext
                 ) =>
-        {
-            if (id is null)
-                id = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            ;
-        });
+            {
+                Result<TimeSheetDto[]> result = await timesheetService.GetUserTimeSheets(httpContext, start, end, userId);
+                return EndpointsHelper.ProcessResult(result, "An Error occured getting user timesheets");
+            })
+            .WithSummary("Get timesheet")
+            .WithDescription("Returns timesheet data. If id is not provided, uses the current user's ID from the auth context.");
 
         if (reqAuth)
             appGroup.RequireAuthorization();

@@ -88,7 +88,8 @@ public class Program
         app.AddSettingEndpoints(enableAuth);
         app.AddCouncilEndpoints(enableAuth);
         app.AddContactEndpoints(enableAuth);
-        app.TimeSheetendpoints(enableAuth);
+        app.AddTimeSheetendpoints(enableAuth);
+        app.AddUserEndpoints(enableAuth);
 
         // Seed database with an initial client application and test user
         using (IServiceScope scope = app.Services.CreateScope())
