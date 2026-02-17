@@ -20,7 +20,7 @@ public class UserService(PrsDbContext _dbContext, ILogger<UserService> _logger) 
         {
             res.Value = await _dbContext.AppUsers
                 .Where(x => (activeOnly && x.DeactivatedAt == null) || !activeOnly)
-                .Select(u => new UserDto(u.Id, u.DisplayName))
+                .Select(u => new UserDto(u.Id, u.DisplayName, u.DeactivatedAt == null))
                 .ToArrayAsync();
 
             return res;

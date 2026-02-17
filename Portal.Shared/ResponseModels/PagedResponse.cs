@@ -26,7 +26,7 @@ public class PagedResponse<T>
         this.PageSize = pageSize;
         this.CurrentPage = currentPage;
         this.TotalCount = totalItems;
-        TotalNumberPages = pageSize > 0 ? totalItems / pageSize : 1;
+        TotalNumberPages = pageSize > 0 ? totalItems < pageSize ? 1 : totalItems / pageSize : 1;
     }
 
     /// <summary>

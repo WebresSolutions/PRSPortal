@@ -53,7 +53,7 @@ CREATE TABLE app_user (
     modified_by_user_id INT REFERENCES app_user(id),
     modified_on TIMESTAMPTZ,
     deactivated_at TIMESTAMPTZ DEFAULT NULL,
-    legacy_user_id INT NOT NULL
+    legacy_user_id INT
 );
 
 COMMENT ON TABLE app_user IS 'Application users with authentication and profile information';
