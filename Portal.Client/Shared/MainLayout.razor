@@ -39,22 +39,24 @@
         navLinks = new List<NavLinkItem>
         {
             new NavLinkItem { Link = "", Title = "Home", Icon = Icons.Material.Filled.Home, MatchAll = true },
-            new NavLinkItem { Link = "Jobs", Title = "Jobs", Icon = Icons.Material.Filled.PanTool },
-            new NavLinkItem { Link = "Quotes", Title = "Quotes", Icon = Icons.Material.Filled.Numbers },
-            new NavLinkItem { Link = "Contacts", Title = "Contacts", Icon = Icons.Material.Filled.People },
+            new NavLinkItem { Link = "Jobs", Title = "Jobs", Icon = Icons.Material.Filled.Build },
+            new NavLinkItem { Link = "TimeSheets", Title = "TimeSheet", Icon = Icons.Material.Filled.Timelapse },
+            new NavLinkItem { Link = "Quotes", Title = "Quotes", Icon = Icons.Material.Filled.Task },
+            new NavLinkItem { Link = "Contacts", Title = "Contacts", Icon = Icons.Material.Filled.Groups },
             new NavLinkItem { Link = "Councils", Title = "Councils", Icon = Icons.Material.Filled.Home },
             new NavLinkItem
             {
                 Link = "Schedule",
                 Title = "Schedule",
-                Icon = Icons.Material.Filled.CalendarViewMonth,
+                Icon = Icons.Material.Filled.CalendarMonth,
                 SubLinks = new List<NavLinkItem>
                 {
                     new NavLinkItem { Link = $"Schedule/{today}/1", Title = "Construction", Icon = Icons.Material.Filled.Build },
                     new NavLinkItem { Link = $"Schedule/{today}/2", Title = "Surveying", Icon = Icons.Material.Filled.Map }
                 }
             },
-            new NavLinkItem { Link = "Settings", Title = "Settings", Icon = Icons.Material.Filled.Settings }
+            new NavLinkItem { Link = "Settings", Title = "Settings", Icon = Icons.Material.Filled.Settings },
+            new NavLinkItem { Link = "Admin", Title = "Admin", Icon = Icons.Material.Filled.AdminPanelSettings }
         };
     }
 
@@ -72,7 +74,7 @@
                 return;
         }
 
-        sessionSettings.NavbarCollapsed = hideSidebar;
+        sessionSettings?.NavbarCollapsed = hideSidebar;
         // Save to session storage for next time
         _sessionStorage.SetItem("SystemSettings", sessionSettings);
         string settingsJson = JsonSerializer.Serialize(sessionSettings);

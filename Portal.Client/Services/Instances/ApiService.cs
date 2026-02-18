@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Portal.Client.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Contact;
@@ -6,6 +6,8 @@ using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
+using Portal.Shared.DTO.TimeSheet;
+using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 using System.Net.Http.Json;
 
@@ -592,8 +594,9 @@ public class ApiService : IApiService
         }
         return res;
     }
+
     /// <summary>
-    /// 
+    /// Gets notes for a particular user. If the user is not authorized, the method may trigger navigation to the login page. The returned result contains error information if the request fails.
     /// </summary>
     /// <returns></returns>
     public async Task<Result<JobNoteDto[]>> GetUserNotes()
@@ -620,6 +623,99 @@ public class ApiService : IApiService
         {
             Console.WriteLine($"Exception: {ex.Message}");
             // Handle exception
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Gets a list of users
+    /// </summary>
+    /// <returns>An array of users</returns>
+    public async Task<Result<UserDto[]>> GetUsersList()
+    {
+        Result<UserDto[]> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/users");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+
+            if (response.IsSuccessStatusCode)
+            {
+                UserDto[]? jobs = await response.Content.ReadFromJsonAsync<UserDto[]>();
+                res.Value = jobs;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get contact jobs";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            // Handle exception
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Gets timesheet entries for a user within a date range. Use userId 0 for the current user.
+    /// </summary>
+    public async Task<Result<TimeSheetDto[]>> GetUserTimeSheets(int userId, DateTime start, DateTime? end)
+    {
+        Result<TimeSheetDto[]> res = new();
+        try
+        {
+            string query = $"?start={start:O}";
+            if (end.HasValue)
+                query += $"&end={end:O}";
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/timesheet/{userId}{query}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                TimeSheetDto[]? data = await response.Content.ReadFromJsonAsync<TimeSheetDto[]>();
+                res.Value = data ?? Array.Empty<TimeSheetDto>();
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get timesheets";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Adds a new timesheet entry for the current user.
+    /// </summary>
+    public async Task<Result<TimeSheetDto>> AddTimeSheetEntry(TimeSheetEntryDto entry)
+    {
+        Result<TimeSheetDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/timesheet", entry);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                TimeSheetDto? data = await response.Content.ReadFromJsonAsync<TimeSheetDto>();
+                res.Value = data!;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to add timesheet entry";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
         }
         return res;
     }

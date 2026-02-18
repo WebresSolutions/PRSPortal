@@ -1,9 +1,11 @@
-﻿using Portal.Shared;
+using Portal.Shared;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
+using Portal.Shared.DTO.TimeSheet;
+using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Services.Interfaces;
@@ -148,10 +150,22 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a <see
     /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
     Task<Result<PagedResponse<ListJobDto>>> GetContactJobs(int contactId, int page, int pageSize, SortDirectionEnum order, string? orderby);
-
     /// <summary>
-    /// 
+    /// Gets notes for a particular user. If the user is not authorized, the method may trigger navigation to the login page. The returned result contains error information if the request fails.
     /// </summary>
     /// <returns></returns>
     Task<Result<JobNoteDto[]>> GetUserNotes();
+    /// <summary>
+    /// Gets a list of users
+    /// </summary>
+    /// <returns>An array of users</returns>
+    Task<Result<UserDto[]>> GetUsersList();
+    /// <summary>
+    /// Gets timesheet entries for a user within a date range. Use userId 0 for the current user.
+    /// </summary>
+    Task<Result<TimeSheetDto[]>> GetUserTimeSheets(int userId, DateTime start, DateTime? end);
+    /// <summary>
+    /// Adds a new timesheet entry for the current user.
+    /// </summary>
+    Task<Result<TimeSheetDto>> AddTimeSheetEntry(TimeSheetEntryDto entry);
 }

@@ -3,6 +3,7 @@ using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Job;
+using System.Collections.Generic;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Controllers;
@@ -42,7 +43,8 @@ public static class JobEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
             .WithSummary("List jobs")
-            .WithDescription("Returns a paginated list of jobs with optional name filter and sorting by page, pageSize, nameFilter, orderby, and order.");
+            .WithDescription("Returns a paginated list of jobs with optional name filter and sorting by page, pageSize, nameFilter, orderby, and order.")
+            .Produces<PagedResponse<ListJobDto>>();
 
         // Create a new job with the provided details
         appGroup.MapPost("", async (
@@ -54,7 +56,8 @@ public static class JobEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
             .WithSummary("Create job")
-            .WithDescription("Creates a new job with the provided details. Request body and implementation may be extended.");
+            .WithDescription("Creates a new job with the provided details. Request body and implementation may be extended.")
+            .Produces<PagedResponse<ListJobDto>>();
 
         // Update a job with the provided details
         appGroup.MapPut("{jobId}", async (
@@ -70,7 +73,8 @@ public static class JobEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
             .WithSummary("Update job")
-            .WithDescription("Updates an existing job by jobId. Returns 400 if jobId is invalid.");
+            .WithDescription("Updates an existing job by jobId. Returns 400 if jobId is invalid.")
+            .Produces<PagedResponse<ListJobDto>>();
 
         // Gets a single job by the ID.
         appGroup.MapGet("{jobId}", async (
@@ -86,7 +90,8 @@ public static class JobEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
             .WithSummary("Get job by ID")
-            .WithDescription("Returns full details for a single job by job ID. Returns 400 if jobId is invalid.");
+            .WithDescription("Returns full details for a single job by job ID. Returns 400 if jobId is invalid.")
+            .Produces<JobDetailsDto>();
 
         // Gets notes for jobs assigned to a specific user, with optional inclusion of deleted notes
         appGroup.MapGet("assignedUserNotes/{userId}", async (
@@ -105,7 +110,8 @@ public static class JobEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
             .WithSummary("Get notes for user's assigned jobs")
-            .WithDescription("Returns notes for all jobs assigned to the specified user. Use includeDeleted query parameter to include soft-deleted notes.");
+            .WithDescription("Returns notes for all jobs assigned to the specified user. Use includeDeleted query parameter to include soft-deleted notes.")
+            .Produces<List<JobNoteDto>>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

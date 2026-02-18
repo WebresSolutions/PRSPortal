@@ -87,7 +87,7 @@
                                            OnClick="@(() => AddNewSchedule(slot.SlotId))" Icon="@Icons.Material.Filled.Remove" />
                         </ToolbarContent>
                         <CellTemplate>
-                            <div class="schedule-items shadow" style="background-color: @context.Colour; ">
+                            <div class="schedule-items shadow-deep" style="background-color: @context.Colour; width: 98%">
                                 <MudIconButton OnClick="@(() => OpenDialogAsync(context))" Size="Size.Small" Variant="Variant.Text" Color="Color.Info" Icon="@Icons.Material.Filled.RemoveRedEye" />
                                 @if (context.JobAddress is not null && context.JobNumber is not null && context.JobId is not null)
                                 {

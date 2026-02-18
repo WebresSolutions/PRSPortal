@@ -1,0 +1,102 @@
+@using Portal.Shared.DTO.TimeSheet
+@inject IApiService _apiService
+@inject ISnackbar _snackbar
+
+<MudDialog>
+    <DialogContent>
+        <div class="add-timesheet-form">
+            <MudDatePicker T="DateTime?"
+                          @bind-Date="_date"
+                          Label="Date"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+            <MudTimePicker T="TimeSpan?"
+                          @bind-Time="_startTime"
+                          Label="Start time"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+            <MudTimePicker T="TimeSpan?"
+                          @bind-Time="_endTime"
+                          Label="End time"
+                          Variant="Variant.Outlined"
+                          Class="mb-3"
+                          Clearable="true"/>
+            <MudTextField T="string"
+                          @bind-Value="_description"
+                          Label="Description (optional)"
+                          Variant="Variant.Outlined"
+                          Lines="2"
+                          Class="mb-3" />
+            <MudNumericField T="int?"
+                            @bind-Value="_jobId"
+                            Label="Job ID (optional)"
+                            Variant="Variant.Outlined"
+                            Min="1"
+                            Class="mb-3" />
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancel</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Success">Add entry</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public DateOnly SelectedDate { get; set; }
+
+    [Parameter]
+    public EventCallback OnSaved { get; set; }
+
+    private DateTime? _date;
+    private TimeSpan? _startTime = new TimeSpan(9, 0, 0);
+    private TimeSpan? _endTime = null;
+    private string _description = "";
+    private int? _jobId;
+
+    protected override void OnParametersSet()
+    {
+        if (_date is null)
+            _date = SelectedDate.ToDateTime(TimeOnly.MinValue);
+    }
+
+    private void Cancel() => MudDialog?.Cancel();
+
+    private async Task Submit()
+    {
+        if (!_date.HasValue || !_startTime.HasValue)
+        {
+            _snackbar.Add("Please set date, start time and end time.", Severity.Warning);
+            return;
+        }
+        DateTime start = _date.Value.Date.Add(_startTime.Value);
+        DateTime? end = _endTime.HasValue ? _date.Value.Date.Add(_endTime.Value) : null;
+        if (end is not null && end <= start)
+        {
+            _snackbar.Add("End time must be after start time.", Severity.Warning);
+            return;
+        }
+        TimeSheetEntryDto entry = new TimeSheetEntryDto(start, end, _description ?? "", _jobId, null);
+        Result<TimeSheetDto> result = await _apiService.AddTimeSheetEntry(entry);
+        if (result.IsSuccess)
+        {
+            _snackbar.Add("Time entry added.", Severity.Success);
+            await OnSaved.InvokeAsync();
+            MudDialog?.Close(DialogResult.Ok(true));
+        }
+        else
+            _snackbar.Add(result.ErrorDescription ?? "Failed to add entry.", Severity.Error);
+    }
+}
+
+<style>
+    .add-timesheet-form {
+        min-width: 320px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+</style>

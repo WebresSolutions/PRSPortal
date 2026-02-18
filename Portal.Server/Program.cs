@@ -75,7 +75,10 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseMiddleware<CustomMiddleware>();
+        if (app.Environment.IsEnvironment("Testing"))
+            app.UseMiddleware<TestUserContextMiddleware>();
+        else
+            app.UseMiddleware<CustomMiddleware>();
 
         app.MapRazorPages();
         app.MapControllers();

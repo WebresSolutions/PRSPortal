@@ -1,4 +1,4 @@
-﻿<section class="card-container shadow">
+﻿<section class=@($"card-container shadow {CssClass}")>
     @if (TitleContent is not null)
     {
         @TitleContent
@@ -92,6 +92,9 @@
     /// </summary>
     [Parameter]
     public EventCallback OnAddButtonClick { get; set; }
+
+    [Parameter]
+    public string? CssClass { get; set; }
 }
 
 <style>

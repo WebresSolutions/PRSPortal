@@ -23,6 +23,7 @@ public static class UserEndpoints
                 return EndpointsHelper.ProcessResult(result, "An Error occured while saving system settings");
             })
             .WithSummary("Get all users")
-            .WithDescription("Returns a collection of Users. Optional flag for active users only");
+            .WithDescription("Returns a collection of Users. Optional flag for active users only")
+            .Produces<UserDto[]>();
     }
 }

@@ -27,7 +27,8 @@ public static class CouncilEnpoints
             return EndpointsHelper.ProcessResult(result, "An error occured while getting all councils");
         })
             .WithSummary("List councils")
-            .WithDescription("Returns a list of all councils (partial DTOs).");
+            .WithDescription("Returns a list of all councils (partial DTOs).")
+            .Produces<CouncilPartialDto[]>();
 
         // Gets council details without jobs
         appGroup.MapGet("{councilId}", async (
@@ -43,7 +44,8 @@ public static class CouncilEnpoints
             return EndpointsHelper.ProcessResult(result, "An Error occurred getting council details");
         })
             .WithSummary("Get council by ID")
-            .WithDescription("Returns full details for a single council by council ID. Returns 400 if councilId is invalid.");
+            .WithDescription("Returns full details for a single council by council ID. Returns 400 if councilId is invalid.")
+            .Produces<CouncilDetailsDto>();
 
         // Gets jobs for a specific council with pagination
         appGroup.MapGet("{councilId}/jobs", async (
@@ -68,7 +70,8 @@ public static class CouncilEnpoints
             return EndpointsHelper.ProcessResult(result, "An Error occurred getting council jobs");
         })
             .WithSummary("Get jobs for a council")
-            .WithDescription("Returns a paginated list of jobs associated with the specified council. Supports ordering via orderby and order query parameters.");
+            .WithDescription("Returns a paginated list of jobs associated with the specified council. Supports ordering via orderby and order query parameters.")
+            .Produces<PagedResponse<ListJobDto>>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

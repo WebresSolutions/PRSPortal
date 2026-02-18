@@ -12,7 +12,7 @@
 	exit
 
 ### To Create a persistent database in docker: 
-	docker pull postgres
+	docker pull postgis/postgis
 	docker run --name pgdev -e POSTGRES_PASSWORD=145269 -p 5555:5432 -v pgdev-data:/var/lib/postgresql -d postgis/postgis:17-3.5
 
 

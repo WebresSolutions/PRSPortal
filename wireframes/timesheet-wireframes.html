@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timesheet wireframes – PRS+</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #333; }
+    .app { display: flex; min-height: 100vh; }
+    /* Sidebar – matches PRS+ */
+    .sidebar { width: 220px; background: #2d3748; color: #e2e8f0; padding: 1rem 0.5rem; flex-shrink: 0; }
+    .sidebar .logo { font-weight: 700; font-size: 1.25rem; margin-bottom: 1.5rem; padding-left: 0.5rem; }
+    .sidebar .logo span { color: #ed8936; }
+    .nav-item { padding: 0.5rem 0.75rem; margin: 2px 0; border-radius: 6px; display: flex; align-items: center; gap: 0.5rem; color: #a0aec0; text-decoration: none; }
+    .nav-item.active { background: rgba(237, 137, 54, 0.2); color: #ed8936; }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .nav-item .icon { width: 20px; text-align: center; }
+    .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid #4a5568; display: flex; gap: 0.5rem; justify-content: center; }
+    .sidebar-footer .btn-icon { width: 32px; height: 32px; border-radius: 6px; background: #4a5568; border: none; cursor: pointer; color: #a0aec0; }
+    /* Main */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: auto; }
+    .topbar { background: #fff; padding: 1rem 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+    .topbar h1 { margin: 0; font-size: 1.5rem; font-weight: 700; color: #2d3748; }
+    .topbar .sub { font-size: 0.875rem; color: #718096; margin-top: 2px; }
+    .content { padding: 1.5rem; flex: 1; }
+    /* Cards */
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 1.25rem; margin-bottom: 1rem; }
+    .card-title { font-weight: 600; font-size: 0.95rem; margin: 0 0 1rem; display: flex; align-items: center; justify-content: space-between; }
+    .card-title .add { color: #38a169; font-size: 0.85rem; cursor: pointer; }
+    .pill { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 500; background: #ed8936; color: #fff; }
+    .btn-add { background: #38a169; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; }
+    .btn-add:hover { background: #2f855a; }
+    .btn-secondary { background: #e2e8f0; color: #4a5568; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.875rem; cursor: pointer; }
+    .date-input { padding: 0.5rem 0.75rem; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.875rem; }
+    /* Grids */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th { text-align: left; padding: 0.5rem 0.75rem; color: #718096; font-weight: 600; border-bottom: 1px solid #e2e8f0; }
+    td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #f7fafc; }
+    tr:hover { background: #f7fafc; }
+    /* Tabs */
+    .tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; }
+    .tab { padding: 0.5rem 1rem; font-size: 0.875rem; color: #718096; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab.active { color: #2d3748; font-weight: 600; border-bottom-color: #38a169; }
+    /* Option switcher */
+    .option-nav { background: #fff; padding: 0.5rem 1rem; border-bottom: 1px solid #e2e8f0; display: flex; gap: 0.5rem; }
+    .option-nav button { padding: 0.5rem 1rem; border: 1px solid #e2e8f0; background: #fff; border-radius: 6px; cursor: pointer; font-size: 0.875rem; }
+    .option-nav button.active { background: #ed8936; color: #fff; border-color: #ed8936; }
+    .option-nav button:hover:not(.active) { background: #f7fafc; }
+    .wireframe-section { display: none; }
+    .wireframe-section.active { display: block; }
+    /* Overview stats */
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .stat-box { text-align: center; padding: 1rem; }
+    .stat-box .value { font-size: 1.75rem; font-weight: 700; color: #2d3748; }
+    .stat-box .label { font-size: 0.75rem; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }
+    /* Time blocks */
+    .time-row { display: flex; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #f7fafc; gap: 1rem; }
+    .time-row .time { width: 60px; color: #718096; font-size: 0.8rem; }
+    .time-row .block { flex: 1; padding: 0.5rem 0.75rem; border-radius: 6px; background: #edf2f7; font-size: 0.875rem; }
+    .time-row .block.job { border-left: 4px solid #38a169; }
+    .time-row .block.admin { border-left: 4px solid #ed8936; }
+    /* Week strip */
+    .week-strip { display: flex; gap: 0.25rem; margin-bottom: 1rem; }
+    .day-cell { flex: 1; text-align: center; padding: 0.5rem; border-radius: 6px; background: #edf2f7; font-size: 0.8rem; cursor: pointer; }
+    .day-cell.active { background: #38a169; color: #fff; }
+    .day-cell .d { font-weight: 700; }
+    .day-cell .date { color: #718096; }
+    .day-cell.active .date { color: rgba(255,255,255,0.9); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">PRS<span>+</span></div>
+      <a class="nav-item" href="#">🏠 Home</a>
+      <a class="nav-item" href="#">🔧 Jobs</a>
+      <a class="nav-item active" href="#">🕐 TimeSheet</a>
+      <a class="nav-item" href="#">📄 Quotes</a>
+      <a class="nav-item" href="#">👥 Contacts</a>
+      <a class="nav-item" href="#">🏛 Councils</a>
+      <a class="nav-item" href="#">📅 Schedule</a>
+      <a class="nav-item" href="#">⚙ Settings</a>
+      <a class="nav-item" href="#">🛡 Admin</a>
+      <div class="sidebar-footer">
+        <button class="btn-icon" title="Search">🔍</button>
+        <button class="btn-icon" title="Reports">📋</button>
+        <button class="btn-icon" title="Log out">↩</button>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="option-nav">
+        <button type="button" class="active" data-option="1">Option A – Week view + entries</button>
+        <button type="button" data-option="2">Option B – Overview + list (Job-style)</button>
+        <button type="button" data-option="3">Option C – Day grid (Schedule-style)</button>
+      </div>
+
+      <!-- Option A: Week view + entries list -->
+      <section id="opt1" class="wireframe-section active">
+        <div class="topbar">
+          <div>
+            <h1>My timesheet</h1>
+            <div class="sub">Week of Monday 16 – Sunday 22 Feb 2026</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <input type="text" class="date-input" value="Select week" readonly style="min-width: 140px;" />
+            <span class="pill">This week</span>
+            <button class="btn-add">+ Add entry</button>
+            <button class="btn-secondary">Submit for approval</button>
+          </div>
+        </div>
+        <div class="content">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">Week summary <span class="add">+ Add entry</span></div>
+              <div class="stat-grid">
+                <div class="stat-box"><div class="value">38.5</div><div class="label">Total hours</div></div>
+                <div class="stat-box"><div class="value">5</div><div class="label">Entries</div></div>
+                <div class="stat-box"><div class="value">3</div><div class="label">Jobs</div></div>
+                <div class="stat-box"><div class="value">Draft</div><div class="label">Status</div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Quick add</div>
+              <p style="margin: 0 0 0.75rem; font-size: 0.875rem; color: #718096;">Job, date, hours and optional note.</p>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <input type="text" class="date-input" placeholder="Job" style="flex: 1; min-width: 120px;" />
+                <input type="text" class="date-input" placeholder="Date" style="width: 100px;" />
+                <input type="text" class="date-input" placeholder="Hours" style="width: 70px;" />
+                <button class="btn-add">+ Add</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Time entries <span class="add">+ Add entry</span></div>
+            <table>
+              <thead><tr><th>Date</th><th>Job</th><th>Hours</th><th>Note</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr><td>Mon 16 Feb</td><td>Job #51816 – Wollert</td><td>8.0</td><td>Site setup</td><td>✏️ 🗑</td></tr>
+                <tr><td>Tue 17 Feb</td><td>Job #51816 – Wollert</td><td>7.5</td><td>—</td><td>✏️ 🗑</td></tr>
+                <tr><td>Wed 18 Feb</td><td>Job #51820 – Richmond</td><td>6.0</td><td>Inspection</td><td>✏️ 🗑</td></tr>
+                <tr><td>Thu 19 Feb</td><td>Admin / Non-billable</td><td>2.0</td><td>Team meeting</td><td>✏️ 🗑</td></tr>
+                <tr><td>Fri 20 Feb</td><td>Job #51816 – Wollert</td><td>8.0</td><td>—</td><td>✏️ 🗑</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Option B: Job-detail style – overview cards + tabbed lists -->
+      <section id="opt2" class="wireframe-section">
+        <div class="topbar">
+          <div>
+            <h1>Timesheet – Jordan Samson</h1>
+            <div class="sub">Wednesday, February 18, 2026</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <input type="text" class="date-input" value="2/18/2026" readonly style="min-width: 110px;" />
+            <span class="pill">Week view</span>
+            <button class="btn-add">+ Add entry</button>
+          </div>
+        </div>
+        <div class="content">
+          <div class="grid-3">
+            <div class="card">
+              <div class="card-title">Overview</div>
+              <div class="stat-grid">
+                <div class="stat-box"><div class="value">8</div><div class="label">Hours today</div></div>
+                <div class="stat-box"><div class="value">38.5</div><div class="label">Hours this week</div></div>
+                <div class="stat-box"><div class="value">3</div><div class="label">Jobs</div></div>
+                <div class="stat-box"><div class="value">Draft</div><div class="label">Status</div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Today’s entries <span class="add">+ Add</span></div>
+              <div class="time-row"><span class="time">09:00</span><div class="block job">Job #51816 – 4h</div></div>
+              <div class="time-row"><span class="time">13:00</span><div class="block job">Job #51820 – 3h</div></div>
+              <div class="time-row"><span class="time">16:00</span><div class="block admin">Admin – 1h</div></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Quick actions</div>
+              <button class="btn-add" style="width: 100%; justify-content: center; margin-bottom: 0.5rem;">+ Add time entry</button>
+              <button class="btn-secondary" style="width: 100%;">Submit week</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">All entries</div>
+            <div class="tabs">
+              <span class="tab active">This week</span>
+              <span class="tab">Last week</span>
+              <span class="tab">By job</span>
+            </div>
+            <table>
+              <thead><tr><th>DATE</th><th>JOB</th><th>HOURS</th><th>NOTE</th><th>ACTIONS</th></tr></thead>
+              <tbody>
+                <tr><td>Mon 16 Feb</td><td>Job #51816</td><td>8.0</td><td>Site setup</td><td>✏️ 🗑</td></tr>
+                <tr><td>Tue 17 Feb</td><td>Job #51816</td><td>7.5</td><td>—</td><td>✏️ 🗑</td></tr>
+                <tr><td>Wed 18 Feb</td><td>Job #51816, #51820, Admin</td><td>8.0</td><td>—</td><td>✏️ 🗑</td></tr>
+                <tr><td colspan="5" style="text-align: center; color: #718096;">No more records</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Option C: Schedule-style day grid -->
+      <section id="opt3" class="wireframe-section">
+        <div class="topbar">
+          <div>
+            <h1>Timesheet – Day view</h1>
+            <div class="sub">Wednesday, February 18, 2026</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <input type="text" class="date-input" value="2/18/2026" readonly style="min-width: 110px;" />
+            <span class="pill">My timesheet</span>
+            <button class="btn-add">+ Add entry</button>
+          </div>
+        </div>
+        <div class="content">
+          <div class="card" style="margin-bottom: 1rem;">
+            <div class="card-title">Week</div>
+            <div class="week-strip">
+              <div class="day-cell"> <div class="d">Mon</div> <div class="date">16</div> </div>
+              <div class="day-cell"> <div class="d">Tue</div> <div class="date">17</div> </div>
+              <div class="day-cell active"> <div class="d">Wed</div> <div class="date">18</div> </div>
+              <div class="day-cell"> <div class="d">Thu</div> <div class="date">19</div> </div>
+              <div class="day-cell"> <div class="d">Fri</div> <div class="date">20</div> </div>
+              <div class="day-cell"> <div class="d">Sat</div> <div class="date">21</div> </div>
+              <div class="day-cell"> <div class="d">Sun</div> <div class="date">22</div> </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Wednesday 18 Feb <span class="add">+ Schedule time</span></div>
+            <div style="display: grid; grid-template-columns: 60px 1fr; gap: 0; font-size: 0.875rem;">
+              <div style="padding: 0.5rem 0; color: #718096;">06:00</div>
+              <div style="border-left: 1px solid #e2e8f0; min-height: 24px;"></div>
+              <div style="padding: 0.5rem 0; color: #718096;">07:00</div>
+              <div style="border-left: 1px solid #e2e8f0; min-height: 24px;"></div>
+              <div style="padding: 0.5rem 0; color: #718096;">08:00</div>
+              <div style="border-left: 1px solid #e2e8f0; min-height: 24px;"></div>
+              <div style="padding: 0.5rem 0; color: #718096;">09:00</div>
+              <div style="border-left: 1px solid #e2e8f0; padding: 0.25rem 0.5rem;">
+                <div class="block job" style="margin: 0;">Job #51816 – 4h (Wollert)</div>
+              </div>
+              <div style="padding: 0.5rem 0; color: #718096;">10:00</div>
+              <div style="border-left: 1px solid #e2e8f0; min-height: 24px;"></div>
+              <div style="padding: 0.5rem 0; color: #718096;">11:00</div>
+              <div style="border-left: 1px solid #e2e8f0; min-height: 24px;"></div>
+              <div style="padding: 0.5rem 0; color: #718096;">12:00</div>
+              <div style="border-left: 1px solid #e2e8f0; min-height: 24px;"></div>
+              <div style="padding: 0.5rem 0; color: #718096;">13:00</div>
+              <div style="border-left: 1px solid #e2e8f0; padding: 0.25rem 0.5rem;">
+                <div class="block job" style="margin: 0;">Job #51820 – 3h (Richmond)</div>
+              </div>
+              <div style="padding: 0.5rem 0; color: #718096;">14:00</div>
+              <div style="border-left: 1px solid #e2e8f0; min-height: 24px;"></div>
+              <div style="padding: 0.5rem 0; color: #718096;">15:00</div>
+              <div style="border-left: 1px solid #e2e8f0; min-height: 24px;"></div>
+              <div style="padding: 0.5rem 0; color: #718096;">16:00</div>
+              <div style="border-left: 1px solid #e2e8f0; padding: 0.25rem 0.5rem;">
+                <div class="block admin" style="margin: 0;">Admin – 1h</div>
+              </div>
+              <div style="padding: 0.5rem 0; color: #718096;">17:00</div>
+              <div style="border-left: 1px solid #e2e8f0; min-height: 24px;"></div>
+              <div style="padding: 0.5rem 0; color: #718096;">18:00</div>
+              <div style="border-left: 1px solid #e2e8f0; min-height: 24px;"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Summary for 18 Feb</div>
+            <p style="margin: 0; font-size: 0.875rem;">Total: <strong>8.0 hours</strong> across 3 entries. <a href="#" style="color: #38a169;">Edit entries</a></p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    document.querySelectorAll('.option-nav button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = 'opt' + btn.dataset.option;
+        document.querySelectorAll('.wireframe-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.option-nav button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

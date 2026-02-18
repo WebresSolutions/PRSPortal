@@ -29,7 +29,22 @@ public static class TimeSheetEndpoints
                 return EndpointsHelper.ProcessResult(result, "An Error occured getting user timesheets");
             })
             .WithSummary("Get timesheet")
-            .WithDescription("Returns timesheet data. If id is not provided, uses the current user's ID from the auth context.");
+            .WithDescription("Returns timesheet data. If id is not provided, uses the current user's ID from the auth context.")
+            .Produces<TimeSheetDto[]>();
+
+        appGroup.MapPost("",
+            async (
+                [FromBody] TimeSheetEntryDto entry,
+                [FromServices] ITimeSheetService timesheetService,
+                HttpContext httpContext
+                ) =>
+            {
+                Result<TimeSheetDto> res = await timesheetService.AddTimeSheetEntry(httpContext, entry);
+                return EndpointsHelper.ProcessResult(res, "An Error occured adding the timesheet entry");
+            })
+            .WithSummary("Add timesheet entry")
+            .WithDescription("Adds a new timesheet entry for the current user.")
+            .Produces(StatusCodes.Status200OK);
 
         if (reqAuth)
             appGroup.RequireAuthorization();

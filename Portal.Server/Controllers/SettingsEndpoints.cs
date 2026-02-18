@@ -30,7 +30,8 @@ public static class SettingsEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while getting system settings");
         })
             .WithSummary("Get system settings")
-            .WithDescription("Returns the current system settings configuration.");
+            .WithDescription("Returns the current system settings configuration.")
+            .Produces<SystemSettingDto>();
 
         appGroup.MapPut("systemsettings", async (
             [FromServices] ISettingService setService,
@@ -42,7 +43,8 @@ public static class SettingsEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while saving system settings");
         })
             .WithSummary("Update system settings")
-            .WithDescription("Updates system settings with the provided SystemSettingDto. Returns the updated settings on success.");
+            .WithDescription("Updates system settings with the provided SystemSettingDto. Returns the updated settings on success.")
+            .Produces<SystemSettingDto>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

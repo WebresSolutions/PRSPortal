@@ -4,6 +4,7 @@ using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.ResponseModels;
+using System.Collections.Generic;
 using Quartz.Util;
 
 namespace Portal.Server.Controllers;
@@ -34,7 +35,8 @@ public static class ScheduleEndpoints
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading schedule slots");
         })
             .WithSummary("Get schedule slots for date")
-            .WithDescription("Returns schedule slots for a given date and job type. Requires date and jobType query parameters.");
+            .WithDescription("Returns schedule slots for a given date and job type. Requires date and jobType query parameters.")
+            .Produces<List<ScheduleSlotDTO>>();
 
         // Gets schedule colours
         appGroup.MapGet("colours", async (
@@ -46,7 +48,8 @@ public static class ScheduleEndpoints
             return EndpointsHelper.ProcessResult(result, "An error occured while loading colours");
         })
             .WithSummary("Get schedule colours")
-            .WithDescription("Returns the list of schedule colour definitions used for calendar/schedule display.");
+            .WithDescription("Returns the list of schedule colour definitions used for calendar/schedule display.")
+            .Produces<List<ScheduleColourDto>>();
 
         // Update a schedule colour
         appGroup.MapPut("colours", async (
@@ -62,7 +65,8 @@ public static class ScheduleEndpoints
             return EndpointsHelper.ProcessResult(result, "An error occured while loading colours");
         })
             .WithSummary("Update schedule colour")
-            .WithDescription("Updates a schedule colour. ColourHex must start with '#' and be non-empty. Returns 400 for invalid colour.");
+            .WithDescription("Updates a schedule colour. ColourHex must start with '#' and be non-empty. Returns 400 for invalid colour.")
+            .Produces<ScheduleColourDto>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

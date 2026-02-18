@@ -1,4 +1,6 @@
+using Portal.Shared.DTO.User;
 using System.Net;
+using System.Net.Http.Json;
 
 namespace Portal.IntegrationTests.EndpointTests;
 
@@ -18,6 +20,9 @@ public sealed class UserEndpointTests
         HttpResponseMessage response = await _client.GetAsync("/api/users");
         response.EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        UserDto[]? resValue = await response.Content.ReadFromJsonAsync<UserDto[]>();
+        Assert.NotNull(resValue);
+        Assert.True(resValue.Length > 0);
     }
 
     [Fact]

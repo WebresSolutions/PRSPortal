@@ -1,0 +1,259 @@
+@page "/Timesheets"
+@inherits BaseDataComponent
+@using Portal.Shared.DTO.TimeSheet
+@using System.Globalization
+
+<PageTitle>Timesheet - PRS Portal</PageTitle>
+<div class="container">
+    <PageHeader>
+        <Content>
+            <div class="header-left">
+                <div class="header-content">
+                    @if (!IsLoading)
+                    {
+                        <h1>Timesheet – Day view</h1>
+                        <div class="header-info">
+                            <span>@SelectedDate.ToString("dddd, MMMM d, yyyy")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-controls">
+                    <MudDatePicker T="DateTime?"
+                                   Date="@((DateTime?)SelectedDate.ToDateTime(TimeOnly.MinValue))"
+                                   Label="Select Date"
+                                   Variant="Variant.Outlined"
+                                   Class="mt-0 mb-0"
+                                   DateChanged="@OnDateChanged" />
+                    <span class="timesheet-pill">My timesheet</span>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Success"
+                               OnClick="OpenAddEntryDialog"
+                               StartIcon="@Icons.Material.Filled.Add">
+                        Add entry
+                    </MudButton>
+                </div>
+            </div>
+        </Content>
+    </PageHeader>
+
+    @if (IsLoading)
+    {
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="120px" Class="mb-3" />
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
+    }
+    else
+    {
+        <div class="day-view-container">
+            <Card Title="" CssClass="day-view-item">
+                <TitleContent>
+                    <div class="card-title-inline"><strong>Week</strong></div>
+                </TitleContent>
+                <ChildContent>
+                    <div class="week-strip">
+                        @foreach (DateOnly day in WeekDays)
+                        {
+                            DateOnly date = day;
+                            bool isActive = date == SelectedDate;
+                            <button type="button"
+                                    class="day-cell @(isActive ? "active" : "")"
+                                    @onclick="@(() => SelectDay(date))">
+                                <div class="day-cell-d">@date.ToString("ddd")</div>
+                                <div class="day-cell-date">@date.Day</div>
+                            </button>
+                        }
+                    </div>
+                </ChildContent>
+            </Card>
+
+            <Card Title="" CssClass="day-view-item calendar">
+                <TitleContent>
+                    <div class="card-header-with-add">
+                        <span class="card-title-inline">
+                            <strong>
+                                @SelectedDate.ToString("dddd d MMM")
+                            </strong>
+                            <p class="timesheet-summary">
+                                Total: <strong>@FormatHours(TotalHoursForSelectedDay) hours</strong> across @EntriesForSelectedDay.Count entry(ies).
+                            </p>
+                        </span>
+                        <button type="button" class="btn-add" @onclick="OpenAddEntryDialog">+ Schedule time</button>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    <div class="day-grid">
+                        @foreach (var entry in EntriesForSelectedDay)
+                        {
+                            <div class="day-item">
+                                <div class="day-item-time">
+                                    <b>@entry.Start.ToString("t")</b>
+                                    @if (entry.End is not null)
+                                    {
+                                        <small>
+                                            @entry.End.Value.ToString("t")
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <small>
+                                            ∞
+                                        </small>
+                                    }
+                                </div>
+                                <div>
+                                    @entry.Description
+                                </div>
+                                <button class="btn-icon" title="Edit">✏️</button>
+                            </div>
+                        }
+                    </div>
+                </ChildContent>
+            </Card>
+        </div>
+    }
+</div>
+
+<style>
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-content h1 {
+        color: var(--color-primary);
+        font-size: 1.75rem;
+        font-weight: 900;
+        margin: 0;
+    }
+
+    .header-info {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .timesheet-pill {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        background: #ed8936;
+        color: #fff;
+    }
+
+    .week-strip {
+        display: flex;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+    }
+
+    .day-view-container {
+        display: flex;
+        flex-direction: column;
+        gap: var(--padding);
+    }
+
+    .day-view-item {
+        width: 100%;
+    }
+    
+        .day-view-item.calendar {
+            min-height: 300px;
+        }
+
+    .day-cell {
+        flex: 1;
+        min-width: 60px;
+        text-align: center;
+        padding: 0.5rem;
+        border-radius: 8px;
+        background: #edf2f7;
+        font-size: 0.8rem;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: background 0.2s, border-color 0.2s;
+    }
+
+        .day-cell:hover {
+            background: #e2e8f0;
+        }
+
+        .day-cell.active {
+            background: #38a169;
+            color: #fff;
+        }
+
+            .day-cell.active .day-cell-date {
+                color: rgba(255, 255, 255, 0.9);
+            }
+
+    .day-cell-d {
+        font-weight: 700;
+    }
+
+    .day-cell-date {
+        margin-left: 5px;
+        color: #718096;
+    }
+
+    .card-title-inline {
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .card-header-with-add {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .day-item {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 5fr 1fr;
+        border-bottom: 2px solid #e2e8f0;
+        padding: var(--padding);
+        margin-top: var(--padding);
+    }
+
+    .day-item-time {
+        display: flex;
+        flex-direction: column;
+        gap: calc(var(--padding) / 2);
+    }
+
+    .timesheet-summary {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 768px) {
+        .header-controls {
+            width: 100%;
+        }
+
+        .day-cell {
+            min-width: 48px;
+        }
+    }
+</style>
+
+
