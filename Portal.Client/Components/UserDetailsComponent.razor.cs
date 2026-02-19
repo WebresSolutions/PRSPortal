@@ -58,7 +58,7 @@ public partial class UserDetailsComponent
     /// Parses the JWT token payload to retrieve claim information
     /// </summary>
     /// <returns>A dictionary containing the token claims, or an empty dictionary if no token is available</returns>
-    protected IDictionary<string, object>? GetAccessTokenClaims()
+    protected IDictionary<string, object> GetAccessTokenClaims()
     {
         if (AccessToken is null)
         {
@@ -68,11 +68,11 @@ public partial class UserDetailsComponent
         // header.payload.signature
         string payload = AccessToken.Value.Split(".")[1];
         string base64Payload = payload.Replace('-', '+').Replace('_', '/')
-            .PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
+            .PadRight(payload.Length + ((4 - (payload.Length % 4)) % 4), '=');
 
         IDictionary<string, object>? res = JsonSerializer.Deserialize<IDictionary<string, object>>(
            Convert.FromBase64String(base64Payload));
 
-        return res;
+        return res ?? new Dictionary<string, object>();
     }
 }

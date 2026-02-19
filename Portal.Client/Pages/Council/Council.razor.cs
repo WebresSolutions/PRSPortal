@@ -88,7 +88,7 @@ public partial class Council
         if (!string.IsNullOrWhiteSpace(_council.address.Suburb))
             parts.Add(_council.address.Suburb.ToUpper());
         if (!string.IsNullOrWhiteSpace(_council.address.State.ToString()))
-            parts.Add(_council.address.State.ToString());
+            parts.Add(_council.address.State?.ToString() ?? "");
         if (!string.IsNullOrWhiteSpace(_council.address.PostCode))
             parts.Add(_council.address.PostCode);
 

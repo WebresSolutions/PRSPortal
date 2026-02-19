@@ -6,21 +6,21 @@
     <DialogContent>
         <div class="add-timesheet-form">
             <MudDatePicker T="DateTime?"
-                          @bind-Date="_date"
-                          Label="Date"
-                          Variant="Variant.Outlined"
-                          Class="mb-3" />
+                           @bind-Date="_date"
+                           Label="Date"
+                           Variant="Variant.Outlined"
+                           Class="mb-3" />
             <MudTimePicker T="TimeSpan?"
-                          @bind-Time="_startTime"
-                          Label="Start time"
-                          Variant="Variant.Outlined"
-                          Class="mb-3" />
+                           @bind-Time="_startTime"
+                           Label="Start time"
+                           Variant="Variant.Outlined"
+                           Class="mb-3" />
             <MudTimePicker T="TimeSpan?"
-                          @bind-Time="_endTime"
-                          Label="End time"
-                          Variant="Variant.Outlined"
-                          Class="mb-3"
-                          Clearable="true"/>
+                           @bind-Time="_endTime"
+                           Label="End time"
+                           Variant="Variant.Outlined"
+                           Class="mb-3"
+                           Clearable="true" />
             <MudTextField T="string"
                           @bind-Value="_description"
                           Label="Description (optional)"
@@ -28,16 +28,16 @@
                           Lines="2"
                           Class="mb-3" />
             <MudNumericField T="int?"
-                            @bind-Value="_jobId"
-                            Label="Job ID (optional)"
-                            Variant="Variant.Outlined"
-                            Min="1"
-                            Class="mb-3" />
+                             @bind-Value="_jobId"
+                             Label="Job ID (optional)"
+                             Variant="Variant.Outlined"
+                             Min="1"
+                             Class="mb-3" />
         </div>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel" Variant="Variant.Text">Cancel</MudButton>
-        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Success">Add entry</MudButton>
+        <MudButton OnClick="Cancel" Variant="Variant.Filled">Cancel</MudButton>
+        <MudButton OnClick="Submit" Variant="Variant.Filled" Color="Color.Success">@(EditEntry is not null ? "Save Changes" : "Add Time") </MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -51,20 +51,36 @@
     [Parameter]
     public EventCallback OnSaved { get; set; }
 
+    [Parameter]
+    public TimeSheetDto? EditEntry { get; set; }
+
     private DateTime? _date;
     private TimeSpan? _startTime = new TimeSpan(9, 0, 0);
     private TimeSpan? _endTime = null;
-    private string _description = "";
+    private string? _description = "";
     private int? _jobId;
 
     protected override void OnParametersSet()
     {
         if (_date is null)
             _date = SelectedDate.ToDateTime(TimeOnly.MinValue);
+
+        if (EditEntry is not null)
+        {
+            _date = EditEntry.Start.Date;
+            _startTime = EditEntry.Start.TimeOfDay;
+            _endTime = EditEntry.End?.TimeOfDay;
+            _jobId = EditEntry.JobId;
+            _description = EditEntry.Description;
+        }
     }
 
     private void Cancel() => MudDialog?.Cancel();
 
+    /// <summary>
+    ///  Submit the task to the API . If EditEntry is null, a new entry will be created. Otherwise, the existing entry will be updated.
+    /// </summary>
+    /// <returns></returns>
     private async Task Submit()
     {
         if (!_date.HasValue || !_startTime.HasValue)
@@ -79,16 +95,32 @@
             _snackbar.Add("End time must be after start time.", Severity.Warning);
             return;
         }
-        TimeSheetEntryDto entry = new TimeSheetEntryDto(start, end, _description ?? "", _jobId, null);
-        Result<TimeSheetDto> result = await _apiService.AddTimeSheetEntry(entry);
-        if (result.IsSuccess)
+        if (EditEntry is null)
         {
-            _snackbar.Add("Time entry added.", Severity.Success);
-            await OnSaved.InvokeAsync();
-            MudDialog?.Close(DialogResult.Ok(true));
+            TimeSheetDto entry = new TimeSheetDto(0, start, end, 0, _jobId, _description, "");
+            Result<TimeSheetDto> result = await _apiService.AddTimeSheetEntry(entry);
+            if (result.IsSuccess)
+            {
+                _snackbar.Add("Time entry added.", Severity.Success);
+                await OnSaved.InvokeAsync();
+                MudDialog?.Close(DialogResult.Ok(true));
+            }
+            else
+                _snackbar.Add(result.ErrorDescription ?? "Failed to add entry.", Severity.Error);
         }
         else
-            _snackbar.Add(result.ErrorDescription ?? "Failed to add entry.", Severity.Error);
+        {
+            EditEntry = new TimeSheetDto(EditEntry.Id, start, end, 0, _jobId, _description, "");
+            Result<TimeSheetDto> result = await _apiService.UpdateTimeSheet(EditEntry);
+            if (result.IsSuccess)
+            {
+                _snackbar.Add("Time entry added.", Severity.Success);
+                await OnSaved.InvokeAsync();
+                MudDialog?.Close(DialogResult.Ok(true));
+            }
+            else
+                _snackbar.Add(result.ErrorDescription ?? "Failed to add entry.", Severity.Error);            
+        }
     }
 }
 

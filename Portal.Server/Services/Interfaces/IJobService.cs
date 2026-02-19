@@ -36,4 +36,20 @@ public interface IJobService
     /// <param name="includeDeleted"></param>
     /// <returns></returns>
     Task<Result<List<JobNoteDto>>> GetUserAssignedJobsNotes(HttpContext httpContext, int userId, bool includeDeleted);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="httpContext"></param>
+    /// <param name="updateJobDto"></param>
+    /// <returns></returns>
+    Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobDetailsDto updateJobDto);
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="httpContext"></param>
+    /// <param name="jobCreationDto"></param>
+    /// <returns></returns>
+    Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto jobCreationDto);
 }

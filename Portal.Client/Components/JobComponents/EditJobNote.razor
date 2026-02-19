@@ -16,11 +16,10 @@
     private MudExRichTextEdit Editor = null!;
     private string _safeContent = "";
     private bool _readOnly = false;
-    private bool _isActuallyLoading = true;
+
 
     protected override async Task OnParametersSetAsync()
     {
-        _isActuallyLoading = true;
         StateHasChanged();
 
         await Task.Yield();
@@ -42,8 +41,6 @@
             }
         }
 
-        // STEP 3: Reveal the editor
-        _isActuallyLoading = false;
         StateHasChanged();
     }
 

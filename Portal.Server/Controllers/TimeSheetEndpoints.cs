@@ -34,7 +34,7 @@ public static class TimeSheetEndpoints
 
         appGroup.MapPost("",
             async (
-                [FromBody] TimeSheetEntryDto entry,
+                [FromBody] TimeSheetDto entry,
                 [FromServices] ITimeSheetService timesheetService,
                 HttpContext httpContext
                 ) =>
@@ -44,7 +44,35 @@ public static class TimeSheetEndpoints
             })
             .WithSummary("Add timesheet entry")
             .WithDescription("Adds a new timesheet entry for the current user.")
-            .Produces(StatusCodes.Status200OK);
+            .Produces<TimeSheetDto>();
+
+        appGroup.MapPut("",
+            async (
+                [FromBody] TimeSheetDto entry,
+                [FromServices] ITimeSheetService timesheetService,
+                HttpContext httpContext
+                ) =>
+            {
+                Result<TimeSheetDto> res = await timesheetService.UpdateTimeSheet(httpContext, entry);
+                return EndpointsHelper.ProcessResult(res, "An Error occured updating the timesheet entry");
+            })
+            .WithSummary("Update timesheet entry")
+            .WithDescription("Updates an existing timesheet entry by ID.")
+            .Produces<TimeSheetDto>();
+
+        appGroup.MapDelete("{id}",
+            async (
+                [FromRoute] int id,
+                [FromServices] ITimeSheetService timesheetService,
+                HttpContext httpContext
+                ) =>
+            {
+                Result<bool> res = await timesheetService.RemoveTimeSheetEntry(httpContext, id);
+                return EndpointsHelper.ProcessResult(res, "An Error occured removing the timesheet entry");
+            })
+            .WithSummary("Remove timesheet entry")
+            .WithDescription("Removes a timesheet entry by ID.")
+            .Produces<bool>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

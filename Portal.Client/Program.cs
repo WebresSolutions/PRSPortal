@@ -1,3 +1,4 @@
+using GoogleMapsComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -92,7 +93,7 @@ public class Program
         // The service holds stateful information about the current user session.
         builder.Services.AddSingleton<SessionStorage>();
         builder.Services.AddHotKeys2();
-
+        builder.Services.AddBlazorGoogleMaps(builder.Configuration.GetValue<string>("GoogleMaps:MapsApiKey") ?? throw new Exception("Google Maps API key is null"));
         WebAssemblyHost host = builder.Build();
         await host.RunAsync();
     }

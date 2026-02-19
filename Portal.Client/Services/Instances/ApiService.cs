@@ -694,7 +694,7 @@ public class ApiService : IApiService
     /// <summary>
     /// Adds a new timesheet entry for the current user.
     /// </summary>
-    public async Task<Result<TimeSheetDto>> AddTimeSheetEntry(TimeSheetEntryDto entry)
+    public async Task<Result<TimeSheetDto>> AddTimeSheetEntry(TimeSheetDto entry)
     {
         Result<TimeSheetDto> res = new();
         try
@@ -706,6 +706,68 @@ public class ApiService : IApiService
             {
                 TimeSheetDto? data = await response.Content.ReadFromJsonAsync<TimeSheetDto>();
                 res.Value = data!;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to add timesheet entry";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+    /// <summary>
+    /// Updates a timesheet entry for the current user. The entry must have a valid ID corresponding to an existing timesheet entry. 
+    /// If the entry does not exist or the update fails, the returned result will contain error information.
+    /// </summary>
+    /// <param name="entry">The timesheet entry being updated</param>
+    /// <returns></returns>
+    public async Task<Result<TimeSheetDto>> UpdateTimeSheet(TimeSheetDto entry)
+    {
+        Result<TimeSheetDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync("api/timesheet", entry);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                TimeSheetDto? data = await response.Content.ReadFromJsonAsync<TimeSheetDto>();
+                res.Value = data!;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to add timesheet entry";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+    /// <summary>
+    /// Deletes a timesheet entry for the current user. The entry must have a valid ID corresponding to an existing timesheet entry. 
+    /// If the entry does not exist or the update fails, the returned result will contain error information.
+    /// </summary>
+    /// <param name="entry">The timesheet entry being updated</param>
+    /// <returns></returns>
+    public async Task<Result<bool>> DelteTimeSheetEntry(TimeSheetDto entry)
+    {
+        Result<bool> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/timesheet/{entry.Id}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                bool? data = await response.Content.ReadFromJsonAsync<bool>();
+                res.Value = data ?? false;
             }
             else
             {

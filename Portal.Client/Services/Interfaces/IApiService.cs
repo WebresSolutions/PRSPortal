@@ -12,6 +12,7 @@ namespace Portal.Client.Services.Interfaces;
 
 public interface IApiService
 {
+    #region JOBS
     /// <summary>
     /// Retrieves a paged list of jobs, optionally filtered by name and sorted according to the specified criteria.
     /// </summary>
@@ -35,6 +36,9 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a <see
     /// cref="Result{JobDetailsDto}"/> object with the job details if found; otherwise, contains error information.</returns>
     Task<Result<JobDetailsDto>> Job(int id);
+    #endregion
+
+    #region SCHEDULE
     /// <summary>
     /// Retrieves the list of available schedule slots for an individual on the specified date and job type.
     /// </summary>
@@ -56,15 +60,6 @@ public interface IApiService
     /// information describing the failure.</returns>
     Task<Result<List<ScheduleColourDto>>> GetScheduleColours();
     /// <summary>
-    /// Updates the schedule colour using the specified colour data.
-    /// </summary>
-    /// <remarks>If the update request is unauthorized, the user is redirected to the login page. The returned
-    /// Result object provides details about the success or failure of the operation.</remarks>
-    /// <param name="colour">The schedule colour data to update. Cannot be null.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with the updated
-    /// schedule colour data if the update is successful; otherwise, contains error information.</returns>
-    Task<Result<SystemSettingDto>> GetSystemSettings();
-    /// <summary>
     /// Retrieves the current system settings from the server asynchronously.
     /// </summary>
     /// <remarks>If the user is not authorized, the method may trigger navigation to the login page. The
@@ -74,6 +69,18 @@ public interface IApiService
     /// cref="Result{SystemSettingDto}"/> object with the retrieved system settings if the request is successful;
     /// otherwise, contains error information.</returns>
     Task<Result<ScheduleColourDto>> UpdateScheduleColour(ScheduleColourDto colour);
+    #endregion
+
+    #region SETTINGS
+    /// <summary>
+    /// Updates the schedule colour using the specified colour data.
+    /// </summary>
+    /// <remarks>If the update request is unauthorized, the user is redirected to the login page. The returned
+    /// Result object provides details about the success or failure of the operation.</remarks>
+    /// <param name="colour">The schedule colour data to update. Cannot be null.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with the updated
+    /// schedule colour data if the update is successful; otherwise, contains error information.</returns>
+    Task<Result<SystemSettingDto>> GetSystemSettings();
     /// <summary>
     /// Updates the system settings with the specified values asynchronously.
     /// </summary>
@@ -83,6 +90,9 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with the updated
     /// system settings if the update is successful; otherwise, contains error information.</returns>
     Task<Result<SystemSettingDto>> UpdateSystemSettings(SystemSettingDto settings);
+    #endregion
+
+    #region COUNCILS
     /// <summary>
     /// Retrieves all councils from the server asynchronously.
     /// </summary>
@@ -114,6 +124,9 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a <see
     /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
     Task<Result<PagedResponse<ListJobDto>>> GetCouncilJobs(int councilId, int page, int pageSize, SortDirectionEnum order, string? orderby);
+    #endregion
+
+    #region CONTACTS
     /// <summary>
     /// Retrieves a paged list of contacts, optionally filtered by search term and sorted according to the specified criteria.
     /// </summary>
@@ -150,6 +163,9 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a <see
     /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
     Task<Result<PagedResponse<ListJobDto>>> GetContactJobs(int contactId, int page, int pageSize, SortDirectionEnum order, string? orderby);
+    #endregion
+
+    #region USERS
     /// <summary>
     /// Gets notes for a particular user. If the user is not authorized, the method may trigger navigation to the login page. The returned result contains error information if the request fails.
     /// </summary>
@@ -160,6 +176,9 @@ public interface IApiService
     /// </summary>
     /// <returns>An array of users</returns>
     Task<Result<UserDto[]>> GetUsersList();
+    #endregion
+
+    #region TIMESHEETS 
     /// <summary>
     /// Gets timesheet entries for a user within a date range. Use userId 0 for the current user.
     /// </summary>
@@ -167,5 +186,20 @@ public interface IApiService
     /// <summary>
     /// Adds a new timesheet entry for the current user.
     /// </summary>
-    Task<Result<TimeSheetDto>> AddTimeSheetEntry(TimeSheetEntryDto entry);
+    Task<Result<TimeSheetDto>> AddTimeSheetEntry(TimeSheetDto entry);
+    /// <summary>
+    /// Updates a timesheet entry for the current user. The entry must have a valid ID corresponding to an existing timesheet entry. 
+    /// If the entry does not exist or the update fails, the returned result will contain error information.
+    /// </summary>
+    /// <param name="entry">The timesheet entry being updated</param>
+    /// <returns></returns>
+    Task<Result<TimeSheetDto>> UpdateTimeSheet(TimeSheetDto entry);
+    /// <summary>
+    /// Deletes a timesheet entry for the current user. The entry must have a valid ID corresponding to an existing timesheet entry. 
+    /// If the entry does not exist or the update fails, the returned result will contain error information.
+    /// </summary>
+    /// <param name="entry">The timesheet entry being updated</param>
+    /// <returns></returns>
+    Task<Result<bool>> DelteTimeSheetEntry(TimeSheetDto entry);
+    #endregion
 }

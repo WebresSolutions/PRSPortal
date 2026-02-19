@@ -18,7 +18,7 @@
 
     <h2>Access token claims</h2>
 
-    @foreach (KeyValuePair<string, object> claim in GetAccessTokenClaims())
+    @foreach (KeyValuePair<string, object> claim in GetAccessTokenClaims() )
     {
         <p>@(claim.Key): @claim.Value.ToString()</p>
     }

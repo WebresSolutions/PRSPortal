@@ -1,0 +1,90 @@
+@namespace Portal.Client.Components.UIComponents
+
+@if (Href is { Length: > 0 })
+{
+    <a class="@CssClassString" href="@Href" title="@Title" target="@(OpenInNewTab ? "_blank" : null)" rel="@(OpenInNewTab ? "noopener noreferrer" : null)">
+        @if (ChildContent is not null)
+        {
+            @ChildContent
+        }
+        else
+        {
+            <i class="@IconClass"></i>
+        }
+    </a>
+}
+else
+{
+    <button type="button" class="@CssClassString" title="@Title" @onclick="OnClickHandler" disabled="@Disabled">
+        @if (ChildContent is not null)
+        {
+            @ChildContent
+        }
+        else
+        {
+            <i class="@IconClass"></i>
+        }
+    </button>
+}
+
+@code {
+    /// <summary>
+    /// Bootstrap Icons class (e.g. "bi bi-trash", "bi bi-pencil").
+    /// Ignored when ChildContent is provided.
+    /// </summary>
+    [Parameter]
+    public string Icon { get; set; } = "bi bi-circle";
+
+    /// <summary>
+    /// Tooltip/title text.
+    /// </summary>
+    [Parameter]
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// Click handler. Not used when Href is set.
+    /// </summary>
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// When set, renders as a link instead of a button.
+    /// </summary>
+    [Parameter]
+    public string? Href { get; set; }
+
+    /// <summary>
+    /// Open link in new tab when Href is set.
+    /// </summary>
+    [Parameter]
+    public bool OpenInNewTab { get; set; }
+
+    /// <summary>
+    /// Extra CSS classes (e.g. "text-red", "pulse", "text-danger").
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    /// <summary>
+    /// Use smaller size (btn-icon-small).
+    /// </summary>
+    [Parameter]
+    public bool Small { get; set; }
+
+    /// <summary>
+    /// Disable the button.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Custom content instead of Icon (e.g. emoji or custom markup).
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private string IconClass => Icon?.StartsWith("bi ") == true ? Icon : $"bi {Icon}".Trim();
+    private string CssClassString => string.Join(" ", "btn-icon", Small ? "btn-icon-small" : "", CssClass ?? "").Trim();
+
+    private async Task OnClickHandler(MouseEventArgs args) => await OnClick.InvokeAsync(args);
+}

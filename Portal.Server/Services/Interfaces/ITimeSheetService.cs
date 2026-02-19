@@ -22,7 +22,7 @@ public interface ITimeSheetService
     /// <param name="startDate">The start date</param>
     /// <param name="endDate"></param>
     /// <returns></returns>
-    Task<Result<TimeSheetDto[]>> GetAllTimeSheets(HttpContext httpContext, DateTime startDate, DateTime endDate);
+    Task<Result<TimeSheetDto[]>> GetAllTimeSheets(HttpContext httpContext, DateTime startDate, DateTime? endDate);
 
     /// <summary>
     /// Adds a timesheet for the user
@@ -30,6 +30,21 @@ public interface ITimeSheetService
     /// <param name="httpContext"></param>
     /// <param name="entry"></param>
     /// <returns></returns>
-    Task<Result<TimeSheetDto>> AddTimeSheetEntry(HttpContext httpContext, TimeSheetEntryDto entry);
+    Task<Result<TimeSheetDto>> AddTimeSheetEntry(HttpContext httpContext, TimeSheetDto entry);
+
+    /// <summary>
+    /// Updates a timesheet entry. Only the user that created the entry or an application administrator can update it.
+    /// </summary>
+    /// <param name="httpContext">The http context</param>
+    /// <param name="entry">The TimeSheetentry being updated</param>
+    /// <returns>A timesheet dto</returns>
+    Task<Result<TimeSheetDto>> UpdateTimeSheet(HttpContext httpContext, TimeSheetDto entry);
+
+    /// <summary>
+    /// Removes an entry from the timesheet. Only the user that created the entry or an application administrator can remove it.
+    /// </summary>
+    /// <param name="httpContext"></param>
+    /// <param name="id"></param>
+    /// <returns></returns>
     Task<Result<bool>> RemoveTimeSheetEntry(HttpContext httpContext, int id);
 }

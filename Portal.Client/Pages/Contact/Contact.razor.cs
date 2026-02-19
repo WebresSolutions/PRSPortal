@@ -17,7 +17,6 @@ public partial class Contact
     private PagedResponse<ListJobDto>? _pagedJobs;
     private readonly int _rowsPerPage = 15;
     private int _currentPage = 1;
-    private bool isLoadingJobs = false;
     #endregion
 
     protected override async Task OnParametersSetAsync()
@@ -61,7 +60,6 @@ public partial class Contact
 
     private async Task LoadJobs(int page)
     {
-        isLoadingJobs = true;
         try
         {
             Result<PagedResponse<ListJobDto>>? jobsResult = await _apiService.GetContactJobs(ContactId, page, _rowsPerPage, SortDirectionEnum.Desc, null);
@@ -81,7 +79,6 @@ public partial class Contact
         }
         finally
         {
-            isLoadingJobs = false;
         }
     }
 
@@ -94,7 +91,7 @@ public partial class Contact
         if (!string.IsNullOrWhiteSpace(_contact.address.Suburb))
             parts.Add(_contact.address.Suburb.ToUpper());
         if (!string.IsNullOrWhiteSpace(_contact.address.State?.ToString()))
-            parts.Add(_contact.address.State.ToString());
+            parts.Add(_contact.address.State?.ToString() ?? "");
         if (!string.IsNullOrWhiteSpace(_contact.address.PostCode))
             parts.Add(_contact.address.PostCode);
 

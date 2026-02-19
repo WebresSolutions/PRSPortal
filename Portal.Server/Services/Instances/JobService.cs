@@ -147,7 +147,10 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                     x.Address.StateId ?? 3,
                     x.Address.Suburb,
                     x.Address.Street,
-                    x.Address.PostCode
+                    x.Address.PostCode,
+                    x.Address.Geom != null
+                        ? new LatLngDto(x.Address.Geom.X, x.Address.Geom.Y)
+                        : null
                 ),
                 Colour = x.JobColour != null
                     ? new JobColourDto(x.JobColourId!.Value, x.JobColour.Color)
@@ -224,14 +227,30 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         return result;
     }
 
-    public async Task<Result<JobDetailsDto>> UpdateJob(int jobId, JobDetailsDto updateJobDto)
+    public async Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto jobCreationDto)
+    {
+        Result<int> result = new();
+        try
+        {
+            // Create the other objects first
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create job");
+            return result.SetError(ErrorType.InternalError, "Failed to create job");
+        }
+    }
+
+    public async Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobDetailsDto updateJobDto)
     {
         Result<JobDetailsDto> result = new();
         try
         {
             Job? job = await _dbContext.Jobs
                 .Include(j => j.Address)
-                .Where(j => j.Id == jobId && j.DeletedAt == null)
+                .Where(j => j.Id == updateJobDto.JobId && j.DeletedAt == null)
                 .FirstOrDefaultAsync();
 
             if (job is null)
@@ -239,6 +258,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
 
             job.JobTypeId = (int)updateJobDto.JobType;
             job.JobColourId = updateJobDto.JobColourId;
+            job.ModifiedByUserId = httpContext.UserId();
 
             // Enforce uniqueness of job number if it has changed
             if (job.JobNumber != updateJobDto.JobNumber)
@@ -255,6 +275,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 job.Address.PostCode = updateJobDto.Address.PostCode;
                 job.Address.Suburb = updateJobDto.Address.Suburb;
                 job.Address.StateId = updateJobDto.Address.State is null ? (int)StateEnum.VIC : updateJobDto.Address.StateId;
+                job.Address.ModifiedByUserId = httpContext.UserId();
             }
             else
             {
@@ -264,6 +285,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                     PostCode = updateJobDto.Address.PostCode,
                     Suburb = updateJobDto.Address.Suburb,
                     StateId = updateJobDto.Address.State is null ? (int)StateEnum.VIC : updateJobDto.Address.StateId,
+                    CreatedByUserId = httpContext.UserId(),
                 };
                 await _dbContext.AddAsync(job.Address);
                 await _dbContext.SaveChangesAsync();
@@ -272,11 +294,11 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
 
             await _dbContext.SaveChangesAsync();
             // Return the updated job details
-            return await GetJob(jobId);
+            return await GetJob(updateJobDto.JobId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update job with ID {JobId}", jobId);
+            _logger.LogError(ex, "Failed to update job with ID {JobId}", updateJobDto.JobId);
             return result.SetError(ErrorType.InternalError, "Failed to update job");
         }
     }
