@@ -27,6 +27,8 @@ public static class EndpointsHelper
             ? Results.BadRequest(res.Error)
             : res.Error is ErrorType.Unauthorized
             ? Results.Unauthorized()
+            : res.Error is ErrorType.Forbidden
+            ? Results.Forbid()
             : Results.InternalServerError(res.ErrorDescription ?? internalErrString);
     }
 

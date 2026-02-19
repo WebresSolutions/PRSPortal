@@ -60,13 +60,16 @@
             @foreach (ScheduleSlotDtoWithCalendar slot in scheduleSlots)
             {
                 <div class="">
-                    <div class="schedule-users shadow">
-                        <h6>Assigned Users</h6>
-                        @foreach (var user in slot.AssignedUsers)
-                        {
-                            <div>@user.displayName</div>
-                        }
-                    </div>
+                    <Card ShowHeaderWithAddButton="true" HeaderTitle="Assigned Users" CssClass="mb-3">
+                        <ChildContent>
+                            <div style="min-height: 60px">
+                                @foreach (var user in slot.AssignedUsers)
+                                {
+                                    <div>@user.displayName</div>
+                                }
+                            </div>
+                        </ChildContent>
+                    </Card>
                     <MudCalendar T="CustomCalendarItem"
                                  ShowDatePicker="false"
                                  View="@CalendarView.Day"

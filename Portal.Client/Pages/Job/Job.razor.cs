@@ -1,3 +1,5 @@
+using GoogleMapsComponents;
+using GoogleMapsComponents.Maps;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Portal.Shared.DTO.Job;
@@ -15,11 +17,24 @@ public partial class Job
 
     private JobDetailsDto? _job;
     private DummyJobData _dummyData = new();
+    private GoogleMap? _map1;
+    private MapOptions _mapOptions = default!;
 
+    private async Task AfterMapRender()
+    {
+        // Map is ready - you can perform additional initialization here
+        LatLngBounds bounds = await LatLngBounds.CreateAsync(_map1!.JsRuntime);
+    }
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         await LoadJobData();
+        _mapOptions = new MapOptions()
+        {
+            Zoom = 13,
+            Center = new LatLngLiteral(-37.8136, 144.9631),
+            MapTypeId = MapTypeId.Roadmap
+        };
     }
 
     private async Task LoadJobData()

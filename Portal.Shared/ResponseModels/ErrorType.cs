@@ -54,5 +54,10 @@ public enum ErrorType
     /// <summary>
     /// An unknown or unexpected error occurred
     /// </summary>
-    Unknown
+    Unknown,
+
+    /// <summary>
+    /// The user is missing required privileges to perform the requested action
+    /// </summary>
+    MissingPrivileges
 }

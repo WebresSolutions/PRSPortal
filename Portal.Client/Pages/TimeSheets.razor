@@ -1,4 +1,4 @@
-@page "/Timesheets"
+@page "/Timesheets/{date}"
 @inherits BaseDataComponent
 @using Portal.Shared.DTO.TimeSheet
 @using System.Globalization
@@ -29,7 +29,7 @@
                     <span class="timesheet-pill">My timesheet</span>
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Success"
-                               OnClick="OpenAddEntryDialog"
+                               OnClick="@(() => OpenAddEntryDialog(null))"
                                StartIcon="@Icons.Material.Filled.Add">
                         Add entry
                     </MudButton>
@@ -78,12 +78,12 @@
                                 Total: <strong>@FormatHours(TotalHoursForSelectedDay) hours</strong> across @EntriesForSelectedDay.Count entry(ies).
                             </p>
                         </span>
-                        <button type="button" class="btn-add" @onclick="OpenAddEntryDialog">+ Schedule time</button>
+                        <button type="button" class="btn-add" @onclick="@(() => OpenAddEntryDialog(null))">+ Schedule time</button>
                     </div>
                 </TitleContent>
                 <ChildContent>
                     <div class="day-grid">
-                        @foreach (var entry in EntriesForSelectedDay)
+                        @foreach (TimeSheetDto entry in EntriesForSelectedDay)
                         {
                             <div class="day-item">
                                 <div class="day-item-time">
@@ -96,15 +96,22 @@
                                     }
                                     else
                                     {
-                                        <small>
+                                        <b class="pulse text-red">
                                             ∞
-                                        </small>
+                                        </b>
                                     }
                                 </div>
                                 <div>
                                     @entry.Description
                                 </div>
-                                <button class="btn-icon" title="Edit">✏️</button>
+                                <div class="timesheet-actions">
+                                    @if (entry.End is null)
+                                    {
+                                        <ButtonIcon Icon="bi bi-stop-circle" Title="Stop" CssClass="pulse text-red" OnClick="@(() => StopEntry(entry))" />
+                                    }
+                                    <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenAddEntryDialog(entry))" />
+                                    <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => DeleteEntry(entry))" />
+                                </div>
                             </div>
                         }
                     </div>
@@ -243,6 +250,12 @@
     .timesheet-summary {
         margin: 0;
         font-size: 0.9rem;
+    }
+
+    .timesheet-actions{
+        display:flex;
+        gap: 4px;
+        justify-content: end;
     }
 
     @@media (max-width: 768px) {
