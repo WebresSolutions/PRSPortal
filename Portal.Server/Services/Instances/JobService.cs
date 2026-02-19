@@ -8,7 +8,7 @@ using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
-using Quartz.Util;
+
 
 namespace Portal.Server.Services.Instances;
 
@@ -42,10 +42,14 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
             .Where(x => x.DeletedAt == null);
 
             IQueryable<Job> jobQuery;
+            searchFilter = searchFilter?.Trim();
 
-            if (!searchFilter.IsNullOrWhiteSpace())
+            if (searchFilter is not null && searchFilter != string.Empty)
             {
-                searchFilter = searchFilter!.Trim();
+                string tsQueryTerm = string.IsNullOrWhiteSpace(searchFilter)
+                   ? ""
+                   : string.Join(" & ", searchFilter.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => $"{x}:*"));
+
                 bool isNumeric = int.TryParse(searchFilter, out int numericValue);
 
                 // Branch A: Text Search (Uses GIN indexes on SearchVectors)
