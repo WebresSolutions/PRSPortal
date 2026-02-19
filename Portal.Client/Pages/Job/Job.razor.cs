@@ -7,21 +7,17 @@ using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Pages.Job;
 
-public partial class Job
+public partial class Job : IDisposable
 {
     [Parameter]
     public required int JobId { get; set; }
 
     private JobDetailsDto? _job;
     private DummyJobData _dummyData = new();
-    private GoogleMap? _map1;
+    private GoogleMap? _map;
     private MapOptions _mapOptions = default!;
 
-    private async Task AfterMapRender()
-    {
-        // Map is ready - you can perform additional initialization here
-        LatLngBounds bounds = await LatLngBounds.CreateAsync(_map1!.JsRuntime);
-    }
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -66,6 +62,18 @@ public partial class Job
 
         return $"{_job.Address.Suburb.ToUpper()}, {_job.Address.State} {_job.Address.PostCode}";
     }
+    private async Task AfterMapRender()
+    {
+        if (_map is not null)
+        {
+            LatLngBounds bounds = await LatLngBounds.CreateAsync(_map!.JsRuntime);
+        }
+        else
+        {
+            await Task.Delay(500);
+            LatLngBounds bounds = await LatLngBounds.CreateAsync(_map!.JsRuntime);
+        }
+    }
 
     private Task HandleAddNote()
     {
@@ -77,6 +85,11 @@ public partial class Job
     {
         // TODO: Implement add site visit functionality
         return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        _map?.Dispose();
     }
 
     private class DummyJobData

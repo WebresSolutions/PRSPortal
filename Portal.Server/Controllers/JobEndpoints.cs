@@ -3,7 +3,6 @@ using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Job;
-using System.Collections.Generic;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Controllers;
@@ -49,32 +48,33 @@ public static class JobEndpoints
         // Create a new job with the provided details
         appGroup.MapPost("", async (
             [FromServices] IJobService jobService,
+            [FromBody] JobCreationDto data,
             HttpContext httpContext
             ) =>
         {
-            Result<PagedResponse<ListJobDto>> result = new();
+            Result<int> result = await jobService.CreateJob(httpContext, data);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
             .WithSummary("Create job")
             .WithDescription("Creates a new job with the provided details. Request body and implementation may be extended.")
-            .Produces<PagedResponse<ListJobDto>>();
+            .Produces<int>();
 
         // Update a job with the provided details
-        appGroup.MapPut("{jobId}", async (
+        appGroup.MapPut("", async (
             [FromServices] IJobService jobService,
-            [FromRoute] int jobId,
+            [FromBody] JobDetailsDto data,
             HttpContext httpContext
             ) =>
         {
-            if (jobId <= 0)
-                jobId = 1;
+            if (data.JobId <= 0)
+                return Results.BadRequest("Invalid Job Id");
 
-            Result<PagedResponse<ListJobDto>> result = new();
+            Result<JobDetailsDto> result = await jobService.UpdateJob(httpContext, data);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
             .WithSummary("Update job")
             .WithDescription("Updates an existing job by jobId. Returns 400 if jobId is invalid.")
-            .Produces<PagedResponse<ListJobDto>>();
+            .Produces<JobDetailsDto>();
 
         // Gets a single job by the ID.
         appGroup.MapGet("{jobId}", async (

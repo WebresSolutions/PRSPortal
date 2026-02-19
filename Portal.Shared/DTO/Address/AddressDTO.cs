@@ -16,5 +16,11 @@ public record AddressDTO(
     int StateId,
     string Suburb,
     string Street,
-    string PostCode
+    string PostCode,
+    LatLngDto? LatLng = null
+    );
+
+public record LatLngDto(
+    double Latitude,
+    double Longitude
     );

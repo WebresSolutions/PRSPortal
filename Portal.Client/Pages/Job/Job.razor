@@ -54,8 +54,8 @@ else
                                 <div class="stat-mini-label">Tasks</div>
                             </div>
                             <div class="stat-mini">
-                                <div class="stat-mini-value">@_dummyData.InvoicesCount</div>
-                                <div class="stat-mini-label">Invoices</div>
+                                <div class="stat-mini-value">@_job.SiteVisits.Count()</div>
+                                <div class="stat-mini-label">Site Visits</div>
                             </div>
                             <div class="stat-mini">
                                 <div class="stat-mini-value">@(_job.Notes?.Count ?? 0)</div>
@@ -112,15 +112,12 @@ else
             <div class="content-area">
                 <Card Title="Map">
                     <ChildContent>
-                        @if (_map1 is not null)
-                        {
-                            <GoogleMap @ref="@_map1"
+                            <GoogleMap @ref="@_map"
                                        Id="map1"
                                        Options="@_mapOptions"
                                        Height="400px"
                                        OnAfterInit="@AfterMapRender"
                                        CssClass="border-rad" />
-                        }
                     </ChildContent>
                 </Card>
                 <!-- Technical Contacts -->
@@ -162,8 +159,8 @@ else
                                             <td>@contact.Phone</td>
                                             <td>@contact.Email</td>
                                             <td>
-                                                <button class="btn-icon-small">✏️</button>
-                                                <button class="btn-icon-small">🗑️</button>
+                                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
+                                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
                                             </td>
                                         </tr>
                                     }

@@ -13,7 +13,8 @@
             <div class="" style="min-width: 150px">
                 <h2>Jobs</h2>
                 <div>
-                    <ButtonIcon >New</ButtonIcon>
+                    <ButtonIcon Icon="bi bi-plus" Title="Delete" CssClass="text-green" Href="/jobs/create">
+                    </ButtonIcon>
                 </div>
             </div>
             <MudTextField T="string" @bind-Value="_sessionData.SearchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))" Variant="Variant.Outlined"
@@ -37,8 +38,8 @@
                     <TemplateColumn StickyLeft="true" Title="Action">
                         <CellTemplate>
                             <div class="d-flex flex-row">
-                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($" /jobs/view/{context.Item.JobId}")" />
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($" /jobs/edit/{context.Item.JobId}")"/>
+                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($"/jobs/view/{context.Item.JobId}")" />
+                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{context.Item.JobId}")"/>
                                 <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
                             </div>
                         </CellTemplate>
