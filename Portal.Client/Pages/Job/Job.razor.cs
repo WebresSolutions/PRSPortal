@@ -12,9 +12,6 @@ public partial class Job
     [Parameter]
     public required int JobId { get; set; }
 
-    [Parameter]
-    public bool IsEditing { get; set; }
-
     private JobDetailsDto? _job;
     private DummyJobData _dummyData = new();
     private GoogleMap? _map1;

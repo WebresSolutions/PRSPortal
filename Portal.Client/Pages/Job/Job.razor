@@ -1,4 +1,4 @@
-﻿@page "/jobs/{JobId:int}/{IsEditing:bool}"
+﻿@page "/jobs/view/{JobId:int}"
 @inherits BaseDataComponent
 @using GoogleMapsComponents
 @using Portal.Client.Components.JobComponents
@@ -110,15 +110,17 @@ else
             </div>
             <!-- Main Content -->
             <div class="content-area">
-
                 <Card Title="Map">
                     <ChildContent>
-                        <GoogleMap @ref="@_map1"
-                                   Id="map1"
-                                   Options="@_mapOptions"
-                                   Height="400px"
-                                   OnAfterInit="@AfterMapRender" 
-                                   CssClass="border-rad"/>
+                        @if (_map1 is not null)
+                        {
+                            <GoogleMap @ref="@_map1"
+                                       Id="map1"
+                                       Options="@_mapOptions"
+                                       Height="400px"
+                                       OnAfterInit="@AfterMapRender"
+                                       CssClass="border-rad" />
+                        }
                     </ChildContent>
                 </Card>
                 <!-- Technical Contacts -->

@@ -37,8 +37,8 @@
                     <TemplateColumn StickyLeft="true" Title="Action">
                         <CellTemplate>
                             <div class="d-flex flex-row">
-                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($" /jobs/{context.Item.JobId}/false")" />
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($" /jobs/{context.Item.JobId}/true")"/>
+                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($" /jobs/view/{context.Item.JobId}")" />
+                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($" /jobs/edit/{context.Item.JobId}")"/>
                                 <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
                             </div>
                         </CellTemplate>
