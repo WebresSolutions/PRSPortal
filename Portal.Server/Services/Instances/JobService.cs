@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 using Portal.Data;
 using Portal.Data.Models;
 using Portal.Server.Helpers;
@@ -52,7 +53,6 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
 
                 bool isNumeric = int.TryParse(searchFilter, out int numericValue);
 
-                // Branch A: Text Search (Uses GIN indexes on SearchVectors)
                 IQueryable<Job> textSearchQuery = baseQuery.Where(job =>
                     (job.Address != null && job.Address.SearchVector.Matches(searchFilter)) ||
                     (job.Contact != null && job.Contact.SearchVector.Matches(searchFilter)));
@@ -227,12 +227,69 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         return result;
     }
 
-    public async Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto jobCreationDto)
+    /// <summary>
+    /// Creates a new job
+    /// </summary>
+    /// <param name="httpContext"></param>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    public async Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto data)
     {
         Result<int> result = new();
         try
         {
+            // Validation 
+            if (await _dbContext.Contacts.FirstOrDefaultAsync(x => x.Id == data.ContactId) is null)
+                return result.SetError(ErrorType.BadRequest, "Invalid contact id supplied");
+
+            if (data.CouncilId is not null && await _dbContext.Councils.FirstOrDefaultAsync(x => x.Id == data.CouncilId) is null)
+                return result.SetError(ErrorType.BadRequest, "Invalid council id supplied");
+
+            if (data.JobColourId is not null && await _dbContext.JobColours.FirstOrDefaultAsync(x => x.Id == data.JobColourId) is null)
+                return result.SetError(ErrorType.BadRequest, "Invalid job colour id supplied");
+
+            if (_dbContext.Jobs.Any(j => j.JobNumber == data.JobNumber) || data.JobNumber == 0)
+                return result.SetError(ErrorType.BadRequest, "Job number already exists or invalid");
+
+            Job job = new()
+            {
+                ContactId = data.ContactId,
+                CouncilId = data.CouncilId,
+                JobColourId = data.JobColourId,
+                Details = data.Description,
+                CreatedByUserId = httpContext.UserId(),
+                CreatedOn = DateTime.UtcNow,
+                JobTypeId = (int)data.JobType,
+                JobNumber = data.JobNumber
+            };
+
+            if (data.Address is not null)
+            {
+                Address address = new()
+                {
+                    Street = data.Address.Street,
+                    PostCode = data.Address.PostCode,
+                    Suburb = data.Address.Suburb,
+                    StateId = data.Address.State is null ? (int)StateEnum.VIC : data.Address.StateId,
+                    CreatedByUserId = httpContext.UserId(),
+                };
+
+                if (data.Address.LatLng is not null)
+                {
+                    Point latlng = new(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
+                    address.Geom = latlng;
+                }
+                await _dbContext.Addresses.AddAsync(address);
+                await _dbContext.SaveChangesAsync();
+
+                job.Address = address;
+            }
             // Create the other objects first
+
+            await _dbContext.Jobs.AddAsync(job);
+            await _dbContext.SaveChangesAsync();
+
+            result.Value = job.Id;
 
             return result;
         }

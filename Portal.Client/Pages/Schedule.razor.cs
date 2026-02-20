@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Client.Components.ScheduleComponents;
 using Portal.Client.Webmodels;
 using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
+using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Pages;
@@ -32,6 +32,8 @@ public partial class Schedule
     [Parameter]
     public int? JobType { get; set; }
 
+    private UserDto[] Users = [];
+
     /// <summary>
     /// Gets or sets the date/time value for calendar display
     /// </summary>
@@ -55,6 +57,12 @@ public partial class Schedule
     {
         base.IsLoading = true;
         await base.OnInitializedAsync();
+
+        Result<UserDto[]> users = await _apiService.GetUsersList();
+        if (users.IsSuccess && users.Value is not null)
+            Users = users.Value;
+        else
+            _snackbar.Add(users.ErrorDescription ?? "Error occured while loading the users", Severity.Error);
 
         // Parse date from route parameter or default to today
         if (string.IsNullOrEmpty(Date) || !DateOnly.TryParse(Date, out DateOnly dateOnly))
@@ -83,22 +91,6 @@ public partial class Schedule
 
         //await LoadSchedule();
         base.IsLoading = false;
-    }
-
-    private async Task OpenDialogAsync(CustomCalendarItem cal)
-    {
-        Console.WriteLine("Opening dialog for calendar item: " + cal?.Text);
-
-        if (cal == null)
-        {
-            Console.WriteLine("Calendar item is null!");
-            return;
-        }
-
-        DialogParameters parameter = new DialogParameters<CustomCalendarItem> { { "CalendarItem", cal } };
-        DialogOptions options = new() { CloseButton = true, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
-
-        IDialogReference _ = await _dialog.ShowAsync<ViewScheduleIndividualDialog>("", parameter, options);
     }
 
     protected override async Task OnParametersSetAsync()
@@ -174,15 +166,7 @@ public partial class Schedule
         }
     }
 
-    /// <summary>
-    /// Adds a new schedule entry for the specified track
-    /// </summary>
-    /// <param name="trackId">The schedule track identifier</param>
-    /// <returns>A task representing the asynchronous operation</returns>
-    private async Task AddNewSchedule(int trackId)
-    {
 
-    }
 
     /// <summary>
     /// Navigates back to the previous page

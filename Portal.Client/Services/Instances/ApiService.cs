@@ -139,6 +139,36 @@ public class ApiService : IApiService
     }
 
     /// <summary>
+    /// Creates a new job with the provided details.
+    /// </summary>
+    public async Task<Result<int>> CreateJob(JobCreationDto data)
+    {
+        Result<int> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/jobs", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                int? id = await response.Content.ReadFromJsonAsync<int>();
+                if (id.HasValue)
+                    res.Value = id.Value;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to create job";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
     /// Retrieves the list of available schedule slots for an individual on the specified date and job type.
     /// </summary>
     /// <remarks>If the user is not authorized, the operation will redirect to the login page. The returned

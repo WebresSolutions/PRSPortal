@@ -1,19 +1,153 @@
-﻿@page "/jobs/create"
+@page "/jobs/create"
+@inherits BaseDataComponent
+@using GoogleMapsComponents
+@using Portal.Shared
+@using Portal.Shared.DTO.Contact
+@using Portal.Shared.DTO.Job
+@using Portal.Shared.DTO.Address
+@using Portal.Shared.Helpers
+
 <PageTitle>Create Job - PRS Portal</PageTitle>
 
 <div class="container">
     <PageHeader>
         <Content>
-            <div class="" style="min-width: 150px">
+            <div style="min-width: 150px">
                 <h2>Create New Job</h2>
+            </div>
+            <div>
+                <ButtonIcon Href="/jobs" Icon="bi bi-sign-turn-left" />
             </div>
         </Content>
     </PageHeader>
-    <Card>
 
+    <Card>
+        <ChildContent>
+            @if (base.IsLoading)
+            {
+                <MudSkeleton Height="600px;" />
+            }
+            else
+            {
+                <EditForm Model="@Model" OnValidSubmit="@SubmitAsync" class="create-job-form">
+                    <DataAnnotationsValidator />
+                    <div class="form-grid">
+                        <div class="form-sections">
+                            <h3 class="form-section-title">Job Details</h3>
+                            <MudNumericField T="int" @bind-Value="Model.JobNumber" Label="Job Number" Variant="Variant.Outlined"
+                                             Min="1" Required="true" RequiredError="Job number is required" Class="mb-3" For="@(() => Model.JobNumber)" />
+                            <MudTextField @bind-Value="Model.Description" Label="Description" Variant="Variant.Outlined" Class="mb-3" />
+                            <MudSelect T="JobTypeEnum" @bind-Value="Model.JobType" Label="Job Type" Variant="Variant.Outlined" Class="mb-3" For="@(() => Model.JobType)">
+                                <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
+                                <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
+                            </MudSelect>
+                            <MudAutocomplete T="ListContactDto" Label="Contact (optional)" @bind-Value="JobContact" Clearable="true" Variant="Variant.Outlined"
+                                             SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" Lines="100">
+                                <MoreItemsTemplate>
+                                    <div class="d-flex justify-content-center">
+                                        <small>
+                                            Only the first 10 items are shown
+                                        </small>
+                                    </div>
+                                </MoreItemsTemplate>
+                            </MudAutocomplete>
+                            <MudSelect T="int?" @bind-Value="Model.CouncilId" Label="Council (optional)" Variant="Variant.Outlined" Clearable="true" Class="mb-3">
+                                @foreach (var c in Councils)
+                                {
+                                    <MudSelectItem T="int?" Value="@c.councilId">@c.councilName</MudSelectItem>
+                                }
+                            </MudSelect>
+                            <MudNumericField T="int?" @bind-Value="Model.CouncilId" Label="Job Colour ID (optional)" Variant="Variant.Outlined" Min="1" Class="mb-3" Clearable="true" />
+                        </div>
+
+                        <div class="form-sections">
+                            @if (Model.Address is not null && Model.Address.LatLng is not null)
+                            {
+
+                                <h3 class="form-section-title">Address (optional)</h3>
+                                <MudTextField @bind-Value="Model.Address.Street" Label="Street" Variant="Variant.Outlined" Class="mb-3" />
+                                <MudTextField @bind-Value="Model.Address.Suburb" Label="Suburb" Variant="Variant.Outlined" Class="mb-3" />
+                                <MudSelect T="StateEnum ?" @bind-Value="Model.Address.State" Label="State" Variant="Variant.Outlined" Class="mb-3">
+                                    @foreach (StateEnum s in Enum.GetValues<StateEnum>())
+                                    {
+                                        <MudSelectItem T="StateEnum ?" Value="s">@s.GetFullName()</MudSelectItem>
+                                    }
+                                </MudSelect>
+                                <MudTextField @bind-Value="Model.Address.PostCode" Label="Post Code" Variant="Variant.Outlined" Class="mb-3" />
+                                <div class="form-lat-lng">
+                                    <MudNumericField T="double" @bind-Value="Model.Address.LatLng.Latitude" Label="Latitude" Variant="Variant.Outlined" Class="mb-3" />
+                                    <MudNumericField T="double" @bind-Value="Model.Address.LatLng.Longitude" Label="Longitude" Variant="Variant.Outlined" Class="mb-3" />
+                                </div>
+                                <div class="map-section">
+                                    <small class="map-hint">Move the pin on the map to adjust the coordinates</small>
+                                    <GoogleMap @ref="Map"
+                                               Id="createjob-map"
+                                               Options="MapOptions"
+                                               Height="400px"
+                                               CssClass="border-rad" />
+                                </div>
+                            }
+                        </div>
+
+                        <div class="form-actions">
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="Submitting" StartIcon="@Icons.Material.Filled.Save">Create Job</MudButton>
+                            <MudButton Variant="Variant.Outlined" Href="/jobs">Cancel</MudButton>
+                        </div>
+                    </div>
+                </EditForm>
+            }
+        </ChildContent>
     </Card>
 </div>
 
-@code{
+<style>
+    .create-job-form {
+        margin: 0;
+    }
 
-}
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: calc(2 * var(--padding));
+        align-items: start;
+    }
+
+
+    .form-sections {
+        display: flex;
+        flex-direction: column;
+        gap: var(--padding);
+    }
+
+    .form-lat-lng {
+        display: flex;
+        gap: var(--padding);
+    }
+
+    @@media (max-width: 900px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-section-title {
+        font-size: 1rem;
+        margin: 1rem 0 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .map-hint {
+        font-size: 0.875rem;
+        color: var(--mud-palette-text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .border-rad {
+        border-radius: 8px;
+    }
+</style>

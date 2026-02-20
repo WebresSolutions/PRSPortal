@@ -36,9 +36,9 @@
                     <TemplateColumn StickyLeft="true" Title="Action">
                         <CellTemplate>
                             <div class="d-flex flex-row">
-                                <MudIconButton Variant="Variant.Text" Color="Color.Info" Size="Size.Small" Href="@($"/contacts/{context.Item.ContactId}")" Icon="@Icons.Material.Filled.RemoveRedEye" />
-                                <button class="btn-icon-small">✏️</button>
-                                <button class="btn-icon-small">🗑️</button>
+                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($"/contacts/{context.Item.ContactId}")" />
+                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
+                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
                             </div>
                         </CellTemplate>
                     </TemplateColumn>

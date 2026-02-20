@@ -7,7 +7,7 @@
     {
         <div class="card-header-simple">
             <h3>@HeaderTitle</h3>
-            <button class="btn-add" @onclick="OnAddButtonClick">+</button>
+            <ButtonIcon Icon="bi bi-plus" CssClass="text-green" Title="Edit" OnClick="OnAddButtonClick" />
         </div>
     }
     @if (Title != string.Empty && !ShowHeaderWithAddButton)

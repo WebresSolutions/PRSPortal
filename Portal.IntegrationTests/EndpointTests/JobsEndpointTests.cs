@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 using System.Net;
@@ -43,25 +44,63 @@ public sealed class JobsEndpointTests
     }
 
     [Fact]
-    public async Task Get_job_by_id_returns_ok_or_not_found()
-    {
-        HttpResponseMessage response = await _client.GetAsync("/api/jobs/1");
-        Assert.True(response.StatusCode is HttpStatusCode.OK or HttpStatusCode.NotFound,
-            $"Unexpected status: {response.StatusCode}");
-    }
-
-    [Fact]
     public async Task Create_job_returns_success_status()
     {
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", new { });
-        Assert.True(response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.BadRequest,
-            $"Unexpected status: {response.StatusCode}");
+        JobCreationDto dto = new()
+        {
+            JobNumber = 123123,
+            JobType = Shared.JobTypeEnum.Construction,
+            ContactId = 1,
+            Description = "Test",
+        };
+
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        int? newJobId = await response.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(newJobId);
+        Assert.NotEqual(0, newJobId);
+
+        response = await _client.GetAsync($"/api/jobs/{newJobId}");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
+        Assert.NotNull(job);
+        Assert.Equal(dto.Description, job.Details);
+        Assert.Equal(dto.ContactId, job.Contact?.ContactId);
+        Assert.Equal(dto.JobNumber, job.JobNumber);
+        Assert.Equal(dto.JobType, job.JobType);
     }
+    [Fact]
+    public async Task Create_job_bad_request()
+    {
+        JobCreationDto invalidCreatJobRequest = new()
+        {
+            JobNumber = 0,
+            JobType = Shared.JobTypeEnum.Construction,
+            ContactId = 1,
+            Description = "Test",
+        };
+
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", invalidCreatJobRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        string textResponse = await response.Content.ReadAsStringAsync();
+
+        invalidCreatJobRequest.ContactId = 213123;
+        response = await _client.PostAsJsonAsync("/api/jobs", invalidCreatJobRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        textResponse = await response.Content.ReadAsStringAsync();
+
+        invalidCreatJobRequest.ContactId = 1;
+        invalidCreatJobRequest.CouncilId = 10000;
+        response = await _client.PostAsJsonAsync("/api/jobs", invalidCreatJobRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        textResponse = await response.Content.ReadAsStringAsync();
+    }
+
 
     [Fact]
     public async Task Update_job_returns_success_or_bad_request()
     {
-        HttpResponseMessage response = await _client.PutAsJsonAsync("/api/jobs/1", new { });
+        HttpResponseMessage response = await _client.PutAsJsonAsync("/api/jobs", new { });
         Assert.True(response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.NotFound,
             $"Unexpected status: {response.StatusCode}");
     }

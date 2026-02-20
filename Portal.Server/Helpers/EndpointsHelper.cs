@@ -22,9 +22,9 @@ public static class EndpointsHelper
             return Results.Ok(res.Value);
 
         return res.Error is ErrorType.NotFound
-            ? Results.NotFound(res.Error)
+            ? Results.NotFound(res.ErrorDescription)
             : res.Error is ErrorType.BadRequest
-            ? Results.BadRequest(res.Error)
+            ? Results.BadRequest(res.ErrorDescription)
             : res.Error is ErrorType.Unauthorized
             ? Results.Unauthorized()
             : res.Error is ErrorType.Forbidden

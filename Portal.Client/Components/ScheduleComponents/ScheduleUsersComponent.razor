@@ -1,0 +1,116 @@
+@using Portal.Shared
+@using Portal.Shared.DTO.Schedule
+@using Portal.Shared.DTO.User
+
+<div class="">
+    <Card ShowHeaderWithAddButton="true" HeaderTitle="Assigned Users" CssClass="mb-3" OnAddButtonClick="@(() => IsEditing = true)">
+        <ChildContent>
+            <div style="min-height: 60px">
+                @if (IsEditing)
+                {
+                    <MudSelect T="UserDto" Label="Assigned Users" HelperText="Select the Users " MultiSelection="true">
+                        @foreach (UserDto user in Users)
+                        {
+                            <MudSelectItem T="int?" Value="@user.userId">@user.displayName</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <ButtonIcon Icon="bi bi-save" Title="Save" CssClass="text-green" OnClick="@(() => SaveAssignedUsers())" />
+                }
+                else
+                {
+                    @foreach (UserDto user in Slot.AssignedUsers)
+                    {
+                        <div>@user.displayName</div>
+                    }
+                }
+            </div>
+        </ChildContent>
+    </Card>
+    <MudCalendar T="CustomCalendarItem"
+                 ShowDatePicker="false"
+                 View="@CalendarView.Day"
+                 ShowPrevNextButtons="false"
+                 CurrentDay="Slot.Day.ToDateTime(new TimeOnly(9, 0))"
+                 ShowCurrentTime="true"
+                 ShowMonth=false
+                 ShowWeek=false
+                 Items="Slot.Events"
+                 EnableDragItems="false"
+                 Style="min-height: 575px !important"
+                 DayCellHeight="25"
+                 Class="shadow">
+        <ToolbarContent>
+            <div class="schedule-track-actions">
+                <ButtonIcon Icon="bi bi-plus" Title="Add" CssClass="text-green" OnClick="@(() => AddNewSchedule(Slot.SlotId))" />
+                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => AddNewSchedule(Slot.SlotId))" />
+            </div>
+        </ToolbarContent>
+        <CellTemplate>
+            <div class="schedule-items shadow-deep" style="background-color: @context.Colour; width: 98%">
+                <MudIconButton OnClick="@(() => OpenDialogAsync(context))" Size="Size.Small" Variant="Variant.Text" Color="Color.Info" Icon="@Icons.Material.Filled.RemoveRedEye" />
+                @if (context.JobAddress is not null && context.JobNumber is not null && context.JobId is not null)
+                {
+                    <small style="background-color: @context.Colour">
+                        Job: @context.JobNumber - @context.JobAddress
+                    </small>
+                    <hr />
+                }
+                <small style="background-color: @context.Colour; overflow: scroll">
+                    <strong>Notes:</strong> @context.Text
+                </small>
+            </div>
+        </CellTemplate>
+    </MudCalendar>
+</div>
+@code {
+    [Parameter]
+    public required ScheduleSlotDtoWithCalendar Slot { get; set; }
+
+    [Parameter]
+    public required UserDto[] Users { get; set; }
+
+    private bool IsEditing = false;
+
+    private IEnumerable<string> options { get; set; } = [];
+    private string value { get; set; } = "Nothing selected";
+
+    protected override void OnParametersSet()
+    {
+        // options = Users
+        //     .Where(x 
+        //         => Slot.AssignedUsers.Select(x => x.userId).ToList().Contains(x.userId))
+        //     .Select(x => x.displayName ?? "");
+    }
+
+    /// <summary>
+    /// Adds a new schedule entry for the specified track
+    /// </summary>
+    /// <param name="trackId">The schedule track identifier</param>
+    /// <returns>A task representing the asynchronous operation</returns>
+    private async Task AddNewSchedule(int trackId)
+    {
+
+    }
+
+    private void SaveAssignedUsers()
+    {
+        
+    }
+
+    private async Task OpenDialogAsync(CustomCalendarItem cal)
+    {
+        Console.WriteLine("Opening dialog for calendar item: " + cal?.Text);
+
+        if (cal == null)
+        {
+            Console.WriteLine("Calendar item is null!");
+            return;
+        }
+
+        DialogParameters parameter = new DialogParameters<CustomCalendarItem> { { "CalendarItem", cal } };
+        DialogOptions options = new() { CloseButton = true, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
+
+        IDialogReference _ = await _dialog.ShowAsync<ViewScheduleIndividualDialog>("", parameter, options);
+    }
+}

@@ -62,6 +62,7 @@ public partial class Job : IDisposable
 
         return $"{_job.Address.Suburb.ToUpper()}, {_job.Address.State} {_job.Address.PostCode}";
     }
+
     private async Task AfterMapRender()
     {
         if (_map is not null)

@@ -69,7 +69,7 @@ public partial class Councils
             {
                 string searchLower = _searchString.ToLowerInvariant();
                 filteredCouncils = _allCouncils.Where(c =>
-                    (c.councilName?.ToLowerInvariant().Contains(searchLower) ?? false) ||
+                    (c.CouncilName?.ToLowerInvariant().Contains(searchLower) ?? false) ||
                     (c.phone?.ToLowerInvariant().Contains(searchLower) ?? false) ||
                     (c.email?.ToLowerInvariant().Contains(searchLower) ?? false) ||
                     (c.website?.ToLowerInvariant().Contains(searchLower) ?? false)
@@ -85,9 +85,9 @@ public partial class Councils
                     nameof(CouncilPartialDto.councilId) => sortDefinition.Descending
                         ? filteredCouncils.OrderByDescending(c => c.councilId)
                         : filteredCouncils.OrderBy(c => c.councilId),
-                    nameof(CouncilPartialDto.councilName) => sortDefinition.Descending
-                        ? filteredCouncils.OrderByDescending(c => c.councilName)
-                        : filteredCouncils.OrderBy(c => c.councilName),
+                    nameof(CouncilPartialDto.CouncilName) => sortDefinition.Descending
+                        ? filteredCouncils.OrderByDescending(c => c.CouncilName)
+                        : filteredCouncils.OrderBy(c => c.CouncilName),
                     nameof(CouncilPartialDto.phone) => sortDefinition.Descending
                         ? filteredCouncils.OrderByDescending(c => c.phone)
                         : filteredCouncils.OrderBy(c => c.phone),
@@ -103,7 +103,7 @@ public partial class Councils
             else
             {
                 // Default sorting by council name
-                filteredCouncils = filteredCouncils.OrderBy(c => c.councilName);
+                filteredCouncils = filteredCouncils.OrderBy(c => c.CouncilName);
             }
 
             // Convert to list for pagination

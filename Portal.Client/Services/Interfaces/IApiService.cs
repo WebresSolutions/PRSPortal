@@ -36,6 +36,12 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a <see
     /// cref="Result{JobDetailsDto}"/> object with the job details if found; otherwise, contains error information.</returns>
     Task<Result<JobDetailsDto>> Job(int id);
+    /// <summary>
+    /// Creates a new job with the provided details.
+    /// </summary>
+    /// <param name="data">The job creation data.</param>
+    /// <returns>A result containing the new job ID on success.</returns>
+    Task<Result<int>> CreateJob(JobCreationDto data);
     #endregion
 
     #region SCHEDULE

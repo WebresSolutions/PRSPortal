@@ -17,7 +17,7 @@ public class JobCreationDto
     /// <summary>
     /// Optional Contact Id
     /// </summary>
-    public int? ContactId { get; set; }
+    public int ContactId { get; set; }
 
     /// <summary>
     /// The address details for the job. This is optional and can be null if not provided.
@@ -33,5 +33,10 @@ public class JobCreationDto
     /// Job Colour Id
     /// </summary>
     public int? JobColourId { get; set; }
+
+    /// <summary>
+    /// Description of the Job 
+    /// </summary>
+    public string? Description { get; set; }
 
 }
