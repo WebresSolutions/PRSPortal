@@ -1,4 +1,5 @@
-﻿using Portal.Shared.DTO.Address;
+using Portal.Shared.DTO.Address;
+using System.ComponentModel.DataAnnotations;
 
 namespace Portal.Shared.DTO.Job;
 
@@ -7,11 +8,14 @@ public class JobCreationDto
     /// <summary>
     /// The job number.
     /// </summary>
+    [Required(ErrorMessage = "Job number is required")]
+    [Range(1, int.MaxValue, ErrorMessage = "Job number must be at least 1")]
     public required int JobNumber { get; set; }
 
     /// <summary>
     /// The type of the job.
     /// </summary>
+    [Required(ErrorMessage = "Job type is required")]
     public required JobTypeEnum JobType { get; set; }
 
     /// <summary>
@@ -27,16 +31,18 @@ public class JobCreationDto
     /// <summary>
     /// The Council Id
     /// </summary>
+    [Range(1, int.MaxValue, ErrorMessage = "Council ID must be positive when provided")]
     public int? CouncilId { get; set; }
 
     /// <summary>
     /// Job Colour Id
     /// </summary>
+    [Range(1, int.MaxValue, ErrorMessage = "Job colour ID must be at least 1 when provided")]
     public int? JobColourId { get; set; }
 
     /// <summary>
-    /// Description of the Job 
+    /// Description of the Job
     /// </summary>
-    public string? Description { get; set; }
-
+    [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
+    public string? Details { get; set; }
 }

@@ -2,6 +2,7 @@ using GoogleMapsComponents;
 using GoogleMapsComponents.Maps;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Portal.Client.Webmodels;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
@@ -14,19 +15,34 @@ public partial class Job : IDisposable
 
     private JobDetailsDto? _job;
     private DummyJobData _dummyData = new();
-    private GoogleMap? _map;
+    private AdvancedGoogleMap? _map;
     private MapOptions _mapOptions = default!;
 
+    private readonly List<MarkerData> Markers = [];
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         await LoadJobData();
-        _mapOptions = new MapOptions()
+        LatLngLiteral center = new(-37.8136, 144.9631);
+        if (_job?.Address?.LatLng is not null)
+        {
+            center = new LatLngLiteral(_job.Address.LatLng.Latitude, _job.Address.LatLng.Longitude);
+            Markers.Add(new MarkerData
+            {
+                Id = 1,
+                Lat = _job.Address.LatLng.Latitude,
+                Lng = _job.Address.LatLng.Longitude,
+                Title = "Job",
+                Draggable = false
+            });
+        }
+        _mapOptions = new MapOptions
         {
             Zoom = 13,
-            Center = new LatLngLiteral(-37.8136, 144.9631),
-            MapTypeId = MapTypeId.Roadmap
+            Center = center,
+            MapTypeId = MapTypeId.Roadmap,
+            MapId = "Single_map_id"
         };
     }
 
@@ -63,19 +79,6 @@ public partial class Job : IDisposable
         return $"{_job.Address.Suburb.ToUpper()}, {_job.Address.State} {_job.Address.PostCode}";
     }
 
-    private async Task AfterMapRender()
-    {
-        if (_map is not null)
-        {
-            LatLngBounds bounds = await LatLngBounds.CreateAsync(_map!.JsRuntime);
-        }
-        else
-        {
-            await Task.Delay(500);
-            LatLngBounds bounds = await LatLngBounds.CreateAsync(_map!.JsRuntime);
-        }
-    }
-
     private Task HandleAddNote()
     {
         // TODO: Implement add note functionality
@@ -88,10 +91,7 @@ public partial class Job : IDisposable
         return Task.CompletedTask;
     }
 
-    public void Dispose()
-    {
-        _map?.Dispose();
-    }
+    public void Dispose() => _map?.DisposeAsync();
 
     private class DummyJobData
     {

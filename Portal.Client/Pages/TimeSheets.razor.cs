@@ -136,7 +136,7 @@ public partial class TimeSheets
             options: new DialogOptions { CloseOnEscapeKey = true });
         if (confirm == true)
         {
-            Result<bool> result = await _apiService.DelteTimeSheetEntry(entry);
+            Result<bool> result = await _apiService.DeleteTimeSheetEntry(entry);
             if (result.IsSuccess)
             {
                 _snackbar.Add("Entry deleted.", Severity.Success);

@@ -1,5 +1,3 @@
-using GoogleMapsComponents;
-using GoogleMapsComponents.Maps;
 using MudBlazor;
 using Portal.Shared;
 using Portal.Shared.DTO.Contact;
@@ -9,27 +7,23 @@ using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Pages.Job;
 
-public partial class CreateJob : IDisposable
+public partial class CreateJob
 {
-    private int _jobNumber = 1;
-    private JobTypeEnum _jobType = JobTypeEnum.Construction;
+    /// <summary>
+    /// The List of job contacts
+    /// </summary>
     private ListContactDto? JobContact;
+    /// <summary>
+    /// List of job creation dtos
+    /// </summary>
     private JobCreationDto Model = null!;
-
-    #region Map Objects
     /// <summary>
-    /// the list of active markers on the map
+    /// List of councils
     /// </summary>
-    private Dictionary<int, AdvancedMarkerElement> markers = [];
-    /// <summary>
-    /// Marker clustering instance
-    /// </summary>
-    private MarkerClustering? markerClustering;
-    private GoogleMap? Map;
-    #endregion
-
-    private MapOptions MapOptions = default!;
     private CouncilPartialDto[] Councils = [];
+    /// <summary>
+    /// Flag for if submittiing the new job
+    /// </summary>
     private bool Submitting;
 
     /// <summary>
@@ -49,74 +43,26 @@ public partial class CreateJob : IDisposable
                 LatLng = new(-37.8136, 144.9631)
             }
         };
-        MapOptions = new MapOptions
-        {
-            Zoom = 10,
-            Center = new LatLngLiteral(-37.8136, 144.9631),
-            MapTypeId = MapTypeId.Roadmap
-        };
 
         Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
         if (councilResult?.IsSuccess == true && councilResult.Value is not null)
             Councils = councilResult.Value;
 
+
         IsLoading = false;
 
-        await LoadMap(0);
     }
 
-    private async Task LoadMap(int retryCount)
+    private void OnContactChanged(ListContactDto? value)
     {
-        if (Map is null || Map.InteropObject is null || Model.Address?.LatLng is null)
-        {
-            if (retryCount > 4)
-            {
-                retryCount = retryCount++;
-                await Task.Delay(300);
-                await LoadMap(retryCount);
-            }
-            return;
-        }
-
-        Console.WriteLine("Success Adding the markers");
-        LatLngLiteral latLng = new(Model.Address.LatLng.Latitude, Model.Address.LatLng.Longitude);
-        AdvancedMarkerElement marker = await AdvancedMarkerElement.CreateAsync(Map.JsRuntime, new AdvancedMarkerElementOptions()
-        {
-            Position = latLng,
-            Title = "New Coord",
-            Content = "dsal;fjsdalkj dsalk j daslkjdsaf dsaf dsaf dsaf dafdsa fdsafdas ",
-            GmpClickable = false,
-            GmpDraggable = true
-        });
-
-        foreach (KeyValuePair<int, AdvancedMarkerElement> kvp in markers)
-        {
-            await kvp.Value.AddListener<GoogleMapsComponents.Maps.MouseEvent>("dragend", async (e) => await HandleDragEnd(e, kvp));
-        }
-
-        if (markerClustering is null)
-            markerClustering = await MarkerClustering.CreateAsync(
-                Map.JsRuntime,
-                Map.InteropObject,
-                markers.Values
-            );
-        else
-            await markerClustering.AddMarkers(markers.Values);
+        JobContact = value;
+        Model.ContactId = value?.ContactId ?? 0;
     }
 
-    /// <summary>
-    /// Helper to unpack the event data and call the main logic.
-    /// </summary>
-    private async Task HandleDragEnd(GoogleMapsComponents.Maps.MouseEvent _, KeyValuePair<int, AdvancedMarkerElement> marker)
-    {
-        LatLngAltitudeLiteral newPosition = await marker.Value.GetPosition();
-        Model.Address?.LatLng?.Latitude = newPosition.Lat;
-        Model.Address?.LatLng?.Longitude = newPosition.Lng;
-    }
 
     private async Task SubmitAsync()
     {
-        if (_jobNumber <= 0)
+        if (Model.JobNumber <= 0)
         {
             _snackbar?.Add("Job number must be greater than 0.", Severity.Warning);
             return;
@@ -156,5 +102,5 @@ public partial class CreateJob : IDisposable
             return [];
     }
 
-    public void Dispose() => Map?.Dispose();
+
 }

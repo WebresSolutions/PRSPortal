@@ -32,7 +32,14 @@ public partial class Jobs
 
     [Parameter]
     [SupplyParameterFromQuery]
-    public string? Search { get; set; }
+    public string? AddressSearch { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? JobNumberSearch { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ContactSearch { get; set; }
 
     [Parameter]
     [SupplyParameterFromQuery]
@@ -53,13 +60,13 @@ public partial class Jobs
             _sessionData.Page = Page.Value;
         if (PageSize.HasValue)
             _sessionData.PageSize = PageSize.Value;
-        if (!string.IsNullOrWhiteSpace(Search))
-            _sessionData.SearchString = Search;
+        if (!string.IsNullOrWhiteSpace(AddressSearch))
+            _sessionData.AddressSearch = AddressSearch;
         if (!string.IsNullOrWhiteSpace(Order) && Enum.TryParse<SortDirectionEnum>(Order, true, out SortDirectionEnum orderEnum))
             _sessionData.Order = orderEnum;
 
         // Restore session data only if query parameters weren't provided
-        if (!Page.HasValue && !PageSize.HasValue && string.IsNullOrWhiteSpace(Search) && string.IsNullOrWhiteSpace(Order))
+        if (!Page.HasValue && !PageSize.HasValue && string.IsNullOrWhiteSpace(AddressSearch) && string.IsNullOrWhiteSpace(Order))
         {
             SessionSearchData? savedSession = _sessionStorage.GetItem<SessionSearchData>(_FacilitiesSessionKey);
             if (savedSession is not null)
@@ -89,9 +96,19 @@ public partial class Jobs
             _sessionData.PageSize = PageSize.Value;
             dataChanged = true;
         }
-        if (!string.IsNullOrWhiteSpace(Search) && _sessionData.SearchString != Search)
+        if (!string.IsNullOrWhiteSpace(AddressSearch) && _sessionData.AddressSearch != AddressSearch)
         {
-            _sessionData.SearchString = Search;
+            _sessionData.AddressSearch = AddressSearch;
+            dataChanged = true;
+        }
+        if (!string.IsNullOrWhiteSpace(ContactSearch) && _sessionData.ContactSearch != ContactSearch)
+        {
+            _sessionData.ContactSearch = ContactSearch;
+            dataChanged = true;
+        }
+        if (!string.IsNullOrWhiteSpace(JobNumberSearch) && _sessionData.JobNumberSearch != JobNumberSearch)
+        {
+            _sessionData.JobNumberSearch = JobNumberSearch;
             dataChanged = true;
         }
         if (!string.IsNullOrWhiteSpace(Order) && Enum.TryParse<SortDirectionEnum>(Order, true, out SortDirectionEnum orderEnum) && _sessionData.Order != orderEnum)
@@ -122,7 +139,7 @@ public partial class Jobs
     /// </summary>
     private void UpdateUrlFromSessionData()
     {
-        Dictionary<string, string?> queryParams = new();
+        Dictionary<string, string?> queryParams = [];
 
         // Build query parameters
         if (_sessionData.Page > 0)
@@ -131,14 +148,20 @@ public partial class Jobs
         if (_sessionData.PageSize != 25) // Only add if not default
             queryParams["pageSize"] = _sessionData.PageSize.ToString();
 
-        if (!string.IsNullOrWhiteSpace(_sessionData.SearchString))
-            queryParams["search"] = _sessionData.SearchString;
+        if (!string.IsNullOrWhiteSpace(_sessionData.AddressSearch))
+            queryParams["address"] = _sessionData.AddressSearch;
+
+        if (!string.IsNullOrWhiteSpace(_sessionData.ContactSearch))
+            queryParams["contact"] = _sessionData.ContactSearch;
+
+        if (!string.IsNullOrWhiteSpace(_sessionData.JobNumberSearch))
+            queryParams["job"] = _sessionData.JobNumberSearch;
 
         if (_sessionData.Order != SortDirectionEnum.Asc) // Only add if not default
             queryParams["order"] = _sessionData.Order.ToString();
 
         // Build query string
-        var queryString = string.Join("&", queryParams.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value ?? "")}"));
+        string queryString = string.Join("&", queryParams.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value ?? "")}"));
         string basePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri).Split('?')[0];
         string newUrl = queryString.Length > 0 ? $"{basePath}?{queryString}" : basePath;
 
@@ -198,11 +221,15 @@ public partial class Jobs
             SaveSessionData();
 
             Result<PagedResponse<ListJobDto>>? apiResult = await _apiService.GetAllJobs(
-                apiPageSize,
                 apiPageNumber,
-                _sessionData.SearchString,
+                apiPageSize,
+                _sessionData.Order,
+                _sessionData.AddressSearch,
+                _sessionData.ContactSearch,
+                _sessionData.JobNumberSearch,
                 _sessionData.OrderBy,
-                _sessionData.Order);
+                false
+                );
 
             if (apiResult is not null && apiResult.IsSuccess && apiResult.Value is not null)
             {
@@ -249,7 +276,6 @@ public partial class Jobs
     /// <returns>A task representing the asynchronous operation</returns>
     private Task OnSearch(string text)
     {
-        _sessionData.SearchString = text;
         // Reset to first page when search changes
         _sessionData.Page = 0;
         SaveSessionData();
@@ -261,20 +287,31 @@ public partial class Jobs
 
     private Task ClearSearch()
     {
-        _sessionData.SearchString = string.Empty;
         _sessionData.Page = 0;
         _sessionStorage.RemoveItem(_FacilitiesSessionKey);
         _sessionData = new SessionSearchData(); // Reset to defaults
         return _grid!.ReloadServerData();
     }
 
-    /// <summary>
-    /// Handles marker click navigation to job page
-    /// </summary>
-    /// <param name="facilityId">The facility ID to navigate to</param>
-    private Task NavigateToFacility(int facilityId)
+    private async Task RemoveJob(int jobId)
     {
-        _navigationManager.NavigateTo($"/Jobs/{facilityId}");
-        return Task.CompletedTask;
+        bool? confirm = await _dialog.ShowMessageBox(
+            "Confirm Delete",
+            "Are you sure you want to delete this time entry?",
+            yesText: "Delete",
+            cancelText: "Cancel",
+            options: new DialogOptions { CloseOnEscapeKey = true });
+        if (confirm == true)
+        {
+            Result<bool> result = await _apiService.DeleteJob(jobId);
+            if (result.IsSuccess)
+            {
+                _snackbar.Add("Entry deleted.", Severity.Success);
+                await RefreshGridData();
+            }
+            else
+                _snackbar.Add(result.ErrorDescription ?? "Failed to delete entry.", Severity.Error);
+        }
+
     }
 }

@@ -2,7 +2,7 @@
 
 @if (Href is { Length: > 0 })
 {
-    <a class="@CssClassString" href="@Href" title="@Title" target="@(OpenInNewTab ? "_blank" : null)" rel="@(OpenInNewTab ? "noopener noreferrer" : null)">
+    <a class="@CssClassString @(Text is not null ? " custom-button" : "")" href="@Href" title="@Title" target="@(OpenInNewTab ? "_blank" : null)" rel="@(OpenInNewTab ? "noopener noreferrer" : null)">
         @if (ChildContent is not null)
         {
             @ChildContent
@@ -10,12 +10,13 @@
         else
         {
             <i class="@IconClass"></i>
+            @Text
         }
     </a>
 }
 else
 {
-    <button type="button" class="@CssClassString" title="@Title" @onclick="OnClickHandler" disabled="@Disabled">
+    <button type="button" class="@CssClassString @(Text is not null ? " custom-button" : "")" title="@Title" @onclick="OnClickHandler" disabled="@Disabled">
         @if (ChildContent is not null)
         {
             @ChildContent
@@ -23,9 +24,19 @@ else
         else
         {
             <i class="@IconClass"></i>
+            @Text
         }
     </button>
 }
+
+<style>
+    .custom-button {
+        display: flex;
+        flex-direction: row;
+        width: fit-content;
+        padding: 0 6px 0 4px
+    }
+</style>
 
 @code {
     /// <summary>
@@ -76,6 +87,9 @@ else
     /// </summary>
     [Parameter]
     public bool Disabled { get; set; }
+
+    [Parameter]
+    public string? Text { get; set; }
 
     /// <summary>
     /// Custom content instead of Icon (e.g. emoji or custom markup).

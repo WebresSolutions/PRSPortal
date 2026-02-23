@@ -12,7 +12,8 @@
             <div style="min-width: 150px">
                 <h2>Councils</h2>
                 <div>
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="ClearSearch" StartIcon="@Icons.Material.Filled.Add">New</MudButton>
+                    <ButtonIcon Icon="bi bi-plus" Title="Delete" CssClass="text-green" Href="/jobs/create" Text="New">
+                    </ButtonIcon>
                 </div>
             </div>
             <MudTextField T="string" @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))" Variant="Variant.Outlined"
@@ -36,19 +37,19 @@
                     <TemplateColumn StickyLeft="true" Title="Action" HeaderStyle="max-width:80px">
                         <CellTemplate>
                             <div class="d-flex flex-row">
-                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($"/contacts/{context.Item.councilId}")" />
+                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($"/contacts/{context.Item.CouncilId}")" />
                                 <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
                                 <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
                             </div>
                         </CellTemplate>
                     </TemplateColumn>
-                    <PropertyColumn Property="x => x.councilId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" Title="ID" />
-                    <PropertyColumn Property="x => x.councilName" ShowFilterIcon="false" Title="Council Name" />
-                    <PropertyColumn Property="x => x.phone" ShowFilterIcon="false" Title="Phone" />
-                    <PropertyColumn Property="x => x.email" ShowFilterIcon="false" Title="Email" />
-                    <PropertyColumn Property="x => x.website" ShowFilterIcon="false" Title="Website">
+                    <PropertyColumn Property="x => x.CouncilId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" Title="ID" />
+                    <PropertyColumn Property="x => x.CouncilName" ShowFilterIcon="false" Title="Council Name" />
+                    <PropertyColumn Property="x => x.Phone" ShowFilterIcon="false" Title="Phone" />
+                    <PropertyColumn Property="x => x.Email" ShowFilterIcon="false" Title="Email" />
+                    <PropertyColumn Property="x => x.Website" ShowFilterIcon="false" Title="Website">
                         <CellTemplate>
-                            <a href="@context.Item.website"><small>@context.Item.website</small></a>
+                            <a href="@context.Item.Website"><small>@context.Item.Website</small></a>
                         </CellTemplate>
                     </PropertyColumn>
                 </Columns>

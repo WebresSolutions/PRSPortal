@@ -43,6 +43,18 @@ public class Result<T>
     }
 
     /// <summary>
+    /// Sets the value of the result
+    /// </summary>
+    /// <param name="value">The value object</param>
+    public Result<T> SetValue(T value)
+    {
+        Error = null;
+        ErrorDescription = null;
+        Value = value;
+        return this;
+    }
+
+    /// <summary>
     /// Converts HTTP status codes to appropriate error types for the result
     /// Maps common HTTP status codes to internal error types
     /// </summary>

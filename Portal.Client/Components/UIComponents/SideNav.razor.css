@@ -1,6 +1,5 @@
 ﻿.sidebar {
     margin: 0;
-    padding: 0 10px;
     width: fit-content;
     padding-top: 20px;
     position: fixed;
@@ -9,6 +8,7 @@
     background-color: var(--color-white);
     z-index: 100;
     justify-content: space-between;
+    padding-left: 4px;
 }
 
 .prs-logo {
@@ -54,7 +54,7 @@
 .nav-item {
     font-size: 1rem;
     padding-bottom: 0.5rem;
-    font-weight: 700;
+    font-weight: 500;
     width: 100%;
 }
 
@@ -140,7 +140,7 @@
     .sublink-item ::deep a {
         padding-left: 1rem;
         font-size: 0.9rem;
-        font-weight: 500;
+        font-weight: 400;
         height: 2.5rem;
     }
 
@@ -149,3 +149,10 @@
             color: var(--color-secondary) !important;
             border-bottom: 2px solid #e2e8f0;
         }
+
+
+@media(max-width: 600px) {
+    .sidebar {
+        padding-left: 0px;
+    }
+}

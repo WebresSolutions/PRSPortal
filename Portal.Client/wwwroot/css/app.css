@@ -258,6 +258,10 @@ a {
     border-radius: var(--border-rad) !important;
 }
 
+.mud-table-cell.sticky-left{
+    background: none;
+}
+
 .btn-add {
     background: #10b981;
     color: white;
@@ -346,3 +350,40 @@ a {
         transform: scale(1);
     }
 }
+
+.custom-marker {
+    background-color: var(--color-primary);
+    color: white;
+    padding: var(--padding);
+    border: 2px solid white;
+}
+
+    .custom-marker::after {
+        background-color: var(--color-primary);
+        content: '';
+        position: absolute;
+        left: 42%;
+        top: 80%;
+        width: 10px;
+        height: 10px;
+        clear: both;
+        transform: rotate(-45deg);
+    }
+
+.custom-marker {
+    background-color: var(--color-primary);
+    color: white;
+    padding: var(--padding);
+}
+
+    .custom-marker::after {
+        background-color: var(--color-primary);
+        content: '';
+        position: absolute;
+        left: 42%;
+        top: 80%;
+        width: 10px;
+        height: 10px;
+        clear: both;
+        transform: rotate(-45deg);
+    }

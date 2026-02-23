@@ -51,7 +51,7 @@ public sealed class JobsEndpointTests
             JobNumber = 123123,
             JobType = Shared.JobTypeEnum.Construction,
             ContactId = 1,
-            Description = "Test",
+            Details = "Test",
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
@@ -64,7 +64,7 @@ public sealed class JobsEndpointTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
         Assert.NotNull(job);
-        Assert.Equal(dto.Description, job.Details);
+        Assert.Equal(dto.Details, job.Details);
         Assert.Equal(dto.ContactId, job.Contact?.ContactId);
         Assert.Equal(dto.JobNumber, job.JobNumber);
         Assert.Equal(dto.JobType, job.JobType);
@@ -77,7 +77,7 @@ public sealed class JobsEndpointTests
             JobNumber = 0,
             JobType = Shared.JobTypeEnum.Construction,
             ContactId = 1,
-            Description = "Test",
+            Details = "Test",
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", invalidCreatJobRequest);
@@ -98,11 +98,78 @@ public sealed class JobsEndpointTests
 
 
     [Fact]
-    public async Task Update_job_returns_success_or_bad_request()
+    public async Task Update_job_returns_success()
     {
-        HttpResponseMessage response = await _client.PutAsJsonAsync("/api/jobs", new { });
-        Assert.True(response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.NotFound,
-            $"Unexpected status: {response.StatusCode}");
+        JobCreationDto dto = new()
+        {
+            JobNumber = 1231231,
+            JobType = Shared.JobTypeEnum.Construction,
+            ContactId = 1,
+            Details = "Test",
+        };
+
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        int? newJobId = await response.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(newJobId);
+        Assert.NotEqual(0, newJobId);
+
+        response = await _client.GetAsync($"/api/jobs/{newJobId}");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
+        Assert.NotNull(job);
+        Assert.Equal(dto.Details, job.Details);
+        Assert.Equal(dto.ContactId, job.Contact?.ContactId);
+        Assert.Equal(dto.JobNumber, job.JobNumber);
+        Assert.Equal(dto.JobType, job.JobType);
+
+        job.Details = "Updated Job Details";
+        job.JobType = Shared.JobTypeEnum.Surveying;
+        response = await _client.PutAsJsonAsync("/api/jobs", job);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        JobDetailsDto? updateJob = await response.Content.ReadFromJsonAsync<JobDetailsDto?>();
+        Assert.NotNull(updateJob);
+        Assert.Equal(job.Details, updateJob.Details);
+        Assert.Equal(job.JobType, updateJob.JobType);
+    }
+
+    [Fact]
+    public async Task Delete_job_returns_success()
+    {
+        JobCreationDto dto = new()
+        {
+            JobNumber = 11111,
+            JobType = Shared.JobTypeEnum.Construction,
+            ContactId = 1,
+            Details = "Test",
+        };
+
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        int? newJobId = await response.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(newJobId);
+        Assert.NotEqual(0, newJobId);
+
+        response = await _client.GetAsync($"/api/jobs/{newJobId}");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
+        Assert.NotNull(job);
+        Assert.Equal(dto.Details, job.Details);
+        Assert.Equal(dto.ContactId, job.Contact?.ContactId);
+        Assert.Equal(dto.JobNumber, job.JobNumber);
+        Assert.Equal(dto.JobType, job.JobType);
+
+        job.Details = "Updated Job Details";
+        job.JobType = Shared.JobTypeEnum.Surveying;
+        response = await _client.DeleteAsync($"/api/jobs/{job.JobId}");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        response = await _client.GetAsync("/api/jobs?page=1&pageSize=10");
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        PagedResponse<ListJobDto>? resValue = await response.Content.ReadFromJsonAsync<PagedResponse<ListJobDto>>();
+        Assert.NotNull(resValue);
+        Assert.DoesNotContain(resValue.Result, x => x.JobNumber == job.JobNumber);
     }
 
     [Fact]

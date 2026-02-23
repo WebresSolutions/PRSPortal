@@ -8,6 +8,7 @@ using Portal.Shared;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
+using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 
 
@@ -28,74 +29,54 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
     /// <param name="searchFilter">Optional search filter for job names, addresses, or job numbers</param>
     /// <param name="orderby">Optional field name to sort by</param>
     /// <returns>A result containing a paged response of job DTOs</returns>
-    public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(int page, int pageSize, SortDirectionEnum? order, string? searchFilter, string? orderby)
+    public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(
+        int page,
+        int pageSize,
+        SortDirectionEnum? order,
+        string? addressSearch,
+        string? contactSearch,
+        string? jobNumberSearch,
+        string? orderby,
+        bool deleted = false)
     {
         Result<PagedResponse<ListJobDto>> result = new();
         try
         {
-            // 1. Define the base query with standard non-deleted filter
-            IQueryable<Job> baseQuery = _dbContext.Jobs
-            .AsNoTracking()
-            .Include(x => x.Address)
-            .Include(x => x.JobType)
-            .Include(x => x.Contact)
-                .ThenInclude(c => c.ParentContact)
-            .Where(x => x.DeletedAt == null);
+            // 1. Base query with the Deleted filter already applied
+            IQueryable<Job> query = _dbContext.Jobs
+                .AsNoTracking();
 
-            IQueryable<Job> jobQuery;
-            searchFilter = searchFilter?.Trim();
+            query = !deleted ? query.Where(x => x.DeletedAt == null) : query.Where(x => x.DeletedAt != null);
 
-            if (searchFilter is not null && searchFilter != string.Empty)
-            {
-                string tsQueryTerm = string.IsNullOrWhiteSpace(searchFilter)
-                   ? ""
-                   : string.Join(" & ", searchFilter.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => $"{x}:*"));
+            if (!string.IsNullOrWhiteSpace(addressSearch))
+                query = query.Where(job => job.Address != null &&
+                                           job.Address.SearchVector.Matches(addressSearch));
 
-                bool isNumeric = int.TryParse(searchFilter, out int numericValue);
+            if (!string.IsNullOrWhiteSpace(contactSearch))
+                query = query.Where(job => job.Contact != null &&
+                                           job.Contact.SearchVector.Matches(contactSearch));
 
-                IQueryable<Job> textSearchQuery = baseQuery.Where(job =>
-                    (job.Address != null && job.Address.SearchVector.Matches(searchFilter)) ||
-                    (job.Contact != null && job.Contact.SearchVector.Matches(searchFilter)));
+            if (!string.IsNullOrWhiteSpace(jobNumberSearch))
+                if (int.TryParse(jobNumberSearch, out int num))
+                    query = query.Where(job => job.JobNumber != null && job.JobNumber.Value == num);
 
-                if (isNumeric)
-                {
-                    // Branch B: Numeric Search (Uses B-Tree indexes on Id/JobNumber)
-                    IQueryable<Job> numericSearchQuery = baseQuery.Where(job =>
-                        job.Id == numericValue ||
-                        (job.JobNumber != null && job.JobNumber.Value == numericValue));
 
-                    // Combine them using UNION. 
-                    // This allows Postgres to use both GIN and B-Tree indexes independently.
-                    jobQuery = textSearchQuery.Union(numericSearchQuery);
-                }
-                else
-                {
-                    jobQuery = textSearchQuery;
-                }
-            }
-            else
-            {
-                jobQuery = baseQuery;
-            }
-
-            // 2. Sorting (remains the same, now acting on the Union-ed set)
             bool isDescending = order is SortDirectionEnum.Desc;
-            jobQuery = orderby switch
+            query = orderby switch
             {
-                nameof(ListJobDto.JobId) => isDescending ? jobQuery.OrderByDescending(x => x.Id) : jobQuery.OrderBy(x => x.Id),
-                nameof(ListJobDto.Contact1.fullName) => isDescending ? jobQuery.OrderByDescending(x => x.Contact.FullName) : jobQuery.OrderBy(x => x.Contact.FullName),
-                nameof(ListJobDto.JobNumber) => isDescending ? jobQuery.OrderByDescending(x => x.JobNumber) : jobQuery.OrderBy(x => x.JobNumber),
-                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.Suburb)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.Suburb) : jobQuery.OrderBy(x => x.Address!.Suburb),
-                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.Street)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.Street) : jobQuery.OrderBy(x => x.Address!.Street),
-                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.PostCode)}" => isDescending ? jobQuery.OrderByDescending(x => x.Address!.PostCode) : jobQuery.OrderBy(x => x.Address!.PostCode),
-                _ => jobQuery.OrderByDescending(x => x.Id)
+                nameof(ListJobDto.JobId) => isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id),
+                nameof(ListJobDto.Contact1.fullName) => isDescending ? query.OrderByDescending(x => x.Contact.FullName) : query.OrderBy(x => x.Contact.FullName),
+                nameof(ListJobDto.JobNumber) => isDescending ? query.OrderByDescending(x => x.JobNumber) : query.OrderBy(x => x.JobNumber),
+                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.Suburb)}" => isDescending ? query.OrderByDescending(x => x.Address!.Suburb) : query.OrderBy(x => x.Address!.Suburb),
+                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.Street)}" => isDescending ? query.OrderByDescending(x => x.Address!.Street) : query.OrderBy(x => x.Address!.Street),
+                $"{nameof(ListJobDto.Address)}.{nameof(ListJobDto.Address.PostCode)}" => isDescending ? query.OrderByDescending(x => x.Address!.PostCode) : query.OrderBy(x => x.Address!.PostCode),
+                _ => query.OrderByDescending(x => x.Id)
             };
 
-            // 3. Execution & Paging
-            int total = await jobQuery.CountAsync(); // Note: Count the union-ed set
+            int total = await query.CountAsync(); // Note: Count the union-ed set
             int skipValue = (page - 1) * pageSize;
 
-            List<ListJobDto> jobs = await jobQuery
+            IQueryable<ListJobDto> jobs = query
                 .Skip(skipValue)
                 .Take(pageSize)
                 .Select(x => new ListJobDto(
@@ -106,10 +87,13 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                     x.JobNumber,
                     x.JobType.Name,
                     x.JobTypeId
-                ))
-                .ToListAsync();
+                ));
+            string querystring = jobs.ToQueryString();
 
-            result.Value = new PagedResponse<ListJobDto>(jobs, pageSize, page, total);
+            // Materialize the query
+            List<ListJobDto> jobsList = await jobs.ToListAsync();
+
+            result.Value = new PagedResponse<ListJobDto>(jobsList, pageSize, page, total);
             return result;
         }
         catch (Exception ex)
@@ -141,7 +125,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 JobId = x.Id,
                 JobNumber = x.JobNumber ?? 0,
                 JobType = (JobTypeEnum)x.JobTypeId,
-                Address = new AddressDTO(
+                Address = x.Address != null ? new AddressDTO(
                     x.AddressId ?? 1,
                     (StateEnum)x.Address!.StateId!,
                     x.Address.StateId ?? 3,
@@ -151,7 +135,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                     x.Address.Geom != null
                         ? new LatLngDto(x.Address.Geom.X, x.Address.Geom.Y)
                         : null
-                ),
+                ) : null,
                 Colour = x.JobColour != null
                     ? new JobColourDto(x.JobColourId!.Value, x.JobColour.Color)
                     : null,
@@ -165,7 +149,10 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                         x.Contact.Phone ?? ""
                     )
                     : null,
+                ContactId = x.ContactId,
                 Council = x.Council != null ? new JobCouncilDto(x.Council.Id, x.Council.Name) : null,
+                CouncilId = x.CouncilId,
+                LastModified = x.ModifiedByUserId != null && x.ModifiedOn != null ? new LastModifiedDto(x.ModifiedOn.Value, x.ModifiedByUser!.DisplayName) : null
             })
             .FirstOrDefaultAsync();
 
@@ -223,8 +210,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
             })
             .ToListAsync();
 
-        result.Value = job;
-        return result;
+        return result.SetValue(job);
     }
 
     /// <summary>
@@ -256,7 +242,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 ContactId = data.ContactId,
                 CouncilId = data.CouncilId,
                 JobColourId = data.JobColourId,
-                Details = data.Description,
+                Details = data.Details,
                 CreatedByUserId = httpContext.UserId(),
                 CreatedOn = DateTime.UtcNow,
                 JobTypeId = (int)data.JobType,
@@ -270,8 +256,9 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                     Street = data.Address.Street,
                     PostCode = data.Address.PostCode,
                     Suburb = data.Address.Suburb,
-                    StateId = data.Address.State is null ? (int)StateEnum.VIC : data.Address.StateId,
+                    StateId = (int?)data.Address.State ?? (int)StateEnum.VIC,
                     CreatedByUserId = httpContext.UserId(),
+                    Country = "AUS"
                 };
 
                 if (data.Address.LatLng is not null)
@@ -289,9 +276,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
             await _dbContext.Jobs.AddAsync(job);
             await _dbContext.SaveChangesAsync();
 
-            result.Value = job.Id;
-
-            return result;
+            return result.SetValue(job.Id);
         }
         catch (Exception ex)
         {
@@ -300,6 +285,12 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         }
     }
 
+    /// <summary>
+    /// Updates a job 
+    /// </summary>
+    /// <param name="httpContext">The context of the user updating the job</param>
+    /// <param name="updateJobDto"></param>
+    /// <returns></returns>
     public async Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobDetailsDto updateJobDto)
     {
         Result<JobDetailsDto> result = new();
@@ -316,37 +307,75 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
             job.JobTypeId = (int)updateJobDto.JobType;
             job.JobColourId = updateJobDto.JobColourId;
             job.ModifiedByUserId = httpContext.UserId();
+            job.Details = updateJobDto.Details;
 
             // Enforce uniqueness of job number if it has changed
             if (job.JobNumber != updateJobDto.JobNumber)
             {
-                if (_dbContext.Jobs.Any(j => j.JobNumber == updateJobDto.JobNumber))
+                if (_dbContext.Jobs.Any(j => j.JobNumber == updateJobDto.JobNumber && j.DeletedAt == null))
                     return result.SetError(ErrorType.Conflict, "Job number already exists");
 
                 job.JobNumber = updateJobDto.JobNumber;
             }
+
+            if (updateJobDto.ContactId != job.ContactId)
+            {
+                Contact? contact = await _dbContext.Contacts.FirstOrDefaultAsync(c => c.Id == updateJobDto.ContactId);
+                if (contact is null)
+                    return result.SetError(ErrorType.BadRequest, "Invalid Contact Id");
+
+                job.ContactId = updateJobDto.ContactId;
+                job.Contact = contact;
+            }
+
+            if (updateJobDto.CouncilId != job.CouncilId)
+            {
+                Council? council = await _dbContext.Councils.FirstOrDefaultAsync(c => c.Id == updateJobDto.CouncilId);
+                if (council is null)
+                    return result.SetError(ErrorType.BadRequest, "Invalid Contact Id");
+
+                job.CouncilId = updateJobDto.CouncilId;
+                job.Council = council;
+            }
+
 
             if (job.Address is not null)
             {
                 job.Address.Street = updateJobDto.Address.Street;
                 job.Address.PostCode = updateJobDto.Address.PostCode;
                 job.Address.Suburb = updateJobDto.Address.Suburb;
-                job.Address.StateId = updateJobDto.Address.State is null ? (int)StateEnum.VIC : updateJobDto.Address.StateId;
+                job.Address.StateId = updateJobDto.Address.State is null ? (int)StateEnum.VIC : (int)updateJobDto.Address.State;
                 job.Address.ModifiedByUserId = httpContext.UserId();
+
+                if (updateJobDto.Address.LatLng is null)
+                    job.Address.Geom = null;
+                else if (updateJobDto.Address.LatLng is LatLngDto latLng)
+                    job.Address.Geom = new(new Coordinate(latLng.Latitude, latLng.Longitude));
             }
             else
             {
-                job.Address = new Address
+                if (updateJobDto.Address is not null)
                 {
-                    Street = updateJobDto.Address.Street,
-                    PostCode = updateJobDto.Address.PostCode,
-                    Suburb = updateJobDto.Address.Suburb,
-                    StateId = updateJobDto.Address.State is null ? (int)StateEnum.VIC : updateJobDto.Address.StateId,
-                    CreatedByUserId = httpContext.UserId(),
-                };
-                await _dbContext.AddAsync(job.Address);
-                await _dbContext.SaveChangesAsync();
-                job.AddressId = job.Address.Id;
+                    job.Address = new Address
+                    {
+                        Street = updateJobDto.Address.Street,
+                        PostCode = updateJobDto.Address.PostCode,
+                        Suburb = updateJobDto.Address.Suburb,
+                        StateId = updateJobDto.Address.State is null ? (int)StateEnum.VIC : (int)updateJobDto.Address.State,
+                        CreatedByUserId = httpContext.UserId(),
+                        Country = "AUS"
+                    };
+
+                    if (updateJobDto.Address.LatLng is not null)
+                    {
+                        Point latlng = new(new Coordinate(updateJobDto.Address.LatLng.Latitude, updateJobDto.Address.LatLng.Longitude));
+                        job.Address.Geom = latlng;
+                    }
+
+                    await _dbContext.AddAsync(job.Address);
+                    await _dbContext.SaveChangesAsync();
+                    job.AddressId = job.Address.Id;
+                }
             }
 
             await _dbContext.SaveChangesAsync();
@@ -360,6 +389,41 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         }
     }
 
+    /// <summary>
+    /// Sets the deleted flag on a job
+    /// </summary>
+    /// <param name="httpContext"></param>
+    /// <param name="id">The job being deleted</param>
+    /// <returns></returns>
+    public async Task<Result<bool>> DeleteJob(HttpContext httpContext, int id)
+    {
+        Result<bool> result = new();
+        try
+        {
+            if (await _dbContext.Jobs.FirstOrDefaultAsync(x => x.Id == id) is Job job)
+            {
+                job.DeletedAt = DateTime.UtcNow;
+                job.ModifiedByUserId = httpContext.UserId();
+                await _dbContext.SaveChangesAsync();
+                return result.SetValue(true);
+            }
+
+            return result.SetError(ErrorType.BadRequest, "Could not find Job with matching Id");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete job with ID {JobId}", id);
+            return result.SetError(ErrorType.InternalError, "Failed to delete job");
+        }
+    }
+
+    /// <summary>
+    /// Gets all users assigend job notes   
+    /// </summary>
+    /// <param name="httpContext">The http context</param>
+    /// <param name="userId">The user ID</param>
+    /// <param name="includeDeleted">If should include deleted. </param>
+    /// <returns>A list of job notes assigned to the specific users </returns>
     public async Task<Result<List<JobNoteDto>>> GetUserAssignedJobsNotes(HttpContext httpContext, int userId, bool includeDeleted)
     {
         Result<List<JobNoteDto>> result = new();

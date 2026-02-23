@@ -57,37 +57,56 @@ public class ApiService : IApiService
     /// <param name="order">The direction in which to sort the results. Specify ascending or descending.</param>
     /// <returns>A result containing a paged response of job data transfer objects. If no jobs match the criteria, the response
     /// contains an empty collection.</returns>
-    public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(int pageSize, int pageNumber, string? nameFilter, string? orderby, SortDirectionEnum order)
+    public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(
+    int page,
+    int pageSize,
+    SortDirectionEnum? order,
+    string? addressSearch,
+    string? contactSearch,
+    string? jobNumberSearch,
+    string? orderby,
+    bool deleted = false)
     {
         Result<PagedResponse<ListJobDto>> res = new();
         try
         {
             Dictionary<string, string> queryParameters = new()
             {
+                { "page", page.ToString() },
                 { "pageSize", pageSize.ToString() },
-                { "page", pageNumber.ToString() },
-                { "order", ((int)order).ToString() }
+                { "order", ((int)(order ?? SortDirectionEnum.Asc)).ToString() },
+                { "deleted", deleted.ToString().ToLower() } // Booleans usually expect lowercase in URLs
             };
 
-            if (nameFilter is not null)
-                queryParameters.Add("nameFilter", nameFilter ?? string.Empty);
+            // 2. Add optional filters if they have values
+            if (!string.IsNullOrWhiteSpace(addressSearch))
+                queryParameters.Add("addressSearch", addressSearch);
 
+            if (!string.IsNullOrWhiteSpace(contactSearch))
+                queryParameters.Add("contactSearch", contactSearch);
 
-            if (orderby is not null)
-                queryParameters.Add("orderby", orderby ?? string.Empty);
+            if (!string.IsNullOrWhiteSpace(jobNumberSearch))
+                queryParameters.Add("jobNumberSearch", jobNumberSearch);
 
-            FormUrlEncodedContent dictFormUrlEncoded = new(queryParameters);
+            if (!string.IsNullOrWhiteSpace(orderby))
+                queryParameters.Add("orderby", orderby);
+
+            // 3. Construct the query string
+            using FormUrlEncodedContent dictFormUrlEncoded = new(queryParameters);
             string queryString = await dictFormUrlEncoded.ReadAsStringAsync();
 
-            HttpResponseMessage response = await _httpClient.GetAsync($"api/jobs/?{queryString}");
+            // 4. Execute the request
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/jobs?{queryString}");
 
-            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
                 await NavigationToLoginPage();
+                return res.SetError(ErrorType.Unauthorized, "Unauthorized access");
+            }
 
             if (response.IsSuccessStatusCode)
             {
-                PagedResponse<ListJobDto>? jobs = await response.Content.ReadFromJsonAsync<PagedResponse<ListJobDto>>();
-                res.Value = jobs;
+                res.Value = await response.Content.ReadFromJsonAsync<PagedResponse<ListJobDto>>();
             }
             else
             {
@@ -98,8 +117,9 @@ public class ApiService : IApiService
         catch (Exception ex)
         {
             Console.WriteLine($"Exception: {ex.Message}");
-            // Handle exception
+            res.SetError(ErrorType.InternalError, "A client-side error occurred.");
         }
+
         return res;
     }
 
@@ -159,6 +179,61 @@ public class ApiService : IApiService
             {
                 res.ConvertHttpResponseToError(response.StatusCode);
                 res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to create job";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    public async Task<Result<bool>> DeleteJob(int jobId)
+    {
+        Result<bool> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/jobs/{jobId}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                bool? id = await response.Content.ReadFromJsonAsync<bool>();
+                if (id.HasValue)
+                    res.Value = id.Value;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to delete job";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    public async Task<Result<JobDetailsDto>> UpdateJob(JobDetailsDto data)
+    {
+        Result<JobDetailsDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"api/jobs", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                JobDetailsDto? jobDetails = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
+
+                if (jobDetails is not null)
+                    res.Value = jobDetails;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to update job";
             }
         }
         catch (Exception ex)
@@ -786,7 +861,7 @@ public class ApiService : IApiService
     /// </summary>
     /// <param name="entry">The timesheet entry being updated</param>
     /// <returns></returns>
-    public async Task<Result<bool>> DelteTimeSheetEntry(TimeSheetDto entry)
+    public async Task<Result<bool>> DeleteTimeSheetEntry(TimeSheetDto entry)
     {
         Result<bool> res = new();
         try

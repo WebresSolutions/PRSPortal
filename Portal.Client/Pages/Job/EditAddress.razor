@@ -1,0 +1,39 @@
+@using GoogleMapsComponents
+@using GoogleMapsComponents.Maps
+@using Portal.Shared
+@using Portal.Shared.DTO.Address
+
+<h3 class="form-section-title">Address</h3>
+<MudTextField @bind-Value="Address.Street" Label="Street" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.Street)" Required="true" />
+<MudTextField @bind-Value="Address.Suburb" Label="Suburb" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.Suburb)" Required="true" />
+<MudSelect T="StateEnum ?" @bind-Value="Address.State" Label="State" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.State)" Required="true">
+    @foreach (StateEnum s in Enum.GetValues<StateEnum>())
+    {
+        <MudSelectItem T="StateEnum ?" Value="@s">@s.GetFullName()</MudSelectItem>
+    }
+</MudSelect>
+<MudTextField @bind-Value="Address.PostCode" Label="Post Code" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.PostCode)" Required="true" />
+<div class="form-lat-lng">
+    <MudNumericField T="double" @bind-Value="Address.LatLng!.Latitude" Label="Latitude" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.LatLng!.Latitude)" />
+    <MudNumericField T="double" @bind-Value="Address.LatLng.Longitude" Label="Longitude" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.LatLng!.Longitude)" />
+</div>
+<div class="map-section">
+    <small class="map-hint">Move the pin on the map to adjust the coordinates</small>
+    <AdvancedGoogleMap @ref="@Map" Id="map1" Options="@MapOptions" CssClass="border-rad">
+        @foreach (MarkerData marker in Markers)
+        {
+            <MarkerComponent @key="marker.Id"
+                             Lat="@marker.Lat"
+                             Lng="@marker.Lng"
+                             Clickable="@marker.Clickable"
+                             Draggable="@marker.Draggable"
+                             OnClick="@(() => marker.Active = !marker.Active)"
+                             OnMove="@HandleDragEnd">
+                <div class="custom-marker border-rad">
+                    <b>@marker.Title</b>
+                </div>
+            </MarkerComponent>
+        }
+    </AdvancedGoogleMap>
+</div>
+

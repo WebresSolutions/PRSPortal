@@ -26,7 +26,15 @@ public interface IApiService
     /// <param name="order">The direction in which to sort the results. Specify ascending or descending.</param>
     /// <returns>A result containing a paged response of job data transfer objects. If no jobs match the criteria, the response
     /// contains an empty collection.</returns>
-    Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(int pageSize, int pageNumber, string? nameFilter, string? orderby, SortDirectionEnum order);
+    Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(
+    int page,
+    int pageSize,
+    SortDirectionEnum? order,
+    string? addressSearch,
+    string? contactSearch,
+    string? jobNumberSearch,
+    string? orderby,
+    bool deleted = false);
     /// <summary>
     /// Retrieves the details of a job with the specified identifier.
     /// </summary>
@@ -42,6 +50,18 @@ public interface IApiService
     /// <param name="data">The job creation data.</param>
     /// <returns>A result containing the new job ID on success.</returns>
     Task<Result<int>> CreateJob(JobCreationDto data);
+    /// <summary>
+    /// Soft deletes a Job
+    /// </summary>
+    /// <param name="jobId"></param>
+    /// <returns></returns>
+    Task<Result<bool>> DeleteJob(int jobId);
+    /// <summary>
+    /// Updates a job   
+    /// </summary>
+    /// <param name="data">The job being updated</param>
+    /// <returns></returns>
+    Task<Result<JobDetailsDto>> UpdateJob(JobDetailsDto data);
     #endregion
 
     #region SCHEDULE
@@ -206,6 +226,6 @@ public interface IApiService
     /// </summary>
     /// <param name="entry">The timesheet entry being updated</param>
     /// <returns></returns>
-    Task<Result<bool>> DelteTimeSheetEntry(TimeSheetDto entry);
+    Task<Result<bool>> DeleteTimeSheetEntry(TimeSheetDto entry);
     #endregion
 }

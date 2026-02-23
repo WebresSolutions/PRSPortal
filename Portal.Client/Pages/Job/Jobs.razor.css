@@ -1,2 +1,5 @@
-
-
+.search-container{
+    display:flex;
+    gap: var(--padding);
+    width:100%;
+}

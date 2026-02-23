@@ -70,9 +70,9 @@ public partial class Councils
                 string searchLower = _searchString.ToLowerInvariant();
                 filteredCouncils = _allCouncils.Where(c =>
                     (c.CouncilName?.ToLowerInvariant().Contains(searchLower) ?? false) ||
-                    (c.phone?.ToLowerInvariant().Contains(searchLower) ?? false) ||
-                    (c.email?.ToLowerInvariant().Contains(searchLower) ?? false) ||
-                    (c.website?.ToLowerInvariant().Contains(searchLower) ?? false)
+                    (c.Phone?.ToLowerInvariant().Contains(searchLower) ?? false) ||
+                    (c.Email?.ToLowerInvariant().Contains(searchLower) ?? false) ||
+                    (c.Website?.ToLowerInvariant().Contains(searchLower) ?? false)
                 );
             }
 
@@ -82,21 +82,21 @@ public partial class Councils
             {
                 filteredCouncils = sortDefinition.SortBy switch
                 {
-                    nameof(CouncilPartialDto.councilId) => sortDefinition.Descending
-                        ? filteredCouncils.OrderByDescending(c => c.councilId)
-                        : filteredCouncils.OrderBy(c => c.councilId),
+                    nameof(CouncilPartialDto.CouncilId) => sortDefinition.Descending
+                        ? filteredCouncils.OrderByDescending(c => c.CouncilId)
+                        : filteredCouncils.OrderBy(c => c.CouncilId),
                     nameof(CouncilPartialDto.CouncilName) => sortDefinition.Descending
                         ? filteredCouncils.OrderByDescending(c => c.CouncilName)
                         : filteredCouncils.OrderBy(c => c.CouncilName),
-                    nameof(CouncilPartialDto.phone) => sortDefinition.Descending
-                        ? filteredCouncils.OrderByDescending(c => c.phone)
-                        : filteredCouncils.OrderBy(c => c.phone),
-                    nameof(CouncilPartialDto.email) => sortDefinition.Descending
-                        ? filteredCouncils.OrderByDescending(c => c.email)
-                        : filteredCouncils.OrderBy(c => c.email),
-                    nameof(CouncilPartialDto.website) => sortDefinition.Descending
-                        ? filteredCouncils.OrderByDescending(c => c.website)
-                        : filteredCouncils.OrderBy(c => c.website),
+                    nameof(CouncilPartialDto.Phone) => sortDefinition.Descending
+                        ? filteredCouncils.OrderByDescending(c => c.Phone)
+                        : filteredCouncils.OrderBy(c => c.Phone),
+                    nameof(CouncilPartialDto.Email) => sortDefinition.Descending
+                        ? filteredCouncils.OrderByDescending(c => c.Email)
+                        : filteredCouncils.OrderBy(c => c.Email),
+                    nameof(CouncilPartialDto.Website) => sortDefinition.Descending
+                        ? filteredCouncils.OrderByDescending(c => c.Website)
+                        : filteredCouncils.OrderBy(c => c.Website),
                     _ => filteredCouncils
                 };
             }

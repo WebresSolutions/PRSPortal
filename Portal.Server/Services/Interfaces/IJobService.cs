@@ -15,7 +15,15 @@ public interface IJobService
     /// <param name="nameFilter">The name filter</param>
     /// <param name="orderby">Column to order by</param>
     /// <returns>A paged list of responses</returns>
-    Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(int page, int pageSize, SortDirectionEnum? order, string? nameFilter, string? orderby);
+    Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(
+        int page,
+        int pageSize,
+        SortDirectionEnum? order,
+        string? addressSearch,
+        string? contactSearch,
+        string? jobNumberSearch,
+        string? orderby,
+        bool deleted = false);
 
     /// <summary>
     /// Retrieves detailed information for a job specified by its unique identifier.
@@ -52,4 +60,12 @@ public interface IJobService
     /// <param name="jobCreationDto"></param>
     /// <returns></returns>
     Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto jobCreationDto);
+
+    /// <summary>
+    /// Will delete a job
+    /// </summary>
+    /// <param name="httpContext">The context of the user performing the deletion</param>
+    /// <param name="id">The Id of the job to delete</param>
+    /// <returns></returns>
+    Task<Result<bool>> DeleteJob(HttpContext httpContext, int id);
 }

@@ -1,5 +1,5 @@
 ﻿using Portal.Shared.DTO.Address;
-using System.ComponentModel.DataAnnotations;
+using Portal.Shared.DTO.User;
 
 namespace Portal.Shared.DTO.Job;
 
@@ -26,10 +26,13 @@ public class JobDetailsDto
     /// </summary>
     public int? JobColourId { get; set; }
     /// <summary>
-    /// Gets or sets the address information associated with this entity.
+    /// The last modified date of the job
     /// </summary>
-    [Required]
-    public required AddressDTO Address { get; set; }
+    public LastModifiedDto? LastModified { get; set; }
+    /// <summary>
+    /// The address dto
+    /// </summary>
+    public AddressDTO? Address { get; set; }
     /// <summary>
     /// Gets or sets the colour information associated with the job.
     /// </summary>
@@ -39,19 +42,27 @@ public class JobDetailsDto
     /// </summary>
     public JobContactDto? Contact { get; set; }
     /// <summary>
+    /// The Contact Id
+    /// </summary>
+    public int ContactId { get; set; }
+    /// <summary>
     /// Gets or sets the council information associated with the job.
     /// </summary>
     public JobCouncilDto? Council { get; set; }
     /// <summary>
+    /// The Council Id
+    /// </summary>
+    public int? CouncilId { get; set; }
+    /// <summary>
     /// Gets or sets the collection of notes associated with the job.
     /// </summary>
     public List<JobNoteDto> Notes { get; set; } = [];
-
     /// <summary>
     /// Gets or sets the collection of site visits associated with the job.
     /// </summary>
     public List<JobSiteVisitsDto> SiteVisits { get; set; } = [];
-
-
+    /// <summary>
+    /// List of tasks
+    /// </summary>
     public List<JobTaskDto> Tasks { get; set; } = [];
 }

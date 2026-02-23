@@ -1,7 +1,9 @@
-﻿@page "/jobs/view/{JobId:int}"
+@page "/jobs/view/{JobId:int}"
 @inherits BaseDataComponent
 @using GoogleMapsComponents
+@using GoogleMapsComponents.Maps
 @using Portal.Client.Components.JobComponents
+@using Portal.Client.Webmodels
 @using Portal.Shared
 @using Portal.Shared.DTO.Job
 @using Portal.Shared.DTO.Address
@@ -110,16 +112,28 @@ else
             </div>
             <!-- Main Content -->
             <div class="content-area">
-                <Card Title="Map">
-                    <ChildContent>
-                            <GoogleMap @ref="@_map"
-                                       Id="map1"
-                                       Options="@_mapOptions"
-                                       Height="400px"
-                                       OnAfterInit="@AfterMapRender"
-                                       CssClass="border-rad" />
-                    </ChildContent>
-                </Card>
+                @if (_job.Address?.LatLng is not null)
+                {
+                    <Card Title="Map">
+                        <ChildContent>
+                            <AdvancedGoogleMap @ref="@_map" Id="map1" Options="@_mapOptions" CssClass="border-rad">
+                                @foreach (MarkerData marker in Markers)
+                                {
+                                    <MarkerComponent @key="marker.Id"
+                                                     Lat="@marker.Lat"
+                                                     Lng="@marker.Lng"
+                                                     Clickable="@marker.Clickable"
+                                                     Draggable="@marker.Draggable"
+                                                     OnClick="@(() => marker.Active = !marker.Active)">
+                                        <div class="custom-marker border-rad">
+                                            <b>@marker.Title</b>
+                                        </div>
+                                    </MarkerComponent>
+                                }
+                            </AdvancedGoogleMap>
+                        </ChildContent>
+                    </Card>
+                }
                 <!-- Technical Contacts -->
                 <Card>
                     <TitleContent>
@@ -324,5 +338,4 @@ else
         </div>
     </div>
 }
-
 

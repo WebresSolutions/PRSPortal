@@ -1,6 +1,7 @@
 @page "/jobs/create"
 @inherits BaseDataComponent
 @using GoogleMapsComponents
+@using GoogleMapsComponents.Maps
 @using Portal.Shared
 @using Portal.Shared.DTO.Contact
 @using Portal.Shared.DTO.Job
@@ -31,18 +32,20 @@
             {
                 <EditForm Model="@Model" OnValidSubmit="@SubmitAsync" class="create-job-form">
                     <DataAnnotationsValidator />
+                    <ValidationSummary />
                     <div class="form-grid">
                         <div class="form-sections">
                             <h3 class="form-section-title">Job Details</h3>
                             <MudNumericField T="int" @bind-Value="Model.JobNumber" Label="Job Number" Variant="Variant.Outlined"
-                                             Min="1" Required="true" RequiredError="Job number is required" Class="mb-3" For="@(() => Model.JobNumber)" />
-                            <MudTextField @bind-Value="Model.Description" Label="Description" Variant="Variant.Outlined" Class="mb-3" />
-                            <MudSelect T="JobTypeEnum" @bind-Value="Model.JobType" Label="Job Type" Variant="Variant.Outlined" Class="mb-3" For="@(() => Model.JobType)">
+                                             Required="true" RequiredError="Job number is required" Class="mb-3" For="@(() => Model.JobNumber)" />
+                            <MudTextField @bind-Value="Model.Details" Label="Description" Variant="Variant.Outlined" Class="mb-3"
+                                          For="@(() => Model.Details)" Counter="2000" Lines="3" />
+                            <MudSelect T="JobTypeEnum" @bind-Value="Model.JobType" Label="Job Type" Variant="Variant.Outlined" Class="mb-3" For="@(() => Model.JobType)" Required="true">
                                 <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
                                 <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
                             </MudSelect>
-                            <MudAutocomplete T="ListContactDto" Label="Contact (optional)" @bind-Value="JobContact" Clearable="true" Variant="Variant.Outlined"
-                                             SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" Lines="100">
+                            <MudAutocomplete T="ListContactDto" Label="Contact" Value="JobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
+                                             SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" MaxItems="50" Required="true">
                                 <MoreItemsTemplate>
                                     <div class="d-flex justify-content-center">
                                         <small>
@@ -51,41 +54,19 @@
                                     </div>
                                 </MoreItemsTemplate>
                             </MudAutocomplete>
-                            <MudSelect T="int?" @bind-Value="Model.CouncilId" Label="Council (optional)" Variant="Variant.Outlined" Clearable="true" Class="mb-3">
+                            <MudSelect T="int?" @bind-Value="Model.CouncilId" Label="Council (optional)" Variant="Variant.Outlined" Clearable="true" Class="mb-3" For="@(() => Model.CouncilId)">
                                 @foreach (var c in Councils)
                                 {
-                                    <MudSelectItem T="int?" Value="@c.councilId">@c.councilName</MudSelectItem>
+                                    <MudSelectItem T="int?" Value="@c.CouncilId">@c.CouncilName</MudSelectItem>
                                 }
                             </MudSelect>
-                            <MudNumericField T="int?" @bind-Value="Model.CouncilId" Label="Job Colour ID (optional)" Variant="Variant.Outlined" Min="1" Class="mb-3" Clearable="true" />
+                            <MudNumericField T="int?" @bind-Value="Model.JobColourId" Label="Job Colour ID (optional)" Variant="Variant.Outlined" Min="1" Class="mb-3" Clearable="true" For="@(() => Model.JobColourId)" />
                         </div>
 
                         <div class="form-sections">
                             @if (Model.Address is not null && Model.Address.LatLng is not null)
                             {
-
-                                <h3 class="form-section-title">Address (optional)</h3>
-                                <MudTextField @bind-Value="Model.Address.Street" Label="Street" Variant="Variant.Outlined" Class="mb-3" />
-                                <MudTextField @bind-Value="Model.Address.Suburb" Label="Suburb" Variant="Variant.Outlined" Class="mb-3" />
-                                <MudSelect T="StateEnum ?" @bind-Value="Model.Address.State" Label="State" Variant="Variant.Outlined" Class="mb-3">
-                                    @foreach (StateEnum s in Enum.GetValues<StateEnum>())
-                                    {
-                                        <MudSelectItem T="StateEnum ?" Value="s">@s.GetFullName()</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                <MudTextField @bind-Value="Model.Address.PostCode" Label="Post Code" Variant="Variant.Outlined" Class="mb-3" />
-                                <div class="form-lat-lng">
-                                    <MudNumericField T="double" @bind-Value="Model.Address.LatLng.Latitude" Label="Latitude" Variant="Variant.Outlined" Class="mb-3" />
-                                    <MudNumericField T="double" @bind-Value="Model.Address.LatLng.Longitude" Label="Longitude" Variant="Variant.Outlined" Class="mb-3" />
-                                </div>
-                                <div class="map-section">
-                                    <small class="map-hint">Move the pin on the map to adjust the coordinates</small>
-                                    <GoogleMap @ref="Map"
-                                               Id="createjob-map"
-                                               Options="MapOptions"
-                                               Height="400px"
-                                               CssClass="border-rad" />
-                                </div>
+                               <EditAddress Address="Model.Address"/>
                             }
                         </div>
 

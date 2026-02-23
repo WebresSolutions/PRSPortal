@@ -1,0 +1,248 @@
+﻿@page "/jobs/edit/{JobId:int}"
+@inherits BaseDataComponent
+@using Portal.Client.Pages.Job
+@using Portal.Shared
+@using Portal.Shared.DTO.Contact
+@using Portal.Shared.DTO.Councils
+@using Portal.Shared.DTO.Job
+<PageTitle>Edit Job - PRS Portal</PageTitle>
+
+<div class="container">
+    <PageHeader>
+        <Content>
+            <div class="" style="min-width: 150px">
+                <h2>Edit Job</h2>
+            </div>
+            <ButtonIcon Href=@($"/jobs/view/{JobId}") Icon="bi bi-sign-turn-left" />
+        </Content>
+    </PageHeader>
+    <Card>
+        @if (base.IsLoading)
+        {
+            <MudSkeleton Height="600px;" />
+        }
+        else
+        {
+            @if (Model is not null)
+            {
+                <EditForm Model="@Model" OnValidSubmit="@SubmitAsync" class="create-job-form">
+                    <div class="form-grid">
+                        <div class="form-sections">
+                            <h3 class="form-section-title">Job Details</h3>
+                            <MudNumericField T="int" @bind-Value="Model.JobNumber" Label="Job Number" Variant="Variant.Outlined"
+                                             Required="true" RequiredError="Job number is required" Class="" For="@(() => Model.JobNumber)" />
+                            <MudTextField @bind-Value="Model.Details" Label="Details" Variant="Variant.Outlined" Class=""
+                                          For="@(() => Model.Details)" Counter="2000" Lines="3" />
+                            <MudSelect T="JobTypeEnum" @bind-Value="Model.JobType" Label="Job Type" Variant="Variant.Outlined" Class="" For="@(() => Model.JobType)" Required="true">
+                                <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
+                                <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
+                            </MudSelect>
+                            <MudAutocomplete T="ListContactDto" Label="Contact" Value="JobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
+                                             SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" MaxItems="50" Required="true">
+                                <MoreItemsTemplate>
+                                    <div class="d-flex justify-content-center">
+                                        <small>
+                                            Only the first 10 items are shown
+                                        </small>
+                                    </div>
+                                </MoreItemsTemplate>
+                            </MudAutocomplete>
+                            <MudSelect T="int?" @bind-Value="Model.CouncilId" Label="Council (optional)" Variant="Variant.Outlined" Clearable="true" Class="" For="@(() => Model.CouncilId)">
+                                @foreach (var c in Councils)
+                                {
+                                    <MudSelectItem T="int?" Value="@c.CouncilId">@c.CouncilName</MudSelectItem>
+                                }
+                            </MudSelect>
+                            <MudNumericField T="int?" @bind-Value="Model.JobColourId" Label="Job Colour ID (optional)" Variant="Variant.Outlined" Min="1" Class="" Clearable="true" For="@(() => Model.JobColourId)" />
+                        </div>
+
+                        <div class="form-sections">
+                            @if (Model.Address is not null)
+                            {
+                                <EditAddress Address="Model.Address" />
+                            }
+                        </div>
+
+                        <div class="form-actions">
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="IsSubmitting" StartIcon="@Icons.Material.Filled.Save">Save Details</MudButton>
+                            <MudButton Variant="Variant.Outlined" Href="/jobs">Cancel</MudButton>
+                        </div>
+                    </div>
+                </EditForm>
+            }
+
+            {
+                <small>Details not loaded</small>
+            }
+        }
+    </Card>
+</div>
+
+@code {
+    /// <summary>
+    /// The Job id
+    /// </summary>
+    [Parameter]
+    public int JobId { get; set; }
+    /// <summary>
+    /// If submitting
+    /// </summary>
+    private bool IsSubmitting;
+    /// <summary>
+    /// The model
+    /// </summary>
+    private JobDetailsDto? Model;
+    /// <summary>
+    /// The List of job contacts
+    /// </summary>
+    private ListContactDto? JobContact;
+
+    /// <summary>
+    /// List of councils
+    /// </summary>
+    private CouncilPartialDto[] Councils = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadJobData();
+        Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
+        if (councilResult?.IsSuccess == true && councilResult.Value is not null)
+            Councils = councilResult.Value;
+        if (Model is { Contact: not null })
+        {
+            JobContact = new()
+            {
+                ContactId = Model.ContactId,
+                FullName = Model.Contact.ContactName,
+                Phone = Model.Contact.Phone
+            };
+        }
+    }
+
+    private async Task LoadJobData()
+    {
+        IsLoading = true;
+        try
+        {
+            Result<JobDetailsDto>? result = await _apiService.Job(JobId);
+            if (result is not null && result.IsSuccess && result.Value is not null)
+            {
+                Model = result.Value;
+            }
+            else
+            {
+                _snackbar?.Add("Error loading job details", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _snackbar?.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (Model!.JobNumber <= 0)
+        {
+            _snackbar?.Add("Job number must be greater than 0.", Severity.Warning);
+            return;
+        }
+
+        IsSubmitting = true;
+        try
+        {
+            Result<JobDetailsDto> result = await _apiService.UpdateJob(Model);
+            if (result.IsSuccess && result.Value is not null)
+            {
+                _snackbar?.Add("Job created successfully.", Severity.Success);
+                _navigationManager.NavigateTo($"/jobs/view/{result.Value.JobId}");
+            }
+            else
+                _snackbar?.Add(result.ErrorDescription ?? "Failed to create job.", Severity.Error);
+        }
+        finally
+        {
+            IsSubmitting = false;
+        }
+    }
+
+    private void OnContactChanged(ListContactDto? value)
+    {
+        JobContact = value;
+        Model!.ContactId = value?.ContactId ?? 0;
+    }
+
+    /// <summary>
+    /// Used by the type ahead auto complete for searching contacts
+    /// </summary>
+    /// <param name="search">The search string</param>
+    /// <param name="token">The token</param>
+    /// <returns></returns>
+    public async Task<IEnumerable<ListContactDto>> SearchContacts(string search, CancellationToken token)
+    {
+        Result<PagedResponse<ListContactDto>>? contactResult = await _apiService.GetAllContacts(500, 1, search, null, SortDirectionEnum.Asc);
+
+        if (contactResult?.IsSuccess == true && contactResult.Value?.Result is not null)
+            return contactResult.Value.Result;
+        else
+            return [];
+    }
+}
+
+<style>
+
+    .create-job-form {
+        margin: 0;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: calc(2 * var(--padding));
+        align-items: start;
+    }
+
+
+    .form-sections {
+        display: flex;
+        flex-direction: column;
+        gap: var(--padding);
+    }
+
+    .form-lat-lng {
+        display: flex;
+        gap: var(--padding);
+    }
+
+    @@media (max-width: 900px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-section-title {
+        font-size: 1rem;
+        margin: 1rem 0 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .map-hint {
+        font-size: 0.875rem;
+        color: var(--mud-palette-text-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .border-rad {
+        border-radius: 8px;
+    }
+</style>

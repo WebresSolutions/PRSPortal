@@ -23,27 +23,35 @@ public static class JobEndpoints
 
         // Gets all jobs with pagination and optional filtering/sorting
         appGroup.MapGet("", async (
-            [FromServices] IJobService jobService,
-            [FromQuery] int page,
-            [FromQuery] int pageSize,
-            [FromQuery] string? nameFilter,
-            [FromQuery] string? orderby,
-            [FromQuery] SortDirectionEnum? order,
-            HttpContext httpContext
-            ) =>
+           [FromServices] IJobService jobService,
+           [FromQuery] int page = 1,
+           [FromQuery] int pageSize = 25,
+           [FromQuery] string? addressSearch = null,
+           [FromQuery] string? contactSearch = null,
+           [FromQuery] string? jobNumberSearch = null,
+           [FromQuery] string? orderby = null,
+           [FromQuery] SortDirectionEnum? order = SortDirectionEnum.Asc,
+           [FromQuery] bool deleted = false
+       ) =>
         {
+            // Simple validation to ensure page is always at least 1
+            int validatedPage = page <= 0 ? 1 : page;
 
-            if (page <= 0)
-                page = 1;
+            Result<PagedResponse<ListJobDto>> result = await jobService.GetAllJobs(
+                validatedPage,
+                pageSize,
+                order,
+                addressSearch,
+                contactSearch,
+                jobNumberSearch,
+                orderby,
+                deleted);
 
-            order ??= SortDirectionEnum.Asc;
-
-            Result<PagedResponse<ListJobDto>> result = await jobService.GetAllJobs(page, pageSize, order, nameFilter, orderby);
-            return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
+            return EndpointsHelper.ProcessResult(result, "An error occurred while loading jobs");
         })
-            .WithSummary("List jobs")
-            .WithDescription("Returns a paginated list of jobs with optional name filter and sorting by page, pageSize, nameFilter, orderby, and order.")
-            .Produces<PagedResponse<ListJobDto>>();
+       .WithSummary("List jobs")
+       .WithDescription("Returns a paginated list of jobs filtered by address, contact, or job number.")
+       .Produces<PagedResponse<ListJobDto>>();
 
         // Create a new job with the provided details
         appGroup.MapPost("", async (
@@ -55,9 +63,9 @@ public static class JobEndpoints
             Result<int> result = await jobService.CreateJob(httpContext, data);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
-            .WithSummary("Create job")
-            .WithDescription("Creates a new job with the provided details. Request body and implementation may be extended.")
-            .Produces<int>();
+        .WithSummary("Create job")
+        .WithDescription("Creates a new job with the provided details. Request body and implementation may be extended.")
+        .Produces<int>();
 
         // Update a job with the provided details
         appGroup.MapPut("", async (
@@ -72,9 +80,26 @@ public static class JobEndpoints
             Result<JobDetailsDto> result = await jobService.UpdateJob(httpContext, data);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
-            .WithSummary("Update job")
-            .WithDescription("Updates an existing job by jobId. Returns 400 if jobId is invalid.")
-            .Produces<JobDetailsDto>();
+        .WithSummary("Update job")
+        .WithDescription("Updates an existing job by jobId. Returns 400 if jobId is invalid.")
+        .Produces<JobDetailsDto>();
+
+        // Update a job with the provided details
+        appGroup.MapDelete("{id}", async (
+            [FromServices] IJobService jobService,
+            [FromRoute] int id,
+            HttpContext httpContext
+            ) =>
+        {
+            if (id <= 0)
+                return Results.BadRequest("Invalid Job Id");
+
+            Result<bool> result = await jobService.DeleteJob(httpContext, id);
+            return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
+        })
+        .WithSummary("Update job")
+        .WithDescription("Updates an existing job by jobId. Returns 400 if jobId is invalid.")
+        .Produces<JobDetailsDto>();
 
         // Gets a single job by the ID.
         appGroup.MapGet("{jobId}", async (
@@ -89,9 +114,9 @@ public static class JobEndpoints
             Result<JobDetailsDto> result = await jobService.GetJob(jobId);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
-            .WithSummary("Get job by ID")
-            .WithDescription("Returns full details for a single job by job ID. Returns 400 if jobId is invalid.")
-            .Produces<JobDetailsDto>();
+        .WithSummary("Get job by ID")
+        .WithDescription("Returns full details for a single job by job ID. Returns 400 if jobId is invalid.")
+        .Produces<JobDetailsDto>();
 
         // Gets notes for jobs assigned to a specific user, with optional inclusion of deleted notes
         appGroup.MapGet("assignedUserNotes/{userId}", async (
@@ -109,9 +134,9 @@ public static class JobEndpoints
             Result<List<JobNoteDto>> result = await jobService.GetUserAssignedJobsNotes(httpContext, userId, includeDeleted.Value);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
-            .WithSummary("Get notes for user's assigned jobs")
-            .WithDescription("Returns notes for all jobs assigned to the specified user. Use includeDeleted query parameter to include soft-deleted notes.")
-            .Produces<List<JobNoteDto>>();
+        .WithSummary("Get notes for user's assigned jobs")
+        .WithDescription("Returns notes for all jobs assigned to the specified user. Use includeDeleted query parameter to include soft-deleted notes.")
+        .Produces<List<JobNoteDto>>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

@@ -12,11 +12,12 @@
             <div class="" style="min-width: 150px">
                 <h2>Contacts</h2>
                 <div>
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">New</MudButton>
+                    <ButtonIcon Icon="bi bi-plus" Title="Delete" CssClass="text-green" Href="/jobs/create" Text="New">
+                    </ButtonIcon>
                 </div>
             </div>
             <MudTextField T="string" @bind-Value="_sessionData.SearchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))" Variant="Variant.Outlined"
-                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Large" Class="mt-0 mb-4" Clearable="true" OnClearButtonClick="ClearSearch"></MudTextField>
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Large" Class="" Clearable="true" OnClearButtonClick="ClearSearch"></MudTextField>
         </Content>
     </PageHeader>
     <Card>

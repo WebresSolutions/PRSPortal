@@ -17,6 +17,9 @@ public class SessionSearchData
     /// <summary>
     /// Gets or sets the search filter string
     /// </summary>
+    public string? AddressSearch { get; set; }
+    public string? ContactSearch { get; set; }
+    public string? JobNumberSearch { get; set; }
     public string? SearchString { get; set; }
     /// <summary>
     /// Gets or sets the field name to order by
