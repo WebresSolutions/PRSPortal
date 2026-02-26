@@ -27,41 +27,42 @@
             {
                 <EditForm Model="@Model" OnValidSubmit="@SubmitAsync" class="create-job-form">
                     <div class="form-grid">
-                        <div class="form-sections">
-                            <h3 class="form-section-title">Job Details</h3>
-                            <MudNumericField T="int" @bind-Value="Model.JobNumber" Label="Job Number" Variant="Variant.Outlined"
-                                             Required="true" RequiredError="Job number is required" Class="" For="@(() => Model.JobNumber)" />
-                            <MudTextField @bind-Value="Model.Details" Label="Details" Variant="Variant.Outlined" Class=""
-                                          For="@(() => Model.Details)" Counter="2000" Lines="3" />
-                            <MudSelect T="JobTypeEnum" @bind-Value="Model.JobType" Label="Job Type" Variant="Variant.Outlined" Class="" For="@(() => Model.JobType)" Required="true">
-                                <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
-                                <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
-                            </MudSelect>
-                            <MudAutocomplete T="ListContactDto" Label="Contact" Value="JobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
-                                             SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" MaxItems="50" Required="true">
-                                <MoreItemsTemplate>
-                                    <div class="d-flex justify-content-center">
-                                        <small>
-                                            Only the first 10 items are shown
-                                        </small>
-                                    </div>
-                                </MoreItemsTemplate>
-                            </MudAutocomplete>
-                            <MudSelect T="int?" @bind-Value="Model.CouncilId" Label="Council (optional)" Variant="Variant.Outlined" Clearable="true" Class="" For="@(() => Model.CouncilId)">
-                                @foreach (var c in Councils)
-                                {
-                                    <MudSelectItem T="int?" Value="@c.CouncilId">@c.CouncilName</MudSelectItem>
-                                }
-                            </MudSelect>
-                            <MudNumericField T="int?" @bind-Value="Model.JobColourId" Label="Job Colour ID (optional)" Variant="Variant.Outlined" Min="1" Class="" Clearable="true" For="@(() => Model.JobColourId)" />
+                        <div>
+                            <h3 class="form-section-title border-bottom pb-2">Job Details</h3>
+                            <div class="form-sections border-rad">
+                                <MudNumericField T="int" @bind-Value="Model.JobNumber" Label="Job Number" Variant="Variant.Outlined"
+                                                 Required="true" RequiredError="Job number is required" Class="" For="@(() => Model.JobNumber)" />
+                                <MudTextField @bind-Value="Model.Details" Label="Details" Variant="Variant.Outlined" Class=""
+                                              For="@(() => Model.Details)" Counter="2000" Lines="3" />
+                                <MudSelect T="JobTypeEnum" @bind-Value="Model.JobType" Label="Job Type" Variant="Variant.Outlined" Class="" For="@(() => Model.JobType)" Required="true">
+                                    <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
+                                    <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
+                                </MudSelect>
+                                <MudAutocomplete T="ListContactDto" Label="Contact" Value="JobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
+                                                 SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" MaxItems="50" Required="true">
+                                    <MoreItemsTemplate>
+                                        <div class="d-flex justify-content-center">
+                                            <small>
+                                                Only the first 10 items are shown
+                                            </small>
+                                        </div>
+                                    </MoreItemsTemplate>
+                                </MudAutocomplete>
+                                <MudSelect T="int?" @bind-Value="Model.CouncilId" Label="Council (optional)" Variant="Variant.Outlined" Clearable="true" Class="" For="@(() => Model.CouncilId)">
+                                    @foreach (var c in Councils)
+                                    {
+                                        <MudSelectItem T="int?" Value="@c.CouncilId">@c.CouncilName</MudSelectItem>
+                                    }
+                                </MudSelect>
+                                <MudNumericField T="int?" @bind-Value="Model.JobColourId" Label="Job Colour ID (optional)" Variant="Variant.Outlined" Min="1" Class="" Clearable="true" For="@(() => Model.JobColourId)" />
+                            </div>
                         </div>
 
-                        <div class="form-sections">
-                            @if (Model.Address is not null)
-                            {
-                                <EditAddress Address="Model.Address" />
-                            }
-                        </div>
+                        @if (Model.Address is not null)
+                        {
+                            <EditAddress Address="Model.Address" />
+                        }
+
 
                         <div class="form-actions">
                             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="IsSubmitting" StartIcon="@Icons.Material.Filled.Save">Save Details</MudButton>
@@ -70,7 +71,7 @@
                     </div>
                 </EditForm>
             }
-
+            @if (Model is null)
             {
                 <small>Details not loaded</small>
             }
@@ -212,6 +213,8 @@
         display: flex;
         flex-direction: column;
         gap: var(--padding);
+        padding: var(--padding);
+        background-color: var(--color-light-grey);
     }
 
     .form-lat-lng {

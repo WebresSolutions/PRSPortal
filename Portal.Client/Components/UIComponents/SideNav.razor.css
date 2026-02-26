@@ -138,7 +138,7 @@
 }
 
     .sublink-item ::deep a {
-        padding-left: 1rem;
+        padding-left: 0;
         font-size: 0.9rem;
         font-weight: 400;
         height: 2.5rem;

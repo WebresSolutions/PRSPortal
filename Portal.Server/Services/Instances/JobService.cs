@@ -141,7 +141,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                     : null,
                 JobColourId = x.JobColourId,
                 Details = x.Details,
-                Contact = x.Contact != null
+                PrimaryContact = x.Contact != null
                     ? new JobContactDto(
                         x.ContactId,
                         x.Contact.FullName,
@@ -149,6 +149,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                         x.Contact.Phone ?? ""
                     )
                     : null,
+                Contacts = x.con
                 ContactId = x.ContactId,
                 Council = x.Council != null ? new JobCouncilDto(x.Council.Id, x.Council.Name) : null,
                 CouncilId = x.CouncilId,

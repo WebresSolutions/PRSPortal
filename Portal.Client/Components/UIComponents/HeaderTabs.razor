@@ -1,0 +1,89 @@
+@using Portal.Shared
+@using Portal.Shared.DTO.Contact
+@using Portal.Shared.DTO.Job
+@using Portal.Shared.ResponseModels
+@using Portal.Shared.Web
+
+<div class="card-header-with-tabs">
+    <div class="tabs">
+        @foreach (TabSelect tab in Tabs)
+        {
+            <button class="tab @(tab.TabId == SelectedTab ? "active" : "")" @onclick="@(() => TabChanged(tab))">@tab.Name</button>
+        }
+    </div>
+    <div>
+        <ButtonIcon Icon="bi bi-plus" Title="Add" CssClass="text-green" Href="@Href" Text="Add">
+        </ButtonIcon>
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Event callback for when a tab is selected. 
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnTabSelect { get; set; }
+
+    [Parameter]
+    public required string Href { get; set; }
+
+    [Parameter]
+    public List<TabSelect> Tabs { get; set; } = [];
+
+    private Guid SelectedTab;
+
+    private async Task TabChanged(TabSelect tab)
+    {
+        SelectedTab = tab.TabId;
+        await OnTabSelect.InvokeAsync(tab.Name == "Deleted");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Tabs.Count == 0)
+            Tabs = [(new TabSelect("All")), new TabSelect("Deleted")];
+
+        SelectedTab = Tabs.First().TabId;
+    }
+}
+
+<style>
+    .card-header-with-tabs {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 0.5rem;
+        border-bottom: 2px solid #f1f5f9;
+    }
+
+    .tab {
+        padding: 0.5rem 1rem;
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: -2px;
+        transition: all 0.2s;
+    }
+
+        .tab:hover {
+            color: var(--color-secondary)
+        }
+
+        .tab.active {
+            color: var(--color-secondary);
+            border-bottom-color: var(--colour-secondary);
+        }
+
+</style>

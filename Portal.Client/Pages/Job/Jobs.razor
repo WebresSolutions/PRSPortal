@@ -10,24 +10,25 @@
 <div class="container">
     <PageHeader>
         <Content>
-            <div class="" style="min-width: 150px">
-                <h2>Jobs</h2>
-                <div>
-                    <ButtonIcon Icon="bi bi-plus" Title="Delete" CssClass="text-green" Href="/jobs/create" Text="New">
-                    </ButtonIcon>
+            <div class="page-header">
+                <div class="" style="min-width: 150px">
+                    <h2>Jobs</h2>
                 </div>
-            </div>
-            <div class="search-container">
-                <MudTextField T="string" @bind-Value="_sessionData.AddressSearch" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { _sessionData.AddressSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
-                              AdornmentIcon="@Icons.Material.Filled.OtherHouses" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _sessionData.AddressSearch = null)"></MudTextField>
-                <MudTextField T="string" @bind-Value="_sessionData.JobNumberSearch" Placeholder="Search by Job Number" Adornment="Adornment.Start" TextChanged="(async (x) => { _sessionData.JobNumberSearch = x; await OnSearch(x);})" Variant="Variant.Outlined"
-                              AdornmentIcon="@Icons.Material.Filled.Numbers" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _sessionData.JobNumberSearch = null)"></MudTextField>
-                <MudTextField T="string" @bind-Value="_sessionData.ContactSearch" Placeholder="Search by Contact" Adornment="Adornment.Start" TextChanged="(async (x) => { _sessionData.ContactSearch = x; await OnSearch(x);})" Variant="Variant.Outlined"
-                              AdornmentIcon="@Icons.Material.Filled.Group" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _sessionData.ContactSearch = null)"></MudTextField>
+                <div class="search-container">
+                    <MudTextField T="string" @bind-Value="_sessionData.AddressSearch" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { _sessionData.AddressSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.OtherHouses" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _sessionData.AddressSearch = null)"></MudTextField>
+                    <MudTextField T="string" @bind-Value="_sessionData.JobNumberSearch" Placeholder="Search by Job Number" Adornment="Adornment.Start" TextChanged="(async (x) => { _sessionData.JobNumberSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.Numbers" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _sessionData.JobNumberSearch = null)"></MudTextField>
+                    <MudTextField T="string" @bind-Value="_sessionData.ContactSearch" Placeholder="Search by Contact" Adornment="Adornment.Start" TextChanged="(async (x) => { _sessionData.ContactSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.Group" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _sessionData.ContactSearch = null)"></MudTextField>
+                </div>
             </div>
         </Content>
     </PageHeader>
     <Card>
+        <TitleContent>
+            <HeaderTabs OnTabSelect="ShowDelete" Href="/jobs/create" />
+        </TitleContent>
         <ChildContent>
             <MudDataGrid T="ListJobDto"
                          ServerData="LoadJobs"
@@ -54,10 +55,23 @@
                     @* <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" /> *@
                     <TemplateColumn ShowFilterIcon="false" Title="Contact">
                         <CellTemplate>
-                            <p>@(context.Item.JoinedContactName)</p>
+                            @if (context.Item is { Contact1: not null, Contact2: not null })
+                            {
+                                <a class="contact-link" href="/contacts/@context.Item.Contact1.contactId">@(context.Item.Contact1.fullName)</a>
+                                <i>/</i>
+                                <a class="contact-link" href="/contacts/@context.Item.Contact2.contactId">@(context.Item.Contact2.fullName)</a>
+                            }
+                            else if (context.Item is { Contact1: not null, Contact2: null })
+                            {
+                                <a class="contact-link" href="/contacts/@context.Item.Contact1.contactId">@(context.Item.Contact1.fullName)</a>
+                            }
+                            else
+                            {
+
+                            }
                         </CellTemplate>
                     </TemplateColumn>
-                    <PropertyColumn Property="x => x.Address.Street" ShowFilterIcon="false" Title="Street"/>
+                    <PropertyColumn Property="x => x.Address.Street" ShowFilterIcon="false" Title="Street" />
                     <PropertyColumn Property="x => x.Address.Suburb" ShowFilterIcon="false" Title="Suburb" />
                     <TemplateColumn ShowFilterIcon="false" Title="Job Type">
                         <CellTemplate>

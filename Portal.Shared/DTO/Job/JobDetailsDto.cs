@@ -40,7 +40,11 @@ public class JobDetailsDto
     /// <summary>
     /// Gets or sets the contact information associated with the job.
     /// </summary>
-    public JobContactDto? Contact { get; set; }
+    public JobContactDto? PrimaryContact { get; set; }
+    /// <summary>
+    /// Secondary Job Contacts
+    /// </summary>
+    public List<JobContactDto> Contacts { get; set; } = [];
     /// <summary>
     /// The Contact Id
     /// </summary>

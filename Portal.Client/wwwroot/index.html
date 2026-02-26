@@ -59,16 +59,19 @@
             let loadedCount = 0;
             let allRessources = 0;
             let env = "";
+            const prod = "Production";
+            const dev = "Development";
+            const staging = "Staging";
 
             // Set the correct app settings based on the env that the project is loading in
             if (window.location.hostname.includes("localhost")) {
-                env = "Development"
+                env = dev;
             }
             else if (window.location.hostname.includes("staging")) {
-                env = "Staging"
+                env = staging;
             }
             else {
-                env = "Production"
+                env = prod;
             }
             console.log("Using ENV:" + env);
             Blazor.start({
@@ -149,6 +152,16 @@
             let value = getComputedStyle(document.documentElement).getPropertyValue(variableName);
             return value.trim(); // trim whitespace
         }
+
+        // Grid drag-and-drop: compute drop cell from coordinates relative to grid container
+        window.getGridDropCell = function (gridId, clientX, clientY, cellStepPx) {
+            const el = document.getElementById(gridId);
+            if (!el) return { x: 0, y: 0 };
+            const rect = el.getBoundingClientRect();
+            const x = Math.floor((clientX - rect.left) / cellStepPx);
+            const y = Math.floor((clientY - rect.top) / cellStepPx);
+            return { x: Math.max(0, x), y: Math.max(0, y) };
+        };
     </script>
 </body>
 </html>

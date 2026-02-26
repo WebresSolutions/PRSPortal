@@ -193,9 +193,8 @@ else
                                                 <StatusBadge statusEnum="@((JobTypeEnum)job.JobTypeInt)" />
                                             </td>
                                             <td class="d-flex flex-row">
-                                                <MudIconButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" Href="@($"/jobs/{job.JobId}/false")" Icon="@Icons.Material.Filled.RemoveRedEye" />
-                                                <button class="btn-icon-small">✏️</button>
-                                                <button class="btn-icon-small">🗑️</button>
+                                                <ButtonIcon Href="@($"/jobs/view/{job.JobId}")" Icon="bi bi-eye" CssClass="me-1"/>
+                                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{job.JobId}")" />
                                             </td>
                                         </tr>
                                     }

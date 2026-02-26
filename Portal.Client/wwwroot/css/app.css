@@ -9,6 +9,7 @@
     --color-success: #10b981;
     --color-grey-dark: #808080;
     --color-grey: #f5f3f5;
+    --color-light-grey: #f8fafc;
     --color-white: #FFFFFF;
     --color-yellow: #a16207;
     --border-rad: 10px;
@@ -37,6 +38,11 @@ body {
 .container {
     margin-left: auto;
     margin-right: auto;
+}
+@media(max-width: 768px) {
+    .container {
+         padding: 5px; 
+    }
 }
 
 h6 {
@@ -163,6 +169,10 @@ ul {
     border-radius: var(--border-rad) !important;
 }
 
+.border-bottom {
+    border-bottom: 1px solid var(--color-grey);
+}
+
 a {
     text-decoration: none !important;
 }
@@ -260,6 +270,10 @@ a {
 
 .mud-table-cell.sticky-left{
     background: none;
+}
+
+.contact-link{
+    color: var(--color-secondary) !important;
 }
 
 .btn-add {
@@ -387,3 +401,15 @@ a {
         clear: both;
         transform: rotate(-45deg);
     }
+
+.page-header{
+    display: flex;
+    flex-direction:row;
+    justify-content: space-between;
+}   
+
+@media(max-width: 768px){
+   .page-header{
+       flex-direction: column;
+   }
+}

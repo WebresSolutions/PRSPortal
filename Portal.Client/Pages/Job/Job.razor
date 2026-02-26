@@ -27,21 +27,26 @@ else
 {
     <div class="job-detail-container">
         <!-- Header -->
-        <div class="job-header">
-            <div class="header-left">
-                <h1>Job #@_job.JobNumber</h1>
-                <div class="header-info">
-                    <span>@GetAddressString()</span>
+        
+        <PageHeader>
+            <Content>
+                <div class="job-header">
+                    <div class="header-left">
+                        <h1>Job #@_job.JobNumber</h1>
+                        <div class="header-info">
+                            <span>@GetAddressString()</span>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <StatusBadge statusEnum="@_job.JobType" />
+                        <div class="header-actions">
+                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href=@($"/jobs/edit/{JobId}") />
+                            <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="header-right">
-                <StatusBadge statusEnum="@_job.JobType" />
-                <div class="header-actions">
-                    <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href=@($"/jobs/edit/{JobId}")/>
-                    <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
-                </div>
-            </div>
-        </div>
+            </Content>
+        </PageHeader>
 
         <!-- Main Grid -->
         <div class="main-grid">

@@ -93,8 +93,8 @@ public partial class CustomizableGrid
         double diffY = e.ClientY - resizeStartPos.Value.Item2;
 
         // Convert pixels to Grid Units
-        int colDelta = (int)Math.Round(diffX / GridState!.CellSizePx);
-        int rowDelta = (int)Math.Round(diffY / GridState!.CellSizePx);
+        int colDelta = (int)Math.Round(diffX / (GridState!.CellSizePx * 2));
+        int rowDelta = (int)Math.Round(diffY / (GridState!.CellSizePx * 2));
 
         if (colDelta != 0 || rowDelta != 0)
         {

@@ -19,6 +19,7 @@ public partial class Contacts
 
     #region Constants
     private const string _ContactsSessionKey = "ContactsListSession";
+    private bool ShowDeleted = false;
     #endregion
 
     #region Query Parameters
@@ -122,7 +123,7 @@ public partial class Contacts
     /// </summary>
     private void UpdateUrlFromSessionData()
     {
-        Dictionary<string, string?> queryParams = new();
+        Dictionary<string, string?> queryParams = [];
 
         // Build query parameters
         if (_sessionData.Page > 0)
@@ -138,7 +139,7 @@ public partial class Contacts
             queryParams["order"] = _sessionData.Order.ToString();
 
         // Build query string
-        var queryString = string.Join("&", queryParams.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value ?? "")}"));
+        string queryString = string.Join("&", queryParams.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value ?? "")}"));
         string basePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri).Split('?')[0];
         string newUrl = queryString.Length > 0 ? $"{basePath}?{queryString}" : basePath;
 
@@ -180,9 +181,9 @@ public partial class Contacts
                     string s when s == nameof(ListContactDto.FullName)
                             || s == nameof(ListContactDto.Email)
                             || s == nameof(ListContactDto.Phone)
-                            || s == nameof(ListContactDto.Address) + "." + nameof(ListContactDto.Address.Suburb)
-                            || s == nameof(ListContactDto.Address) + "." + nameof(ListContactDto.Address.Street)
-                            || s == nameof(ListContactDto.Address) + "." + nameof(ListContactDto.Address.PostCode) => s,
+                            || s == $"{nameof(ListContactDto.Address)}.{nameof(ListContactDto.Address.Suburb)}"
+                            || s == $"{nameof(ListContactDto.Address)}.{nameof(ListContactDto.Address.Street)}"
+                            || s == $"{nameof(ListContactDto.Address)}.{nameof(ListContactDto.Address.PostCode)}" => s,
                     _ => nameof(ListContactDto.ContactId)
                 };
             }
@@ -269,14 +270,11 @@ public partial class Contacts
         return _grid!.ReloadServerData();
     }
 
-    /// <summary>
-    /// Handles marker click navigation to contact page
-    /// </summary>
-    /// <param name="contactId">The contact ID to navigate to</param>
-    private Task NavigateToContact(int contactId)
+    private async Task ShowDelete(bool showDeleted)
     {
-        _navigationManager.NavigateTo($"/contacts/{contactId}");
-        return Task.CompletedTask;
+        ShowDeleted = showDeleted;
+        _grid?.ReloadServerData();
     }
+
 }
 

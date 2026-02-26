@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS job_task;
 DROP TABLE IF EXISTS job_file;
 DROP TABLE IF EXISTS user_job;
 DROP TABLE IF EXISTS invoice;
+DROP TABLE IF EXISTS technical_contacts;
 
 -- Tier 2: Tables with FKs pointing to core entities (Parents/Reference tables)
 DROP TABLE IF EXISTS job;
@@ -24,6 +25,8 @@ DROP TABLE IF EXISTS council;
 DROP TABLE IF EXISTS address;
 
 -- Tier 3: Lookup/Type tables
+DROP TABLE IF EXISTS technical_contact_type;
+DROP TABLE IF EXISTS timesheet_entry_type;
 DROP TABLE IF EXISTS job_type;
 DROP TABLE IF EXISTS job_colour;
 DROP TABLE IF EXISTS schedule_colour;
@@ -317,6 +320,41 @@ CREATE INDEX idx_job_deleted_at ON job(deleted_at);
 CREATE INDEX idx_job_created_by ON job(created_by_user_id);
 
 -- ============================================================================
+-- Technical Contact Types Table
+-- ============================================================================
+
+CREATE TABLE technical_contact_type (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO technical_contact_type (id, name, description) VALUES (1, 'Architect/Draftsperson', 'Architect Or Draftsperson');
+INSERT INTO technical_contact_type (id, name, description) VALUES (2, 'Builder', 'Builder');
+INSERT INTO technical_contact_type (id, name, description) VALUES (2, 'Previous Client', 'Previoius Client');
+
+-- ============================================================================
+-- technical Contact Table
+-- ============================================================================
+
+CREATE TABLE technical_contacts(
+    id SERIAL PRIMARY KEY,
+    type_id INT NOT NULL REFERENCES technical_contact_type(id),
+    contact_id INT NOT NULL REFERENCES contacts(id),
+    job_id INT NOT NULL REFERENCES jobs(id),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE technical_contacts IS '';
+
+CREATE INDEX technical_contacts_type_id_idx ON technical_contacts(type_id);
+CREATE INDEX technical_contacts_contact_id_idx ON technical_contacts(contact_id);
+CREATE INDEX technical_contacts_job_id_idx ON technical_contacts(job_id);
+
+-- ============================================================================
 -- USER JOB TABLE (Many-to-Many)
 -- ============================================================================
 
@@ -509,11 +547,25 @@ CREATE INDEX idx_quote_note_deleted_at ON quote_note(deleted_at);
 -- ============================================================================
 -- TIMESHEET ENTRY TABLE
 -- ============================================================================
+--
+CREATE TABLE timesheet_entry_type(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(50) NOT NULL,
+    description TEXT
+);
+
+INSERT INTO timesheet_entry_type(name, description) VALUES ('Job', 'Job');
+INSERT INTO timesheet_entry_type(name, description) VALUES ('Regular', 'Regular work hours');
+
+-- ============================================================================
+-- TIMESHEET ENTRY TABLE
+-- ============================================================================
 
 CREATE TABLE timesheet_entry (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     job_id INT REFERENCES job(id),
     user_id INT NOT NULL REFERENCES app_user(id),
+    type_id INT NOT NULL REFERENCES timesheet_entry_type(id),
     description TEXT,
     date_from TIMESTAMPTZ NOT NULL,
     date_to TIMESTAMPTZ,
@@ -531,6 +583,7 @@ CREATE INDEX idx_timesheet_job_id ON timesheet_entry(job_id);
 CREATE INDEX idx_timesheet_user_id ON timesheet_entry(user_id);
 CREATE INDEX idx_timesheet_date_from ON timesheet_entry(date_from);
 CREATE INDEX idx_timesheet_date_to ON timesheet_entry(date_to);
+CREATE INDEX idx_timesheet_type_id ON timesheet_entry(type_id);
 CREATE INDEX idx_timesheet_created_by ON timesheet_entry(created_by_user_id);
 
 -- ============================================================================

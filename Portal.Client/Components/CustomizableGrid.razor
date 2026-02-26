@@ -13,7 +13,7 @@
             {
                 <div class=@(isEditing ? "outer-grid-item edit" : "outer-grid-item") style="@item.AsCss()">
                     <div class="grid-item @(draggedItem == item ? "selected" : "")"
-                         draggable="@isEditing"
+                         draggable="true"
                          @ondragstart="() => HandleDragStart(item)">
                         @if (item.Content is not null)
                         {

@@ -44,6 +44,8 @@ public partial class Jobs
     [Parameter]
     [SupplyParameterFromQuery]
     public string? Order { get; set; }
+
+    private bool ShowDeleted = false;
     #endregion
 
     /// <summary>
@@ -228,7 +230,7 @@ public partial class Jobs
                 _sessionData.ContactSearch,
                 _sessionData.JobNumberSearch,
                 _sessionData.OrderBy,
-                false
+                ShowDeleted
                 );
 
             if (apiResult is not null && apiResult.IsSuccess && apiResult.Value is not null)
@@ -291,6 +293,12 @@ public partial class Jobs
         _sessionStorage.RemoveItem(_FacilitiesSessionKey);
         _sessionData = new SessionSearchData(); // Reset to defaults
         return _grid!.ReloadServerData();
+    }
+
+    private async Task ShowDelete(bool showDeleted)
+    {
+        ShowDeleted = showDeleted;
+        _grid?.ReloadServerData();
     }
 
     private async Task RemoveJob(int jobId)

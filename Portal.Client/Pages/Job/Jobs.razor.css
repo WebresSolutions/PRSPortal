@@ -2,4 +2,15 @@
     display:flex;
     gap: var(--padding);
     width:100%;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+@media(max-width: 768px){
+    .search-container {
+        display: flex;
+        gap: var(--padding);
+        width: 100%;
+        flex-direction: column;
+    }
 }

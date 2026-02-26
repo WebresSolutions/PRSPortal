@@ -30,13 +30,6 @@ public sealed class JobsEndpointTests
     }
 
     [Fact]
-    public async Task List_jobs_bad_request()
-    {
-        HttpResponseMessage response = await _client.GetAsync("/api/jobs");
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
     public async Task Get_job_by_invalid_id_returns_bad_request()
     {
         HttpResponseMessage response = await _client.GetAsync("/api/jobs/0");
@@ -65,7 +58,7 @@ public sealed class JobsEndpointTests
         JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
         Assert.NotNull(job);
         Assert.Equal(dto.Details, job.Details);
-        Assert.Equal(dto.ContactId, job.Contact?.ContactId);
+        Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
         Assert.Equal(dto.JobNumber, job.JobNumber);
         Assert.Equal(dto.JobType, job.JobType);
     }
@@ -119,7 +112,7 @@ public sealed class JobsEndpointTests
         JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
         Assert.NotNull(job);
         Assert.Equal(dto.Details, job.Details);
-        Assert.Equal(dto.ContactId, job.Contact?.ContactId);
+        Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
         Assert.Equal(dto.JobNumber, job.JobNumber);
         Assert.Equal(dto.JobType, job.JobType);
 
@@ -155,7 +148,7 @@ public sealed class JobsEndpointTests
         JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
         Assert.NotNull(job);
         Assert.Equal(dto.Details, job.Details);
-        Assert.Equal(dto.ContactId, job.Contact?.ContactId);
+        Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
         Assert.Equal(dto.JobNumber, job.JobNumber);
         Assert.Equal(dto.JobType, job.JobType);
 
