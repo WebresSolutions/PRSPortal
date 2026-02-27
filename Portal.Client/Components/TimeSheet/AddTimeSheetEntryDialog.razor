@@ -5,6 +5,12 @@
 <MudDialog>
     <DialogContent>
         <div class="add-timesheet-form">
+            <MudSelect T="int" @bind-Value="_typeId" Label="Type" Variant="Variant.Outlined" Class="mb-3" Required="true" RequiredError="Select a type">
+                @foreach (var t in _types)
+                {
+                    <MudSelectItem T="int" Value="@t.Id">@t.Name</MudSelectItem>
+                }
+            </MudSelect>
             <MudDatePicker T="DateTime?"
                            @bind-Date="_date"
                            Label="Date"
@@ -63,6 +69,19 @@
     private TimeSpan? _endTime = null;
     private string? _description = "";
     private int? _jobId;
+    private int _typeId;
+    private List<TimeTypeDto> _types = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        Result<TimeTypeDto[]> result = await _apiService.GetTimeSheetTypes();
+        if (result.IsSuccess && result.Value?.Length > 0)
+        {
+            _types = result.Value.ToList();
+            if (_typeId == 0)
+                _typeId = _types[0].Id;
+        }
+    }
 
     protected override void OnParametersSet()
     {
@@ -76,6 +95,7 @@
             _endTime = EditEntry.End?.TimeOfDay;
             _jobId = EditEntry.JobId;
             _description = EditEntry.Description;
+            _typeId = EditEntry.TypeId;
         }
         else if (JobId.HasValue)
         {
@@ -91,9 +111,14 @@
     /// <returns></returns>
     private async Task Submit()
     {
+        if (_types.Count == 0 || !_types.Any(t => t.Id == _typeId))
+        {
+            _snackbar.Add("Please select a time entry type.", Severity.Warning);
+            return;
+        }
         if (!_date.HasValue || !_startTime.HasValue)
         {
-            _snackbar.Add("Please set date, start time and end time.", Severity.Warning);
+            _snackbar.Add("Please set date and start time.", Severity.Warning);
             return;
         }
         DateTime start = _date.Value.Date.Add(_startTime.Value);
@@ -105,7 +130,7 @@
         }
         if (EditEntry is null)
         {
-            TimeSheetDto entry = new TimeSheetDto(0, start, end, 0, _jobId, _description, "");
+            TimeSheetDto entry = new TimeSheetDto(0, _typeId, start, end, 0, _jobId, _description, "");
             Result<TimeSheetDto> result = await _apiService.AddTimeSheetEntry(entry);
             if (result.IsSuccess)
             {
@@ -118,7 +143,7 @@
         }
         else
         {
-            EditEntry = new TimeSheetDto(EditEntry.Id, start, end, 0, _jobId, _description, "");
+            EditEntry = new TimeSheetDto(EditEntry.Id, _typeId, start, end, 0, _jobId, _description, "");
             Result<TimeSheetDto> result = await _apiService.UpdateTimeSheet(EditEntry);
             if (result.IsSuccess)
             {

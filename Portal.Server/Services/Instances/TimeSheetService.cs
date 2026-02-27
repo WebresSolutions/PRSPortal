@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Portal.Data;
 using Portal.Data.Models;
 using Portal.Server.Helpers;
@@ -43,7 +43,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
                 .Where(x => x.UserId == userId
                     && x.DateFrom >= startDate
                     && (x.DateTo <= endDate || x.DateTo == null))
-                .Select(t => new TimeSheetDto(t.Id, t.DateFrom, t.DateTo, userId, t.JobId, t.Description, ""))
+                .Select(t => new TimeSheetDto(t.Id, t.TypeId, t.DateFrom, t.DateTo, userId, t.JobId, t.Description, ""))
                 .ToArrayAsync();
 
             return res;
@@ -74,6 +74,10 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
                 ? DateTime.SpecifyKind(entry.End.Value.ToUniversalTime(), DateTimeKind.Utc)
                 : null;
 
+            // Validate the type Id
+            if (!await _dbContext.TimesheetEntryTypes.AnyAsync(x => x.Id == entry.TypeId))
+                return res.SetError(ErrorType.BadRequest, "Invalid Entry Type");
+
             // Validation: Check for existing active entries
             if (utcEnd == null && await _dbContext.TimesheetEntries.AnyAsync(t => t.UserId == userId && t.DateTo == null))
                 return res.SetError(ErrorType.BadRequest, "There is already an active timesheet entry for this user.");
@@ -84,6 +88,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
             TimesheetEntry newEntry = new()
             {
                 UserId = userId,
+                TypeId = entry.TypeId,
                 DateFrom = utcStart,
                 DateTo = utcEnd,
                 Description = entry.Description,
@@ -95,7 +100,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
             await _dbContext.TimesheetEntries.AddAsync(newEntry);
             await _dbContext.SaveChangesAsync();
 
-            res.Value = new TimeSheetDto(newEntry.Id, newEntry.DateFrom, newEntry.DateTo, userId, newEntry.JobId, newEntry.Description, "");
+            res.Value = new TimeSheetDto(newEntry.Id, entry.TypeId, newEntry.DateFrom, newEntry.DateTo, userId, newEntry.JobId, newEntry.Description, "");
             return res;
         }
         catch (Exception ex)
@@ -150,7 +155,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
 
             await _dbContext.SaveChangesAsync();
 
-            res.Value = new TimeSheetDto(existingEntry.Id, existingEntry.DateFrom, existingEntry.DateTo, userId, existingEntry.JobId, existingEntry.Description, "");
+            res.Value = new TimeSheetDto(existingEntry.Id, existingEntry.TypeId, existingEntry.DateFrom, existingEntry.DateTo, userId, existingEntry.JobId, existingEntry.Description, "");
             return res;
         }
         catch (Exception ex)
@@ -222,7 +227,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
             // Get all timesheets from the user
             res.Value = await _dbContext.TimesheetEntries
                 .Where(x => x.DateFrom >= startDate && (x.DateTo <= endDate || x.DateTo == null))
-                .Select(t => new TimeSheetDto(t.Id, t.DateFrom, t.DateTo, t.UserId, t.JobId, t.Description, ""))
+                .Select(t => new TimeSheetDto(t.Id, t.TypeId, t.DateFrom, t.DateTo, t.UserId, t.JobId, t.Description, ""))
                 .ToArrayAsync();
 
             return res;
@@ -233,4 +238,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
             return res.SetError(ErrorType.InternalError, "An internal error occured while getting timesheets");
         }
     }
+
+
+
 }

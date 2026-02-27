@@ -1,10 +1,15 @@
-﻿@page "/settings";
+@page "/settings"
+@using Portal.Client.Components.Settings
 @using Portal.Shared
+@using Portal.Shared.DTO.Address
+@using Portal.Shared.DTO.Contact
+@using Portal.Shared.DTO.Job
 @using Portal.Shared.DTO.Schedule
+@using Portal.Shared.DTO.TimeSheet
 @using Portal.Shared.ResponseModels
 @using Toolbelt.Blazor.HotKeys2
 @inject HotKeys HotKeys
-@inherits BaseDataComponent;
+@inherits BaseDataComponent
 
 
 
@@ -16,80 +21,219 @@
             <div class="mb-2 d-flex">
                 <h2>Settings</h2>
             </div>
-            <Collapseable Title="Theme Settings" Show="true">
-                <CollapseableContent>
-                    @if (!base.IsLoading)
-                    {
-                        <section class="theme-container">
-                            <div>
-                                <div class="preview" style="background: @primaryColour"></div>
-                                <MudColorPicker ShowToolbar="true"
-                                                Label="Primary Colour"
-                                                Variant="Variant.Outlined"
-                                                ColorPickerView="ColorPickerView.GridCompact"
-                                                ColorPickerMode="ColorPickerMode.HEX"
-                                                Value=primaryColour
-                                                TextChanged="@((s) => SetColour(s, true))" />
-                            </div>
-                            <div>
-                                <div class="preview" style="background: @secondaryColour"></div>
-                                <MudColorPicker ShowToolbar="true"
-                                                Label="Secondary Colour"
-                                                Variant="Variant.Outlined"
-                                                ColorPickerView="ColorPickerView.GridCompact"
-                                                ColorPickerMode="ColorPickerMode.HEX"
-                                                Value=secondaryColour
-                                                TextChanged="@((s) => SetColour(s, false))" />
-                            </div>
-                        </section>
-                    }
-                    else
-                    {
-                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="150px" />
-                    }
-                </CollapseableContent>
-            </Collapseable>
-            <Collapseable Title="Schedule Colours Settings" Show="true">
-                <CollapseableContent>
-                    @if (!base.IsLoading)
-                    {
-                        <section class="colour-container">
-                            @foreach (ScheduleColourDto colour in _colours)
-                            {
+            <div class="settings-container">
+                <Collapseable Title="Theme Settings" Show="false">
+                    <CollapseableContent>
+                        @if (!base.IsLoading)
+                        {
+                            <section class="theme-container">
                                 <div>
-                                    <div class="preview" style="background: @colour.ColourHex"></div>
+                                    <div class="preview" style="background: @primaryColour"></div>
                                     <MudColorPicker ShowToolbar="true"
-                                                    Label="Dialog Picker"
+                                                    Label="Primary Colour"
                                                     Variant="Variant.Outlined"
                                                     ColorPickerView="ColorPickerView.GridCompact"
                                                     ColorPickerMode="ColorPickerMode.HEX"
-                                                    Value=@colour.ColourHex
-                                                    TextChanged="@((s) => SaveColour(colour, s))" />
+                                                    Value=primaryColour
+                                                    TextChanged="@((s) => SetColour(s, true))" />
                                 </div>
+                                <div>
+                                    <div class="preview" style="background: @secondaryColour"></div>
+                                    <MudColorPicker ShowToolbar="true"
+                                                    Label="Secondary Colour"
+                                                    Variant="Variant.Outlined"
+                                                    ColorPickerView="ColorPickerView.GridCompact"
+                                                    ColorPickerMode="ColorPickerMode.HEX"
+                                                    Value=secondaryColour
+                                                    TextChanged="@((s) => SetColour(s, false))" />
+                                </div>
+                            </section>
+                        }
+                        else
+                        {
+                            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="150px" />
+                        }
+                    </CollapseableContent>
+                </Collapseable>
+                <Collapseable Title="Schedule Colours" Show="false">
+                    <CollapseableContent>
+                        @if (!base.IsLoading)
+                        {
+                            <section class="colour-container">
+                                @foreach (ScheduleColourDto colour in _colours)
+                                {
+                                    <div>
+                                        <div class="preview" style="background: @colour.ColourHex"></div>
+                                        <MudColorPicker ShowToolbar="true"
+                                                        Label="Dialog Picker"
+                                                        Variant="Variant.Outlined"
+                                                        ColorPickerView="ColorPickerView.GridCompact"
+                                                        ColorPickerMode="ColorPickerMode.HEX"
+                                                        Value=@colour.ColourHex
+                                                        TextChanged="@((s) => SaveColour(colour, s))" />
+                                    </div>
+                                }
+                            </section>
+                        }
+                        else
+                        {
+                            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
+                        }
+                    </CollapseableContent>
+                </Collapseable>
+                <Collapseable Title="Timesheet Types" Show="false">
+                    <CollapseableContent>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Timesheet", "Add timesheet type", null))" Class="mb-2">Add</MudButton>
+                        <MudTable Items="@_timesheetTypes" Hover="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                                <MudTh>Name</MudTh>
+                                <MudTh>Description</MudTh>
+                                <MudTh Style="width: 100px">Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Name">@context.Name</MudTd>
+                                <MudTd DataLabel="Description">@(context.Description ?? "")</MudTd>
+                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Timesheet", "Edit timesheet type", context))" /></MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </CollapseableContent>
+                </Collapseable>
+                <Collapseable Title="Contact Types" Show="false">
+                    <CollapseableContent>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Contact", "Add contact type", null))" Class="mb-2">Add</MudButton>
+                        <MudTable Items="@_contactTypes" Hover="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                                <MudTh>Name</MudTh>
+                                <MudTh>Description</MudTh>
+                                <MudTh Style="width: 100px">Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Name">@context.Name</MudTd>
+                                <MudTd DataLabel="Description">@(context.Description ?? "")</MudTd>
+                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Contact", "Edit contact type", context))" /></MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </CollapseableContent>
+                </Collapseable>
+                <Collapseable Title="Job Types" Show="false">
+                    <CollapseableContent>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Job", "Add job type", null))" Class="mb-2">Add</MudButton>
+                        <MudTable Items="@_jobTypes" Hover="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                                <MudTh>Name</MudTh>
+                                <MudTh>Abbreviation</MudTh>
+                                <MudTh Style="width: 100px">Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Name">@context.Name</MudTd>
+                                <MudTd DataLabel="Abbreviation">@context.Abbreviation</MudTd>
+                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Job", "Edit job type", context))" /></MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </CollapseableContent>
+                </Collapseable>
+                <Collapseable Title="Job Colours" Show="false">
+                    <CollapseableContent>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("JobColour", "Add job colour", null))" Class="mb-2">Add</MudButton>
+                        <MudTable Items="@_jobColours" Hover="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                                <MudTh>Colour</MudTh>
+                                <MudTh Style="width: 100px">Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Colour"><div class="preview" style="background: @context.colour; width: 24px; height: 24px; border-radius: 4px;"></div> @context.colour</MudTd>
+                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("JobColour", "Edit job colour", context))" /></MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </CollapseableContent>
+                </Collapseable>
+                <Collapseable Title="File Types" Show="false">
+                    <CollapseableContent>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("File", "Add file type", null))" Class="mb-2">Add</MudButton>
+                        <MudTable Items="@_fileTypes" Hover="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                                <MudTh>Name</MudTh>
+                                <MudTh>Description</MudTh>
+                                <MudTh Style="width: 100px">Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Name">@context.Name</MudTd>
+                                <MudTd DataLabel="Description">@(context.Description ?? "")</MudTd>
+                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("File", "Edit file type", context))" /></MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </CollapseableContent>
+                </Collapseable>
+                <Collapseable Title="Job Task Types" Show="false">
+                    <CollapseableContent>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("JobTask", "Add job task type", null))" Class="mb-2">Add</MudButton>
+                        <MudTable Items="@_jobTaskTypes" Hover="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                                <MudTh>Name</MudTh>
+                                <MudTh>Description</MudTh>
+                                <MudTh Style="width: 100px">Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Name">@context.Name</MudTd>
+                                <MudTd DataLabel="Description">@(context.Description ?? "")</MudTd>
+                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("JobTask", "Edit job task type", context))" /></MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </CollapseableContent>
+                </Collapseable>
+                <Collapseable Title="Technical Contact Types" Show="false">
+                    <CollapseableContent>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("TechnicalContact", "Add technical contact type", null))" Class="mb-2">Add</MudButton>
+                        <MudTable Items="@_technicalContactTypes" Hover="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                                <MudTh>Name</MudTh>
+                                <MudTh>Description</MudTh>
+                                <MudTh Style="width: 100px">Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Name">@context.Name</MudTd>
+                                <MudTd DataLabel="Description">@(context.Description ?? "")</MudTd>
+                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("TechnicalContact", "Edit technical contact type", context))" /></MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </CollapseableContent>
+                </Collapseable>
+                <Collapseable Title="States (read-only)" Show="false">
+                    <CollapseableContent>
+                        <MudTable Items="@_states" Hover="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                                <MudTh>Name</MudTh>
+                                <MudTh>Abbreviation</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Name">@context.Name</MudTd>
+                                <MudTd DataLabel="Abbreviation">@context.Abbreviation</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </CollapseableContent>
+                </Collapseable>
+                <Collapseable Title="Hot Keys" Show="false">
+                    <CollapseableContent>
+                        <section>
+                            @foreach (HotKeyEntry hotKey in hotKeyEntries)
+                            {
+                                <div>@hotKey.Description</div>
                             }
                         </section>
-                    }
-                    else
-                    {
-                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
-                    }
-                </CollapseableContent>
-            </Collapseable>
-            <Collapseable Title="Hot Keys" Show="false">
-                <CollapseableContent>
-                    <section>
-                        @foreach (HotKeyEntry hotKey in hotKeyEntries)
-                        {
-                            <div>@hotKey.Description</div>
-                        }
-                    </section>
-                </CollapseableContent>
-            </Collapseable>
+                    </CollapseableContent>
+                </Collapseable>
+            </div>
         </ChildContent>
     </Card>
 </div>
 
 <style>
+    .settings-container{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--padding);
+    }
+
     .theme-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);

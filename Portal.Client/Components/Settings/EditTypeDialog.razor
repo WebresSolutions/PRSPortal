@@ -1,0 +1,147 @@
+@using Portal.Client.Services.Interfaces
+@using Portal.Shared.DTO.Contact
+@using Portal.Shared.DTO.Job
+@using Portal.Shared.DTO.TimeSheet
+@namespace Portal.Client.Components.Settings
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (TypeName == "Job")
+        {
+            <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined" Class="mb-2" />
+            <MudTextField @bind-Value="_abbreviation" Label="Abbreviation" Variant="Variant.Outlined" />
+        }
+        else if (TypeName == "JobColour")
+        {
+            <MudColorPicker ShowToolbar="true" Label="Colour" Variant="Variant.Outlined"
+                            ColorPickerView="ColorPickerView.GridCompact" ColorPickerMode="ColorPickerMode.HEX"
+                            Value="@_colourHex" TextChanged="@OnColourChanged" />
+        }
+        else
+        {
+            <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined" Class="mb-2" />
+            <MudTextField @bind-Value="_description" Label="Description" Variant="Variant.Outlined" Lines="2" />
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public string TypeName { get; set; } = "";
+
+    [Parameter]
+    public string Title { get; set; } = "Edit";
+
+    [Parameter]
+    public object? Item { get; set; }
+
+    [Parameter]
+    public IApiService ApiService { get; set; } = null!;
+
+    [Parameter]
+    public ISnackbar Snackbar { get; set; } = null!;
+
+    private string _name = "";
+    private string _description = "";
+    private string _abbreviation = "";
+    private string _colourHex = "#1976d2";
+    private int _id;
+
+    private void OnColourChanged(string s)
+    {
+        _colourHex = s;
+        StateHasChanged();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Item is TimeTypeDto t)
+        {
+            _id = t.Id; _name = t.Name; _description = t.Description ?? "";
+        }
+        else if (Item is ContactTypeDto c)
+        {
+            _id = c.Id; _name = c.Name; _description = c.Description ?? "";
+        }
+        else if (Item is JobTypeDto j)
+        {
+            _id = j.Id; _name = j.Name; _abbreviation = j.Abbreviation;
+        }
+        else if (Item is JobColourDto jc)
+        {
+            _id = jc.Id; _colourHex = string.IsNullOrEmpty(jc.colour) ? "#1976d2" : (jc.colour.StartsWith("#") ? jc.colour : "#" + jc.colour);
+        }
+        else if (Item is FileTypeDto f)
+        {
+            _id = f.Id; _name = f.Name; _description = f.Description ?? "";
+        }
+        else if (Item is JobTaskTypeDto jt)
+        {
+            _id = jt.Id; _name = jt.Name; _description = jt.Description ?? "";
+        }
+        else if (Item is TechnicalContactTypeDto tc)
+        {
+            _id = tc.Id; _name = tc.Name; _description = tc.Description ?? "";
+        }
+        else
+        {
+            _id = 0; _name = ""; _description = ""; _abbreviation = ""; _colourHex = "#1976d2";
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Save()
+    {
+        object? saved = null;
+        string? error = null;
+        switch (TypeName)
+        {
+            case "Timesheet":
+                var r0 = await ApiService.SaveTimeSheetType(new TimeTypeDto(_id, _name, _description));
+                if (r0.IsSuccess) saved = r0.Value; else error = r0.ErrorDescription;
+                break;
+            case "Contact":
+                var r1 = await ApiService.SaveContactType(new ContactTypeDto(_id, _name, _description));
+                if (r1.IsSuccess) saved = r1.Value; else error = r1.ErrorDescription;
+                break;
+            case "Job":
+                var r2 = await ApiService.SaveJobType(new JobTypeDto(_id, _name, _abbreviation));
+                if (r2.IsSuccess) saved = r2.Value; else error = r2.ErrorDescription;
+                break;
+            case "JobColour":
+                var r3 = await ApiService.SaveJobColour(new JobColourDto(_id, _colourHex));
+                if (r3.IsSuccess) saved = r3.Value; else error = r3.ErrorDescription;
+                break;
+            case "File":
+                var r4 = await ApiService.SaveFileType(new FileTypeDto(_id, _name, _description));
+                if (r4.IsSuccess) saved = r4.Value; else error = r4.ErrorDescription;
+                break;
+            case "JobTask":
+                var r5 = await ApiService.SaveJobTaskType(new JobTaskTypeDto(_id, _name, _description));
+                if (r5.IsSuccess) saved = r5.Value; else error = r5.ErrorDescription;
+                break;
+            case "TechnicalContact":
+                var r6 = await ApiService.SaveTechnicalContactType(new TechnicalContactTypeDto(_id, _name, _description));
+                if (r6.IsSuccess) saved = r6.Value; else error = r6.ErrorDescription;
+                break;
+        }
+        if (saved is not null)
+        {
+            Snackbar.Add("Saved successfully", MudBlazor.Severity.Success);
+            MudDialog.Close(DialogResult.Ok(saved));
+        }
+        else if (error is not null)
+            Snackbar.Add(error, MudBlazor.Severity.Error);
+    }
+}

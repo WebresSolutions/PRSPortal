@@ -1,17 +1,21 @@
-﻿
-<h4 @onclick=@(() => Show = !Show) class="collapseable-heading">
-    @Title 
-    <i class=@(Show ? "i bi-caret-down-fill" : "bi bi-caret-right-fill")></i>
-</h4>
-<section class=@(Show ? "content show" : "content")>
-    @CollapseableContent
+﻿<section>
+    <h4 @onclick=@(() => Show = !Show) class="collapseable-heading">
+        @Title
+        <i class=@(Show ? "i bi-caret-down-fill" : "bi bi-caret-right-fill")></i>
+    </h4>
+    <section class=@(Show ? "content border-rad show" : "content border-rad")>
+        <div>
+
+            @CollapseableContent
+        </div>
+    </section>
 </section>
 
 
 @code {
     [Parameter]
     public required string Title { get; set; }
-    
+
     [Parameter]
     public bool Show { get; set; } = true;
 
@@ -41,6 +45,8 @@
             max-height: 1000px; /* Adjust as needed */
             overflow: scroll;
             transition: max-height 0.2s ease-in;
+            background-color: var(--color-light-grey);
+            padding: var(--padding);
         }
 
     h3 {

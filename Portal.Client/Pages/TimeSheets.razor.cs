@@ -64,7 +64,7 @@ public partial class TimeSheets
             DateTime end = _weekStart.AddDays(7).ToDateTime(TimeOnly.MinValue);
             Result<TimeSheetDto[]> result = await _apiService.GetUserTimeSheets(CurrentUserId, start, end);
             if (result.IsSuccess && result.Value is not null)
-                _entries = [.. result.Value.Select(x => new TimeSheetDto(x.Id, x.Start.ToLocalTime(), x.End?.ToLocalTime(), x.UserId, x.JobId, x.Description, ""))];
+                _entries = [.. result.Value.Select(x => new TimeSheetDto(x.Id, x.TypeId, x.Start, x.End, x.UserId, x.JobId, x.Description, ""))];
             else
                 _entries = [];
         }

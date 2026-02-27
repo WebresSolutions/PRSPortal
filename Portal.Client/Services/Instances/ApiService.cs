@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Portal.Client.Services.Interfaces;
 using Portal.Shared;
+using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
@@ -301,28 +302,12 @@ public class ApiService : IApiService
     /// information describing the failure.</returns>
     public async Task<Result<List<ScheduleColourDto>>> GetScheduleColours()
     {
+        Result<ScheduleColourDto[]> arrayResult = await GetTypesAsync<ScheduleColourDto>("api/types/schedulecolour", "schedule colours");
         Result<List<ScheduleColourDto>> res = new();
-        try
-        {
-            HttpResponseMessage response = await _httpClient.GetAsync($"api/schedule/colours/");
-            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
-                await NavigationToLoginPage();
-            if (response.IsSuccessStatusCode)
-            {
-                List<ScheduleColourDto>? colours = await response.Content.ReadFromJsonAsync<List<ScheduleColourDto>>();
-                res.Value = colours;
-            }
-            else
-            {
-                res.ConvertHttpResponseToError(response.StatusCode);
-                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get schedule colours";
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Exception: {ex.Message}");
-            // Handle exception
-        }
+        if (arrayResult.IsSuccess && arrayResult.Value is { } arr)
+            res.SetValue(arr.ToList());
+        else
+            res.SetError(arrayResult.Error ?? ErrorType.InternalError, arrayResult.ErrorDescription ?? "Failed to get schedule colours");
         return res;
     }
 
@@ -855,6 +840,95 @@ public class ApiService : IApiService
         }
         return res;
     }
+    /// <summary>
+    /// Gets the list of timesheet entry types.
+    /// </summary>
+    public Task<Result<TimeTypeDto[]>> GetTimeSheetTypes() =>
+        GetTypesAsync<TimeTypeDto>("api/types/timesheet", "timesheet types");
+
+    public Task<Result<ContactTypeDto[]>> GetContactTypes() =>
+        GetTypesAsync<ContactTypeDto>("api/types/contact", "contact types");
+    public Task<Result<JobTypeDto[]>> GetJobTypes() =>
+        GetTypesAsync<JobTypeDto>("api/types/job", "job types");
+    public Task<Result<JobColourDto[]>> GetJobColours() =>
+        GetTypesAsync<JobColourDto>("api/types/jobcolour", "job colours");
+    public Task<Result<FileTypeDto[]>> GetFileTypes() =>
+        GetTypesAsync<FileTypeDto>("api/types/file", "file types");
+    public Task<Result<JobTaskTypeDto[]>> GetJobTaskTypes() =>
+        GetTypesAsync<JobTaskTypeDto>("api/types/jobtask", "job task types");
+    public Task<Result<TechnicalContactTypeDto[]>> GetTechnicalContactTypes() =>
+        GetTypesAsync<TechnicalContactTypeDto>("api/types/technicalcontact", "technical contact types");
+    public Task<Result<StateDto[]>> GetStates() =>
+        GetTypesAsync<StateDto>("api/types/state", "states");
+
+    private async Task<Result<T[]>> GetTypesAsync<T>(string url, string typeName)
+    {
+        Result<T[]> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                T[]? data = await response.Content.ReadFromJsonAsync<T[]>();
+                res.Value = data ?? Array.Empty<T>();
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? $"Failed to get {typeName}";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    private async Task<Result<T>> PutTypeAsync<T>(string url, T dto, string typeName)
+    {
+        Result<T> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync(url, dto);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                T? data = await response.Content.ReadFromJsonAsync<T>();
+                if (data is not null)
+                    res.Value = data;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? $"Failed to save {typeName}";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    public Task<Result<TimeTypeDto>> SaveTimeSheetType(TimeTypeDto dto) =>
+        PutTypeAsync("api/types/timesheet", dto, "timesheet type");
+    public Task<Result<ContactTypeDto>> SaveContactType(ContactTypeDto dto) =>
+        PutTypeAsync("api/types/contact", dto, "contact type");
+    public Task<Result<JobTypeDto>> SaveJobType(JobTypeDto dto) =>
+        PutTypeAsync("api/types/job", dto, "job type");
+    public Task<Result<JobColourDto>> SaveJobColour(JobColourDto dto) =>
+        PutTypeAsync("api/types/jobcolour", dto, "job colour");
+    public Task<Result<FileTypeDto>> SaveFileType(FileTypeDto dto) =>
+        PutTypeAsync("api/types/file", dto, "file type");
+    public Task<Result<JobTaskTypeDto>> SaveJobTaskType(JobTaskTypeDto dto) =>
+        PutTypeAsync("api/types/jobtask", dto, "job task type");
+    public Task<Result<TechnicalContactTypeDto>> SaveTechnicalContactType(TechnicalContactTypeDto dto) =>
+        PutTypeAsync("api/types/technicalcontact", dto, "technical contact type");
+
     /// <summary>
     /// Deletes a timesheet entry for the current user. The entry must have a valid ID corresponding to an existing timesheet entry. 
     /// If the entry does not exist or the update fails, the returned result will contain error information.

@@ -1,6 +1,11 @@
 using MudBlazor;
+using Portal.Client.Components.Settings;
+using Portal.Shared.DTO.Address;
+using Portal.Shared.DTO.Contact;
+using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
+using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.ResponseModels;
 using System.Text.Json;
 using Toolbelt.Blazor.HotKeys2;
@@ -9,32 +14,24 @@ namespace Portal.Client.Pages;
 
 /// <summary>
 /// Blazor page component for application settings
-/// Allows users to configure theme colors, schedule colors, and hotkeys
+/// Allows users to configure theme colors, schedule colors, type lists, and hotkeys
 /// </summary>
 public partial class Settings
 {
-    /// <summary>
-    /// Gets or sets the list of available schedule colors
-    /// </summary>
     private List<ScheduleColourDto> _colours = [];
-    /// <summary>
-    /// Gets or sets the primary theme color
-    /// </summary>
     private string primaryColour = "#1976d2";
-    /// <summary>
-    /// Gets or sets the secondary theme color
-    /// </summary>
     private string secondaryColour = "#1976d2";
-    /// <summary>
-    /// Gets or sets the array of hotkey entries configured for the application
-    /// </summary>
     private HotKeyEntry[] hotKeyEntries = [];
 
-    /// <summary>
-    /// Called when the component is initialized.
-    /// Data loading for the grid is now handled by LoadFacilitiesServerData.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation</returns>
+    private List<TimeTypeDto> _timesheetTypes = [];
+    private List<ContactTypeDto> _contactTypes = [];
+    private List<JobTypeDto> _jobTypes = [];
+    private List<JobColourDto> _jobColours = [];
+    private List<FileTypeDto> _fileTypes = [];
+    private List<JobTaskTypeDto> _jobTaskTypes = [];
+    private List<TechnicalContactTypeDto> _technicalContactTypes = [];
+    private List<StateDto> _states = [];
+
     protected override async Task OnInitializedAsync()
     {
         base.IsLoading = true;
@@ -42,7 +39,79 @@ public partial class Settings
         primaryColour = await GetColour("--color-primary");
         secondaryColour = await GetColour("--color-secondary");
         await LoadColours();
+        await LoadAllTypes();
         base.IsLoading = false;
+    }
+
+    private async Task LoadAllTypes()
+    {
+        await Task.WhenAll(
+            LoadTimesheetTypes(),
+            LoadContactTypes(),
+            LoadJobTypes(),
+            LoadJobColours(),
+            LoadFileTypes(),
+            LoadJobTaskTypes(),
+            LoadTechnicalContactTypes(),
+            LoadStates());
+    }
+
+    private async Task LoadTimesheetTypes()
+    {
+        Result<TimeTypeDto[]> res = await _apiService.GetTimeSheetTypes();
+        if (res.IsSuccess && res.Value is { } v) _timesheetTypes = v.ToList();
+    }
+    private async Task LoadContactTypes()
+    {
+        Result<ContactTypeDto[]> res = await _apiService.GetContactTypes();
+        if (res.IsSuccess && res.Value is { } v) _contactTypes = v.ToList();
+    }
+    private async Task LoadJobTypes()
+    {
+        Result<JobTypeDto[]> res = await _apiService.GetJobTypes();
+        if (res.IsSuccess && res.Value is { } v) _jobTypes = v.ToList();
+    }
+    private async Task LoadJobColours()
+    {
+        Result<JobColourDto[]> res = await _apiService.GetJobColours();
+        if (res.IsSuccess && res.Value is { } v) _jobColours = v.ToList();
+    }
+    private async Task LoadFileTypes()
+    {
+        Result<FileTypeDto[]> res = await _apiService.GetFileTypes();
+        if (res.IsSuccess && res.Value is { } v) _fileTypes = v.ToList();
+    }
+    private async Task LoadJobTaskTypes()
+    {
+        Result<JobTaskTypeDto[]> res = await _apiService.GetJobTaskTypes();
+        if (res.IsSuccess && res.Value is { } v) _jobTaskTypes = v.ToList();
+    }
+    private async Task LoadTechnicalContactTypes()
+    {
+        Result<TechnicalContactTypeDto[]> res = await _apiService.GetTechnicalContactTypes();
+        if (res.IsSuccess && res.Value is { } v) _technicalContactTypes = v.ToList();
+    }
+    private async Task LoadStates()
+    {
+        Result<StateDto[]> res = await _apiService.GetStates();
+        if (res.IsSuccess && res.Value is { } v) _states = v.ToList();
+    }
+
+    private async Task OpenEditTypeDialog(string typeName, string title, object? item)
+    {
+        var parameters = new DialogParameters
+        {
+            [nameof(EditTypeDialog.TypeName)] = typeName,
+            [nameof(EditTypeDialog.Title)] = title,
+            [nameof(EditTypeDialog.Item)] = item,
+            [nameof(EditTypeDialog.ApiService)] = _apiService,
+            [nameof(EditTypeDialog.Snackbar)] = _snackbar
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        IDialogReference dialog = await _dialog.ShowAsync<EditTypeDialog>(title, parameters, options);
+        DialogResult? result = await dialog.Result;
+        if (result is { Canceled: false })
+            await LoadAllTypes();
     }
 
     /// <summary>

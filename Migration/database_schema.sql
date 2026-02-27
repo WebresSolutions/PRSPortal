@@ -367,7 +367,8 @@ CREATE TABLE technical_contact(
     job_id INT NOT NULL REFERENCES job(id),
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_on TIMESTAMPTZ
+    modified_on TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ DEFAULT NULL
 );
 
 CREATE INDEX technical_contacts_type_id_idx ON technical_contact(type_id);

@@ -11,11 +11,11 @@
     flex-direction: row;
     gap: var(--padding)*/
     min-height: 100vh;
-    margin-left: 180px;
+    margin-left: 150px;
 }
 
     .main.full {
-        margin-left: 80px;
+        margin-left: 60px;
         /*margin-right: 150px;*/
     }
 

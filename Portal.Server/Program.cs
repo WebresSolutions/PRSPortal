@@ -92,6 +92,7 @@ public class Program
         app.AddCouncilEndpoints(enableAuth);
         app.AddContactEndpoints(enableAuth);
         app.AddTimeSheetendpoints(enableAuth);
+        app.AddTypesEndpoints(enableAuth);
         app.AddUserEndpoints(enableAuth);
 
         // Seed database with an initial client application and test user

@@ -120,6 +120,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         // Retrieve the job from the database
         JobDetailsDto? job = await _dbContext.Jobs
             .AsNoTracking()
+            .AsSplitQuery()
             .Where(j => j.Id == jobId && j.DeletedAt == null)
             .Select(x => new JobDetailsDto
             {
@@ -151,7 +152,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                     )
                     : null,
                 TechnicalContacts = x.TechnicalContacts.Select(tc => new TechnicalContactDto(tc.Id, tc.ContactId, tc.JobId, tc.Type.Name, tc.Contact.FullName, tc.Contact.Email, tc.Contact.Phone)).ToList(),
-                TimeSheets = x.TimesheetEntries.Select(ts => new TimeSheetDto(ts.Id, ts.DateFrom, ts.DateFrom, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName)).ToList(),
+                TimeSheets = x.TimesheetEntries.Select(ts => new TimeSheetDto(ts.Id, ts.TypeId, ts.DateFrom, ts.DateTo, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName)).ToList(),
                 ContactId = x.ContactId,
                 Council = x.Council != null ? new JobCouncilDto(x.Council.Id, x.Council.Name) : null,
                 CouncilId = x.CouncilId,

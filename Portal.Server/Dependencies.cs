@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Portal.Data;
@@ -70,6 +70,7 @@ public static class Dependencies
         builder.Services.AddScoped<IContactService, ContactService>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<ITimeSheetService, TimeSheetService>();
+        builder.Services.AddScoped<ITypesService, TypesService>();
 
         // Add Swagger/OpenAPI services for API debugging
         bool enableSwagger = builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");

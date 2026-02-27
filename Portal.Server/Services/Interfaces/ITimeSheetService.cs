@@ -1,4 +1,4 @@
-﻿using Portal.Shared.DTO.TimeSheet;
+using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Services.Interfaces;

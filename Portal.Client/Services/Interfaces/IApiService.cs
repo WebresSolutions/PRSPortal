@@ -1,4 +1,5 @@
 using Portal.Shared;
+using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
@@ -227,5 +228,40 @@ public interface IApiService
     /// <param name="entry">The timesheet entry being updated</param>
     /// <returns></returns>
     Task<Result<bool>> DeleteTimeSheetEntry(TimeSheetDto entry);
+    /// <summary>
+    /// Gets the list of timesheet entry types (e.g. Billable, Admin).
+    /// </summary>
+    Task<Result<TimeTypeDto[]>> GetTimeSheetTypes();
+    #endregion
+
+    #region TYPES
+    /// <summary>Gets the list of contact types.</summary>
+    Task<Result<ContactTypeDto[]>> GetContactTypes();
+    /// <summary>Gets the list of job types.</summary>
+    Task<Result<JobTypeDto[]>> GetJobTypes();
+    /// <summary>Gets the list of job colours.</summary>
+    Task<Result<JobColourDto[]>> GetJobColours();
+    /// <summary>Gets the list of file types.</summary>
+    Task<Result<FileTypeDto[]>> GetFileTypes();
+    /// <summary>Gets the list of job task types.</summary>
+    Task<Result<JobTaskTypeDto[]>> GetJobTaskTypes();
+    /// <summary>Gets the list of technical contact types.</summary>
+    Task<Result<TechnicalContactTypeDto[]>> GetTechnicalContactTypes();
+    /// <summary>Gets the list of states/territories.</summary>
+    Task<Result<StateDto[]>> GetStates();
+    /// <summary>Creates or updates a timesheet type (Id 0 = create).</summary>
+    Task<Result<TimeTypeDto>> SaveTimeSheetType(TimeTypeDto dto);
+    /// <summary>Creates or updates a contact type (Id 0 = create).</summary>
+    Task<Result<ContactTypeDto>> SaveContactType(ContactTypeDto dto);
+    /// <summary>Creates or updates a job type (Id 0 = create).</summary>
+    Task<Result<JobTypeDto>> SaveJobType(JobTypeDto dto);
+    /// <summary>Creates or updates a job colour (Id 0 = create).</summary>
+    Task<Result<JobColourDto>> SaveJobColour(JobColourDto dto);
+    /// <summary>Creates or updates a file type (Id 0 = create).</summary>
+    Task<Result<FileTypeDto>> SaveFileType(FileTypeDto dto);
+    /// <summary>Creates or updates a job task type (Id 0 = create).</summary>
+    Task<Result<JobTaskTypeDto>> SaveJobTaskType(JobTaskTypeDto dto);
+    /// <summary>Creates or updates a technical contact type (Id 0 = create).</summary>
+    Task<Result<TechnicalContactTypeDto>> SaveTechnicalContactType(TechnicalContactTypeDto dto);
     #endregion
 }

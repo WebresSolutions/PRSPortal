@@ -3,7 +3,7 @@
 @inject IApiService ApiService
 @inject ISnackbar Snackbar
 
-<Card ShowHeaderWithAddButton="true" HeaderTitle="Time" OnAddButtonClick="OpenAddDialog">
+<Card ShowHeaderWithAddButton="true" HeaderTitle=@($"Time: {TotalHours}hrs") OnAddButtonClick="OpenAddDialog">
     <ChildContent>
         @if (!TimeSheetsList.Any())
         {
@@ -76,6 +76,14 @@
     [Parameter]
     public EventCallback OnSaved { get; set; }
 
+    double TotalHours = 0;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        TotalHours = TimeSheetsList.Where(x => x.End is not null).Sum(x => (x.End! - x.Start).Value.TotalHours);
+    }
+
     private async Task OpenAddDialog()
     {
         var parameters = new DialogParameters
@@ -105,7 +113,8 @@
         if (result.IsSuccess)
         {
             Snackbar.Add("Time entry removed.", Severity.Success);
-            await OnSaved.InvokeAsync();
+            TimeSheetsList = TimeSheetsList.Where(x => x.Id != entry.Id).ToList();
+            // await OnSaved.InvokeAsync();
         }
         else
         {
@@ -118,6 +127,7 @@
         TimeSpan d = end - start;
         if (d.TotalHours < 1)
             return $"{(int)d.TotalMinutes} min";
+
         int h = (int)d.TotalHours;
         int m = d.Minutes;
         return m > 0 ? $"{h}h {m}m" : $"{h}h";
