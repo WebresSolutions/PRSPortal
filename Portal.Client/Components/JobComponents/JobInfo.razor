@@ -8,14 +8,7 @@
                 <div class="info-row">
                     <span class="info-label">Contact</span>
                     <span class="info-value" @onmouseover="@(() => showViewContactButton = true)" @onmouseleave="@(() => showViewContactButton = false)">
-                        @if (showViewContactButton)
-                        {
-                            <MudButton Href=@($"/contacts/{Contact!.ContactId}") Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.RemoveRedEye" Class="view-button">View</MudButton>
-                        }
-                        else
-                        {
-                            @Contact.ContactName
-                        }
+                        <a style="color: var(--color-secondary)" href=@($"/contacts/{Contact!.ContactId}")>@Contact.ContactName</a>
                     </span>
                 </div>
                 <div class="info-row">
@@ -32,15 +25,8 @@
                 <div class="info-row">
                     <span class="info-label">Council</span>
 
-                    <span class="info-value" @onmouseover="@(() => showViewCouncilButton = true)" @onmouseleave="@(() => showViewCouncilButton = false)">
-                        @if (showViewCouncilButton)
-                        {
-                            <MudButton Href=@($"/councils/{Council!.CouncilId}") Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.RemoveRedEye" Class="view-button">View</MudButton>
-                        }
-                        else
-                        {
-                            @Council.CouncilName
-                        }
+                    <span class="info-value">
+                        <a style="color: var(--color-secondary)" href=@($"/councils/{Council!.CouncilId}")>@Council.CouncilName</a>
                     </span>
                 </div>
             }
