@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Client.Components;
+using Portal.Client.Components.TimeSheet;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.ResponseModels;
 using System.Globalization;

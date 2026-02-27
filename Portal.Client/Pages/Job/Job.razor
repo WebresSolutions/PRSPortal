@@ -3,8 +3,10 @@
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
 @using Portal.Client.Components.JobComponents
+@using Portal.Client.Components.TimeSheet
 @using Portal.Client.Webmodels
 @using Portal.Shared
+@using Portal.Shared.DTO.Contact
 @using Portal.Shared.DTO.Job
 @using Portal.Shared.DTO.Address
 @using Portal.Shared.Helpers
@@ -77,7 +79,9 @@ else
                 </Card>
 
                 <!-- Job Info -->
-                <JobInfo Contact="_job.Contact" Council="_job.Council" PlanRef="_dummyData.PlanRef" />
+                <JobInfo Contact="_job.PrimaryContact" Council="_job.Council" PlanRef="_dummyData.PlanRef" />
+
+                <JobTimeSheets TimeSheetsList="_job.TimeSheets" JobId="JobId" OnSaved="LoadJobData" />
 
                 <!-- Quick Actions -->
                 <Card Title="Quick Actions">
@@ -121,7 +125,7 @@ else
                 {
                     <Card Title="Map">
                         <ChildContent>
-                            <AdvancedGoogleMap @ref="@_map" Id="map1" Options="@_mapOptions" CssClass="border-rad">
+                            <AdvancedGoogleMap @ref="@_map" Id="map1" Options="@_mapOptions" CssClass="border-rad" Height="300px">
                                 @foreach (MarkerData marker in Markers)
                                 {
                                     <MarkerComponent @key="marker.Id"
@@ -140,54 +144,7 @@ else
                     </Card>
                 }
                 <!-- Technical Contacts -->
-                <Card>
-                    <TitleContent>
-                        <div class="card-header-with-tabs">
-                            <div class="tabs">
-                                <button class="tab active">All</button>
-                                <button class="tab">Deleted</button>
-                            </div>
-                            <button class="btn-add">+ Add</button>
-                        </div>
-                    </TitleContent>
-                    <ChildContent>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Role</th>
-                                    <th>Contact</th>
-                                    <th>Phone</th>
-                                    <th>Email</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_dummyData.TechnicalContacts.Count == 0)
-                                {
-                                    <tr>
-                                        <td colspan="5" class="empty-state">No records</td>
-                                    </tr>
-                                }
-                                else
-                                {
-                                    @foreach (var contact in _dummyData.TechnicalContacts)
-                                    {
-                                        <tr>
-                                            <td>@contact.Role</td>
-                                            <td>@contact.Name</td>
-                                            <td>@contact.Phone</td>
-                                            <td>@contact.Email</td>
-                                            <td>
-                                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
-                                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </ChildContent>
-                </Card>
+                <TechnicalContacts Contacts="_job.TechnicalContacts" />
 
                 <!-- Tasks -->
                 <Card>

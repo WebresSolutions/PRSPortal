@@ -14,7 +14,7 @@ DROP TABLE IF EXISTS job_task;
 DROP TABLE IF EXISTS job_file;
 DROP TABLE IF EXISTS user_job;
 DROP TABLE IF EXISTS invoice;
-DROP TABLE IF EXISTS technical_contacts;
+DROP TABLE IF EXISTS technical_contact;
 
 -- Tier 2: Tables with FKs pointing to core entities (Parents/Reference tables)
 DROP TABLE IF EXISTS job;
@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS address;
 
 -- Tier 3: Lookup/Type tables
 DROP TABLE IF EXISTS technical_contact_type;
+DROP TABLE IF EXISTS contact_type;
 DROP TABLE IF EXISTS timesheet_entry_type;
 DROP TABLE IF EXISTS job_type;
 DROP TABLE IF EXISTS job_colour;
@@ -106,7 +107,8 @@ CREATE TABLE address (
     geohash VARCHAR(12),
     search_vector tsvector GENERATED ALWAYS AS (
             setweight(to_tsvector('english', coalesce(street, '')), 'A') ||
-            setweight(to_tsvector('english', coalesce(suburb, '')), 'B')
+            setweight(to_tsvector('english', coalesce(suburb, '')), 'B') ||
+            setweight(to_tsvector('english', coalesce(post_code, '')), 'C')
         ) STORED NOT NULL
 );
 
@@ -126,11 +128,27 @@ CREATE INDEX idx_address_street_suburb_trgm ON address USING GIN((street || ' ' 
 CREATE INDEX idx_address_geom ON address USING GIST (geom);
 
 -- ============================================================================
+-- CONTACT TYPE TABLE
+-- ============================================================================
+
+CREATE TABLE contact_type (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description TEXT,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_on TIMESTAMPTZ
+);
+
+INSERT INTO contact_type (name, description) VALUES ('Company', 'Company Contact');
+INSERT INTO contact_type (name, description) VALUES ('Personal', 'Personal Contact');
+
+-- ============================================================================
 -- CONTACT TABLE
 -- ============================================================================
 
 CREATE TABLE contact (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    type_id INT NOT NULL REFERENCES contact_type(id),
     parent_contact_id INT REFERENCES contact(id),
     legacy_id INT,
     first_name VARCHAR(100) NOT NULL,
@@ -148,13 +166,15 @@ CREATE TABLE contact (
     search_vector tsvector GENERATED ALWAYS AS (
             setweight(to_tsvector('english', coalesce(first_name, '')), 'A') ||
             setweight(to_tsvector('english', coalesce(last_name, '')), 'B') ||
-            setweight(to_tsvector('english', coalesce(email, '')), 'C')
+            setweight(to_tsvector('english', coalesce(email, '')), 'C') ||
+            setweight(to_tsvector('english', coalesce(phone, '')), 'D')
         ) STORED NOT NULL
 );
 
 COMMENT ON TABLE contact IS 'Client or vendor contact information';
 COMMENT ON COLUMN contact.deleted_at IS 'Soft delete TIMESTAMPTZ - NULL means active';
 
+create INDEX idx_contact_type_id ON contact(type_id);
 CREATE INDEX idx_contact_email ON contact(email);
 CREATE INDEX idx_contact_parent_contact_id ON contact(parent_contact_id);
 CREATE INDEX idx_contact_address_id ON contact(address_id);
@@ -327,32 +347,32 @@ CREATE TABLE technical_contact_type (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     description TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_on TIMESTAMPTZ
 );
 
 INSERT INTO technical_contact_type (id, name, description) VALUES (1, 'Architect/Draftsperson', 'Architect Or Draftsperson');
 INSERT INTO technical_contact_type (id, name, description) VALUES (2, 'Builder', 'Builder');
-INSERT INTO technical_contact_type (id, name, description) VALUES (2, 'Previous Client', 'Previoius Client');
+INSERT INTO technical_contact_type (id, name, description) VALUES (3, 'Previous Client', 'Previous Client');
+INSERT INTO technical_contact_type (id, name, description) VALUES (4, 'Technical Contact', 'Technical Contact');
 
 -- ============================================================================
 -- technical Contact Table
 -- ============================================================================
 
-CREATE TABLE technical_contacts(
+CREATE TABLE technical_contact(
     id SERIAL PRIMARY KEY,
     type_id INT NOT NULL REFERENCES technical_contact_type(id),
-    contact_id INT NOT NULL REFERENCES contacts(id),
-    job_id INT NOT NULL REFERENCES jobs(id),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    contact_id INT NOT NULL REFERENCES contact(id),
+    job_id INT NOT NULL REFERENCES job(id),
+    created_by_user_id INT NOT NULL REFERENCES app_user(id),
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_on TIMESTAMPTZ
 );
 
-COMMENT ON TABLE technical_contacts IS '';
-
-CREATE INDEX technical_contacts_type_id_idx ON technical_contacts(type_id);
-CREATE INDEX technical_contacts_contact_id_idx ON technical_contacts(contact_id);
-CREATE INDEX technical_contacts_job_id_idx ON technical_contacts(job_id);
+CREATE INDEX technical_contacts_type_id_idx ON technical_contact(type_id);
+CREATE INDEX technical_contacts_contact_id_idx ON technical_contact(contact_id);
+CREATE INDEX technical_contacts_job_id_idx ON technical_contact(job_id);
 
 -- ============================================================================
 -- USER JOB TABLE (Many-to-Many)

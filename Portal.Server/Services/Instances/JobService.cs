@@ -8,6 +8,7 @@ using Portal.Shared;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
+using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 
@@ -149,7 +150,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                         x.Contact.Phone ?? ""
                     )
                     : null,
-                Contacts = x.con
+                TechnicalContacts = x.TechnicalContacts.Select(tc => new TechnicalContactDto(tc.Id, tc.ContactId, tc.JobId, tc.Type.Name, tc.Contact.FullName, tc.Contact.Email, tc.Contact.Phone)).ToList(),
+                TimeSheets = x.TimesheetEntries.Select(ts => new TimeSheetDto(ts.Id, ts.DateFrom, ts.DateFrom, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName)).ToList(),
                 ContactId = x.ContactId,
                 Council = x.Council != null ? new JobCouncilDto(x.Council.Id, x.Council.Name) : null,
                 CouncilId = x.CouncilId,
@@ -170,7 +172,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 AssignedUser = n.AssignedUserId != null
                     ? new(n.AssignedUserId.Value, n.AssignedUser!.DisplayName ?? "")
                     : null,
-                DateCreated = n.CreatedOn
+                DateCreated = n.CreatedOn,
+                ActionRequired = n.ActionRequired,
             })
             .OrderByDescending(n => n.DateCreated)
             .ToListAsync();
@@ -190,7 +193,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 End = s.EndTime,
                 Category = s.ScheduleTrack.JobType.Name,
                 Notes = s.Notes ?? string.Empty
-            });
+            })
+            .OrderByDescending(x => x.Start);
         job.SiteVisits = await query.ToListAsync();
 
         job.Tasks = await _dbContext.JobTasks

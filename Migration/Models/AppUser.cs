@@ -29,7 +29,7 @@ public partial class AppUser
     /// </summary>
     public DateTime? DeactivatedAt { get; set; }
 
-    public int LegacyUserId { get; set; }
+    public int? LegacyUserId { get; set; }
 
     public virtual ICollection<Address> AddressCreatedByUsers { get; set; } = new List<Address>();
 
@@ -102,6 +102,8 @@ public partial class AppUser
     public virtual ICollection<ScheduleUser> ScheduleUserCreatedByUsers { get; set; } = new List<ScheduleUser>();
 
     public virtual ICollection<ScheduleUser> ScheduleUserUsers { get; set; } = new List<ScheduleUser>();
+
+    public virtual ICollection<TechnicalContact> TechnicalContacts { get; set; } = new List<TechnicalContact>();
 
     public virtual ICollection<TimesheetEntry> TimesheetEntryCreatedByUsers { get; set; } = new List<TimesheetEntry>();
 

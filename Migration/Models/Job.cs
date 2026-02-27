@@ -70,6 +70,8 @@ public partial class Job
 
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 
+    public virtual ICollection<TechnicalContact> TechnicalContacts { get; set; } = new List<TechnicalContact>();
+
     public virtual ICollection<TimesheetEntry> TimesheetEntries { get; set; } = new List<TimesheetEntry>();
 
     public virtual ICollection<UserJob> UserJobs { get; set; } = new List<UserJob>();

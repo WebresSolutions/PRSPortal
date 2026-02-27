@@ -11,6 +11,8 @@ public partial class Contact
 {
     public int Id { get; set; }
 
+    public int TypeId { get; set; }
+
     public int? ParentContactId { get; set; }
 
     public int? LegacyId { get; set; }
@@ -59,4 +61,8 @@ public partial class Contact
     public virtual AppUser? ModifiedByUser { get; set; }
 
     public virtual Contact? ParentContact { get; set; }
+
+    public virtual ICollection<TechnicalContact> TechnicalContacts { get; set; } = new List<TechnicalContact>();
+
+    public virtual ContactType Type { get; set; } = null!;
 }

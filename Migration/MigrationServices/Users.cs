@@ -48,7 +48,7 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
                 CurrentItemIndex = sourceUsers.Length,
                 TotalItems = sourceUsers.Length
             });
-            return _destinationContext.AppUsers.ToFrozenDictionary(x => x.LegacyUserId, y => y.LegacyUserId);
+            return _destinationContext.AppUsers.ToFrozenDictionary(x => x.LegacyUserId ?? 0, y => y.LegacyUserId ?? 0);
         }
 
         progressCallback?.Invoke(new MigrationProgress
@@ -104,6 +104,6 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
             TotalItems = destinationUsers.Count
         });
 
-        return destinationUsers.ToFrozenDictionary(x => x.LegacyUserId, y => y.Id);
+        return destinationUsers.ToFrozenDictionary(x => x.LegacyUserId ?? 0, y => y.Id);
     }
 }

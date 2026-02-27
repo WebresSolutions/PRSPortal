@@ -14,6 +14,8 @@ public partial class TimesheetEntry
 
     public int UserId { get; set; }
 
+    public int TypeId { get; set; }
+
     public string? Description { get; set; }
 
     public DateTime DateFrom { get; set; }
@@ -36,6 +38,8 @@ public partial class TimesheetEntry
     public virtual Job? Job { get; set; }
 
     public virtual AppUser? ModifiedByUser { get; set; }
+
+    public virtual TimesheetEntryType Type { get; set; } = null!;
 
     public virtual AppUser User { get; set; } = null!;
 }

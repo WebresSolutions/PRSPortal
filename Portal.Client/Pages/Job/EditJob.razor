@@ -110,13 +110,13 @@
         Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
         if (councilResult?.IsSuccess == true && councilResult.Value is not null)
             Councils = councilResult.Value;
-        if (Model is { Contact: not null })
+        if (Model is { PrimaryContact: not null })
         {
             JobContact = new()
             {
                 ContactId = Model.ContactId,
-                FullName = Model.Contact.ContactName,
-                Phone = Model.Contact.Phone
+                FullName = Model.PrimaryContact.ContactName,
+                Phone = Model.PrimaryContact.Phone
             };
         }
     }

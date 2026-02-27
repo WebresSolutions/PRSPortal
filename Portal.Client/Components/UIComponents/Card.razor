@@ -1,4 +1,4 @@
-﻿<section class=@($"card-container shadow {CssClass}")>
+<section class=@($"card-container shadow {CssClass}")>
     @if (TitleContent is not null)
     {
         @TitleContent
@@ -152,5 +152,10 @@
         position: absolute !important;
         bottom: 0px !important;
         right: 0 !important;
+    }
+
+    .card-container{
+        -ms-overflow-style: none; /* Internet Explorer 10+ */
+        scrollbar-width: none !important;
     }
 </style>

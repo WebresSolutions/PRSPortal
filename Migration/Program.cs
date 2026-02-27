@@ -76,6 +76,7 @@ internal class Program
             migration.MigrateContacts(progressCallback);
             migration.MigrateCouncils(progressCallback);
             migration.MigrateJobs(progressCallback);
+            migration.MigrateTechnicalContacts(progressCallback);
             migration.MigrateSchedule(progressCallback);
             migration.MigrateUserJobs(progressCallback);
             migration.MigratateJobsSubObjects(progressCallback);

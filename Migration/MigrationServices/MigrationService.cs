@@ -107,7 +107,8 @@ internal class MigrationService(
                     CreatedByUserId = 95,
                     CreatedOn = Helpers.GetValidDateWithTimezone(oldContact.Created),
                     LegacyId = (int)oldContact.Id,
-                    ParentContactId = oldContact.ContactId is 0 ? null : oldContact.ContactId
+                    ParentContactId = oldContact.ContactId is 0 ? null : oldContact.ContactId,
+                    TypeId = 2
                 };
 
                 Models.Address address = Helpers.CreateAddress(_destinationContext, oldContact.State, oldContact.Address ?? "", oldContact.Suburb ?? "", oldContact.Postcode);
@@ -516,6 +517,102 @@ internal class MigrationService(
                 CurrentItemIndex = notes.Length,
                 TotalItems = notes.Length
             });
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+    }
+    /// <summary>
+    /// Migrates technical Contacts for jobs 
+    /// </summary>
+    /// <param name="progressCallback"></param>
+    public void MigrateTechnicalContacts(Action<MigrationProgress> progressCallback)
+    {
+        try
+        {
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Technical Contacts",
+                CurrentItem = "Loading jobs from source database...",
+                CurrentItemIndex = 0,
+                TotalItems = 0
+            });
+
+            // Get all of the jobs
+            SourceDb.TechnicalContact[] technicalContacts = [.. _sourceDBContext.TechnicalContacts.AsNoTracking()];
+            Models.TechnicalContact[] technicalContactsNew = [.. _destinationContext.TechnicalContacts.AsNoTracking()];
+            if (technicalContacts.Length == technicalContactsNew.Length)
+            {
+                progressCallback.Invoke(new MigrationProgress
+                {
+                    CurrentStep = "Migrating Technical Contacts",
+                    CurrentItem = "Contacts Already Exist",
+                    CurrentItemIndex = 0,
+                    TotalItems = 0
+                });
+                return;
+            }
+
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Technical Contacts",
+                CurrentItem = $"Found {technicalContacts.Length} jobs",
+                CurrentItemIndex = 0,
+                TotalItems = technicalContacts.Length
+            });
+
+            List<Models.TechnicalContact> contactsToCreate = [];
+
+            int index = 0;
+            foreach (SourceDb.TechnicalContact contact in technicalContacts)
+            {
+                if (index % 1000 == 0)
+                {
+                    progressCallback.Invoke(new MigrationProgress
+                    {
+                        CurrentStep = "Migrating Technical Contacts",
+                        CurrentItem = $"Processing Technical Contact {index + 1}/{technicalContacts.Length}",
+                        CurrentItemIndex = index + 1,
+                        TotalItems = technicalContacts.Length
+                    });
+                }
+                int? assignedUserId = null;
+                if (_Users.TryGetValue(contact.CreatedUser ?? 0, out int userResult))
+                    assignedUserId = userResult;
+
+                // if job or contact does not exist then skip it
+                if (_contactsCache!.TryGetValue(contact.ContactId, out Models.Contact? newDbContact) && _jobsCache!.TryGetValue(contact.JobId, out Models.Job? jobDbCache))
+                {
+                    Models.TechnicalContact newContact = new()
+                    {
+                        TypeId = 4,
+                        ContactId = newDbContact.Id,
+                        CreatedByUserId = _Users.GetValueOrDefault(contact.CreatedUser ?? 0, 95),
+                        JobId = jobDbCache.Id,
+                        CreatedOn = Helpers.GetValidDateWithTimezone(contact.Created),
+                        ModifiedOn = null
+                    };
+
+                    contactsToCreate.Add(newContact);
+                }
+                else
+                    break;
+
+                index++;
+            }
+
+            _destinationContext.BulkInsert(contactsToCreate, connectionString);
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Technical Contacts",
+                CurrentItem = $"Completed migrating technical contacts",
+                CurrentItemIndex = technicalContacts.Length,
+                TotalItems = technicalContacts.Length
+            });
+
         }
         catch (Exception ex)
         {
@@ -826,6 +923,7 @@ internal class MigrationService(
 
                     schedulesToAdd.Add(schedule);
                 }
+                index++;
             }
             progressCallback.Invoke(new MigrationProgress
             {

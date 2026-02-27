@@ -1,0 +1,138 @@
+.empty-state {
+    text-align: center;
+    color: #94a3b8;
+    padding: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.timesheets-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.timesheet-entry {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--border-rad);
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.timesheet-entry:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.timesheet-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.timesheet-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    gap: 0.5rem;
+}
+
+.timesheet-field:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0.15rem;
+}
+
+.timesheet-field-main {
+    border-bottom: none;
+    padding-bottom: 0.25rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.timesheet-time {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: 0.02em;
+}
+
+.timesheet-time-sep {
+    margin: 0 0.25rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.timesheet-duration {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    background: #e2e8f0;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+}
+
+.timesheet-live {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #dc2626;
+    margin-left: 0.35rem;
+}
+
+.timesheet-label {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 500;
+    min-width: 80px;
+    flex-shrink: 0;
+}
+
+.timesheet-value {
+    font-size: 0.85rem;
+    color: #1e293b;
+    font-weight: 500;
+    text-align: right;
+    flex: 1;
+    word-break: break-word;
+}
+
+.timesheet-value.timesheet-desc {
+    font-weight: 400;
+    color: #475569;
+}
+
+.timesheet-actions {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: flex-end;
+    padding-top: 0.35rem;
+    margin-top: 0.15rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* Scrollbar styling */
+.timesheets-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.timesheets-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.timesheets-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.timesheets-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}

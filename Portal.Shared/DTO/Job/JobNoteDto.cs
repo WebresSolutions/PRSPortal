@@ -24,4 +24,8 @@ public class JobNoteDto
     /// Gets or sets the user assigned to this note, if any
     /// </summary>
     public UserDto? AssignedUser { get; set; }
+    /// <summary>
+    /// Gets or sets if action is required
+    /// </summary>
+    public bool ActionRequired { get; set; }
 }

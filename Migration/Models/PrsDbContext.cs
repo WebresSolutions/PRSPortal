@@ -22,6 +22,8 @@ public partial class PrsDbContext : DbContext
 
     public virtual DbSet<Contact> Contacts { get; set; }
 
+    public virtual DbSet<ContactType> ContactTypes { get; set; }
+
     public virtual DbSet<Council> Councils { get; set; }
 
     public virtual DbSet<CouncilContact> CouncilContacts { get; set; }
@@ -66,7 +68,13 @@ public partial class PrsDbContext : DbContext
 
     public virtual DbSet<State> States { get; set; }
 
+    public virtual DbSet<TechnicalContact> TechnicalContacts { get; set; }
+
+    public virtual DbSet<TechnicalContactType> TechnicalContactTypes { get; set; }
+
     public virtual DbSet<TimesheetEntry> TimesheetEntries { get; set; }
+
+    public virtual DbSet<TimesheetEntryType> TimesheetEntryTypes { get; set; }
 
     public virtual DbSet<UserJob> UserJobs { get; set; }
 
@@ -129,7 +137,7 @@ public partial class PrsDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("post_code");
             entity.Property(e => e.SearchVector)
-                .HasComputedColumnSql("(setweight(to_tsvector('english'::regconfig, (COALESCE(street, ''::character varying))::text), 'A'::\"char\") || setweight(to_tsvector('english'::regconfig, (COALESCE(suburb, ''::character varying))::text), 'B'::\"char\"))", true)
+                .HasComputedColumnSql("((setweight(to_tsvector('english'::regconfig, (COALESCE(street, ''::character varying))::text), 'A'::\"char\") || setweight(to_tsvector('english'::regconfig, (COALESCE(suburb, ''::character varying))::text), 'B'::\"char\")) || setweight(to_tsvector('english'::regconfig, (COALESCE(post_code, ''::character varying))::text), 'C'::\"char\"))", true)
                 .HasColumnName("search_vector");
             entity.Property(e => e.StateId).HasColumnName("state_id");
             entity.Property(e => e.Street)
@@ -317,6 +325,8 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.SearchVector, "idx_contact_search_vector").HasMethod("gin");
 
+            entity.HasIndex(e => e.TypeId, "idx_contact_type_id");
+
             entity.HasIndex(e => e.Id, "idx_council_contact_contact_id");
 
             entity.Property(e => e.Id)
@@ -354,8 +364,9 @@ public partial class PrsDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("phone");
             entity.Property(e => e.SearchVector)
-                .HasComputedColumnSql("((setweight(to_tsvector('english'::regconfig, (COALESCE(first_name, ''::character varying))::text), 'A'::\"char\") || setweight(to_tsvector('english'::regconfig, (COALESCE(last_name, ''::character varying))::text), 'B'::\"char\")) || setweight(to_tsvector('english'::regconfig, (COALESCE(email, ''::character varying))::text), 'C'::\"char\"))", true)
+                .HasComputedColumnSql("(((setweight(to_tsvector('english'::regconfig, (COALESCE(first_name, ''::character varying))::text), 'A'::\"char\") || setweight(to_tsvector('english'::regconfig, (COALESCE(last_name, ''::character varying))::text), 'B'::\"char\")) || setweight(to_tsvector('english'::regconfig, (COALESCE(email, ''::character varying))::text), 'C'::\"char\")) || setweight(to_tsvector('english'::regconfig, (COALESCE(phone, ''::character varying))::text), 'D'::\"char\"))", true)
                 .HasColumnName("search_vector");
+            entity.Property(e => e.TypeId).HasColumnName("type_id");
 
             entity.HasOne(d => d.Address).WithMany(p => p.Contacts)
                 .HasForeignKey(d => d.AddressId)
@@ -373,6 +384,28 @@ public partial class PrsDbContext : DbContext
             entity.HasOne(d => d.ParentContact).WithMany(p => p.InverseParentContact)
                 .HasForeignKey(d => d.ParentContactId)
                 .HasConstraintName("contact_parent_contact_id_fkey");
+
+            entity.HasOne(d => d.Type).WithMany(p => p.Contacts)
+                .HasForeignKey(d => d.TypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("contact_type_id_fkey");
+        });
+
+        modelBuilder.Entity<ContactType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("contact_type_pkey");
+
+            entity.ToTable("contact_type");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
         });
 
         modelBuilder.Entity<Council>(entity =>
@@ -1230,6 +1263,66 @@ public partial class PrsDbContext : DbContext
                 .HasColumnName("name");
         });
 
+        modelBuilder.Entity<TechnicalContact>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("technical_contact_pkey");
+
+            entity.ToTable("technical_contact");
+
+            entity.HasIndex(e => e.ContactId, "technical_contacts_contact_id_idx");
+
+            entity.HasIndex(e => e.JobId, "technical_contacts_job_id_idx");
+
+            entity.HasIndex(e => e.TypeId, "technical_contacts_type_id_idx");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ContactId).HasColumnName("contact_id");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.JobId).HasColumnName("job_id");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.TypeId).HasColumnName("type_id");
+
+            entity.HasOne(d => d.Contact).WithMany(p => p.TechnicalContacts)
+                .HasForeignKey(d => d.ContactId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("technical_contact_contact_id_fkey");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.TechnicalContacts)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("technical_contact_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.Job).WithMany(p => p.TechnicalContacts)
+                .HasForeignKey(d => d.JobId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("technical_contact_job_id_fkey");
+
+            entity.HasOne(d => d.Type).WithMany(p => p.TechnicalContacts)
+                .HasForeignKey(d => d.TypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("technical_contact_type_id_fkey");
+        });
+
+        modelBuilder.Entity<TechnicalContactType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("technical_contact_type_pkey");
+
+            entity.ToTable("technical_contact_type");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+        });
+
         modelBuilder.Entity<TimesheetEntry>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("timesheet_entry_pkey");
@@ -1243,6 +1336,8 @@ public partial class PrsDbContext : DbContext
             entity.HasIndex(e => e.DateTo, "idx_timesheet_date_to");
 
             entity.HasIndex(e => e.JobId, "idx_timesheet_job_id");
+
+            entity.HasIndex(e => e.TypeId, "idx_timesheet_type_id");
 
             entity.HasIndex(e => e.UserId, "idx_timesheet_user_id");
 
@@ -1261,6 +1356,7 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.JobId).HasColumnName("job_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.TypeId).HasColumnName("type_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
             entity.HasOne(d => d.CreatedByUser).WithMany(p => p.TimesheetEntryCreatedByUsers)
@@ -1276,10 +1372,30 @@ public partial class PrsDbContext : DbContext
                 .HasForeignKey(d => d.ModifiedByUserId)
                 .HasConstraintName("timesheet_entry_modified_by_user_id_fkey");
 
+            entity.HasOne(d => d.Type).WithMany(p => p.TimesheetEntries)
+                .HasForeignKey(d => d.TypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("timesheet_entry_type_id_fkey");
+
             entity.HasOne(d => d.User).WithMany(p => p.TimesheetEntryUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("timesheet_entry_user_id_fkey");
+        });
+
+        modelBuilder.Entity<TimesheetEntryType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("timesheet_entry_type_pkey");
+
+            entity.ToTable("timesheet_entry_type");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
         });
 
         modelBuilder.Entity<UserJob>(entity =>

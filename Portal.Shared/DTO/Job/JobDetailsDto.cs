@@ -1,4 +1,6 @@
 ﻿using Portal.Shared.DTO.Address;
+using Portal.Shared.DTO.Contact;
+using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.DTO.User;
 
 namespace Portal.Shared.DTO.Job;
@@ -44,7 +46,7 @@ public class JobDetailsDto
     /// <summary>
     /// Secondary Job Contacts
     /// </summary>
-    public List<JobContactDto> Contacts { get; set; } = [];
+    public List<TechnicalContactDto> TechnicalContacts { get; set; } = [];
     /// <summary>
     /// The Contact Id
     /// </summary>
@@ -69,4 +71,9 @@ public class JobDetailsDto
     /// List of tasks
     /// </summary>
     public List<JobTaskDto> Tasks { get; set; } = [];
+
+    /// <summary>
+    /// List of timesheets
+    /// </summary>
+    public List<TimeSheetDto> TimeSheets { get; set; } = [];
 }

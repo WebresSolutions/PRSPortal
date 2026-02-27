@@ -54,6 +54,10 @@
     [Parameter]
     public TimeSheetDto? EditEntry { get; set; }
 
+    /// <summary>Optional job id to pre-fill when adding from a job page.</summary>
+    [Parameter]
+    public int? JobId { get; set; }
+
     private DateTime? _date;
     private TimeSpan? _startTime = new TimeSpan(9, 0, 0);
     private TimeSpan? _endTime = null;
@@ -72,6 +76,10 @@
             _endTime = EditEntry.End?.TimeOfDay;
             _jobId = EditEntry.JobId;
             _description = EditEntry.Description;
+        }
+        else if (JobId.HasValue)
+        {
+            _jobId = JobId;
         }
     }
 
@@ -114,12 +122,12 @@
             Result<TimeSheetDto> result = await _apiService.UpdateTimeSheet(EditEntry);
             if (result.IsSuccess)
             {
-                _snackbar.Add("Time entry added.", Severity.Success);
+                _snackbar.Add("Time entry updated.", Severity.Success);
                 await OnSaved.InvokeAsync();
                 MudDialog?.Close(DialogResult.Ok(true));
             }
             else
-                _snackbar.Add(result.ErrorDescription ?? "Failed to add entry.", Severity.Error);            
+                _snackbar.Add(result.ErrorDescription ?? "Failed to update entry.", Severity.Error);
         }
     }
 }

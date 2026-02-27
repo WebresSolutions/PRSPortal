@@ -1,0 +1,68 @@
+@using GoogleMapsComponents
+@using GoogleMapsComponents.Maps
+@using Portal.Client.Components.JobComponents
+@using Portal.Client.Webmodels
+@using Portal.Shared
+@using Portal.Shared.DTO.Contact
+@using Portal.Shared.DTO.Job
+@using Portal.Shared.DTO.Address
+@using Portal.Shared.Helpers
+
+<Card OnAddButtonClick="AddNewContact" HeaderTitle="Technical Contacts" ShowHeaderWithAddButton="true">
+    <ChildContent>
+        <div class="technical-contacts-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Role</th>
+                        <th>Contact</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Contacts.Count() == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="empty-state">No records</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (TechnicalContactDto contact in Contacts)
+                        {
+                            <tr>
+                                <td>@contact.ContactType</td>
+                                <td>@contact.ContactName</td>
+                                <td>@contact.Phone</td>
+                                <td>@contact.Email</td>
+                                <td>
+                                    <ButtonIcon Icon="bi bi-pencil" Title="Edit" CssClass="mb-1" />
+                                    <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </ChildContent>
+</Card>
+
+@code {
+    [Parameter]
+    public required IEnumerable<TechnicalContactDto> Contacts { get; set; }
+
+    private async Task AddNewContact()
+    {
+
+    }
+
+}
+
+<style>
+    .technical-contacts-container {
+        overflow-x: scroll;
+    }
+</style>
