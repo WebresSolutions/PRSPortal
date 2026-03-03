@@ -520,19 +520,13 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
 
             if (await _dbContext.Jobs.AsNoTracking().AnyAsync(x => x.Id == jobId) is false)
                 return result.SetError(ErrorType.NotFound, "Job not found");
-            // 1. Start with the base query
+
             IQueryable<JobNote> query = _dbContext.JobNotes
                 .AsNoTracking()
                 .Where(n => n.JobId == jobId);
 
-            // 2. Handle Soft Deletes
-            if (deleted)
-                query = query.Where(n => n.DeletedAt != null);
-            else
-                query = query.Where(n => n.DeletedAt == null);
+            query = deleted ? query.Where(n => n.DeletedAt != null) : query.Where(n => n.DeletedAt == null);
 
-
-            // 3. Handle Action Filter (Using a nullable bool allows for "All", "True", or "False")
             if (actionRequired.HasValue)
                 query = query.Where(n => n.ActionRequired == actionRequired.Value);
 
