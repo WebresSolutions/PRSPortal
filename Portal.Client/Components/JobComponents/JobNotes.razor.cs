@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Client.Webmodels;
+using Portal.Shared;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
@@ -27,8 +27,7 @@ public partial class JobNotes
     /// <summary>
     /// A list of tabs for filtering notes based on their status (e.g., All, Action Required, Deleted).
     /// </summary>
-    public List<TabSelect> Tabs { get; set; } = [new("All"), new("Action Required"), new("Deleted")];
-
+    public HashSet<TabTypeEnum> Tabs { get; set; } = [TabTypeEnum.All, TabTypeEnum.ActionRequired, TabTypeEnum.Deleted];
     /// <summary>
     /// When parameters are set or changed, syncs the notes list from the API for the current JobId.
     /// </summary>
@@ -93,7 +92,6 @@ public partial class JobNotes
     {
         DialogParameters parameter = new DialogParameters<JobNoteDto> { { "Note", note } };
         DialogOptions options = new() { CloseButton = false, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
-
         IDialogReference dialogRef = await _dialog.ShowAsync<EditJobNote>("", parameter, options);
         DialogResult? result = await dialogRef.Result;
     }
@@ -119,10 +117,8 @@ public partial class JobNotes
     private async Task NewNotes()
     {
         JobNoteDto newNote = new() { NoteId = 0, JobId = JobId, Content = "", DateCreated = DateTime.UtcNow };
-
         DialogParameters parameter = new DialogParameters<JobNoteDto> { { "Note", newNote } };
-        DialogOptions options = new() { CloseButton = false, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
-
+        DialogOptions options = new() { CloseButton = true, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
         IDialogReference dialogRef = await _dialog.ShowAsync<EditJobNote>("", parameter, options);
         DialogResult? result = await dialogRef.Result;
 
@@ -146,7 +142,7 @@ public partial class JobNotes
     /// On tabs change filter the notes based on the selected tab
     /// </summary>
     /// <param name="Tab"></param>
-    private async Task ChangeTabs(string Tab)
+    private async Task ChangeTabs(TabTypeEnum Tab)
     {
         try
         {
@@ -154,13 +150,13 @@ public partial class JobNotes
             ClearSearch();
             switch (Tab)
             {
-                case "All":
+                case TabTypeEnum.All:
                     Notes = Handlenotes(await _apiService.GetJobNotes(JobId, false));
                     break;
-                case "Action Required":
+                case TabTypeEnum.ActionRequired:
                     Notes = Handlenotes(await _apiService.GetJobNotes(JobId, false, actionRequired: true));
                     break;
-                case "Deleted":
+                case TabTypeEnum.Deleted:
                     Notes = Handlenotes(await _apiService.GetJobNotes(JobId, includeDeleted: true));
                     break;
                 default:
@@ -175,10 +171,9 @@ public partial class JobNotes
                     NotesCopy = notes.Value;
                     return notes.Value;
                 }
-
+                _snackbar.Add("Failed to load notes", Severity.Error);
                 return [];
             }
-
         }
         catch (Exception)
         {

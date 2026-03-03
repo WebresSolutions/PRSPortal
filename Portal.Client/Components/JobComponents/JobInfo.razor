@@ -37,6 +37,12 @@
                     <span class="info-value">@PlanRef</span>
                 </div>
             }
+            @if (!string.IsNullOrEmpty(Details))
+            {
+                <div class="info-row">
+                    <span class="info-value">@Details</span>
+                </div>
+            }
         </div>
     </ChildContent>
 </Card>
@@ -53,6 +59,9 @@
     /// </summary>
     [Parameter]
     public JobCouncilDto? Council { get; set; }
+
+    [Parameter]
+    public string? Details { get; set; }
 
     /// <summary>
     /// Gets or sets the plan reference number

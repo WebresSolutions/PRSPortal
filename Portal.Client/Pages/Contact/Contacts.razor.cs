@@ -280,9 +280,9 @@ public partial class Contacts
     /// </summary>
     /// <param name="tabName">The name of the selected tab (e.g. "Deleted").</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task ShowDelete(string tabName)
+    private async Task ShowDelete(TabTypeEnum tab)
     {
-        ShowDeleted = tabName == "Deleted";
+        ShowDeleted = tab is TabTypeEnum.Deleted;
         _grid?.ReloadServerData();
     }
 

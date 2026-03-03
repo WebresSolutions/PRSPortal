@@ -424,3 +424,9 @@ a {
     padding: 1rem;
     font-size: 0.85rem;
 }
+
+.header-border {
+    margin: 20px 0px;
+    padding: var(--padding);
+    border-bottom: 1px solid #e2e8f0;
+}

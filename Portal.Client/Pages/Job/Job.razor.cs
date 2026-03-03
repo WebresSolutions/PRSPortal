@@ -30,7 +30,6 @@ public partial class Job : IDisposable
         IsLoading = true;
         await base.OnInitializedAsync();
         await LoadJobData();
-        await LoadNotes();
         LatLngLiteral center = new(-37.8136, 144.9631);
         if (_job?.Address?.LatLng is not null)
         {
@@ -52,6 +51,8 @@ public partial class Job : IDisposable
             MapId = "Single_map_id"
         };
         IsLoading = false;
+
+        await LoadNotes();
     }
 
     /// <summary>
@@ -66,6 +67,7 @@ public partial class Job : IDisposable
             if (result is not null && result.IsSuccess && result.Value is not null)
             {
                 _job = result.Value;
+                StateHasChanged();
             }
             else
             {
@@ -77,12 +79,6 @@ public partial class Job : IDisposable
             _snackbar?.Add($"Error: {ex.Message}", Severity.Error);
         }
     }
-
-    /// <summary>
-    /// Returns a formatted address string (suburb, state, post code) for the current job.
-    /// </summary>
-    /// <returns>The formatted address or "No address" if none is set.</returns>
-    private string GetAddressString() => _job?.Address?.ToDisplayString() ?? "No address";
 
     /// <summary>
     /// Loads job notes from the API for the current job and refreshes the UI.

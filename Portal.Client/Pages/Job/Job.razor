@@ -36,7 +36,7 @@ else
                     <div class="header-left">
                         <h1>Job #@_job.JobNumber</h1>
                         <div class="header-info">
-                            <span>@GetAddressString()</span>
+                            <span>@_job.Address?.ToDisplayString()</span>
                         </div>
                     </div>
                     <div class="header-right">
@@ -79,7 +79,7 @@ else
                 </Card>
 
                 <!-- Job Info -->
-                <JobInfo Contact="_job.PrimaryContact" Council="_job.Council" PlanRef="_dummyData.PlanRef" />
+                <JobInfo Contact="@_job.PrimaryContact" Council="@_job.Council" Details="@_job.Details" PlanRef="@_dummyData.PlanRef" />
 
                 <JobTimeSheets TimeSheetsList="_job.TimeSheets" JobId="JobId" OnSaved="LoadJobData" />
 
@@ -103,10 +103,10 @@ else
                 <Card ShowHeaderWithAddButton="true" HeaderTitle="Job Files">
                     <ChildContent>
                         <div class="job-file-container">
-                            @for (int i = 0; i < 6; i++)
+                            @for (int i = 0; i < 5; i++)
                             {
                                 <div class="job-file">
-                                    <strong>File @i</strong>
+                                    <strong>Test@(i).png</strong>
                                     <small>Uploaded on 2024-01-0@(i + 1)</small>
                                 </div>
                             }
@@ -147,18 +147,7 @@ else
                 <TechnicalContacts Contacts="_job.TechnicalContacts" />
 
                 <!-- Tasks -->
-                <Card>
-                    <TitleContent>
-                        <div class="card-header-with-tabs">
-                            <div class="tabs">
-                                <button class="tab active">All</button>
-                                <button class="tab">Active</button>
-                                <button class="tab">To Invoice</button>
-                                <button class="tab">Deleted</button>
-                            </div>
-                            <button class="btn-add">+ Add</button>
-                        </div>
-                    </TitleContent>
+                <Card HeaderTitle="Tasks" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Active, TabTypeEnum.ToInvoice, TabTypeEnum.Deleted]">
                     <ChildContent>
                         <table class="table">
                             <thead>
@@ -199,18 +188,7 @@ else
                 </Card>
 
                 <!-- Invoices -->
-                <Card>
-                    <TitleContent>
-                        <div class="card-header-with-tabs">
-                            <div class="tabs">
-                                <button class="tab active">All</button>
-                                <button class="tab">Unsent</button>
-                                <button class="tab">Unpaid</button>
-                                <button class="tab">Overdue</button>
-                            </div>
-                            <button class="btn-add">+ Add</button>
-                        </div>
-                    </TitleContent>
+                <Card HeaderTitle="Invoices" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Unsent, TabTypeEnum.Unpaid, TabTypeEnum.Overdue, TabTypeEnum.Deleted]">
                     <ChildContent>
                         <table class="table">
                             <thead>

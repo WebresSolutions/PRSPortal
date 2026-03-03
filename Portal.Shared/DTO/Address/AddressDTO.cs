@@ -55,6 +55,8 @@ public class AddressDTO
     public string ToDisplayString()
     {
         List<string> parts = [];
+        if (!string.IsNullOrWhiteSpace(Street))
+            parts.Add(Street.ToUpperInvariant());
         if (!string.IsNullOrWhiteSpace(Suburb))
             parts.Add(Suburb.ToUpperInvariant());
         if (State is not null && !string.IsNullOrWhiteSpace(State.ToString()))

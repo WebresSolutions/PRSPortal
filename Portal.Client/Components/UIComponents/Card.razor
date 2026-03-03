@@ -1,3 +1,4 @@
+@using Portal.Shared
 <section class=@($"card-container shadow {CssClass}")>
     @if (TitleContent is not null)
     {
@@ -111,10 +112,10 @@
     public bool ShowHeaderWithTabs { get; set; } = false;
 
     [Parameter]
-    public EventCallback<string> OnTabSelect { get; set; }
+    public EventCallback<TabTypeEnum> OnTabSelect { get; set; }
 
     [Parameter]
-    public List<TabSelect> Tabs { get; set; } = [];
+    public HashSet<TabTypeEnum> Tabs { get; set; } = [];
 
     [Parameter]
     public EventCallback TabButtonClick { get; set; }

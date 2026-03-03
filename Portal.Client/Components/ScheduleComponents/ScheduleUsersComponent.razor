@@ -8,7 +8,7 @@
             <div style="min-height: 60px">
                 @if (IsEditing)
                 {
-                    <MudSelect T="UserDto" Label="Assigned Users" HelperText="Select the Users " MultiSelection="true">
+                    <MudSelect T="int?" Label="Assigned Users" HelperText="Select the Users " MultiSelection="true" Variant="Variant.Outlined">
                         @foreach (UserDto user in Users)
                         {
                             <MudSelectItem T="int?" Value="@user.userId">@user.displayName</MudSelectItem>
@@ -75,12 +75,14 @@
     private IEnumerable<string> options { get; set; } = [];
     private string value { get; set; } = "Nothing selected";
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        // options = Users
-        //     .Where(x 
-        //         => Slot.AssignedUsers.Select(x => x.userId).ToList().Contains(x.userId))
-        //     .Select(x => x.displayName ?? "");
+
+        Result<UserDto[]> usersResult = await _apiService.GetUsersList();
+        if (usersResult.IsSuccess)
+            Users = usersResult.Value!;
+        else
+            _snackbar.Add("Failed to load users for note assignment.", Severity.Error);
     }
 
     /// <summary>

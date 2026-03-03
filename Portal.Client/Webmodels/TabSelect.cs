@@ -1,13 +1,15 @@
-﻿namespace Portal.Client.Webmodels;
+﻿using Portal.Shared;
+
+namespace Portal.Client.Webmodels;
 
 public class TabSelect
 {
-    public TabSelect(string name)
+    public TabSelect(TabTypeEnum tabType)
     {
         TabId = Guid.NewGuid();
-        Name = name;
+        TabType = tabType;
     }
 
-    public string Name { get; set; } = "";
+    public TabTypeEnum TabType { get; set; }
     public Guid TabId { get; set; }
 }

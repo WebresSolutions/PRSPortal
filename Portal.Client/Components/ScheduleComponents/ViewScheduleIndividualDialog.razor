@@ -1,50 +1,40 @@
 ﻿<MudDialog>
     <DialogContent>
-        <section>
-            <div class="quicksearch-header">
-                <h4>Edit Schedule</h4>
+        <h4 class="header-border">Edit Schedule</h4>
+        <div class="item-container border-rad">
+            <div class="time-selectors">
+                <MudTimePicker Label="Time From"
+                               Variant="Variant.Outlined"
+                               Time="@TimeFrom" />
+                <MudTimePicker Label="Time To"
+                               Variant="Variant.Outlined"
+                               Time="@TimeTo" />
             </div>
-            <div class="item-container">
-                <div class="time-selectors">
-                    <MudTimePicker Label="Time From"
-                                   Variant="Variant.Outlined"
-                                   Time="@TimeFrom" />
-                    <MudTimePicker Label="Time To"
-                                   Variant="Variant.Outlined"
-                                   Time="@TimeTo" />
-                </div>
 
+            <div class="item-row">
+                <span class="item-label">Colour</span>
+                <span class="item-value">@CalendarItem.Colour</span>
+            </div>
+
+
+            @if (CalendarItem is { JobNumber: null })
+            {
+
+            }
+            else
+            {
+                <b>Job Details</b>
                 <div class="item-row">
-                    <span class="item-label">Colour</span>
-                    <span class="item-value">@CalendarItem.Colour</span>
+                    <span class="item-label">Job #</span>
+                    <span class="item-value"><a class="contact-link" href=@($"/jobs/view/{CalendarItem.JobId}")>@CalendarItem.JobNumber</a></span>
                 </div>
-
-
-                @if (CalendarItem is { JobNumber: null })
-                {
-
-                }
-                else
-                {
-                    <b>Job Details</b>
-                    <div class="item-row">
-                        <span class="item-label">View Job</span>
-                        <span class="item-value">
-                            <MudButton Href=@($"/jobs/view/{CalendarItem.JobId}") Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.RemoveRedEye" Class="view-button">View</MudButton>
-                        </span>
-                    </div>
-                    <div class="item-row">
-                        <span class="item-label">Job #</span>
-                        <span class="item-value">@CalendarItem.JobNumber</span>
-                    </div>
-                    <div class="item-row">
-                        <span class="item-label">Address</span>
-                        <span class="item-value">@CalendarItem.JobAddress</span>
-                    </div>
-                }
-                <MudTextField T="string" Label="Notes" Variant="Variant.Outlined" Text="@CalendarItem.Text" Lines="4" />
-            </div>
-        </section>
+                <div class="item-row">
+                    <span class="item-label">Address</span>
+                    <span class="item-value">@CalendarItem.JobAddress</span>
+                </div>
+            }
+            <MudTextField T="string" Label="Notes" Variant="Variant.Outlined" Text="@CalendarItem.Text" Lines="4" />
+        </div>
     </DialogContent>
 </MudDialog>
 
@@ -68,14 +58,17 @@
 }
 
 <style>
+
+
     .item-container {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        max-height: 600px;
+        height: 600px;
         min-width: 350px;
         overflow-y: auto;
-        padding-right: 0.5rem;
+        padding: var(--padding);
+        background: var(--color-light-grey);
     }
 
     .item-fields {

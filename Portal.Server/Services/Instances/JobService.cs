@@ -153,7 +153,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                     : null,
                 TechnicalContacts = x.TechnicalContacts
                     .Select(tc
-                        => new TechnicalContactDto(tc.Id, tc.ContactId, tc.JobId, tc.Type.Name, tc.Contact.FullName, tc.Contact.Email, tc.Contact.Phone, false))
+                        => new TechnicalContactDto(tc.Id, tc.ContactId, tc.JobId, tc.TypeId, tc.Type.Name, tc.Contact.FullName, tc.Contact.Email, tc.Contact.Phone, false))
                     .ToList(),
                 TimeSheets = x.TimesheetEntries
                     .Select(ts

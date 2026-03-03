@@ -15,16 +15,8 @@
                     <div class="site-visit-entry">
                         <div class="visit-fields">
                             <div class="visit-field">
-                                <span class="visit-label">View</span>
-                                <span class="visit-value">
-                                    <div class="view-button-wrapper">
-                                        <MudButton Href=@($"/schedule/{visit.Start.Date.ToString("yyyy-MM-dd")}/{(int)JobType}") Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.RemoveRedEye" Class="view-button">View</MudButton>
-                                    </div>
-                                </span>
-                            </div>
-                            <div class="visit-field">
                                 <span class="visit-label">Date</span>
-                                <span class="visit-value">@visit.Start.Date.ToString("yyyy-MM-dd") | @visit.GetStartEndAsString()</span>
+                                <span class="visit-value"><a class="contact-link" Href=@($"/schedule/{visit.Start.Date.ToString("yyyy-MM-dd")}/{(int)JobType}")>@visit.Start.Date.ToString("yyyy-MM-dd") | @visit.GetStartEndAsString()</a></span>
                             </div>
                             <div class="visit-field">
                                 <span class="visit-label">Assignees</span>

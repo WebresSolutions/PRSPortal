@@ -8,7 +8,7 @@
 @using Portal.Shared.DTO.Address
 @using Portal.Shared.Helpers
 
-<Card OnAddButtonClick="AddNewContact" HeaderTitle="Technical Contacts" ShowHeaderWithAddButton="true">
+<Card ShowHeaderWithTabs="true" HeaderTitle="Technical Contacts" OnTabSelect="ChangeTabs" Tabs="[TabTypeEnum.All, TabTypeEnum.Deleted]" TabButtonClick="@(() => NewTechnicalContact(null))">
     <ChildContent>
         <div class="technical-contacts-container">
             <table class="table">
@@ -34,12 +34,14 @@
                         {
                             <tr>
                                 <td>@contact.ContactType</td>
-                                <td ><a class="contact-link" href="/contacts/@contact.ContactId">@contact.ContactName</a></td>
+                                <td><a class="contact-link" href="/contacts/@contact.ContactId">@contact.ContactName</a></td>
                                 <td>@contact.Phone</td>
                                 <td>@contact.Email</td>
                                 <td>
-                                    <ButtonIcon Icon="bi bi-pencil" Title="Edit" CssClass="mb-1" />
-                                    <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
+                                    <span class="d-flex flex-row gap-1">
+                                        <ButtonIcon Icon="bi bi-pencil" Title="Edit" CssClass="" OnClick="@(() => NewTechnicalContact(contact))" />
+                                        <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
+                                    </span>
                                 </td>
                             </tr>
                         }
@@ -50,16 +52,7 @@
     </ChildContent>
 </Card>
 
-@code {
-    [Parameter]
-    public required IEnumerable<TechnicalContactDto> Contacts { get; set; }
 
-    private async Task AddNewContact()
-    {
-
-    }
-
-}
 
 <style>
     .technical-contacts-container {

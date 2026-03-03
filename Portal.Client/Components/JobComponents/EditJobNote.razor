@@ -2,38 +2,41 @@
 @using Portal.Shared.DTO.User
 @inject ISnackbar Snackbar
 
+<MudDialog>
+    <DialogContent>
+        <h4 class="header-border">Job Note</h4>
+        <div class="edit-note-container border-rad">
+            <div class="assign-user-container">
+                <MudSelect T="int?" Label="Assign a user" Clearable="true" Variant="Variant.Outlined" MultiSelection="false" @bind-Value="AssignedUser">
+                    @foreach (UserDto user in Users)
+                    {
+                        <MudSelectItem T="int?" Value="@user.userId">@user.displayName</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudCheckBox Label="Action Required" @bind-value="Note.ActionRequired" />
+            </div>
 
-<h4 class="edit-note-header">Job Note</h4>
-<div class="edit-note-container border-rad">
-    <div class="assign-user-container">
-        <MudSelect T="int?" Label="Assign a user" Clearable="true" Variant="Variant.Outlined" MultiSelection="false" @bind-Value="AssignedUser">
-            @foreach (UserDto user in Users)
+            <MudExRichTextEdit @ref="@Editor"
+                               ReadOnly="@Readonly"
+                               Height="500"
+                               Class="m-2 border-rad"
+                               Value="@SaveContent"
+                               ValueChanged="OnContentChanged"
+                               Placeholder="Start typing...">
+            </MudExRichTextEdit>
+
+            @if (Note.DateModified is not null && Note.Modifiedby is not null)
             {
-                <MudSelectItem T="int?" Value="@user.userId">@user.displayName</MudSelectItem>
+                <small class="text-center">Last Modified: @Note.DateModified.Value.ToLocalTime().ToString("dddd d-MMM-yyyy h:mmtt")</small>
+                <small class="text-center">Modified By: @Note.Modifiedby</small>
             }
-        </MudSelect>
-        <MudCheckBox Label="Action Required" @bind-value="Note.ActionRequired" />
-    </div>
-
-    <MudExRichTextEdit @ref="@Editor"
-                       ReadOnly="@Readonly"
-                       Height="500"
-                       Class="m-2 border-rad"
-                       Value="@SaveContent"
-                       ValueChanged="OnContentChanged"
-                       Placeholder="Start typing...">
-    </MudExRichTextEdit>
-
-    @if (Note.DateModified is not null && Note.Modifiedby is not null)
-    {
-        <small class="text-center">Last Modified: @Note.DateModified.Value.ToLocalTime().ToString("dddd d-MMM-yyyy h:mmtt")</small>
-        <small class="text-center">Modified By: @Note.Modifiedby</small>
-    }
-    <div class="action-buttons">
-        <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" OnClick="SaveNote" Text="Save" />
-        <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" OnClick="@(() => MudDialog?.Close(DialogResult.Ok(true)))" Text="Close" />
-    </div>
-</div>
+            <div class="action-buttons">
+                <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" OnClick="SaveNote" Text="Save" />
+                <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" OnClick="@(() => MudDialog?.Close(DialogResult.Ok(true)))" Text="Close" />
+            </div>
+        </div>
+    </DialogContent>
+</MudDialog>
 
 <style>
     .edit-note-container {
@@ -43,12 +46,6 @@
         margin: 20px;
         padding: var(--padding);
         background: var(--color-light-grey);
-    }
-
-    .edit-note-header{
-        margin: 0 20px;
-        padding: var(--padding);
-        border-bottom: 1px solid #e2e8f0;
     }
 
     .assign-user-container {

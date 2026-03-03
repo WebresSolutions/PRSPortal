@@ -6,9 +6,9 @@
 
 <div class="card-header-with-tabs">
     <div class="tabs">
-        @foreach (TabSelect tab in Tabs)
+        @foreach (var tab in Tabs)
         {
-            <button class="tab @(tab.TabId == SelectedTab ? "active" : "")" @onclick="@(() => TabChanged(tab))">@tab.Name</button>
+            <button class="tab @(tab == SelectedTab ? "active" : "")" @onclick="@(() => TabChanged(tab))">@tab.GetDisplayName()</button>
         }
     </div>
     @if (ShowAddButton)
@@ -32,7 +32,7 @@
     /// Event callback for when a tab is selected.
     /// </summary>
     [Parameter]
-    public EventCallback<string> OnTabSelect { get; set; }
+    public EventCallback<TabTypeEnum> OnTabSelect { get; set; }
 
     [Parameter]
     public string? Href { get; set; }
@@ -43,7 +43,7 @@
     private bool IsEventSet => ButtonClick.HasDelegate;
 
     [Parameter]
-    public List<TabSelect> Tabs { get; set; } = [];
+    public HashSet<TabTypeEnum> Tabs { get; set; } = [];
 
     [Parameter]
     public bool ShowAddButton { get; set; } = true;
@@ -51,20 +51,20 @@
     [Parameter]
     public bool ShowBorderBottom { get; set; } = true;
 
-    private Guid SelectedTab;
+    private TabTypeEnum SelectedTab;
 
-    private async Task TabChanged(TabSelect tab)
+    private async Task TabChanged(TabTypeEnum tab)
     {
-        SelectedTab = tab.TabId;
-        await OnTabSelect.InvokeAsync(tab.Name);
+        SelectedTab = tab;
+        await OnTabSelect.InvokeAsync(tab);
     }
 
     protected override async Task OnInitializedAsync()
     {
         if (Tabs.Count == 0)
-            Tabs = [(new TabSelect("All")), new TabSelect("Deleted")];
+            Tabs = [TabTypeEnum.All, TabTypeEnum.Deleted];
 
-        SelectedTab = Tabs.First().TabId;
+        SelectedTab = Tabs.First();
     }
 }
 
