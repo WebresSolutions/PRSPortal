@@ -111,7 +111,7 @@
 
 .main-grid {
     display: grid;
-    grid-template-columns: 300px 1fr 500px;
+    grid-template-columns: 300px 1fr 600px;
     gap: 1rem;
 }
 
@@ -146,14 +146,14 @@
 }
 
 .stat-mini {
-    padding: 0.75rem;
+    padding: 0.5rem;
     background: var(--color-light-grey);
-    border-radius: 8px;
+    border-radius: var(--border-rad);
     text-align: center;
 }
 
 .stat-mini-value {
-    font-size: 1.25rem;
+    font-size: 1rem;
     font-weight: 900;
     color: var(--color-secondary);
 }

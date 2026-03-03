@@ -295,9 +295,9 @@ public partial class Jobs
         return _grid!.ReloadServerData();
     }
 
-    private async Task ShowDelete(bool showDeleted)
+    private async Task ShowDelete(string tabName)
     {
-        ShowDeleted = showDeleted;
+        ShowDeleted = tabName == "Deleted";
         _grid?.ReloadServerData();
     }
 

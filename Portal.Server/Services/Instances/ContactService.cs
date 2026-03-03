@@ -14,8 +14,8 @@ namespace Portal.Server.Services.Instances;
 /// <summary>
 /// Service implementation for contact-related business logic
 /// Handles contact retrieval, filtering, and data transformation
-/// </summary>
 public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _logger) : IContactService
+/// </summary>ctService
 {
     /// <summary>
     /// Retrieves a paged list of contacts with optional filtering and sorting
@@ -26,15 +26,22 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
     /// <param name="searchFilter">Optional search filter for contact names, emails, or phone numbers</param>
     /// <param name="orderby">Optional field name to sort by</param>
     /// <returns>A result containing a paged response of contact DTOs</returns>
-    public async Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(int page, int pageSize, SortDirectionEnum? order, string? searchFilter, string? orderby)
+    public async Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(
+        int page,
+        int pageSize,
+        SortDirectionEnum? order,
+        string? searchFilter,
+        string? orderby,
+        bool deleted = false)
     {
         Result<PagedResponse<ListContactDto>> result = new();
         try
         {
             IQueryable<Contact> contactQuery = _dbContext.Contacts
                 .AsNoTracking()
-                .Where(x => x.DeletedAt == null)
                 .AsQueryable();
+
+            contactQuery = !deleted ? contactQuery.Where(x => x.DeletedAt == null) : contactQuery.Where(x => x.DeletedAt != null);
 
             if (!searchFilter.IsNullOrWhiteSpace())
             {

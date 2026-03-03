@@ -19,7 +19,7 @@ public interface IContactService
     /// <param name="searchFilter">The search filter</param>
     /// <param name="orderby">Column to order by</param>
     /// <returns>A paged list of contacts</returns>
-    Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(int page, int pageSize, SortDirectionEnum? order, string? searchFilter, string? orderby);
+    Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(int page, int pageSize, SortDirectionEnum? order, string? searchFilter, string? orderby, bool deleted = false);
 
     /// <summary>
     /// Retrieves detailed information for a contact specified by its unique identifier.

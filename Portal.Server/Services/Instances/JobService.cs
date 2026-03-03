@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 using Portal.Data;
 using Portal.Data.Models;
@@ -151,8 +151,14 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                         x.Contact.Phone ?? ""
                     )
                     : null,
-                TechnicalContacts = x.TechnicalContacts.Select(tc => new TechnicalContactDto(tc.Id, tc.ContactId, tc.JobId, tc.Type.Name, tc.Contact.FullName, tc.Contact.Email, tc.Contact.Phone)).ToList(),
-                TimeSheets = x.TimesheetEntries.Select(ts => new TimeSheetDto(ts.Id, ts.TypeId, ts.DateFrom, ts.DateTo, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName)).ToList(),
+                TechnicalContacts = x.TechnicalContacts
+                    .Select(tc
+                        => new TechnicalContactDto(tc.Id, tc.ContactId, tc.JobId, tc.Type.Name, tc.Contact.FullName, tc.Contact.Email, tc.Contact.Phone, false))
+                    .ToList(),
+                TimeSheets = x.TimesheetEntries
+                    .Select(ts
+                        => new TimeSheetDto(ts.Id, ts.TypeId, ts.DateFrom, ts.DateTo, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName))
+                    .ToList(),
                 ContactId = x.ContactId,
                 Council = x.Council != null ? new JobCouncilDto(x.Council.Id, x.Council.Name) : null,
                 CouncilId = x.CouncilId,
@@ -163,21 +169,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         if (job is null)
             return result.SetError(ErrorType.NotFound, "Invalid job Id");
 
-        job.Notes = await _dbContext.JobNotes
-            .AsNoTracking()
-            .Where(n => n.JobId == jobId && n.DeletedAt == null)
-            .Select(n => new JobNoteDto
-            {
-                NoteId = n.Id,
-                Content = n.Note,
-                AssignedUser = n.AssignedUserId != null
-                    ? new(n.AssignedUserId.Value, n.AssignedUser!.DisplayName ?? "")
-                    : null,
-                DateCreated = n.CreatedOn,
-                ActionRequired = n.ActionRequired,
-            })
-            .OrderByDescending(n => n.DateCreated)
-            .ToListAsync();
+        job.Notes = [];
 
         // Get the job site visits from the schedules table
         IQueryable<JobSiteVisitsDto> query = _dbContext.Schedules
@@ -345,7 +337,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
             }
 
 
-            if (job.Address is not null)
+            if (job.Address is not null && updateJobDto.Address is not null)
             {
                 job.Address.Street = updateJobDto.Address.Street;
                 job.Address.PostCode = updateJobDto.Address.PostCode;
@@ -424,12 +416,154 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
     }
 
     /// <summary>
+    /// Creates a new note associated with a job and returns the updated job details.
+    /// </summary>
+    /// <param name="httpContext">The HTTP context for the current request. Used to access user information and request metadata. Cannot be null.</param>
+    /// <param name="note">The note to add to the job. Must contain valid job and note information. Cannot be null.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with the updated job
+    /// details if the note is created successfully; otherwise, contains error information.</returns>
+    public async Task<Result<List<JobNoteDto>>> CreateNote(HttpContext httpContext, JobNoteDto note)
+    {
+        Result<List<JobNoteDto>> result = new();
+        try
+        {
+            // Validate the object
+            if (string.IsNullOrEmpty(note.Content))
+                return result.SetError(ErrorType.BadRequest, "Invalid job Id supplied");
+
+            if (await _dbContext.Jobs.FirstOrDefaultAsync(x => x.Id == note.JobId) is not Job job)
+                return result.SetError(ErrorType.BadRequest, "Invalid job Id supplied");
+
+            if (note.AssignedUser is not null && await _dbContext.AppUsers.FirstOrDefaultAsync(x => x.Id == note.AssignedUser.userId) is not AppUser user)
+                return result.SetError(ErrorType.BadRequest, "Invalid assigned user Id supplied");
+
+            JobNote jobNote = new()
+            {
+                JobId = note.JobId,
+                Job = job,
+                AssignedUserId = note.AssignedUser?.userId,
+                Note = note.Content,
+                CreatedByUserId = httpContext.UserId(),
+                CreatedOn = DateTime.UtcNow,
+                ActionRequired = note.ActionRequired
+            };
+            await _dbContext.JobNotes.AddAsync(jobNote);
+            await _dbContext.SaveChangesAsync();
+
+            Result<List<JobNoteDto>> notes = await GetJobNotes(note.JobId, false, null);
+            return result.SetValue(notes.Value ?? throw new Exception("Failed to get the job notes"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create new note");
+            return result.SetError(ErrorType.InternalError, "Failed to create note");
+        }
+    }
+
+    /// <summary>
+    /// Updates a note, this can be used to update the content, action required, assigned user or deleted status of a note
+    /// </summary>
+    /// <param name="httpContext">The httpcontext</param>
+    /// <param name="note">The note to update</param>
+    /// <returns>The job details</returns>
+    public async Task<Result<List<JobNoteDto>>> UpdateNote(HttpContext httpContext, JobNoteDto note)
+    {
+        Result<List<JobNoteDto>> result = new();
+        try
+        {
+            if (note.NoteId <= 0)
+                return result.SetError(ErrorType.BadRequest, "Invalid note Id supplied");
+
+            JobNote? jobNote = await _dbContext.JobNotes.FirstOrDefaultAsync(x => x.Id == note.NoteId);
+            if (jobNote is null)
+                return result.SetError(ErrorType.NotFound, "Note not found");
+
+            if (note.AssignedUser is not null && await _dbContext.AppUsers.FirstOrDefaultAsync(x => x.Id == note.AssignedUser.userId) is not AppUser user)
+                return result.SetError(ErrorType.BadRequest, "Invalid assigned user Id supplied");
+
+            jobNote.Note = note.Content ?? jobNote.Note;
+            jobNote.ActionRequired = note.ActionRequired;
+            jobNote.AssignedUserId = note.AssignedUser?.userId;
+            jobNote.ModifiedByUserId = httpContext.UserId();
+            jobNote.ModifiedOn = DateTime.UtcNow;
+            jobNote.DeletedAt = note.Deleted ? DateTime.UtcNow : null;
+
+            await _dbContext.SaveChangesAsync();
+
+            Result<List<JobNoteDto>> notes = await GetJobNotes(note.JobId, false, null);
+            return result.SetValue(notes.Value ?? throw new Exception("Failed to get the job after update"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update note {NoteId}", note.NoteId);
+            return result.SetError(ErrorType.InternalError, "Failed to update note");
+        }
+    }
+
+    /// <summary>
     /// Gets all users assigend job notes   
     /// </summary>
     /// <param name="httpContext">The http context</param>
     /// <param name="userId">The user ID</param>
     /// <param name="includeDeleted">If should include deleted. </param>
     /// <returns>A list of job notes assigned to the specific users </returns>
+    /// <summary>
+    /// Gets the notes for a job by job id.
+    /// </summary>
+    public async Task<Result<List<JobNoteDto>>> GetJobNotes(int jobId, bool deleted = false, bool? actionRequired = null)
+    {
+        Result<List<JobNoteDto>> result = new();
+        try
+        {
+            if (jobId <= 0)
+                return result.SetError(ErrorType.BadRequest, "Invalid job Id");
+
+            if (await _dbContext.Jobs.AsNoTracking().AnyAsync(x => x.Id == jobId) is false)
+                return result.SetError(ErrorType.NotFound, "Job not found");
+            // 1. Start with the base query
+            IQueryable<JobNote> query = _dbContext.JobNotes
+                .AsNoTracking()
+                .Where(n => n.JobId == jobId);
+
+            // 2. Handle Soft Deletes
+            if (deleted)
+                query = query.Where(n => n.DeletedAt != null);
+            else
+                query = query.Where(n => n.DeletedAt == null);
+
+
+            // 3. Handle Action Filter (Using a nullable bool allows for "All", "True", or "False")
+            if (actionRequired.HasValue)
+                query = query.Where(n => n.ActionRequired == actionRequired.Value);
+
+            result.Value = await query
+                .Select(n => new JobNoteDto
+                {
+                    NoteId = n.Id,
+                    JobId = n.JobId,
+                    Content = n.Note,
+                    AssignedUser = n.AssignedUserId != null
+                        ? new(n.AssignedUserId.Value, n.AssignedUser!.DisplayName ?? "")
+                        : null,
+                    DateCreated = n.CreatedOn,
+                    ActionRequired = n.ActionRequired,
+                    Deleted = n.DeletedAt != null,
+                    DateModified = n.ModifiedOn,
+                    CreatedBy = n.CreatedByUser.DisplayName,
+                    Modifiedby = n.ModifiedByUser != null ? n.ModifiedByUser.DisplayName : null
+                })
+                .OrderByDescending(x => x.DateCreated)
+                .ToListAsync();
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get job notes for job {JobId}", jobId);
+            return result.SetError(ErrorType.InternalError, "Failed to get job notes");
+        }
+    }
+
     public async Task<Result<List<JobNoteDto>>> GetUserAssignedJobsNotes(HttpContext httpContext, int userId, bool includeDeleted)
     {
         Result<List<JobNoteDto>> result = new();

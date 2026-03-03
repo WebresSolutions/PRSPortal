@@ -10,6 +10,17 @@
             <ButtonIcon Icon="bi bi-plus" CssClass="text-green" Title="Edit" OnClick="OnAddButtonClick" />
         </div>
     }
+    @if (ShowHeaderWithTabs)
+    {
+        <div class="card-header-tabs">
+            <h3>@HeaderTitle</h3>
+            <HeaderTabs Href="#" OnTabSelect="OnTabSelect" ShowAddButton="false" ShowBorderBottom="false" Tabs="Tabs" />
+            @if (IsEventSet)
+            {
+                <ButtonIcon Icon="bi bi-plus" CssClass="text-green" Title="Edit" OnClick="TabButtonClick" />
+            }
+        </div>
+    }
     @if (Title != string.Empty && !ShowHeaderWithAddButton)
     {
         <h1 class="cd-title">@Title</h1>
@@ -47,7 +58,7 @@
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
-    /// The height of the card in pixels. Default is 300.  
+    /// The height of the card in pixels. Default is 300.
     /// </summary>
     [Parameter]
     public int Height { get; set; } = 300;
@@ -58,7 +69,7 @@
     [Parameter]
     public Action? TitleActions { get; set; }
 
-    /// <summary> 
+    /// <summary>
     /// Gets the height string for CSS styling
     /// </summary>
     private string _heightString => Height > 0 ? $"{Height}px" : "300px";
@@ -95,6 +106,20 @@
 
     [Parameter]
     public string? CssClass { get; set; }
+
+    [Parameter]
+    public bool ShowHeaderWithTabs { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<string> OnTabSelect { get; set; }
+
+    [Parameter]
+    public List<TabSelect> Tabs { get; set; } = [];
+
+    [Parameter]
+    public EventCallback TabButtonClick { get; set; }
+    private bool IsEventSet => TabButtonClick.HasDelegate;
+
 }
 
 <style>
@@ -109,7 +134,7 @@
         overflow: scroll;
     }
 
-    .cd-title{
+    .cd-title {
         text-align: left;
         margin-bottom: 1.5rem;
         margin-left: 1.5rem;
@@ -125,12 +150,30 @@
         border-bottom: 1px solid #e2e8f0;
     }
 
-    .card-header-simple h3 {
-        margin: 0;
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--color-primary);
+        .card-header-simple h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+    .card-header-tabs {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+        gap: 1rem;
     }
+
+        .card-header-tabs h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
 
     .btn-add {
         background: #10b981;
@@ -144,9 +187,9 @@
         transition: background 0.2s;
     }
 
-    .btn-add:hover {
-        background: #059669;
-    }
+        .btn-add:hover {
+            background: #059669;
+        }
 
     .refresh-button {
         position: absolute !important;
@@ -154,7 +197,7 @@
         right: 0 !important;
     }
 
-    .card-container{
+    .card-container {
         -ms-overflow-style: none; /* Internet Explorer 10+ */
         scrollbar-width: none !important;
     }

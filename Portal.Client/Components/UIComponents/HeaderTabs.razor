@@ -11,31 +11,52 @@
             <button class="tab @(tab.TabId == SelectedTab ? "active" : "")" @onclick="@(() => TabChanged(tab))">@tab.Name</button>
         }
     </div>
-    <div>
-        <ButtonIcon Icon="bi bi-plus" Title="Add" CssClass="text-green" Href="@Href" Text="Add">
-        </ButtonIcon>
-    </div>
+    @if (ShowAddButton)
+    {
+        <div>
+            @if (IsEventSet)
+            {
+                <ButtonIcon Icon="bi bi-plus" Title="Add" CssClass="text-green" OnClick=@ButtonClick Text="Add" />
+            }
+            else
+            {
+                <ButtonIcon Icon="bi bi-plus" Title="Add" CssClass="text-green" Href="@Href" Text="Add" />
+            }
+
+        </div>
+    }
 </div>
 
 @code {
     /// <summary>
-    /// Event callback for when a tab is selected. 
+    /// Event callback for when a tab is selected.
     /// </summary>
     [Parameter]
-    public EventCallback<bool> OnTabSelect { get; set; }
+    public EventCallback<string> OnTabSelect { get; set; }
 
     [Parameter]
-    public required string Href { get; set; }
+    public string? Href { get; set; }
+
+    [Parameter]
+    public EventCallback ButtonClick { get; set; }
+
+    private bool IsEventSet => ButtonClick.HasDelegate;
 
     [Parameter]
     public List<TabSelect> Tabs { get; set; } = [];
+
+    [Parameter]
+    public bool ShowAddButton { get; set; } = true;
+
+    [Parameter]
+    public bool ShowBorderBottom { get; set; } = true;
 
     private Guid SelectedTab;
 
     private async Task TabChanged(TabSelect tab)
     {
         SelectedTab = tab.TabId;
-        await OnTabSelect.InvokeAsync(tab.Name == "Deleted");
+        await OnTabSelect.InvokeAsync(tab.Name);
     }
 
     protected override async Task OnInitializedAsync()
@@ -53,9 +74,9 @@
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: @(ShowBorderBottom ? "1rem" : "none");
+        padding-bottom: @(ShowBorderBottom ? "1rem" : "none");
+        border-bottom: @(ShowBorderBottom ? "1px solid #e2e8f0;" : "none")
     }
 
     .tabs {
@@ -74,7 +95,7 @@
         font-size: 0.85rem;
         color: #64748b;
         margin-bottom: -2px;
-        transition: all 0.2s;
+        transition: all 0.2s ease-in-out;
     }
 
         .tab:hover {

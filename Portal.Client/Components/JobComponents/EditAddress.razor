@@ -1,5 +1,6 @@
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
+@using Portal.Data.Models
 @using Portal.Shared
 @using Portal.Shared.DTO.Address
 
@@ -9,16 +10,18 @@
     <div class="form-sections border-rad">
         <MudTextField @bind-Value="Address.Street" Label="Street" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.Street)" Required="true" />
         <MudTextField @bind-Value="Address.Suburb" Label="Suburb" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.Suburb)" Required="true" />
-        <MudSelect T="StateEnum ?" @bind-Value="Address.State" Label="State" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.State)" Required="true">
-            @foreach (StateEnum s in Enum.GetValues<StateEnum>())
-            {
-                <MudSelectItem T="StateEnum ?" Value="@s">@s.GetFullName()</MudSelectItem>
-            }
-        </MudSelect>
-        <MudTextField @bind-Value="Address.PostCode" Label="Post Code" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.PostCode)" Required="true" />
         <div class="form-lat-lng">
-            <MudNumericField T="double" @bind-Value="Address.LatLng!.Latitude" Label="Latitude" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.LatLng!.Latitude)" />
-            <MudNumericField T="double" @bind-Value="Address.LatLng.Longitude" Label="Longitude" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.LatLng!.Longitude)" />
+            <MudSelect T="StateEnum ?" @bind-Value="Address.State" Label="State" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.State)" Required="true">
+                @foreach (StateEnum s in Enum.GetValues<StateEnum>())
+                {
+                    <MudSelectItem T="StateEnum ?" Value="@s">@s.GetFullName()</MudSelectItem>
+                }
+            </MudSelect>
+            <MudTextField @bind-Value="Address.PostCode" Label="Post Code" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.PostCode)" Required="true" />
+        </div>
+        <div class="form-lat-lng">
+            <MudNumericField T="double" @bind-Value="Address.LatLng!.Latitude" Label="Latitude" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.LatLng!.Latitude)" Disabled="true" />
+            <MudNumericField T="double" @bind-Value="Address.LatLng.Longitude" Label="Longitude" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.LatLng!.Longitude)" Disabled="true" />
         </div>
         <div class="map-section">
             <small class="map-hint">Move the pin on the map to adjust the coordinates</small>

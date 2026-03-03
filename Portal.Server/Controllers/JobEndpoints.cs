@@ -101,6 +101,24 @@ public static class JobEndpoints
         .WithDescription("Updates an existing job by jobId. Returns 400 if jobId is invalid.")
         .Produces<JobDetailsDto>();
 
+        // Gets notes for a job by job ID
+        appGroup.MapGet("{jobId}/notes", async (
+            [FromServices] IJobService jobService,
+            [FromRoute] int jobId,
+            [FromQuery] bool includeDeleted = false,
+            [FromQuery] bool? actionRequired = null
+            ) =>
+        {
+            if (jobId <= 0)
+                return Results.BadRequest("Invalid job Id");
+
+            Result<List<JobNoteDto>> result = await jobService.GetJobNotes(jobId, includeDeleted, actionRequired);
+            return EndpointsHelper.ProcessResult(result, "An error occurred while loading job notes");
+        })
+        .WithSummary("Get job notes")
+        .WithDescription("Returns notes for the specified job. Use includeDeleted query parameter to include soft-deleted notes.")
+        .Produces<List<JobNoteDto>>();
+
         // Gets a single job by the ID.
         appGroup.MapGet("{jobId}", async (
             [FromServices] IJobService jobService,
@@ -132,6 +150,25 @@ public static class JobEndpoints
             includeDeleted ??= false;
 
             Result<List<JobNoteDto>> result = await jobService.GetUserAssignedJobsNotes(httpContext, userId, includeDeleted.Value);
+            return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
+        })
+        .WithSummary("Get notes for user's assigned jobs")
+        .WithDescription("Returns notes for all jobs assigned to the specified user. Use includeDeleted query parameter to include soft-deleted notes.")
+        .Produces<List<JobNoteDto>>();
+
+        appGroup.MapPost("notes", async (
+            [FromServices] IJobService jobService,
+            [FromBody] JobNoteDto note,
+            HttpContext httpContext
+            ) =>
+        {
+            Result<List<JobNoteDto>> result;
+
+            if (note.NoteId is 0)
+                result = await jobService.CreateNote(httpContext, note);
+            else
+                result = await jobService.UpdateNote(httpContext, note);
+
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
         .WithSummary("Get notes for user's assigned jobs")

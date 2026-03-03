@@ -10,7 +10,12 @@
         else
         {
             <i class="@IconClass"></i>
-            @Text
+            @if (Text is not null)
+            {
+                <span class="ms-2">
+                    @Text
+                </span>
+            }
         }
     </a>
 }
@@ -24,7 +29,12 @@ else
         else
         {
             <i class="@IconClass"></i>
-            @Text
+            @if (Text is not null)
+            {
+                <span class="ms-2">
+                    @Text
+                </span>
+            }
         }
     </button>
 }
@@ -34,7 +44,7 @@ else
         display: flex;
         flex-direction: row;
         width: fit-content;
-        padding: 0 6px 0 4px
+        padding: 7px
     }
 </style>
 

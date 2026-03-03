@@ -669,6 +669,7 @@ CREATE TABLE schedule(
     end_time TIMESTAMPTZ NOT NULL,
     job_id INT REFERENCES job(id),
     notes TEXT,
+    deleted_at TIMESTAMPTZ DEFAULT NULL,
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_by_user_id INT REFERENCES app_user(id),

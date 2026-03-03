@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Portal.Client.Webmodels;
 using Portal.Shared.DTO.Address;
 
-namespace Portal.Client.Pages.Job;
+namespace Portal.Client.Components.JobComponents;
 
 public partial class EditAddress : IDisposable
 {

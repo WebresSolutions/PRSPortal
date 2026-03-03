@@ -9,6 +9,10 @@
     position: relative;
     border: 1px solid #e2e8f0;
 }
+    .note-item.action-required {
+        border-color: #f87171;
+        background: rgba(248, 113, 113, 0.1);
+    }
 
 .note-content {
     flex: 1;

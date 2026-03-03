@@ -63,6 +63,19 @@ public interface IApiService
     /// <param name="data">The job being updated</param>
     /// <returns></returns>
     Task<Result<JobDetailsDto>> UpdateJob(JobDetailsDto data);
+    /// <summary>
+    /// Gets the notes for a job.
+    /// </summary>
+    /// <param name="jobId">The job id.</param>
+    /// <param name="includeDeleted">Whether to include soft-deleted notes.</param>
+    /// <returns>The list of notes for the job.</returns>
+    Task<Result<List<JobNoteDto>>> GetJobNotes(int jobId, bool includeDeleted = false, bool? actionRequired = null);
+    /// <summary>
+    /// Creates or updates a job note. Use NoteId 0 to create; set NoteId to the existing note id to update.
+    /// </summary>
+    /// <param name="note">The note to create or update.</param>
+    /// <returns>The updated job details including notes.</returns>
+    Task<Result<List<JobNoteDto>>> SaveJobNote(JobNoteDto note);
     #endregion
 
     #region SCHEDULE
@@ -167,7 +180,7 @@ public interface IApiService
     /// <param name="order">The direction in which to sort the results. Specify ascending or descending.</param>
     /// <returns>A result containing a paged response of contact data transfer objects. If no contacts match the criteria, the response
     /// contains an empty collection.</returns>
-    Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(int pageSize, int pageNumber, string? searchFilter, string? orderby, SortDirectionEnum order);
+    Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(int pageSize, int pageNumber, string? searchFilter, string? orderby, SortDirectionEnum order, bool deleted = false);
     /// <summary>
     /// Retrieves the details of a contact with the specified identifier.
     /// </summary>

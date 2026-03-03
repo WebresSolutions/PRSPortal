@@ -30,7 +30,8 @@ public static class ContactEndpoints
             [FromQuery] string? searchFilter,
             [FromQuery] string? orderby,
             [FromQuery] SortDirectionEnum? order,
-            HttpContext httpContext
+            HttpContext httpContext,
+            [FromQuery] bool deleted = false
             ) =>
         {
             if (page <= 0)
@@ -38,7 +39,7 @@ public static class ContactEndpoints
 
             order ??= SortDirectionEnum.Asc;
 
-            Result<PagedResponse<ListContactDto>> result = await contactService.GetAllContacts(page, pageSize, order, searchFilter, orderby);
+            Result<PagedResponse<ListContactDto>> result = await contactService.GetAllContacts(page, pageSize, order, searchFilter, orderby, deleted);
             return EndpointsHelper.ProcessResult(result, "An error occurred while loading contacts");
         })
             .WithSummary("List contacts")

@@ -204,7 +204,8 @@ public partial class Contacts
                 apiPageNumber,
                 _sessionData.SearchString,
                 _sessionData.OrderBy,
-                _sessionData.Order);
+                _sessionData.Order,
+                ShowDeleted);
 
             if (apiResult is not null && apiResult.IsSuccess && apiResult.Value is not null)
             {
@@ -270,9 +271,9 @@ public partial class Contacts
         return _grid!.ReloadServerData();
     }
 
-    private async Task ShowDelete(bool showDeleted)
+    private async Task ShowDelete(string tabName)
     {
-        ShowDeleted = showDeleted;
+        ShowDeleted = tabName == "Deleted";
         _grid?.ReloadServerData();
     }
 

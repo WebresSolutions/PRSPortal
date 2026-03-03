@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Portal.Shared.DTO.Job;
+using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 using System.Net;
 using System.Net.Http.Json;
@@ -171,5 +172,98 @@ public sealed class JobsEndpointTests
         HttpResponseMessage response = await _client.GetAsync("/api/jobs/assignedUserNotes/1");
         Assert.True(response.StatusCode is HttpStatusCode.OK or HttpStatusCode.BadRequest or HttpStatusCode.NotFound,
             $"Unexpected status: {response.StatusCode}");
+    }
+
+    [Fact]
+    public async Task Create_note_returns_success()
+    {
+        JobCreationDto jobDto = new()
+        {
+            JobNumber = 999001,
+            JobType = Shared.JobTypeEnum.Construction,
+            ContactId = 1,
+            Details = "Job for note tests",
+        };
+
+        HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
+        createJobResponse.EnsureSuccessStatusCode();
+        int? jobId = await createJobResponse.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(jobId);
+        Assert.True(jobId > 0);
+
+        JobNoteDto note = new()
+        {
+            NoteId = 0,
+            JobId = jobId.Value,
+            Content = "Test note content",
+            DateCreated = DateTime.UtcNow,
+            ActionRequired = true,
+        };
+
+        HttpResponseMessage createNoteResponse = await _client.PostAsJsonAsync("/api/jobs/notes", note);
+        Assert.Equal(HttpStatusCode.OK, createNoteResponse.StatusCode);
+        List<JobNoteDto>? createdNotes = await createNoteResponse.Content.ReadFromJsonAsync<List<JobNoteDto>>();
+        Assert.NotNull(createdNotes);
+        Assert.Equal(jobId, createdNotes.First().JobId);
+        Assert.NotEmpty(createdNotes);
+        JobNoteDto? createdNote = createdNotes.FirstOrDefault(n => n.Content == note.Content);
+        Assert.NotNull(createdNote);
+        Assert.True(createdNote.NoteId > 0);
+        Assert.Equal(note.ActionRequired, createdNote.ActionRequired);
+    }
+
+    [Fact]
+    public async Task Update_note_returns_success()
+    {
+        JobCreationDto jobDto = new()
+        {
+            JobNumber = 999002,
+            JobType = Shared.JobTypeEnum.Construction,
+            ContactId = 1,
+            Details = "Job for update note tests",
+        };
+
+        HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
+        createJobResponse.EnsureSuccessStatusCode();
+        int? jobId = await createJobResponse.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(jobId);
+        Assert.True(jobId > 0);
+
+        JobNoteDto createNote = new()
+        {
+            NoteId = 0,
+            JobId = jobId.Value,
+            Content = "Original note content",
+            DateCreated = DateTime.UtcNow,
+            ActionRequired = false,
+            AssignedUser = new UserDto(1, "")
+        };
+
+        HttpResponseMessage createNoteResponse = await _client.PostAsJsonAsync("/api/jobs/notes", createNote);
+        createNoteResponse.EnsureSuccessStatusCode();
+        List<JobNoteDto>? notesAfterCreate = await createNoteResponse.Content.ReadFromJsonAsync<List<JobNoteDto>>();
+        Assert.NotNull(notesAfterCreate);
+        JobNoteDto? createdNote = notesAfterCreate.FirstOrDefault(n => n.Content == createNote.Content);
+        Assert.NotNull(createdNote);
+        int noteId = createdNote.NoteId;
+        Assert.True(noteId > 0);
+
+        JobNoteDto updateNote = new()
+        {
+            NoteId = noteId,
+            JobId = jobId.Value,
+            Content = "Updated note content",
+            DateCreated = createdNote.DateCreated,
+            ActionRequired = true,
+        };
+
+        HttpResponseMessage updateNoteResponse = await _client.PostAsJsonAsync("/api/jobs/notes", updateNote);
+        Assert.Equal(HttpStatusCode.OK, updateNoteResponse.StatusCode);
+        List<JobNoteDto>? notesAfterUpdate = await updateNoteResponse.Content.ReadFromJsonAsync<List<JobNoteDto>>();
+        Assert.NotNull(notesAfterUpdate);
+        JobNoteDto? updatedNote = notesAfterUpdate.FirstOrDefault(n => n.NoteId == noteId);
+        Assert.NotNull(updatedNote);
+        Assert.Equal(updateNote.Content, updatedNote.Content);
+        Assert.Equal(updateNote.ActionRequired, updatedNote.ActionRequired);
     }
 }

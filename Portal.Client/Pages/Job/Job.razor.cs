@@ -14,6 +14,7 @@ public partial class Job : IDisposable
     public required int JobId { get; set; }
 
     private JobDetailsDto? _job;
+    private List<JobNoteDto> _notes = [];
     private DummyJobData _dummyData = new();
     private AdvancedGoogleMap? _map;
     private MapOptions _mapOptions = default!;
@@ -22,8 +23,10 @@ public partial class Job : IDisposable
 
     protected override async Task OnInitializedAsync()
     {
+        IsLoading = true;
         await base.OnInitializedAsync();
         await LoadJobData();
+        await LoadNotes();
         LatLngLiteral center = new(-37.8136, 144.9631);
         if (_job?.Address?.LatLng is not null)
         {
@@ -44,11 +47,11 @@ public partial class Job : IDisposable
             MapTypeId = MapTypeId.Roadmap,
             MapId = "Single_map_id"
         };
+        IsLoading = false;
     }
 
     private async Task LoadJobData()
     {
-        IsLoading = true;
         try
         {
             Result<JobDetailsDto>? result = await _apiService.Job(JobId);
@@ -65,10 +68,6 @@ public partial class Job : IDisposable
         {
             _snackbar?.Add($"Error: {ex.Message}", Severity.Error);
         }
-        finally
-        {
-            IsLoading = false;
-        }
     }
 
     private string GetAddressString()
@@ -79,10 +78,27 @@ public partial class Job : IDisposable
         return $"{_job.Address.Suburb.ToUpper()}, {_job.Address.State} {_job.Address.PostCode}";
     }
 
-    private Task HandleAddNote()
+    private async Task LoadNotes()
     {
-        // TODO: Implement add note functionality
-        return Task.CompletedTask;
+        if (JobId <= 0) return;
+        try
+        {
+            Result<List<JobNoteDto>>? result = await _apiService.GetJobNotes(JobId);
+            if (result is not null && result.IsSuccess && result.Value is not null)
+                _notes = result.Value;
+            else
+                _notes = [];
+        }
+        catch
+        {
+            _notes = [];
+        }
+        StateHasChanged();
+    }
+
+    private async Task HandleNotesRefreshed()
+    {
+        await LoadNotes();
     }
 
     private Task HandleAddSiteVisit()

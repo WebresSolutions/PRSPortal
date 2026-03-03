@@ -67,7 +67,7 @@ else
                                 <div class="stat-mini-label">Site Visits</div>
                             </div>
                             <div class="stat-mini">
-                                <div class="stat-mini-value">@(_job.Notes?.Count ?? 0)</div>
+                                <div class="stat-mini-value">@_notes.Count</div>
                                 <div class="stat-mini-label">Notes</div>
                             </div>
                             <div class="stat-mini">
@@ -117,7 +117,7 @@ else
                 <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" JobType="@_job.JobType" />
 
                 <!-- Notes -->
-                <JobNotes Notes="@(_job.Notes ?? new List<JobNoteDto>())" OnAdd="HandleAddNote" />
+                <JobNotes JobId="JobId"/>
             </div>
             <!-- Main Content -->
             <div class="content-area">

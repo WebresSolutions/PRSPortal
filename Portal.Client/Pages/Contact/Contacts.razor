@@ -48,13 +48,9 @@
                     <PropertyColumn Property="x => x.Phone" ShowFilterIcon="false" Title="Phone" />
                     <TemplateColumn ShowFilterIcon="false" Title="Address">
                         <CellTemplate>
-                            @if (context.Item.Address != null)
-                            {
+                            @if (context.Item.Address is not null && !string.IsNullOrEmpty(context.Item.Address.Street))
+                                {
                                 <p>@($"{context.Item.Address.Street}, {context.Item.Address.Suburb} {context.Item.Address.PostCode}")</p>
-                            }
-                            else
-                            {
-                                <p class="text-muted">No address</p>
                             }
                         </CellTemplate>
                     </TemplateColumn>
@@ -62,11 +58,7 @@
                         <CellTemplate>
                             @if (context.Item.ParentContact != null)
                             {
-                                <p>@context.Item.ParentContact.fullName</p>
-                            }
-                            else
-                            {
-                                <p class="text-muted">-</p>
+                                <a class="contact-link" href=@($"/contacts/{context.Item.ParentContact.contactId}")>@context.Item.ParentContact.fullName</a>
                             }
                         </CellTemplate>
                     </TemplateColumn>

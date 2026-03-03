@@ -1,4 +1,4 @@
-﻿using Portal.Shared;
+using Portal.Shared;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
@@ -37,6 +37,30 @@ public interface IJobService
     Task<Result<JobDetailsDto>> GetJob(int jobId);
 
     /// <summary>
+    /// Gets the notes for a job by job id.
+    /// </summary>
+    /// <param name="jobId">The job id.</param>
+    /// <param name="includeDeleted">Whether to include soft-deleted notes.</param>
+    /// <returns>The list of notes for the job.</returns>
+    Task<Result<List<JobNoteDto>>> GetJobNotes(int jobId, bool includeDeleted = false, bool? actionRequired = null);
+
+    /// <summary>
+    /// Creates a new note
+    /// </summary>
+    /// <param name="httpContext">The httpcontext</param>
+    /// <param name="note">The note to update</param>
+    /// <returns></returns>
+    Task<Result<List<JobNoteDto>>> CreateNote(HttpContext httpContext, JobNoteDto note);
+
+    /// <summary>
+    /// Updates a note, this can be used to update the content, action required, assigned user or deleted status of a note
+    /// </summary>
+    /// <param name="httpContext">The httpcontext</param>
+    /// <param name="note">The note to update</param>
+    /// <returns>The job details</returns>
+    Task<Result<List<JobNoteDto>>> UpdateNote(HttpContext httpContext, JobNoteDto note);
+
+    /// <summary>
     /// Gets the notes for jobs assigned to a specific user.
     /// </summary>
     /// <param name="httpContext"></param>
@@ -62,7 +86,7 @@ public interface IJobService
     Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto jobCreationDto);
 
     /// <summary>
-    /// Will delete a job
+    /// Will soft delete a job
     /// </summary>
     /// <param name="httpContext">The context of the user performing the deletion</param>
     /// <param name="id">The Id of the job to delete</param>

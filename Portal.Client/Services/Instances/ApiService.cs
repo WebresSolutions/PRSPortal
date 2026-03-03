@@ -245,6 +245,74 @@ public class ApiService : IApiService
     }
 
     /// <summary>
+    /// Gets the notes for a job.
+    /// </summary>
+    /// <param name="jobId">The job id.</param>
+    /// <param name="includeDeleted">Whether to include soft-deleted notes.</param>
+    /// <returns>The list of notes for the job.</returns>
+    public async Task<Result<List<JobNoteDto>>> GetJobNotes(int jobId, bool includeDeleted = false, bool? actionRequired = null)
+    {
+        Result<List<JobNoteDto>> res = new();
+        try
+        {
+            string url = $"api/jobs/{jobId}/notes?includeDeleted={includeDeleted.ToString().ToLowerInvariant()}";
+            if (actionRequired is not null)
+                url += $"&actionRequired={actionRequired?.ToString().ToLowerInvariant()}";
+
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                List<JobNoteDto>? notes = await response.Content.ReadFromJsonAsync<List<JobNoteDto>>();
+                res.Value = notes ?? [];
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get job notes";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Creates or updates a job note. Use NoteId 0 to create; set NoteId to the existing note id to update.
+    /// </summary>
+    /// <param name="note">The note to create or update.</param>
+    /// <returns>The updated job details including notes.</returns>
+    public async Task<Result<List<JobNoteDto>>> SaveJobNote(JobNoteDto note)
+    {
+        Result<List<JobNoteDto>> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/jobs/notes", note);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                List<JobNoteDto>? notes = await response.Content.ReadFromJsonAsync<List<JobNoteDto>>();
+                if (notes is not null)
+                    res.Value = notes;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to save job note";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
     /// Retrieves the list of available schedule slots for an individual on the specified date and job type.
     /// </summary>
     /// <remarks>If the user is not authorized, the operation will redirect to the login page. The returned
@@ -553,7 +621,13 @@ public class ApiService : IApiService
     /// <param name="order">The direction in which to sort the results. Specify ascending or descending.</param>
     /// <returns>A result containing a paged response of contact data transfer objects. If no contacts match the criteria, the response
     /// contains an empty collection.</returns>
-    public async Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(int pageSize, int pageNumber, string? searchFilter, string? orderby, SortDirectionEnum order)
+    public async Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(
+        int pageSize,
+        int pageNumber,
+        string? searchFilter,
+        string? orderby,
+        SortDirectionEnum order,
+        bool deleted = false)
     {
         Result<PagedResponse<ListContactDto>> res = new();
         try
@@ -562,7 +636,8 @@ public class ApiService : IApiService
             {
                 { "pageSize", pageSize.ToString() },
                 { "page", pageNumber.ToString() },
-                { "order", ((int)order).ToString() }
+                { "order", ((int)order).ToString() },
+                { "deleted", deleted.ToString().ToLower() }
             };
 
             if (searchFilter is not null)
