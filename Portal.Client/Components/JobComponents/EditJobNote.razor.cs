@@ -31,6 +31,10 @@ public partial class EditJobNote
 
     private int? AssignedUser;
 
+    /// <summary>
+    /// Loads users for assignment and initializes the editor with the note content when parameters are set.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     protected override async Task OnParametersSetAsync()
     {
 
@@ -64,12 +68,20 @@ public partial class EditJobNote
         StateHasChanged();
     }
 
+    /// <summary>
+    /// Handles rich text editor content changes and stores the value for saving.
+    /// </summary>
+    /// <param name="value">The new content from the editor.</param>
     private void OnContentChanged(string value)
     {
         SaveContent = value;
         // Note.Content = value;
     }
 
+    /// <summary>
+    /// Saves the note content and optional assignment to the API and closes the dialog on success.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SaveNote()
     {
         Note.Content = SaveContent;

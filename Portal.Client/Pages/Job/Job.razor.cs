@@ -21,6 +21,10 @@ public partial class Job : IDisposable
 
     private readonly List<MarkerData> Markers = [];
 
+    /// <summary>
+    /// Initializes the component by loading job details, notes, and configuring the map.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     protected override async Task OnInitializedAsync()
     {
         IsLoading = true;
@@ -50,6 +54,10 @@ public partial class Job : IDisposable
         IsLoading = false;
     }
 
+    /// <summary>
+    /// Loads the job details from the API for the current job ID.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadJobData()
     {
         try
@@ -70,14 +78,16 @@ public partial class Job : IDisposable
         }
     }
 
-    private string GetAddressString()
-    {
-        if (_job?.Address is null)
-            return "No address";
+    /// <summary>
+    /// Returns a formatted address string (suburb, state, post code) for the current job.
+    /// </summary>
+    /// <returns>The formatted address or "No address" if none is set.</returns>
+    private string GetAddressString() => _job?.Address?.ToDisplayString() ?? "No address";
 
-        return $"{_job.Address.Suburb.ToUpper()}, {_job.Address.State} {_job.Address.PostCode}";
-    }
-
+    /// <summary>
+    /// Loads job notes from the API for the current job and refreshes the UI.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadNotes()
     {
         if (JobId <= 0) return;
@@ -96,17 +106,19 @@ public partial class Job : IDisposable
         StateHasChanged();
     }
 
-    private async Task HandleNotesRefreshed()
-    {
-        await LoadNotes();
-    }
-
+    /// <summary>
+    /// Handles the add site visit action. Reserved for future implementation.
+    /// </summary>
+    /// <returns>A completed task.</returns>
     private Task HandleAddSiteVisit()
     {
         // TODO: Implement add site visit functionality
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Releases the map component resources when the component is disposed.
+    /// </summary>
     public void Dispose() => _map?.DisposeAsync();
 
     private class DummyJobData

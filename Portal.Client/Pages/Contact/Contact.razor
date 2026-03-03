@@ -6,7 +6,7 @@
 @using Portal.Shared.DTO.Address
 @using Portal.Shared.Helpers
 
-<PageTitle>Contact @(_contact?.fullName ?? ContactId.ToString()) - PRS Portal</PageTitle>
+<PageTitle>Contact @(_contact?.FullName ?? ContactId.ToString()) - PRS Portal</PageTitle>
 
 @if (IsLoading)
 {
@@ -26,17 +26,17 @@ else
         <!-- Header -->
         <div class="contact-header">
             <div class="header-left">
-                @if (_contact.parentContact is not null)
+                @if (_contact.ParentContact is not null)
                 {
                     <h1>
-                        <a href=@($"contacts/{_contact.parentContact.contactId}") @onclick="@(() => _navigationManager.NavigateTo($"contacts/{_contact.parentContact.contactId}"))">
-                            @_contact.parentContact.fullName
-                        </a> / @_contact.fullName
+                        <a href=@($"contacts/{_contact.ParentContact.contactId}") @onclick="@(() => _navigationManager.NavigateTo($"contacts/{_contact.ParentContact.contactId}"))">
+                            @_contact.ParentContact.fullName
+                        </a> / @_contact.FullName
                     </h1>
                 }
                 else
                 {
-                    <h1> @_contact.fullName</h1>
+                    <h1> @_contact.FullName</h1>
                 }
                 <div class="header-info">
                     <span>@GetAddressString()</span>
@@ -85,52 +85,52 @@ else
                         <div class="info-list">
                             <div class="info-row">
                                 <span class="info-label">Email</span>
-                                <span class="info-value">@(_contact.email ?? "-")</span>
+                                <span class="info-value">@(_contact.Email ?? "-")</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Phone</span>
-                                <span class="info-value">@(_contact.phone ?? "-")</span>
+                                <span class="info-value">@(_contact.Phone ?? "-")</span>
                             </div>
-                            @if (!string.IsNullOrWhiteSpace(_contact.fax))
+                            @if (!string.IsNullOrWhiteSpace(_contact.Fax))
                             {
                                 <div class="info-row">
                                     <span class="info-label">Fax</span>
-                                    <span class="info-value">@_contact.fax</span>
+                                    <span class="info-value">@_contact.Fax</span>
                                 </div>
                             }
-                            @if (_contact.parentContact is not null)
+                            @if (_contact.ParentContact is not null)
                             {
                                 <div class="info-row">
                                     <span class="info-label">Parent Contact</span>
-                                    <span class="info-value">@_contact.parentContact.fullName</span>
+                                    <span class="info-value">@_contact.ParentContact.fullName</span>
                                 </div>
                             }
-                            @if (_contact.address is not null)
+                            @if (_contact.Address is not null)
                             {
                                 <div class="info-row">
                                     <span class="info-label">Address</span>
-                                    <span class="info-value">@(_contact.address.Street ?? "-")</span>
+                                    <span class="info-value">@(_contact.Address.Street ?? "-")</span>
                                 </div>
                                 <div class="info-row">
                                     <span class="info-label">Suburb</span>
-                                    <span class="info-value">@(_contact.address.Suburb ?? "-")</span>
+                                    <span class="info-value">@(_contact.Address.Suburb ?? "-")</span>
                                 </div>
                                 <div class="info-row">
                                     <span class="info-label">State</span>
-                                    <span class="info-value">@(_contact.address.State?.ToString() ?? "-")</span>
+                                    <span class="info-value">@(_contact.Address.State?.ToString() ?? "-")</span>
                                 </div>
                                 <div class="info-row">
                                     <span class="info-label">Postcode</span>
-                                    <span class="info-value">@(_contact.address.PostCode ?? "-")</span>
+                                    <span class="info-value">@(_contact.Address.PostCode ?? "-")</span>
                                 </div>
                             }
                             <div class="info-row">
                                 <span class="info-label">Created</span>
-                                <span class="info-value">@_contact.createdOn.ToString("dddd d-MMM-yyyy h:mmtt")</span>
+                                <span class="info-value">@_contact.CreatedOn.ToString("dddd d-MMM-yyyy h:mmtt")</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Created By</span>
-                                <span class="info-value">@_contact.createdBy</span>
+                                <span class="info-value">@_contact.CreatedBy</span>
                             </div>
                         </div>
                     </ChildContent>

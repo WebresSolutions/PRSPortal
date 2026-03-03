@@ -17,6 +17,10 @@ public partial class Council
     private readonly int _rowsPerPage = 15;
     private int _currentPage = 1;
 
+    /// <summary>
+    /// Initializes the component and loads council details and the first page of jobs.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -26,6 +30,10 @@ public partial class Council
         IsLoading = false;
     }
 
+    /// <summary>
+    /// Loads the council details and first page of jobs from the API for the current council.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadCouncilData()
     {
         IsLoading = true;
@@ -55,6 +63,11 @@ public partial class Council
         }
     }
 
+    /// <summary>
+    /// Loads a page of jobs associated with the current council from the API.
+    /// </summary>
+    /// <param name="page">The page number to load.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadJobs(int page)
     {
         try
@@ -79,19 +92,9 @@ public partial class Council
         }
     }
 
-    private string GetAddressString()
-    {
-        if (_council?.address is null)
-            return "No address";
-
-        List<string> parts = [];
-        if (!string.IsNullOrWhiteSpace(_council.address.Suburb))
-            parts.Add(_council.address.Suburb.ToUpper());
-        if (!string.IsNullOrWhiteSpace(_council.address.State.ToString()))
-            parts.Add(_council.address.State?.ToString() ?? "");
-        if (!string.IsNullOrWhiteSpace(_council.address.PostCode))
-            parts.Add(_council.address.PostCode);
-
-        return parts.Count > 0 ? string.Join(" ", parts) : "No address";
-    }
+    /// <summary>
+    /// Returns a formatted address string (suburb, state, post code) for the current council.
+    /// </summary>
+    /// <returns>The formatted address or "No address" if none is set.</returns>
+    private string GetAddressString() => _council?.address?.ToDisplayString() ?? "No address";
 }

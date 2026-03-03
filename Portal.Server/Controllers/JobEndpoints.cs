@@ -95,10 +95,10 @@ public static class JobEndpoints
                 return Results.BadRequest("Invalid Job Id");
 
             Result<bool> result = await jobService.DeleteJob(httpContext, id);
-            return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
+            return EndpointsHelper.ProcessResult(result, "An Error occured while deleting Jobs.");
         })
-        .WithSummary("Update job")
-        .WithDescription("Updates an existing job by jobId. Returns 400 if jobId is invalid.")
+        .WithSummary("Soft Delete job")
+        .WithDescription("Deletes a Job and sets the deleted at date.")
         .Produces<JobDetailsDto>();
 
         // Gets notes for a job by job ID

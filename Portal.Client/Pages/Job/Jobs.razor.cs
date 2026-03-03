@@ -287,6 +287,10 @@ public partial class Jobs
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Clears the search filters, resets session data to defaults, and reloads the grid.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private Task ClearSearch()
     {
         _sessionData.Page = 0;
@@ -295,17 +299,27 @@ public partial class Jobs
         return _grid!.ReloadServerData();
     }
 
+    /// <summary>
+    /// Toggles visibility of deleted jobs based on the selected tab and reloads the grid.
+    /// </summary>
+    /// <param name="tabName">The name of the selected tab (e.g. "Deleted").</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task ShowDelete(string tabName)
     {
         ShowDeleted = tabName == "Deleted";
         _grid?.ReloadServerData();
     }
 
+    /// <summary>
+    /// Prompts for confirmation and deletes the specified job, then refreshes the grid on success.
+    /// </summary>
+    /// <param name="jobId">The ID of the job to delete.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task RemoveJob(int jobId)
     {
         bool? confirm = await _dialog.ShowMessageBox(
             "Confirm Delete",
-            "Are you sure you want to delete this time entry?",
+            "Are you sure you want to delete this Job?",
             yesText: "Delete",
             cancelText: "Cancel",
             options: new DialogOptions { CloseOnEscapeKey = true });
@@ -314,11 +328,11 @@ public partial class Jobs
             Result<bool> result = await _apiService.DeleteJob(jobId);
             if (result.IsSuccess)
             {
-                _snackbar.Add("Entry deleted.", Severity.Success);
+                _snackbar.Add("Job deleted.", Severity.Success);
                 await RefreshGridData();
             }
             else
-                _snackbar.Add(result.ErrorDescription ?? "Failed to delete entry.", Severity.Error);
+                _snackbar.Add(result.ErrorDescription ?? "Failed to delete Job.", Severity.Error);
         }
 
     }

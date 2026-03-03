@@ -262,6 +262,10 @@ public partial class Contacts
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Clears the search filter, resets session data to defaults, and reloads the grid.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private Task ClearSearch()
     {
         _sessionData.SearchString = string.Empty;
@@ -271,6 +275,11 @@ public partial class Contacts
         return _grid!.ReloadServerData();
     }
 
+    /// <summary>
+    /// Toggles visibility of deleted contacts based on the selected tab and reloads the grid.
+    /// </summary>
+    /// <param name="tabName">The name of the selected tab (e.g. "Deleted").</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task ShowDelete(string tabName)
     {
         ShowDeleted = tabName == "Deleted";

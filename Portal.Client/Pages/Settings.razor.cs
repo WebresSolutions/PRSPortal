@@ -32,6 +32,10 @@ public partial class Settings
     private List<TechnicalContactTypeDto> _technicalContactTypes = [];
     private List<StateDto> _states = [];
 
+    /// <summary>
+    /// Loads theme colours, schedule colours, and all settings type lists on first load.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     protected override async Task OnInitializedAsync()
     {
         base.IsLoading = true;
@@ -43,6 +47,10 @@ public partial class Settings
         base.IsLoading = false;
     }
 
+    /// <summary>
+    /// Loads all settings type lists (timesheet, contact, job, file, etc.) in parallel from the API.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadAllTypes()
     {
         await Task.WhenAll(
@@ -56,47 +64,93 @@ public partial class Settings
             LoadStates());
     }
 
+    /// <summary>
+    /// Loads the timesheet type list from the API.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadTimesheetTypes()
     {
         Result<TimeTypeDto[]> res = await _apiService.GetTimeSheetTypes();
         if (res.IsSuccess && res.Value is { } v) _timesheetTypes = v.ToList();
     }
+
+    /// <summary>
+    /// Loads the contact type list from the API.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadContactTypes()
     {
         Result<ContactTypeDto[]> res = await _apiService.GetContactTypes();
         if (res.IsSuccess && res.Value is { } v) _contactTypes = v.ToList();
     }
+
+    /// <summary>
+    /// Loads the job type list from the API.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadJobTypes()
     {
         Result<JobTypeDto[]> res = await _apiService.GetJobTypes();
         if (res.IsSuccess && res.Value is { } v) _jobTypes = v.ToList();
     }
+
+    /// <summary>
+    /// Loads the job colour list from the API.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadJobColours()
     {
         Result<JobColourDto[]> res = await _apiService.GetJobColours();
         if (res.IsSuccess && res.Value is { } v) _jobColours = v.ToList();
     }
+
+    /// <summary>
+    /// Loads the file type list from the API.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadFileTypes()
     {
         Result<FileTypeDto[]> res = await _apiService.GetFileTypes();
         if (res.IsSuccess && res.Value is { } v) _fileTypes = v.ToList();
     }
+
+    /// <summary>
+    /// Loads the job task type list from the API.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadJobTaskTypes()
     {
         Result<JobTaskTypeDto[]> res = await _apiService.GetJobTaskTypes();
         if (res.IsSuccess && res.Value is { } v) _jobTaskTypes = v.ToList();
     }
+
+    /// <summary>
+    /// Loads the technical contact type list from the API.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadTechnicalContactTypes()
     {
         Result<TechnicalContactTypeDto[]> res = await _apiService.GetTechnicalContactTypes();
         if (res.IsSuccess && res.Value is { } v) _technicalContactTypes = v.ToList();
     }
+
+    /// <summary>
+    /// Loads the state/region list from the API.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadStates()
     {
         Result<StateDto[]> res = await _apiService.GetStates();
         if (res.IsSuccess && res.Value is { } v) _states = v.ToList();
     }
 
+    /// <summary>
+    /// Opens the edit-type dialog for the given type name and item, then reloads all types if the user saves.
+    /// </summary>
+    /// <param name="typeName">The type name (e.g. for API and dialog routing).</param>
+    /// <param name="title">The dialog title.</param>
+    /// <param name="item">The item to edit, or null for a new item.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task OpenEditTypeDialog(string typeName, string title, object? item)
     {
         var parameters = new DialogParameters

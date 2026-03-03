@@ -22,6 +22,10 @@ public partial class EditAddress : IDisposable
 
     private MapOptions MapOptions = default!;
 
+    /// <summary>
+    /// Initializes the map with default or existing address coordinates and adds a draggable marker.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     protected override async Task OnInitializedAsync()
     {
         if (Address.LatLng is null)
@@ -50,6 +54,9 @@ public partial class EditAddress : IDisposable
         Address?.LatLng?.Longitude = pos.Lng;
     }
 
+    /// <summary>
+    /// Releases the map component resources when the component is disposed.
+    /// </summary>
     public void Dispose()
     {
         GC.SuppressFinalize(this);

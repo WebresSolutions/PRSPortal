@@ -21,6 +21,9 @@ public partial class CustomizableGrid
     private GridItem? draggedItem;
     private (double, double)? resizeStartPos;
 
+    /// <summary>
+    /// Initializes the grid state and default grid items from the configured components.
+    /// </summary>
     protected override void OnInitialized()
     {
         GridState = new(GridRowsColumns.Item1, GridRowsColumns.Item2, 120, 8)
@@ -76,6 +79,11 @@ public partial class CustomizableGrid
 
     private bool isResizing = false;
 
+    /// <summary>
+    /// Begins a resize operation for the specified grid item and records the starting pointer position.
+    /// </summary>
+    /// <param name="e">The drag event args containing client coordinates.</param>
+    /// <param name="item">The grid item being resized.</param>
     private void HandleResizeStart(DragEventArgs e, GridItem item)
     {
         isResizing = true; // Flag to prevent 'HandleDrop' from firing for moves
@@ -83,6 +91,10 @@ public partial class CustomizableGrid
         draggedItem = item;
     }
 
+    /// <summary>
+    /// Updates the grid item's column and row span during a resize drag, keeping the item within grid bounds.
+    /// </summary>
+    /// <param name="e">The drag event args with current client coordinates.</param>
     private void HandleResize(DragEventArgs e)
     {
         if (resizeStartPos is null || draggedItem is null || e.ClientX == 0)
@@ -111,6 +123,9 @@ public partial class CustomizableGrid
         }
     }
 
+    /// <summary>
+    /// Cleans up state when a resize operation ends.
+    /// </summary>
     private void HandleResizeEnd()
     {
         isResizing = false;

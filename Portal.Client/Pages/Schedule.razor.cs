@@ -93,6 +93,10 @@ public partial class Schedule
         base.IsLoading = false;
     }
 
+    /// <summary>
+    /// Called when component parameters (Date, JobType) are set or changed; updates internal state and loads schedule data.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();

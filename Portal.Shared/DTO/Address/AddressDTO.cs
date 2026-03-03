@@ -46,6 +46,23 @@ public class AddressDTO
         PostCode = postCode;
         LatLng = latLng;
     }
+
+    /// <summary>
+    /// Returns a formatted display string (suburb, state, post code) for the address.
+    /// Skips empty parts and returns "No address" when nothing is set.
+    /// </summary>
+    /// <returns>The formatted address string or "No address" if all parts are empty.</returns>
+    public string ToDisplayString()
+    {
+        List<string> parts = [];
+        if (!string.IsNullOrWhiteSpace(Suburb))
+            parts.Add(Suburb.ToUpperInvariant());
+        if (State is not null && !string.IsNullOrWhiteSpace(State.ToString()))
+            parts.Add(State.ToString()!);
+        if (!string.IsNullOrWhiteSpace(PostCode))
+            parts.Add(PostCode);
+        return parts.Count > 0 ? string.Join(" ", parts) : "No address";
+    }
 }
 
 public class LatLngDto

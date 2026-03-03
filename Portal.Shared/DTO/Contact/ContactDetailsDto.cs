@@ -8,17 +8,17 @@ namespace Portal.Shared.DTO.Contact;
 /// Contains complete contact details including address and related jobs
 /// </summary>
 public record ContactDetailsDto(
-    int contactId,
-    string fullName,
-    string firstName,
-    string lastName,
-    string email,
-    string? phone,
-    string? fax,
-    AddressDTO? address,
-    ContactDto? parentContact,
-    string createdBy,
-    DateTime createdOn,
-    List<ListJobDto> jobs
+    int ContactId,
+    string FullName,
+    string FirstName,
+    string LastName,
+    string Email,
+    string? Phone,
+    string? Fax,
+    AddressDTO? Address,
+    ContactDto? ParentContact,
+    string CreatedBy,
+    DateTime CreatedOn,
+    List<ListJobDto> Jobs
 );
 

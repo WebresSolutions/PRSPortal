@@ -53,13 +53,20 @@ public partial class CreateJob
 
     }
 
+    /// <summary>
+    /// Handles the selected contact change from the type-ahead and updates the job creation model.
+    /// </summary>
+    /// <param name="value">The selected contact, or null if cleared.</param>
     private void OnContactChanged(ListContactDto? value)
     {
         JobContact = value;
         Model.ContactId = value?.ContactId ?? 0;
     }
 
-
+    /// <summary>
+    /// Submits the job creation form, validates the model, and navigates to the new job on success.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SubmitAsync()
     {
         if (Model.JobNumber <= 0)

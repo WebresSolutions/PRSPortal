@@ -29,12 +29,20 @@ public partial class JobNotes
     /// </summary>
     public List<TabSelect> Tabs { get; set; } = [new("All"), new("Action Required"), new("Deleted")];
 
+    /// <summary>
+    /// When parameters are set or changed, syncs the notes list from the API for the current JobId.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
         await SyncNotesFromParameter();
     }
 
+    /// <summary>
+    /// Syncs the notes list from the component parameter (JobId) by fetching notes from the API.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SyncNotesFromParameter()
     {
         Result<List<JobNoteDto>> notesResult = await _apiService.GetJobNotes(JobId);
@@ -70,6 +78,11 @@ public partial class JobNotes
         return new MarkupString(highlighted); // Return as MarkupString
     }
 
+    /// <summary>
+    /// Formats the note's creation date for display (e.g. "Monday 3-Mar-2025 2:30PM").
+    /// </summary>
+    /// <param name="note">The job note.</param>
+    /// <returns>A formatted date/time string.</returns>
     private static string GetNoteDate(JobNoteDto note) =>
         note.DateCreated.ToLocalTime().ToString("dddd d-MMM-yyyy h:mmtt");
 
@@ -99,6 +112,10 @@ public partial class JobNotes
     /// </summary>
     private void ClearSearch() => Notes = NotesCopy;
 
+    /// <summary>
+    /// Opens the edit dialog to create a new note; on save, updates the displayed notes list.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task NewNotes()
     {
         JobNoteDto newNote = new() { NoteId = 0, JobId = JobId, Content = "", DateCreated = DateTime.UtcNow };

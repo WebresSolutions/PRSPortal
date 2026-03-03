@@ -19,16 +19,29 @@ public partial class Contact
     private int _currentPage = 1;
     #endregion
 
+    /// <summary>
+    /// When parameters are set or changed, loads contact data and jobs for the current contact.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
         await LoadContactData();
     }
+
+    /// <summary>
+    /// Initializes the component; contact data is loaded in OnParametersSetAsync when ContactId is available.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
     }
 
+    /// <summary>
+    /// Loads the contact details and first page of jobs from the API for the current contact.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadContactData()
     {
         IsLoading = true;
@@ -58,6 +71,11 @@ public partial class Contact
         }
     }
 
+    /// <summary>
+    /// Loads a page of jobs associated with the current contact from the API.
+    /// </summary>
+    /// <param name="page">The page number to load.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task LoadJobs(int page)
     {
         try
@@ -82,20 +100,10 @@ public partial class Contact
         }
     }
 
-    private string GetAddressString()
-    {
-        if (_contact?.address is null)
-            return "No address";
-
-        List<string> parts = [];
-        if (!string.IsNullOrWhiteSpace(_contact.address.Suburb))
-            parts.Add(_contact.address.Suburb.ToUpper());
-        if (!string.IsNullOrWhiteSpace(_contact.address.State?.ToString()))
-            parts.Add(_contact.address.State?.ToString() ?? "");
-        if (!string.IsNullOrWhiteSpace(_contact.address.PostCode))
-            parts.Add(_contact.address.PostCode);
-
-        return parts.Count > 0 ? string.Join(" ", parts) : "No address";
-    }
+    /// <summary>
+    /// Returns a formatted address string (suburb, state, post code) for the current contact.
+    /// </summary>
+    /// <returns>The formatted address or "No address" if none is set.</returns>
+    private string GetAddressString() => _contact?.Address?.ToDisplayString() ?? "No address";
 }
 
