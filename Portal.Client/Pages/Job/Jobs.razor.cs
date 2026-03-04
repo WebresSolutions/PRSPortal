@@ -13,169 +13,111 @@ public partial class Jobs
     private readonly int _rowsPerPage = 25;
     private MudDataGrid<ListJobDto>? _grid;
     /// <summary>
-    /// Session data for the facilities page
+    /// Current filter and pagination state, synced from and to query parameters.
     /// </summary>
-    private SessionSearchData _sessionData = new();
-
-    #region Constants
-    private const string _FacilitiesSessionKey = "JobsListSession";
-    #endregion
+    private SessionSearchData _filterState = new();
 
     #region Query Parameters
     [Parameter]
-    [SupplyParameterFromQuery]
+    [SupplyParameterFromQuery(Name = "page")]
     public int? Page { get; set; }
 
     [Parameter]
-    [SupplyParameterFromQuery]
+    [SupplyParameterFromQuery(Name = "pageSize")]
     public int? PageSize { get; set; }
 
     [Parameter]
-    [SupplyParameterFromQuery]
+    [SupplyParameterFromQuery(Name = "address")]
     public string? AddressSearch { get; set; }
 
     [Parameter]
-    [SupplyParameterFromQuery]
+    [SupplyParameterFromQuery(Name = "jobNumber")]
     public string? JobNumberSearch { get; set; }
+
     [Parameter]
-    [SupplyParameterFromQuery]
+    [SupplyParameterFromQuery(Name = "contact")]
     public string? ContactSearch { get; set; }
 
     [Parameter]
-    [SupplyParameterFromQuery]
+    [SupplyParameterFromQuery(Name = "order")]
     public string? Order { get; set; }
 
     private bool ShowDeleted = false;
     #endregion
 
     /// <summary>
-    /// Called when the component is initialized.
-    /// Data loading for the grid is now handled by LoadFacilitiesServerData.
+    /// Called when the component is initialized. Initializes filter state from query parameters.
     /// </summary>
     /// <returns>A task representing the asynchronous operation</returns>
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
-        // Read from query parameters first, then fall back to session storage
-        if (Page.HasValue)
-            _sessionData.Page = Page.Value;
-        if (PageSize.HasValue)
-            _sessionData.PageSize = PageSize.Value;
-        if (!string.IsNullOrWhiteSpace(AddressSearch))
-            _sessionData.AddressSearch = AddressSearch;
-        if (!string.IsNullOrWhiteSpace(Order) && Enum.TryParse<SortDirectionEnum>(Order, true, out SortDirectionEnum orderEnum))
-            _sessionData.Order = orderEnum;
-
-        // Restore session data only if query parameters weren't provided
-        if (!Page.HasValue && !PageSize.HasValue && string.IsNullOrWhiteSpace(AddressSearch) && string.IsNullOrWhiteSpace(Order))
-        {
-            SessionSearchData? savedSession = _sessionStorage.GetItem<SessionSearchData>(_FacilitiesSessionKey);
-            if (savedSession is not null)
-                _sessionData = savedSession;
-        }
-
-        // Update URL if query parameters don't match session data
-        UpdateUrlFromSessionData();
+        SyncStateFromQueryParameters();
     }
 
     /// <summary>
-    /// Called when component parameters are set or changed
+    /// Called when component parameters are set or changed. Syncs state from query parameters and reloads grid if needed.
     /// </summary>
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-
-        // Update session data from query parameters if they changed
-        bool dataChanged = false;
-        if (Page.HasValue && _sessionData.Page != Page.Value)
-        {
-            _sessionData.Page = Page.Value;
-            dataChanged = true;
-        }
-        if (PageSize.HasValue && _sessionData.PageSize != PageSize.Value)
-        {
-            _sessionData.PageSize = PageSize.Value;
-            dataChanged = true;
-        }
-        if (!string.IsNullOrWhiteSpace(AddressSearch) && _sessionData.AddressSearch != AddressSearch)
-        {
-            _sessionData.AddressSearch = AddressSearch;
-            dataChanged = true;
-        }
-        if (!string.IsNullOrWhiteSpace(ContactSearch) && _sessionData.ContactSearch != ContactSearch)
-        {
-            _sessionData.ContactSearch = ContactSearch;
-            dataChanged = true;
-        }
-        if (!string.IsNullOrWhiteSpace(JobNumberSearch) && _sessionData.JobNumberSearch != JobNumberSearch)
-        {
-            _sessionData.JobNumberSearch = JobNumberSearch;
-            dataChanged = true;
-        }
-        if (!string.IsNullOrWhiteSpace(Order) && Enum.TryParse<SortDirectionEnum>(Order, true, out SortDirectionEnum orderEnum) && _sessionData.Order != orderEnum)
-        {
-            _sessionData.Order = orderEnum;
-            dataChanged = true;
-        }
-
-        if (dataChanged)
-        {
-            SaveSessionData();
-            if (_grid is not null)
-                await _grid.ReloadServerData();
-        }
+        SyncStateFromQueryParameters();
+        if (_grid is not null)
+            await _grid.ReloadServerData();
     }
 
     /// <summary>
-    /// Saves the current session data to session storage and updates URL
+    /// Syncs filter state from the current query parameters.
     /// </summary>
-    private void SaveSessionData()
+    private void SyncStateFromQueryParameters()
     {
-        _sessionStorage.SetItem(_FacilitiesSessionKey, _sessionData);
-        UpdateUrlFromSessionData();
+        if (Page.HasValue)
+            _filterState.Page = Page.Value;
+        if (PageSize.HasValue)
+            _filterState.PageSize = PageSize.Value;
+        if (AddressSearch is not null)
+            _filterState.AddressSearch = AddressSearch;
+        if (ContactSearch is not null)
+            _filterState.ContactSearch = ContactSearch;
+        if (JobNumberSearch is not null)
+            _filterState.JobNumberSearch = JobNumberSearch;
+        if (!string.IsNullOrWhiteSpace(Order) && Enum.TryParse<SortDirectionEnum>(Order, true, out SortDirectionEnum orderEnum))
+            _filterState.Order = orderEnum;
     }
 
     /// <summary>
-    /// Updates the URL query parameters based on the current session data
+    /// Updates the URL query parameters to match the current filter state.
     /// </summary>
-    private void UpdateUrlFromSessionData()
+    private void UpdateUrlFromState()
     {
         Dictionary<string, string?> queryParams = [];
 
-        // Build query parameters
-        if (_sessionData.Page > 0)
-            queryParams["page"] = _sessionData.Page.ToString();
+        if (_filterState.Page > 0)
+            queryParams["page"] = _filterState.Page.ToString();
 
-        if (_sessionData.PageSize != 25) // Only add if not default
-            queryParams["pageSize"] = _sessionData.PageSize.ToString();
+        if (_filterState.PageSize != 25)
+            queryParams["pageSize"] = _filterState.PageSize.ToString();
 
-        if (!string.IsNullOrWhiteSpace(_sessionData.AddressSearch))
-            queryParams["address"] = _sessionData.AddressSearch;
+        if (!string.IsNullOrWhiteSpace(_filterState.AddressSearch))
+            queryParams["address"] = _filterState.AddressSearch;
 
-        if (!string.IsNullOrWhiteSpace(_sessionData.ContactSearch))
-            queryParams["contact"] = _sessionData.ContactSearch;
+        if (!string.IsNullOrWhiteSpace(_filterState.ContactSearch))
+            queryParams["contact"] = _filterState.ContactSearch;
 
-        if (!string.IsNullOrWhiteSpace(_sessionData.JobNumberSearch))
-            queryParams["job"] = _sessionData.JobNumberSearch;
+        if (!string.IsNullOrWhiteSpace(_filterState.JobNumberSearch))
+            queryParams["jobNumber"] = _filterState.JobNumberSearch;
 
-        if (_sessionData.Order != SortDirectionEnum.Asc) // Only add if not default
-            queryParams["order"] = _sessionData.Order.ToString();
+        if (_filterState.Order != SortDirectionEnum.Asc)
+            queryParams["order"] = _filterState.Order.ToString();
 
-        // Build query string
         string queryString = string.Join("&", queryParams.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value ?? "")}"));
         string basePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri).Split('?')[0];
         string newUrl = queryString.Length > 0 ? $"{basePath}?{queryString}" : basePath;
-
-        // Get current URL without query string for comparison
         string currentRelativePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
         string currentPathOnly = currentRelativePath.Split('?')[0];
 
-        // Only navigate if URL actually changed to avoid unnecessary navigation
         if (newUrl != currentRelativePath && newUrl != currentPathOnly)
-        {
             _navigationManager.NavigateTo(newUrl, replace: true);
-        }
     }
 
     /// <summary>
@@ -198,9 +140,8 @@ public partial class Jobs
             SortDefinition<ListJobDto>? sortDefinition = state.SortDefinitions.FirstOrDefault();
             if (sortDefinition != null)
             {
-                // Set order direction
-                _sessionData.Order = sortDefinition.Descending ? SortDirectionEnum.Desc : SortDirectionEnum.Asc;
-                _sessionData.OrderBy = sortDefinition.SortBy switch
+                _filterState.Order = sortDefinition.Descending ? SortDirectionEnum.Desc : SortDirectionEnum.Asc;
+                _filterState.OrderBy = sortDefinition.SortBy switch
                 {
                     string s when s == nameof(ListJobDto.Contact1)
                             || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.PostCode)
@@ -212,26 +153,15 @@ public partial class Jobs
             }
             else
             {
-                // Default sorting if no sort definition
-                _sessionData.OrderBy = nameof(ListJobDto.JobId);
-                _sessionData.Order = SortDirectionEnum.Desc;
+                _filterState.OrderBy = nameof(ListJobDto.JobId);
+                _filterState.Order = SortDirectionEnum.Desc;
             }
 
-            // Save current state to session
-            _sessionData.Page = state.Page;
-            _sessionData.PageSize = state.PageSize;
-            SaveSessionData();
-
-            Result<PagedResponse<ListJobDto>>? apiResult = await _apiService.GetAllJobs(
-                apiPageNumber,
-                apiPageSize,
-                _sessionData.Order,
-                _sessionData.AddressSearch,
-                _sessionData.ContactSearch,
-                _sessionData.JobNumberSearch,
-                _sessionData.OrderBy,
-                ShowDeleted
-                );
+            _filterState.Page = state.Page;
+            _filterState.PageSize = state.PageSize;
+            UpdateUrlFromState();
+            JobFilterDto search = new(apiPageNumber, apiPageSize, _filterState.AddressSearch, _filterState.ContactSearch, _filterState.JobNumberSearch, _filterState.OrderBy, _filterState.Order, ShowDeleted, null, null);
+            Result<PagedResponse<ListJobDto>>? apiResult = await _apiService.GetAllJobs(search);
 
             if (apiResult is not null && apiResult.IsSuccess && apiResult.Value is not null)
             {
@@ -278,9 +208,8 @@ public partial class Jobs
     /// <returns>A task representing the asynchronous operation</returns>
     private Task OnSearch(string text)
     {
-        // Reset to first page when search changes
-        _sessionData.Page = 0;
-        SaveSessionData();
+        _filterState.Page = 0;
+        UpdateUrlFromState();
         if (_grid is not null)
             return _grid!.ReloadServerData();
 
@@ -288,15 +217,14 @@ public partial class Jobs
     }
 
     /// <summary>
-    /// Clears the search filters, resets session data to defaults, and reloads the grid.
+    /// Clears the search filters, resets state to defaults, and navigates to the base URL.
     /// </summary>
     /// <returns>A task representing the asynchronous operation.</returns>
     private Task ClearSearch()
     {
-        _sessionData.Page = 0;
-        _sessionStorage.RemoveItem(_FacilitiesSessionKey);
-        _sessionData = new SessionSearchData(); // Reset to defaults
-        return _grid!.ReloadServerData();
+        _filterState = new SessionSearchData();
+        _navigationManager.NavigateTo(_navigationManager.ToBaseRelativePath(_navigationManager.Uri).Split('?')[0], replace: true);
+        return _grid is not null ? _grid.ReloadServerData() : Task.CompletedTask;
     }
 
     /// <summary>
@@ -307,7 +235,8 @@ public partial class Jobs
     private async Task ShowDelete(TabTypeEnum tabType)
     {
         ShowDeleted = tabType is TabTypeEnum.Deleted;
-        _grid?.ReloadServerData();
+        if (_grid is not null)
+            await _grid.ReloadServerData();
     }
 
     /// <summary>

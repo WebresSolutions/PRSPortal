@@ -17,13 +17,19 @@ public partial class TechnicalContact
 
     public DateTime CreatedOn { get; set; }
 
+    public int? ModifiedByUserId { get; set; }
+
     public DateTime? ModifiedOn { get; set; }
+
+    public DateTime? DeletedAt { get; set; }
 
     public virtual Contact Contact { get; set; } = null!;
 
     public virtual AppUser CreatedByUser { get; set; } = null!;
 
     public virtual Job Job { get; set; } = null!;
+
+    public virtual AppUser? ModifiedByUser { get; set; }
 
     public virtual TechnicalContactType Type { get; set; } = null!;
 }

@@ -1,5 +1,6 @@
 @page "/contacts/{ContactId:int}"
 @inherits BaseDataComponent
+@using Portal.Client.Components.JobComponents
 @using Portal.Shared
 @using Portal.Shared.DTO.Contact
 @using Portal.Shared.DTO.Job
@@ -60,20 +61,20 @@ else
                     <ChildContent>
                         <div class="stats-mini">
                             <div class="stat-mini">
-                                <div class="stat-mini-value">@(_pagedJobs?.TotalCount ?? 0)</div>
+                                <div class="stat-mini-value">@(_contact.JobCount)</div>
                                 <div class="stat-mini-label">Jobs</div>
                             </div>
                             <div class="stat-mini">
-                                <div class="stat-mini-value">-</div>
+                                <div class="stat-mini-value">@(_contact.InvoicesCount)</div>
                                 <div class="stat-mini-label">Invoices</div>
                             </div>
                             <div class="stat-mini">
-                                <div class="stat-mini-value">-</div>
-                                <div class="stat-mini-label">Notes</div>
+                                <div class="stat-mini-value">@(_contact.TechContactCount)</div>
+                                <div class="stat-mini-label">Tech Contact</div>
                             </div>
                             <div class="stat-mini">
-                                <div class="stat-mini-value">-</div>
-                                <div class="stat-mini-label">Activity</div>
+                                <div class="stat-mini-value">@(_contact.SubContactsCount)</div>
+                                <div class="stat-mini-label">Sub Contact</div>
                             </div>
                         </div>
                     </ChildContent>
@@ -221,22 +222,7 @@ else
             <!-- Right Sidebar -->
             <div class="sidebar">
                 <!-- Notes -->
-                <Card>
-                    <TitleContent>
-                        <div class="card-header-with-tabs">
-                            <div class="tabs">
-                                <button class="tab active">All</button>
-                                <button class="tab">Action</button>
-                            </div>
-                            <button class="btn-add">+</button>
-                        </div>
-                    </TitleContent>
-                    <ChildContent>
-                        <div class="empty-state" style="text-align: center; padding: 2rem;">
-                            No records
-                        </div>
-                    </ChildContent>
-                </Card>
+                <TechnicalContacts ContactId="@ContactId" />
 
                 <!-- Activity -->
                 <Card Title="Activity">

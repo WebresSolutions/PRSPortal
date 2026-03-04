@@ -15,7 +15,7 @@
     {
         <div class="card-header-tabs">
             <h3>@HeaderTitle</h3>
-            <HeaderTabs Href="#" OnTabSelect="OnTabSelect" ShowAddButton="false" ShowBorderBottom="false" Tabs="Tabs" />
+            <HeaderTabs Href="#" OnTabSelect="OnTabSelect" ShowAddButton="false" ShowBorderBottom="false" Tabs="Tabs" @ref="HeaderTabsRef" />
             @if (IsEventSet)
             {
                 <ButtonIcon Icon="bi bi-plus" CssClass="text-green" Title="Edit" OnClick="TabButtonClick" />
@@ -40,6 +40,7 @@
     }
 </section>
 @code {
+    #region Parameters
     /// <summary>
     /// Gets or sets the child content to be displayed within the card
     /// </summary>
@@ -119,8 +120,23 @@
 
     [Parameter]
     public EventCallback TabButtonClick { get; set; }
-    private bool IsEventSet => TabButtonClick.HasDelegate;
 
+    [Parameter]
+    public EventCallback<TabTypeEnum> ChangeTabs { get; set; }
+    #endregion
+
+    private bool IsEventSet => TabButtonClick.HasDelegate;
+    private HeaderTabs? HeaderTabsRef;
+
+    /// <summary>
+    /// Sets the selected header tab programmatically. Only has effect when <see cref="ShowHeaderWithTabs"/> is true and the tab is in <see cref="Tabs"/>.
+    /// </summary>
+    /// <param name="tab">The tab to select.</param>
+    public void SetSelectedTab(TabTypeEnum tab)
+    {
+        if (HeaderTabsRef is not null)
+            HeaderTabsRef.SetTab(tab);
+    }
 }
 
 <style>

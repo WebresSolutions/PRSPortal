@@ -14,7 +14,6 @@ public partial class Job : IDisposable
     public required int JobId { get; set; }
 
     private JobDetailsDto? _job;
-    private List<JobNoteDto> _notes = [];
     private DummyJobData _dummyData = new();
     private AdvancedGoogleMap? _map;
     private MapOptions _mapOptions = default!;
@@ -51,8 +50,6 @@ public partial class Job : IDisposable
             MapId = "Single_map_id"
         };
         IsLoading = false;
-
-        await LoadNotes();
     }
 
     /// <summary>
@@ -78,28 +75,6 @@ public partial class Job : IDisposable
         {
             _snackbar?.Add($"Error: {ex.Message}", Severity.Error);
         }
-    }
-
-    /// <summary>
-    /// Loads job notes from the API for the current job and refreshes the UI.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task LoadNotes()
-    {
-        if (JobId <= 0) return;
-        try
-        {
-            Result<List<JobNoteDto>>? result = await _apiService.GetJobNotes(JobId);
-            if (result is not null && result.IsSuccess && result.Value is not null)
-                _notes = result.Value;
-            else
-                _notes = [];
-        }
-        catch
-        {
-            _notes = [];
-        }
-        StateHasChanged();
     }
 
     /// <summary>

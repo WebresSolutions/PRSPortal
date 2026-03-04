@@ -58,46 +58,29 @@ public class ApiService : IApiService
     /// <param name="order">The direction in which to sort the results. Specify ascending or descending.</param>
     /// <returns>A result containing a paged response of job data transfer objects. If no jobs match the criteria, the response
     /// contains an empty collection.</returns>
-    public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(
-    int page,
-    int pageSize,
-    SortDirectionEnum? order,
-    string? addressSearch,
-    string? contactSearch,
-    string? jobNumberSearch,
-    string? orderby,
-    bool deleted = false)
+    public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(JobFilterDto filter)
     {
         Result<PagedResponse<ListJobDto>> res = new();
         try
         {
-            Dictionary<string, string> queryParameters = new()
+            Dictionary<string, object?> queryParams = new()
             {
-                { "page", page.ToString() },
-                { "pageSize", pageSize.ToString() },
-                { "order", ((int)(order ?? SortDirectionEnum.Asc)).ToString() },
-                { "deleted", deleted.ToString().ToLower() } // Booleans usually expect lowercase in URLs
+                ["page"] = filter.Page,
+                ["pageSize"] = filter.PageSize,
+                ["order"] = (int)filter.Order,
+                ["deleted"] = filter.Deleted.ToString().ToLower(),
+                ["addressSearch"] = filter.AddressSearch,
+                ["contactSearch"] = filter.ContactSearch,
+                ["jobNumberSearch"] = filter.JobNumberSearch,
+                ["orderby"] = filter.OrderBy,
+                ["councilId"] = filter.CouncilId,
+                ["contactId"] = filter.ContactId
             };
 
-            // 2. Add optional filters if they have values
-            if (!string.IsNullOrWhiteSpace(addressSearch))
-                queryParameters.Add("addressSearch", addressSearch);
-
-            if (!string.IsNullOrWhiteSpace(contactSearch))
-                queryParameters.Add("contactSearch", contactSearch);
-
-            if (!string.IsNullOrWhiteSpace(jobNumberSearch))
-                queryParameters.Add("jobNumberSearch", jobNumberSearch);
-
-            if (!string.IsNullOrWhiteSpace(orderby))
-                queryParameters.Add("orderby", orderby);
-
-            // 3. Construct the query string
-            using FormUrlEncodedContent dictFormUrlEncoded = new(queryParameters);
-            string queryString = await dictFormUrlEncoded.ReadAsStringAsync();
+            string url = _navigationManager.GetUriWithQueryParameters("api/jobs", queryParams);
 
             // 4. Execute the request
-            HttpResponseMessage response = await _httpClient.GetAsync($"api/jobs?{queryString}");
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
@@ -255,7 +238,7 @@ public class ApiService : IApiService
         Result<List<JobNoteDto>> res = new();
         try
         {
-            string url = $"api/jobs/{jobId}/notes?includeDeleted={includeDeleted.ToString().ToLowerInvariant()}";
+            string url = $"api/jobs/{jobId}/notes?deleted={includeDeleted.ToString().ToLowerInvariant()}";
             if (actionRequired is not null)
                 url += $"&actionRequired={actionRequired?.ToString().ToLowerInvariant()}";
 
@@ -303,6 +286,71 @@ public class ApiService : IApiService
             {
                 res.ConvertHttpResponseToError(response.StatusCode);
                 res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to save job note";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Gets technical contacts filtered by jobId and/or contactId. At least one of jobId or contactId must be provided.
+    /// </summary>
+    public async Task<Result<TechnicalContactDto[]>> GetTechnicalContacts(int? jobId, int? contactId, bool showDeleted = false)
+    {
+        Result<TechnicalContactDto[]> res = new();
+        try
+        {
+            Dictionary<string, object?> queryParams = [];
+            if (jobId.HasValue) queryParams["jobId"] = jobId.Value;
+            if (contactId.HasValue) queryParams["contactId"] = contactId.Value;
+            queryParams["deleted"] = showDeleted.ToString().ToLowerInvariant();
+
+            string url = _navigationManager.GetUriWithQueryParameters("api/jobs/technical-contacts", queryParams);
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                TechnicalContactDto[]? contacts = await response.Content.ReadFromJsonAsync<TechnicalContactDto[]>();
+                res.Value = contacts ?? Array.Empty<TechnicalContactDto>();
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get technical contacts";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Creates or updates a technical contact (links a contact to a job with a role). Use Id 0 to create; set Id to the existing technical contact id to update.
+    /// </summary>
+    public async Task<Result<TechnicalContactDto[]>> SaveTechnicalContact(SaveTechnicalContactTypeDto dto)
+    {
+        Result<TechnicalContactDto[]> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync("api/jobs/technical-contacts", dto);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                TechnicalContactDto[]? contacts = await response.Content.ReadFromJsonAsync<TechnicalContactDto[]>();
+                if (contacts is not null)
+                    res.Value = contacts;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to save technical contact";
             }
         }
         catch (Exception ex)

@@ -1,4 +1,4 @@
-using Portal.Shared;
+using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
@@ -15,15 +15,7 @@ public interface IJobService
     /// <param name="nameFilter">The name filter</param>
     /// <param name="orderby">Column to order by</param>
     /// <returns>A paged list of responses</returns>
-    Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(
-        int page,
-        int pageSize,
-        SortDirectionEnum? order,
-        string? addressSearch,
-        string? contactSearch,
-        string? jobNumberSearch,
-        string? orderby,
-        bool deleted = false);
+    Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(JobFilterDto filter);
 
     /// <summary>
     /// Retrieves detailed information for a job specified by its unique identifier.
@@ -78,9 +70,9 @@ public interface IJobService
     Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobDetailsDto updateJobDto);
 
     /// <summary>
-    /// 
+    /// Create a new job with the specified details and return the unique identifier of the created job. The method accepts a
     /// </summary>
-    /// <param name="httpContext"></param>
+    /// <param name="httpContext">TThe http context</param>
     /// <param name="jobCreationDto"></param>
     /// <returns></returns>
     Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto jobCreationDto);
@@ -92,4 +84,30 @@ public interface IJobService
     /// <param name="id">The Id of the job to delete</param>
     /// <returns></returns>
     Task<Result<bool>> DeleteJob(HttpContext httpContext, int id);
+
+    /// <summary>
+    /// Gets technical Contacts for a job, if contactId is provided it will get the specific technical contact, 
+    /// otherwise it will get all technical contacts for the job. If jobId is not provided it will get all technical contacts for the contactId provided.
+    /// </summary>
+    /// <param name="jobId"></param>
+    /// <param name="contactId"></param>
+    /// <returns></returns>
+    Task<Result<TechnicalContactDto[]>> GetTechnicalContacts(int? jobId, int? contactId, bool showDeleted = false);
+
+    /// <summary>
+    /// Creates a new technical contact using the specified data and returns the updated list of technical contacts.
+    /// </summary>
+    /// <param name="dto">An object containing the information required to create the new technical contact. Cannot be null.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="Result{T}">Result</see>
+    /// object with an array of <see cref="TechnicalContactDto"/> representing all technical contacts after the
+    /// addition. The array is empty if no contacts are available.</returns>
+    Task<Result<TechnicalContactDto[]>> NewTechnicalContact(HttpContext httpContext, SaveTechnicalContactTypeDto dto);
+
+    /// <summary>
+    /// Updates the technical contact information using the specified data transfer object.
+    /// </summary>
+    /// <param name="dto">An object containing the updated technical contact information to be saved. Cannot be null.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains an array of updated technical
+    /// contact data transfer objects. The array will be empty if no contacts were updated.</returns>
+    Task<Result<TechnicalContactDto[]>> UpdateTechnicalContact(HttpContext httpContext, SaveTechnicalContactTypeDto dto);
 }

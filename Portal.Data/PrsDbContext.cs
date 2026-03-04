@@ -1103,6 +1103,7 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
             entity.Property(e => e.EndTime)
                 .HasComment("End time of the schedule")
                 .HasColumnName("end_time");
@@ -1265,7 +1266,11 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.ContactId, "technical_contacts_contact_id_idx");
 
+            entity.HasIndex(e => e.CreatedByUserId, "technical_contacts_created_by_user_id_idx");
+
             entity.HasIndex(e => e.JobId, "technical_contacts_job_id_idx");
+
+            entity.HasIndex(e => e.ModifiedByUserId, "technical_contacts_modified_by_user_id_idx");
 
             entity.HasIndex(e => e.TypeId, "technical_contacts_type_id_idx");
 
@@ -1275,7 +1280,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
             entity.Property(e => e.JobId).HasColumnName("job_id");
+            entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.TypeId).HasColumnName("type_id");
 
@@ -1284,7 +1291,7 @@ public partial class PrsDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("technical_contact_contact_id_fkey");
 
-            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.TechnicalContacts)
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.TechnicalContactCreatedByUsers)
                 .HasForeignKey(d => d.CreatedByUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("technical_contact_created_by_user_id_fkey");
@@ -1293,6 +1300,10 @@ public partial class PrsDbContext : DbContext
                 .HasForeignKey(d => d.JobId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("technical_contact_job_id_fkey");
+
+            entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.TechnicalContactModifiedByUsers)
+                .HasForeignKey(d => d.ModifiedByUserId)
+                .HasConstraintName("technical_contact_modified_by_user_id_fkey");
 
             entity.HasOne(d => d.Type).WithMany(p => p.TechnicalContacts)
                 .HasForeignKey(d => d.TypeId)

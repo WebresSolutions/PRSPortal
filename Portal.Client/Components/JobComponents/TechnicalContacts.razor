@@ -1,61 +1,61 @@
-@using GoogleMapsComponents
-@using GoogleMapsComponents.Maps
 @using Portal.Client.Components.JobComponents
-@using Portal.Client.Webmodels
 @using Portal.Shared
 @using Portal.Shared.DTO.Contact
-@using Portal.Shared.DTO.Job
-@using Portal.Shared.DTO.Address
-@using Portal.Shared.Helpers
+@inherits BaseDataComponent
 
-<Card ShowHeaderWithTabs="true" HeaderTitle="Technical Contacts" OnTabSelect="ChangeTabs" Tabs="[TabTypeEnum.All, TabTypeEnum.Deleted]" TabButtonClick="@(() => NewTechnicalContact(null))">
+<Card @ref="_cardRef" ShowHeaderWithTabs="true" HeaderTitle="Technical Contacts" OnTabSelect="ChangeTabs" Tabs="[TabTypeEnum.All, TabTypeEnum.Deleted]" TabButtonClick="@(() => NewTechnicalContact(null))">
     <ChildContent>
-        <div class="technical-contacts-container">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Role</th>
-                        <th>Contact</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Contacts.Count() == 0)
-                    {
-                        <tr>
-                            <td colspan="5" class="empty-state">No records</td>
-                        </tr>
-                    }
-                    else
-                    {
-                        @foreach (TechnicalContactDto contact in Contacts)
-                        {
-                            <tr>
-                                <td>@contact.ContactType</td>
-                                <td><a class="contact-link" href="/contacts/@contact.ContactId">@contact.ContactName</a></td>
-                                <td>@contact.Phone</td>
-                                <td>@contact.Email</td>
-                                <td>
-                                    <span class="d-flex flex-row gap-1">
-                                        <ButtonIcon Icon="bi bi-pencil" Title="Edit" CssClass="" OnClick="@(() => NewTechnicalContact(contact))" />
-                                        <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
-                                    </span>
-                                </td>
-                            </tr>
+        <MudDataGrid T="TechnicalContactDto"
+                     Items="@TechnicalContactDtos"
+                     Dense="true"
+                     Striped="true"
+                     Loading="@base.IsLoading"
+                     Hover="true"
+                     Breakpoint="Breakpoint.Sm"
+                     FixedHeader="true"
+                     SortMode="SortMode.None"
+                     RowsPerPage="10">
+            <Columns>
+                <PropertyColumn Property="x => x.ContactType" Title="Role" />
+                <TemplateColumn Title="@(JobId is not null ? "Contact" : "Job #")">
+                    <CellTemplate>
+                        @{
+                            var contact = context.Item;
                         }
-                    }
-                </tbody>
-            </table>
-        </div>
+                        @if (JobId is not null)
+                        {
+                            <a class="contact-link" href="/contacts/@contact.ContactId">@contact.ContactName</a>
+                        }
+                        else
+                        {
+                            <a class="contact-link" href="/jobs/view/@contact.JobId">@contact.JobNumber</a>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.Phone" Title="Phone" />
+                <PropertyColumn Property="x => x.Email" Title="Email" />
+                <TemplateColumn Title="Actions" HeaderStyle="width: 130px;">
+                    <CellTemplate>
+                        <div class="d-flex flex-row gap-1">
+                            @if (context.Item.Deleted)
+                            {
+                                <ButtonIcon OnClick="@(async () => await DeletedContact(context.Item))" Icon="bi bi-arrow-counterclockwise" CssClass="text-red" Title="Restore" />
+                            }
+                            else if (JobId is not null)
+                            {
+                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => NewTechnicalContact(context.Item))" />
+                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => DeletedContact(context.Item))" />
+                            }
+                        </div>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <NoRecordsContent>
+                <span class="empty-state">No records</span>
+            </NoRecordsContent>
+            <PagerContent>
+                <MudDataGridPager T="TechnicalContactDto" />
+            </PagerContent>
+        </MudDataGrid>
     </ChildContent>
 </Card>
-
-
-
-<style>
-    .technical-contacts-container {
-        overflow-x: scroll;
-    }
-</style>

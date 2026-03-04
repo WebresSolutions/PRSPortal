@@ -76,6 +76,10 @@ h1 {
     font-weight: 800;
 }
 
+.colour-secondary{
+    color: var(--color-secondary) !important;
+}
+
 a.btn-link {
     color: #1c1b1d;
     text-decoration: none;
@@ -273,6 +277,10 @@ a {
 
 .mud-table-cell.sticky-left {
     background: none;
+}
+
+.mud-dialog .mud-dialog-title {
+    padding: 0 !important;
 }
 
 .contact-link {

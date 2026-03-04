@@ -5,6 +5,8 @@ namespace Portal.Shared.DTO.Contact;
 
 public class SaveTechnicalContactTypeDto
 {
+    public int Id { get; set; }
+
     [Required]
     [NotZero]
     public int ContactId { get; set; }
@@ -16,6 +18,8 @@ public class SaveTechnicalContactTypeDto
     [Required]
     [NotZero]
     public int JobId { get; set; }
+
+    public bool Deleted { get; set; } = false;
 
     public string? ContactName { get; set; }
     public string? Email { get; set; }
@@ -35,6 +39,7 @@ public class SaveTechnicalContactTypeDto
     /// <param name="dto"></param>
     public SaveTechnicalContactTypeDto(TechnicalContactDto dto)
     {
+        Id = dto.Id;
         ContactId = dto.ContactId;
         ContactTypeId = dto.ContactTypeId;
         JobId = dto.JobId;

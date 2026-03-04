@@ -129,6 +129,7 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
         {
             var contactData = await _dbContext.Contacts
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Where(c => c.Id == contactId && c.DeletedAt == null)
                 .Select(c => new
                 {
@@ -152,7 +153,11 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                         new ContactDto(c.ParentContact.Id, c.ParentContact.FullName)
                         : null,
                     CreatedBy = c.CreatedByUser.DisplayName ?? c.CreatedByUser.Email ?? "Unknown",
-                    c.CreatedOn
+                    c.CreatedOn,
+                    subContactCount = c.InverseParentContact.Count(sc => sc.DeletedAt == null && sc.ParentContactId == contactId),
+                    jobCount = c.Jobs.Count(j => j.DeletedAt == null && j.ContactId == contactId),
+                    techContactCount = c.TechnicalContacts.Count(j => j.DeletedAt == null && j.ContactId == contactId),
+                    invoiceCount = c.Invoices.Count(i => i.DeletedAt == null && i.ContactId == contactId)
                 })
                 .FirstOrDefaultAsync();
 
@@ -172,7 +177,11 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                 contactData.ParentContact,
                 contactData.CreatedBy,
                 contactData.CreatedOn,
-                []); // Empty list - jobs loaded via separate endpoint
+                contactData.jobCount,
+                contactData.techContactCount,
+                contactData.invoiceCount,
+                contactData.subContactCount
+                ); // Empty list - jobs loaded via separate endpoint
 
             return result;
         }

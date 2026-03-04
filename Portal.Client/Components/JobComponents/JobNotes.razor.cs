@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Portal.Client.Components.UIComponents;
 using Portal.Shared;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
@@ -28,6 +29,10 @@ public partial class JobNotes
     /// A list of tabs for filtering notes based on their status (e.g., All, Action Required, Deleted).
     /// </summary>
     public HashSet<TabTypeEnum> Tabs { get; set; } = [TabTypeEnum.All, TabTypeEnum.ActionRequired, TabTypeEnum.Deleted];
+    /// <summary>
+    /// The card reference
+    /// </summary>
+    private Card? _cardRef;
     /// <summary>
     /// When parameters are set or changed, syncs the notes list from the API for the current JobId.
     /// </summary>
@@ -94,6 +99,12 @@ public partial class JobNotes
         DialogOptions options = new() { CloseButton = false, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
         IDialogReference dialogRef = await _dialog.ShowAsync<EditJobNote>("", parameter, options);
         DialogResult? result = await dialogRef.Result;
+
+        if (result is not null && result.Data is List<JobNoteDto> jobNoteDtos)
+        {
+            _cardRef?.SetSelectedTab(TabTypeEnum.All);
+            await ChangeTabs(TabTypeEnum.All);
+        }
     }
 
     /// <summary>
@@ -123,7 +134,10 @@ public partial class JobNotes
         DialogResult? result = await dialogRef.Result;
 
         if (result is not null && result.Data is List<JobNoteDto> jobNoteDtos)
-            Notes = jobNoteDtos;
+        {
+            _cardRef?.SetSelectedTab(TabTypeEnum.All);
+            await ChangeTabs(TabTypeEnum.All);
+        }
     }
 
     /// <summary>
@@ -151,13 +165,13 @@ public partial class JobNotes
             switch (Tab)
             {
                 case TabTypeEnum.All:
-                    Notes = Handlenotes(await _apiService.GetJobNotes(JobId, false));
+                    Handlenotes(await _apiService.GetJobNotes(JobId, false));
                     break;
                 case TabTypeEnum.ActionRequired:
-                    Notes = Handlenotes(await _apiService.GetJobNotes(JobId, false, actionRequired: true));
+                    Handlenotes(await _apiService.GetJobNotes(JobId, false, actionRequired: true));
                     break;
                 case TabTypeEnum.Deleted:
-                    Notes = Handlenotes(await _apiService.GetJobNotes(JobId, includeDeleted: true));
+                    Handlenotes(await _apiService.GetJobNotes(JobId, includeDeleted: true));
                     break;
                 default:
                     break;

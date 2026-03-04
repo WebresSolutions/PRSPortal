@@ -1,4 +1,4 @@
-﻿@inherits BaseDataComponent;
+@inherits BaseDataComponent;
 @using Portal.Shared
 @using Portal.Shared.DTO.Contact
 @using Portal.Shared.DTO.Job
@@ -15,12 +15,12 @@
                     <h2>Jobs</h2>
                 </div>
                 <div class="search-container">
-                    <MudTextField T="string" @bind-Value="_sessionData.AddressSearch" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { _sessionData.AddressSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
-                                  AdornmentIcon="@Icons.Material.Filled.OtherHouses" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _sessionData.AddressSearch = null)"></MudTextField>
-                    <MudTextField T="string" @bind-Value="_sessionData.JobNumberSearch" Placeholder="Search by Job Number" Adornment="Adornment.Start" TextChanged="(async (x) => { _sessionData.JobNumberSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
-                                  AdornmentIcon="@Icons.Material.Filled.Numbers" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _sessionData.JobNumberSearch = null)"></MudTextField>
-                    <MudTextField T="string" @bind-Value="_sessionData.ContactSearch" Placeholder="Search by Contact" Adornment="Adornment.Start" TextChanged="(async (x) => { _sessionData.ContactSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
-                                  AdornmentIcon="@Icons.Material.Filled.Group" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _sessionData.ContactSearch = null)"></MudTextField>
+                    <MudTextField T="string" @bind-Value="_filterState.AddressSearch" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.AddressSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.OtherHouses" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _filterState.AddressSearch = null)"></MudTextField>
+                    <MudTextField T="string" @bind-Value="_filterState.JobNumberSearch" Placeholder="Search by Job Number" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.JobNumberSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.Numbers" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _filterState.JobNumberSearch = null)"></MudTextField>
+                    <MudTextField T="string" @bind-Value="_filterState.ContactSearch" Placeholder="Search by Contact" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.ContactSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.Group" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _filterState.ContactSearch = null)"></MudTextField>
                 </div>
             </div>
         </Content>
@@ -36,8 +36,8 @@
                          SortMode="SortMode.Single"
                          Loading="base.IsLoading"
                          RowsPerPage="_rowsPerPage"
-                         CurrentPage="_sessionData.Page"
-                         CurrentPageChanged="@((page) => { _sessionData.Page = page; SaveSessionData(); })"
+                         CurrentPage="_filterState.Page"
+                         CurrentPageChanged="@((page) => { _filterState.Page = page; UpdateUrlFromState(); })"
                          Dense=true
                          @ref="_grid"
                          Striped="true">

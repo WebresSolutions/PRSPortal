@@ -103,7 +103,9 @@ public partial class AppUser
 
     public virtual ICollection<ScheduleUser> ScheduleUserUsers { get; set; } = new List<ScheduleUser>();
 
-    public virtual ICollection<TechnicalContact> TechnicalContacts { get; set; } = new List<TechnicalContact>();
+    public virtual ICollection<TechnicalContact> TechnicalContactCreatedByUsers { get; set; } = new List<TechnicalContact>();
+
+    public virtual ICollection<TechnicalContact> TechnicalContactModifiedByUsers { get; set; } = new List<TechnicalContact>();
 
     public virtual ICollection<TimesheetEntry> TimesheetEntryCreatedByUsers { get; set; } = new List<TimesheetEntry>();
 

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
-using Portal.Shared;
+using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
@@ -24,28 +24,14 @@ public static class JobEndpoints
         // Gets all jobs with pagination and optional filtering/sorting
         appGroup.MapGet("", async (
            [FromServices] IJobService jobService,
-           [FromQuery] int page = 1,
-           [FromQuery] int pageSize = 25,
-           [FromQuery] string? addressSearch = null,
-           [FromQuery] string? contactSearch = null,
-           [FromQuery] string? jobNumberSearch = null,
-           [FromQuery] string? orderby = null,
-           [FromQuery] SortDirectionEnum? order = SortDirectionEnum.Asc,
-           [FromQuery] bool deleted = false
+           [AsParameters] JobFilterDto filter
        ) =>
         {
             // Simple validation to ensure page is always at least 1
-            int validatedPage = page <= 0 ? 1 : page;
+            int validatedPage = filter.Page <= 0 ? 1 : filter.Page;
+            filter = filter with { Page = validatedPage };
 
-            Result<PagedResponse<ListJobDto>> result = await jobService.GetAllJobs(
-                validatedPage,
-                pageSize,
-                order,
-                addressSearch,
-                contactSearch,
-                jobNumberSearch,
-                orderby,
-                deleted);
+            Result<PagedResponse<ListJobDto>> result = await jobService.GetAllJobs(filter);
 
             return EndpointsHelper.ProcessResult(result, "An error occurred while loading jobs");
         })
@@ -105,14 +91,14 @@ public static class JobEndpoints
         appGroup.MapGet("{jobId}/notes", async (
             [FromServices] IJobService jobService,
             [FromRoute] int jobId,
-            [FromQuery] bool includeDeleted = false,
+            [FromQuery] bool deleted = false,
             [FromQuery] bool? actionRequired = null
             ) =>
         {
             if (jobId <= 0)
                 return Results.BadRequest("Invalid job Id");
 
-            Result<List<JobNoteDto>> result = await jobService.GetJobNotes(jobId, includeDeleted, actionRequired);
+            Result<List<JobNoteDto>> result = await jobService.GetJobNotes(jobId, deleted, actionRequired);
             return EndpointsHelper.ProcessResult(result, "An error occurred while loading job notes");
         })
         .WithSummary("Get job notes")
@@ -140,16 +126,16 @@ public static class JobEndpoints
         appGroup.MapGet("assignedUserNotes/{userId}", async (
             [FromServices] IJobService jobService,
             [FromRoute] int userId,
-            [FromQuery] bool? includeDeleted,
+            [FromQuery] bool? deleted,
             HttpContext httpContext
             ) =>
         {
             if (userId < 0)
                 return Results.BadRequest("Bad Request");
 
-            includeDeleted ??= false;
+            deleted ??= false;
 
-            Result<List<JobNoteDto>> result = await jobService.GetUserAssignedJobsNotes(httpContext, userId, includeDeleted.Value);
+            Result<List<JobNoteDto>> result = await jobService.GetUserAssignedJobsNotes(httpContext, userId, deleted.Value);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
         .WithSummary("Get notes for user's assigned jobs")
@@ -171,9 +157,48 @@ public static class JobEndpoints
 
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
-        .WithSummary("Get notes for user's assigned jobs")
-        .WithDescription("Returns notes for all jobs assigned to the specified user. Use includeDeleted query parameter to include soft-deleted notes.")
+        .WithSummary("Create or update job note")
+        .WithDescription("Creates a new note when NoteId is 0, otherwise updates the existing note.")
         .Produces<List<JobNoteDto>>();
+
+        // Get technical contacts for a job and/or contact
+        appGroup.MapGet("technical-contacts", async (
+            [FromServices] IJobService jobService,
+            [FromQuery] int? jobId,
+            [FromQuery] int? contactId,
+            [FromQuery] bool? deleted
+            ) =>
+        {
+            if (jobId is null && contactId is null)
+                return Results.BadRequest("Either jobId or contactId must be provided.");
+
+            deleted ??= false;
+
+            Result<TechnicalContactDto[]> result = await jobService.GetTechnicalContacts(jobId, contactId, deleted.Value);
+            return EndpointsHelper.ProcessResult(result, "An error occurred while loading technical contacts");
+        })
+        .WithSummary("Get technical contacts")
+        .WithDescription("Returns technical contacts filtered by jobId and/or contactId. At least one of jobId or contactId must be provided.")
+        .Produces<TechnicalContactDto[]>();
+
+        // Create a new technical contact (link a contact to a job with a role)
+        appGroup.MapPut("technical-contacts", async (
+            [FromServices] IJobService jobService,
+            [FromBody] SaveTechnicalContactTypeDto dto,
+            HttpContext httpContext
+            ) =>
+        {
+            Result<TechnicalContactDto[]> result;
+            if (dto.Id is 0)
+                result = await jobService.NewTechnicalContact(httpContext, dto);
+            else
+                result = await jobService.UpdateTechnicalContact(httpContext, dto);
+
+            return EndpointsHelper.ProcessResult(result, "An error occurred while creating the technical contact");
+        })
+        .WithSummary("Create or update technical contact")
+        .WithDescription("Links a contact to a job with a specific role (technical contact type). Returns the updated list of technical contacts for the job.")
+        .Produces<TechnicalContactDto[]>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

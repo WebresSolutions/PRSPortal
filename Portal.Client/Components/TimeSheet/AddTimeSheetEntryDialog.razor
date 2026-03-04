@@ -4,7 +4,7 @@
 
 <MudDialog>
     <DialogContent>
-        <div class="add-timesheet-form">
+        <div class="add-timesheet-form border-rad">
             <MudSelect T="int" @bind-Value="_typeId" Label="Type" Variant="Variant.Outlined" Class="mb-3" Required="true" RequiredError="Select a type">
                 @foreach (var t in _types)
                 {
@@ -159,9 +159,11 @@
 
 <style>
     .add-timesheet-form {
-        min-width: 320px;
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 10px;
+        margin: 20px;
+        padding: var(--padding);
+        background: var(--color-light-grey);
     }
 </style>

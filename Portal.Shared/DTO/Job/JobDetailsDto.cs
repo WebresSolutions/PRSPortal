@@ -32,6 +32,10 @@ public class JobDetailsDto
     /// </summary>
     public LastModifiedDto? LastModified { get; set; }
     /// <summary>
+    /// Last Modified By User Name
+    /// </summary>
+    public string? LastModifiedBy { get; set; }
+    /// <summary>
     /// The address dto
     /// </summary>
     public AddressDTO? Address { get; set; }
@@ -59,6 +63,23 @@ public class JobDetailsDto
     /// The Council Id
     /// </summary>
     public int? CouncilId { get; set; }
+    /// <summary>
+    /// Count of notes for the job
+    /// </summary>
+    public int NoteCount { get; set; }
+
+    /// <summary>
+    /// The Task Count
+    /// </summary>
+    public int TaskCount { get; set; }
+    /// <summary>
+    /// The Technical Contact Counts
+    /// </summary>
+    public int ContactCount { get; set; }
+    /// <summary>
+    /// The Site Visit Count
+    /// </summary>
+    public int SiteVisitCount { get; set; }
     /// <summary>
     /// Gets or sets the collection of notes associated with the job.
     /// </summary>

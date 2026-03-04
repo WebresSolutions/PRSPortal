@@ -12,13 +12,13 @@ public class SystemSettingsDto
     /// Gets or sets the primary theme color in hexadecimal format
     /// </summary>
     [JsonPropertyName("primaryColour")]
-    public string PrimaryColour { get; set; } = "#1976d2";
+    public string PrimaryColour { get; set; } = "#27213C";
 
     /// <summary>
     /// Gets or sets the secondary theme color in hexadecimal format
     /// </summary>
     [JsonPropertyName("secondaryColour")]
-    public string SecondaryColour { get; set; } = "#1976d2";
+    public string SecondaryColour { get; set; } = "#ff5020";
 
     /// <summary>
     /// 

@@ -66,6 +66,13 @@
 
         SelectedTab = Tabs.First();
     }
+
+    public void SetTab(TabTypeEnum tab)
+    {
+        if (!Tabs.Contains(tab)) return;
+        SelectedTab = tab;
+        StateHasChanged();
+    }    
 }
 
 <style>
@@ -76,7 +83,7 @@
         width: 100%;
         margin-bottom: @(ShowBorderBottom ? "1rem" : "none");
         padding-bottom: @(ShowBorderBottom ? "1rem" : "none");
-        border-bottom: @(ShowBorderBottom ? "1px solid #e2e8f0;" : "none")
+        border-bottom: @(ShowBorderBottom ? "1px solid var(--color-primary);" : "none")
     }
 
     .tabs {

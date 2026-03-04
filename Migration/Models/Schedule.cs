@@ -30,6 +30,8 @@ public partial class Schedule
 
     public string? Notes { get; set; }
 
+    public DateTime? DeletedAt { get; set; }
+
     public int CreatedByUserId { get; set; }
 
     public DateTime CreatedOn { get; set; }

@@ -27,15 +27,7 @@ public interface IApiService
     /// <param name="order">The direction in which to sort the results. Specify ascending or descending.</param>
     /// <returns>A result containing a paged response of job data transfer objects. If no jobs match the criteria, the response
     /// contains an empty collection.</returns>
-    Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(
-    int page,
-    int pageSize,
-    SortDirectionEnum? order,
-    string? addressSearch,
-    string? contactSearch,
-    string? jobNumberSearch,
-    string? orderby,
-    bool deleted = false);
+    Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(JobFilterDto filter);
     /// <summary>
     /// Retrieves the details of a job with the specified identifier.
     /// </summary>
@@ -76,6 +68,20 @@ public interface IApiService
     /// <param name="note">The note to create or update.</param>
     /// <returns>The updated job details including notes.</returns>
     Task<Result<List<JobNoteDto>>> SaveJobNote(JobNoteDto note);
+    /// <summary>
+    /// Gets technical contacts filtered by jobId and/or contactId. At least one of jobId or contactId must be provided.
+    /// </summary>
+    /// <param name="jobId">Optional job id to filter by.</param>
+    /// <param name="contactId">Optional contact id to filter by.</param>
+    /// <param name="showDeleted">Whether to include soft-deleted technical contacts.</param>
+    /// <returns>The list of technical contacts.</returns>
+    Task<Result<TechnicalContactDto[]>> GetTechnicalContacts(int? jobId, int? contactId, bool showDeleted = false);
+    /// <summary>
+    /// Creates or updates a technical contact (links a contact to a job with a role). Use Id 0 to create; set Id to the existing technical contact id to update.
+    /// </summary>
+    /// <param name="dto">The technical contact to create or update.</param>
+    /// <returns>The updated list of technical contacts for the job.</returns>
+    Task<Result<TechnicalContactDto[]>> SaveTechnicalContact(SaveTechnicalContactTypeDto dto);
     #endregion
 
     #region SCHEDULE

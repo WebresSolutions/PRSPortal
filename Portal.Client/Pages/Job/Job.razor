@@ -15,9 +15,7 @@
 
 @if (IsLoading)
 {
-    <div class="container">
-        <div class="loading-spinner">Loading...</div>
-    </div>
+    <Spinner />
 }
 else if (_job is null)
 {
@@ -29,12 +27,11 @@ else
 {
     <div class="job-detail-container">
         <!-- Header -->
-        
         <PageHeader>
             <Content>
                 <div class="job-header">
                     <div class="header-left">
-                        <h1>Job #@_job.JobNumber</h1>
+                        <h1>Job <span class="colour-secondary">#@_job.JobNumber</span></h1>
                         <div class="header-info">
                             <span>@_job.Address?.ToDisplayString()</span>
                         </div>
@@ -59,19 +56,19 @@ else
                     <ChildContent>
                         <div class="stats-mini">
                             <div class="stat-mini">
-                                <div class="stat-mini-value">@_job.Tasks.Count</div>
+                                <div class="stat-mini-value">@_job.TaskCount</div>
                                 <div class="stat-mini-label">Tasks</div>
                             </div>
                             <div class="stat-mini">
-                                <div class="stat-mini-value">@_job.SiteVisits.Count()</div>
+                                <div class="stat-mini-value">@_job.SiteVisitCount</div>
                                 <div class="stat-mini-label">Site Visits</div>
                             </div>
                             <div class="stat-mini">
-                                <div class="stat-mini-value">@_notes.Count</div>
+                                <div class="stat-mini-value">@_job.NoteCount</div>
                                 <div class="stat-mini-label">Notes</div>
                             </div>
                             <div class="stat-mini">
-                                <div class="stat-mini-value">@_job.TechnicalContacts.Count</div>
+                                <div class="stat-mini-value">@_job.ContactCount</div>
                                 <div class="stat-mini-label">Contacts</div>
                             </div>
                         </div>
@@ -117,7 +114,7 @@ else
                 <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" JobType="@_job.JobType" />
 
                 <!-- Notes -->
-                <JobNotes JobId="JobId"/>
+                <JobNotes JobId="JobId" />
             </div>
             <!-- Main Content -->
             <div class="content-area">
@@ -144,7 +141,7 @@ else
                     </Card>
                 }
                 <!-- Technical Contacts -->
-                <TechnicalContacts Contacts="_job.TechnicalContacts" />
+                <TechnicalContacts JobId="JobId" />
 
                 <!-- Tasks -->
                 <Card HeaderTitle="Tasks" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Active, TabTypeEnum.ToInvoice, TabTypeEnum.Deleted]">
@@ -264,13 +261,14 @@ else
                 <Card Title="Activity">
                     <ChildContent>
                         <div class="activity-list">
-                            @foreach (var activity in _dummyData.Activities)
-                            {
-                                <div class="activity-item">
-                                    <div class="activity-title">@activity.Title</div>
-                                    <div class="activity-time">@activity.Time</div>
-                                </div>
-                            }
+                            <div class="activity-item">
+                                <div class="activity-title">Last Modified</div>
+                                <div class="activity-time">@_job.LastModified</div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-title">Modified By</div>
+                                <div class="activity-time">@_job.LastModifiedBy</div>
+                            </div>
                         </div>
                     </ChildContent>
                 </Card>

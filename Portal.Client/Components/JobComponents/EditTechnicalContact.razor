@@ -4,9 +4,10 @@
 
 <MudDialog>
     <DialogContent>
+        <h4 class="header-border">@HeaderText</h4>
         @if (!base.IsLoading)
         {
-            <EditForm Model="@Model"  class="create-technical-contact-form border-rad">
+            <EditForm Model="@Model" class="create-technical-contact-form border-rad">
                 <DataAnnotationsValidator />
                 <MudAutocomplete T="ListContactDto" Label="Contact" Value="JobContact" ValueChanged="OnContactChanged" Clearable="false" Variant="Variant.Outlined" DebounceInterval="200"
                                  SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" MaxItems="100" Required="true">
@@ -28,7 +29,7 @@
             </EditForm>
             <div class="d-flex justify-content-center gap-1">
                 <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" OnClick="SubmitAsync" Text="Save" />
-                <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" OnClick="@(() => base.MudDialog?.Close(DialogResult.Ok(true)))" Text="Close" />
+                <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" OnClick="@(() => base.MudDialog?.Close(DialogResult.Cancel()))" Text="Close" />
             </div>
         }
     </DialogContent>
@@ -45,69 +46,4 @@
     }
 </style>
 
-@code {
 
-    /// <summary>
-    /// The Model for the technical contact being edited or created
-    /// </summary>
-    [Parameter]
-    public required SaveTechnicalContactTypeDto Model { get; set; }
-    /// <summary>
-    /// The List of job contacts
-    /// </summary>
-    private ListContactDto? JobContact = null!;
-    /// <summary>
-    /// List of contact types for the dropdown
-    /// </summary>
-    private TechnicalContactTypeDto[] ContactTypes = [];
-
-    /// <summary>
-    /// Called when the component is initialized, used to load the contact types for the dropdown
-    /// </summary>
-    /// <returns></returns>
-    protected override async Task OnInitializedAsync()
-    {
-        base.IsLoading = true;
-        Result<TechnicalContactTypeDto[]>? contactTypesResult = await _apiService.GetTechnicalContactTypes();
-        if (contactTypesResult?.IsSuccess == true && contactTypesResult.Value is not null)
-            ContactTypes = contactTypesResult.Value;
-
-        if (Model.ContactId is not 0)
-        {
-            JobContact = new()
-            {
-                FullName = Model.ContactName ?? "",
-                Email = Model.Email ?? "",
-                Phone = Model.Phone ?? "",
-            };
-        }
-        base.IsLoading = false;
-    }
-
-    private void OnContactChanged(ListContactDto value)
-    {
-        JobContact = value;
-        Model.ContactId = value.ContactId;
-    }
-
-    private async Task SubmitAsync()
-    {
-
-    }
-
-    /// <summary>
-    /// Used by the type ahead auto complete for searching contacts
-    /// </summary>
-    /// <param name="search">The search string</param>
-    /// <param name="token">The token</param>
-    /// <returns></returns>
-    public async Task<IEnumerable<ListContactDto>> SearchContacts(string search, CancellationToken token)
-    {
-        Result<PagedResponse<ListContactDto>>? contactResult = await _apiService.GetAllContacts(100, 1, search, null, SortDirectionEnum.Asc);
-
-        if (contactResult?.IsSuccess == true && contactResult.Value?.Result is not null)
-            return contactResult.Value.Result;
-        else
-            return [];
-    }
-}

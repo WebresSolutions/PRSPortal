@@ -1,5 +1,4 @@
 using Portal.Shared.DTO.Address;
-using Portal.Shared.DTO.Job;
 
 namespace Portal.Shared.DTO.Contact;
 
@@ -19,6 +18,9 @@ public record ContactDetailsDto(
     ContactDto? ParentContact,
     string CreatedBy,
     DateTime CreatedOn,
-    List<ListJobDto> Jobs
+    int JobCount,
+    int TechContactCount,
+    int InvoicesCount,
+    int SubContactsCount
 );
 

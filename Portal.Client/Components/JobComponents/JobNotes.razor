@@ -1,7 +1,7 @@
 @using Portal.Shared.DTO.Job
 @inherits BaseDataComponent
 
-<Card ShowHeaderWithTabs="true" HeaderTitle="Notes" OnTabSelect="ChangeTabs" Tabs="Tabs" TabButtonClick="NewNotes">
+<Card ShowHeaderWithTabs="true" HeaderTitle="Notes" OnTabSelect="ChangeTabs" Tabs="Tabs" TabButtonClick="NewNotes" @ref="_cardRef">
     <ChildContent>
         <MudTextField Placeholder="Search" @bind-Value="SearchString"
                       TextChanged="SearchNotes" DebounceInterval="250" Clearable=true

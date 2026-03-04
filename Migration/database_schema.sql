@@ -367,6 +367,7 @@ CREATE TABLE technical_contact(
     job_id INT NOT NULL REFERENCES job(id),
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_by_user_id INT REFERENCES app_user(id),
     modified_on TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ DEFAULT NULL
 );
@@ -374,6 +375,8 @@ CREATE TABLE technical_contact(
 CREATE INDEX technical_contacts_type_id_idx ON technical_contact(type_id);
 CREATE INDEX technical_contacts_contact_id_idx ON technical_contact(contact_id);
 CREATE INDEX technical_contacts_job_id_idx ON technical_contact(job_id);
+CREATE INDEX technical_contacts_created_by_user_id_idx ON technical_contact(created_by_user_id);
+CREATE INDEX technical_contacts_modified_by_user_id_idx ON technical_contact(modified_by_user_id);
 
 -- ============================================================================
 -- USER JOB TABLE (Many-to-Many)

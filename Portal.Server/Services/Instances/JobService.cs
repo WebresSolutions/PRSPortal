@@ -30,40 +30,36 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
     /// <param name="searchFilter">Optional search filter for job names, addresses, or job numbers</param>
     /// <param name="orderby">Optional field name to sort by</param>
     /// <returns>A result containing a paged response of job DTOs</returns>
-    public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(
-        int page,
-        int pageSize,
-        SortDirectionEnum? order,
-        string? addressSearch,
-        string? contactSearch,
-        string? jobNumberSearch,
-        string? orderby,
-        bool deleted = false)
+    public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(JobFilterDto filter)
     {
         Result<PagedResponse<ListJobDto>> result = new();
         try
         {
-            // 1. Base query with the Deleted filter already applied
             IQueryable<Job> query = _dbContext.Jobs
                 .AsNoTracking();
 
-            query = !deleted ? query.Where(x => x.DeletedAt == null) : query.Where(x => x.DeletedAt != null);
+            query = !filter.Deleted ? query.Where(x => x.DeletedAt == null) : query.Where(x => x.DeletedAt != null);
 
-            if (!string.IsNullOrWhiteSpace(addressSearch))
+            if (filter.ContactId.HasValue)
+                query = query.Where(x => x.ContactId == filter.ContactId.Value);
+
+            if (filter.CouncilId.HasValue)
+                query = query.Where(x => x.CouncilId == filter.CouncilId.Value);
+
+            if (!string.IsNullOrWhiteSpace(filter.AddressSearch))
                 query = query.Where(job => job.Address != null &&
-                                           job.Address.SearchVector.Matches(addressSearch));
+                                           job.Address.SearchVector.Matches(filter.AddressSearch));
 
-            if (!string.IsNullOrWhiteSpace(contactSearch))
+            if (!string.IsNullOrWhiteSpace(filter.ContactSearch))
                 query = query.Where(job => job.Contact != null &&
-                                           job.Contact.SearchVector.Matches(contactSearch));
+                                           job.Contact.SearchVector.Matches(filter.ContactSearch));
 
-            if (!string.IsNullOrWhiteSpace(jobNumberSearch))
-                if (int.TryParse(jobNumberSearch, out int num))
+            if (!string.IsNullOrWhiteSpace(filter.JobNumberSearch))
+                if (int.TryParse(filter.JobNumberSearch, out int num))
                     query = query.Where(job => job.JobNumber != null && job.JobNumber.Value == num);
 
-
-            bool isDescending = order is SortDirectionEnum.Desc;
-            query = orderby switch
+            bool isDescending = filter.Order is SortDirectionEnum.Desc;
+            query = filter.OrderBy switch
             {
                 nameof(ListJobDto.JobId) => isDescending ? query.OrderByDescending(x => x.Id) : query.OrderBy(x => x.Id),
                 nameof(ListJobDto.Contact1.fullName) => isDescending ? query.OrderByDescending(x => x.Contact.FullName) : query.OrderBy(x => x.Contact.FullName),
@@ -75,11 +71,11 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
             };
 
             int total = await query.CountAsync(); // Note: Count the union-ed set
-            int skipValue = (page - 1) * pageSize;
+            int skipValue = (filter.Page - 1) * filter.PageSize;
 
             IQueryable<ListJobDto> jobs = query
                 .Skip(skipValue)
-                .Take(pageSize)
+                .Take(filter.PageSize)
                 .Select(x => new ListJobDto(
                     x.Id,
                     new AddressDTO(x.AddressId ?? 1, (StateEnum)x.Address!.StateId!, x.Address.StateId ?? 3, x.Address.Suburb, x.Address.Street, x.Address.PostCode),
@@ -90,11 +86,11 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                     x.JobTypeId
                 ));
             string querystring = jobs.ToQueryString();
-
+            Console.WriteLine(querystring);
             // Materialize the query
             List<ListJobDto> jobsList = await jobs.ToListAsync();
 
-            result.Value = new PagedResponse<ListJobDto>(jobsList, pageSize, page, total);
+            result.Value = new PagedResponse<ListJobDto>(jobsList, filter.PageSize, filter.Page, total);
             return result;
         }
         catch (Exception ex)
@@ -151,10 +147,6 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                         x.Contact.Phone ?? ""
                     )
                     : null,
-                TechnicalContacts = x.TechnicalContacts
-                    .Select(tc
-                        => new TechnicalContactDto(tc.Id, tc.ContactId, tc.JobId, tc.TypeId, tc.Type.Name, tc.Contact.FullName, tc.Contact.Email, tc.Contact.Phone, false))
-                    .ToList(),
                 TimeSheets = x.TimesheetEntries
                     .Select(ts
                         => new TimeSheetDto(ts.Id, ts.TypeId, ts.DateFrom, ts.DateTo, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName))
@@ -162,14 +154,15 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 ContactId = x.ContactId,
                 Council = x.Council != null ? new JobCouncilDto(x.Council.Id, x.Council.Name) : null,
                 CouncilId = x.CouncilId,
-                LastModified = x.ModifiedByUserId != null && x.ModifiedOn != null ? new LastModifiedDto(x.ModifiedOn.Value, x.ModifiedByUser!.DisplayName) : null
+                LastModified = x.ModifiedByUserId != null && x.ModifiedOn != null ? new LastModifiedDto(x.ModifiedOn.Value, x.ModifiedByUser!.DisplayName) : null,
+                LastModifiedBy = x.ModifiedByUser != null ? x.ModifiedByUser.DisplayName : null,
+                NoteCount = x.JobNotes.Count(x => x.DeletedAt == null),
+                ContactCount = x.TechnicalContacts.Count(),
             })
             .FirstOrDefaultAsync();
 
         if (job is null)
             return result.SetError(ErrorType.NotFound, "Invalid job Id");
-
-        job.Notes = [];
 
         // Get the job site visits from the schedules table
         IQueryable<JobSiteVisitsDto> query = _dbContext.Schedules
@@ -207,6 +200,9 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 QuotedPrice = t.QuotedPrice
             })
             .ToListAsync();
+
+        job.SiteVisitCount = job.SiteVisits.Count;
+        job.TaskCount = job.Tasks.Count;
 
         return result.SetValue(job);
     }
@@ -558,6 +554,127 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         }
     }
 
+
+    /// <summary>
+    /// Retrieves technical contacts filtered by jobId and/or contactId. 
+    /// Optionally includes deleted contacts if showDeleted is true. 
+    /// At least one of jobId or contactId must be provided.
+    /// </summary>
+    /// <param name="jobId">The ID of the job to filter technical contacts by, or null to ignore.</param>
+    /// <param name="jobId">The ID of the job to filter technical contacts by, or null to ignore.</param>
+    /// <param name="contactId">The ID of the contact to filter by, or null to ignore.</param>
+    /// <param name="showDeleted">Whether to include deleted technical contacts in the result.</param>
+    /// <returns>A result containing an array of technical contact DTOs matching the filter, or an error if invalid parameters are supplied.</returns>
+    public async Task<Result<TechnicalContactDto[]>> GetTechnicalContacts(int? jobId, int? contactId, bool showDeleted = false)
+    {
+        Result<TechnicalContactDto[]> result = new();
+        try
+        {
+            if (jobId is null && contactId is null)
+                return result.SetError(ErrorType.BadRequest, "JobId and ContactId can not both be null");
+
+            IQueryable<TechnicalContact> query = _dbContext.TechnicalContacts
+                .AsNoTracking()
+                .Where(x => (jobId == null || x.JobId == jobId) && (contactId == null || x.ContactId == contactId));
+
+            query = showDeleted ? query.Where(x => x.DeletedAt != null) : query.Where(x => x.DeletedAt == null);
+
+            TechnicalContactDto[] res = await query
+               .Select(x =>
+                   new TechnicalContactDto(
+                       x.Id, x.ContactId, x.JobId, x.Job.JobNumber ?? 0, x.TypeId, x.Type.Name, x.Contact.FullName, x.Contact.Email,
+                       x.Contact.Phone, x.DeletedAt != null)
+                   ).ToArrayAsync();
+
+            return result.SetValue(res);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get the technical contact");
+            return result.SetError(ErrorType.InternalError, "Failed to get job notes");
+        }
+    }
+
+    /// <summary>
+    /// Creates a new technical contact for a job, this can be used to link a contact to a job with a specific role (contact type)
+    /// </summary>
+    /// <param name="dto">The dto containing data</param>
+    /// <returns>An updated list of technical contacts</returns>
+    public async Task<Result<TechnicalContactDto[]>> NewTechnicalContact(HttpContext httpContext, SaveTechnicalContactTypeDto dto)
+    {
+        Result<TechnicalContactDto[]> result = new();
+        try
+        {
+            if (await _dbContext.Contacts.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.ContactId) is null)
+                return result.SetError(ErrorType.BadRequest, $"Invalid Contact Id: {dto.ContactId}");
+
+            if (await _dbContext.Jobs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.JobId) is not Job job)
+                return result.SetError(ErrorType.BadRequest, $"Invalid Job Id: {dto.JobId}");
+
+            if (await _dbContext.TechnicalContactTypes.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.ContactTypeId) is not TechnicalContactType type)
+                return result.SetError(ErrorType.BadRequest, $"Invalid Job Id: {dto.JobId}");
+
+            await _dbContext.TechnicalContacts.AddAsync(new TechnicalContact
+            {
+                ContactId = dto.ContactId,
+                JobId = dto.JobId,
+                TypeId = dto.ContactTypeId,
+                CreatedOn = DateTime.UtcNow,
+                CreatedByUserId = httpContext.UserId(),
+                DeletedAt = null
+            });
+
+            await _dbContext.SaveChangesAsync();
+
+            return result.SetValue([]);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create new technical contact");
+            return result.SetError(ErrorType.InternalError, "Failed to get job notes");
+        }
+    }
+
+    /// <summary>
+    /// Updates technical Contact, this can be used to update the contact, type or job of a technical contact
+    /// </summary>
+    /// <param name="dto">the dto containing data</param>
+    /// <returns>An updated list of technical contacts</returns>
+    public async Task<Result<TechnicalContactDto[]>> UpdateTechnicalContact(HttpContext httpContext, SaveTechnicalContactTypeDto dto)
+    {
+        Result<TechnicalContactDto[]> result = new();
+        try
+        {
+            if (await _dbContext.TechnicalContacts.FirstOrDefaultAsync(x => x.Id == dto.Id) is not TechnicalContact techContact)
+                return result.SetError(ErrorType.BadRequest, $"Invalid Technical Contact Id: {dto.ContactId}");
+
+            if (await _dbContext.Contacts.FirstOrDefaultAsync(x => x.Id == dto.ContactId) is not Contact contact)
+                return result.SetError(ErrorType.BadRequest, $"Invalid Contact Id: {dto.ContactId}");
+
+            if (await _dbContext.Jobs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.JobId) is not Job job)
+                return result.SetError(ErrorType.BadRequest, $"Invalid Job Id: {dto.JobId}");
+
+            if (await _dbContext.TechnicalContactTypes.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.ContactTypeId) is not TechnicalContactType type)
+                return result.SetError(ErrorType.BadRequest, $"Invalid Job Id: {dto.JobId}");
+
+            techContact.JobId = dto.JobId;
+            techContact.ContactId = dto.ContactId;
+            techContact.TypeId = dto.ContactTypeId;
+            techContact.ModifiedOn = DateTime.UtcNow;
+            techContact.ModifiedByUserId = httpContext.UserId();
+            techContact.DeletedAt = dto.Deleted ? DateTime.UtcNow : null;
+
+            await _dbContext.SaveChangesAsync();
+
+            return result.SetValue([]);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to updated new technical contact");
+            return result.SetError(ErrorType.InternalError, "Failed to get job notes");
+        }
+    }
+
     public async Task<Result<List<JobNoteDto>>> GetUserAssignedJobsNotes(HttpContext httpContext, int userId, bool includeDeleted)
     {
         Result<List<JobNoteDto>> result = new();
@@ -565,10 +682,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         try
         {
             if (userId is 0)
-            {
-                // Get the calling user
                 userId = httpContext.UserId();
-            }
 
             result.Value = await _dbContext.JobNotes
                 .Where(x => x.AssignedUserId == userId &&
