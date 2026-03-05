@@ -157,19 +157,6 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a <see
     /// cref="Result{CouncilDetailsDto}"/> object with the council details if found; otherwise, contains error information.</returns>
     Task<Result<CouncilDetailsDto>> GetCouncilDetails(int councilId);
-    /// <summary>
-    /// Retrieves the jobs associated with a council with pagination.
-    /// </summary>
-    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
-    /// result will contain error information if the request fails.</remarks>
-    /// <param name="councilId">The unique identifier of the council.</param>
-    /// <param name="page">The page number (1-based).</param>
-    /// <param name="pageSize">The number of items per page.</param>
-    /// <param name="order">The sort direction (ascending or descending).</param>
-    /// <param name="orderby">Optional field name to sort by.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
-    Task<Result<PagedResponse<ListJobDto>>> GetCouncilJobs(int councilId, int page, int pageSize, SortDirectionEnum order, string? orderby);
     #endregion
 
     #region CONTACTS

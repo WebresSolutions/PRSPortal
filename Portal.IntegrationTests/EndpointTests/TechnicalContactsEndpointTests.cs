@@ -102,11 +102,11 @@ public sealed class TechnicalContactsEndpointTests
 
         HttpResponseMessage createTcResponse = await _client.PutAsJsonAsync("/api/jobs/technical-contacts", createDto);
         createTcResponse.EnsureSuccessStatusCode();
-        TechnicalContactDto[]? createdList = await createTcResponse.Content.ReadFromJsonAsync<TechnicalContactDto[]>();
-        Assert.NotNull(createdList);
-        Assert.NotEmpty(createdList);
-        TechnicalContactDto created = createdList.First();
-        Assert.Equal(1, created.ContactTypeId);
+
+        TechnicalContactDto[]? getReponse = await _client.GetFromJsonAsync<TechnicalContactDto[]>($"/api/jobs/technical-contacts?jobId={jobId}");
+        Assert.NotNull(getReponse);
+        TechnicalContactDto? created = getReponse.FirstOrDefault(x => x.ContactId == 1 && x.JobId == jobId);
+        Assert.NotNull(created);
 
         SaveTechnicalContactTypeDto updateDto = new()
         {
@@ -118,9 +118,9 @@ public sealed class TechnicalContactsEndpointTests
 
         HttpResponseMessage updateTcResponse = await _client.PutAsJsonAsync("/api/jobs/technical-contacts", updateDto);
         Assert.Equal(HttpStatusCode.OK, updateTcResponse.StatusCode);
-        TechnicalContactDto[]? updatedList = await updateTcResponse.Content.ReadFromJsonAsync<TechnicalContactDto[]>();
-        Assert.NotNull(updatedList);
-        TechnicalContactDto? updated = updatedList.FirstOrDefault(tc => tc.Id == created.Id);
+        getReponse = await _client.GetFromJsonAsync<TechnicalContactDto[]>($"/api/jobs/technical-contacts?jobId={jobId}");
+        Assert.NotNull(getReponse);
+        TechnicalContactDto? updated = getReponse.FirstOrDefault(tc => tc.Id == created.Id);
         Assert.NotNull(updated);
         Assert.Equal(2, updated.ContactTypeId);
         Assert.Equal(jobId.Value, updated.JobId);

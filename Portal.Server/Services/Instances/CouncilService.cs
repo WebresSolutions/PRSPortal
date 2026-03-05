@@ -3,15 +3,19 @@ using Portal.Data;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Address;
-using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
-using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Services.Instances;
 
 public class CouncilService(PrsDbContext _dbContext, ILogger<CouncilService> _logger) : ICouncilService
 {
+    /// <summary>
+    /// Asynchronously retrieves all councils, returning basic information for each council.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="Result{T}"/> object
+    /// with an array of <see cref="CouncilPartialDto"/> instances representing the councils. If no councils are found,
+    /// the array is empty. If an error occurs, the result contains error information.</returns>
     public async Task<Result<CouncilPartialDto[]>> GetCouncils()
     {
         Result<CouncilPartialDto[]> result = new();
@@ -36,12 +40,23 @@ public class CouncilService(PrsDbContext _dbContext, ILogger<CouncilService> _lo
         }
     }
 
+    /// <summary>
+    /// Retrieves detailed information for a specific council by its unique identifier.
+    /// </summary>
+    /// <remarks>The returned details do not include job information; jobs are loaded via a separate endpoint.
+    /// Returns an error result with <see cref="ErrorType.NotFound"/> if no council exists with the specified
+    /// ID.</remarks>
+    /// <param name="councilId">The unique identifier of the council to retrieve details for. Must be a valid council ID.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
+    /// cref="Result{CouncilDetailsDto}"/> object with the council details if found; otherwise, an error result
+    /// indicating the reason for failure.</returns>
     public async Task<Result<CouncilDetailsDto>> GetCouncilDetails(int councilId)
     {
         Result<CouncilDetailsDto> result = new();
         try
         {
             var councilData = await _dbContext.Councils
+                .AsSplitQuery()
                 .Where(c => c.Id == councilId)
                 .Select(c => new
                 {
@@ -58,7 +73,9 @@ public class CouncilService(PrsDbContext _dbContext, ILogger<CouncilService> _lo
                             c.Address.Suburb,
                             c.Address.Street,
                             c.Address.PostCode)
-                        : null
+                        : null,
+                    jobCount = c.Jobs.Count(x => x.CouncilId == councilId),
+                    contactCount = c.CouncilContacts.Count(x => x.CouncilId == councilId),
                 })
                 .FirstOrDefaultAsync();
 
@@ -73,7 +90,9 @@ public class CouncilService(PrsDbContext _dbContext, ILogger<CouncilService> _lo
                 councilData.Email ?? "",
                 councilData.Website ?? "",
                 councilData.Address,
-                new List<ListJobDto>()); // Empty list - jobs loaded via separate endpoint
+                councilData.jobCount,
+                councilData.contactCount
+                ); // Empty list - jobs loaded via separate endpoint
 
             return result;
         }
@@ -81,69 +100,6 @@ public class CouncilService(PrsDbContext _dbContext, ILogger<CouncilService> _lo
         {
             _logger.LogError(ex, "Failed to get council: {Exception}", ex.Message);
             return result.SetError(ErrorType.InternalError, "An error occured while getting the councils");
-        }
-    }
-
-    public async Task<Result<PagedResponse<ListJobDto>>> GetCouncilJobs(int councilId, int page, int pageSize, SortDirectionEnum? order, string? orderby)
-    {
-        Result<PagedResponse<ListJobDto>> result = new();
-        try
-        {
-            IQueryable<Data.Models.Job> jobQuery = _dbContext.Jobs
-                .AsNoTracking()
-                .Where(j => j.CouncilId == councilId && j.DeletedAt == null)
-                .AsQueryable();
-
-            bool isDescending = order is SortDirectionEnum.Desc;
-            jobQuery = orderby switch
-            {
-                nameof(ListJobDto.JobId) => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Id)
-                    : jobQuery.OrderBy(x => x.Id),
-                nameof(ListJobDto.Contact1) + "." + nameof(ContactDto.fullName) => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Contact.FullName)
-                    : jobQuery.OrderBy(x => x.Contact.FullName),
-                nameof(ListJobDto.JobNumber) => isDescending
-                    ? jobQuery.OrderByDescending(x => x.JobNumber)
-                    : jobQuery.OrderBy(x => x.JobNumber),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.Suburb)}" => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Address!.Suburb)
-                    : jobQuery.OrderBy(x => x.Address!.Suburb),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.Street)}" => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Address!.Street)
-                    : jobQuery.OrderBy(x => x.Address!.Street),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.PostCode)}" => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Address!.PostCode)
-                    : jobQuery.OrderBy(x => x.Address!.PostCode),
-                _ => jobQuery.OrderByDescending(x => x.Id) // Default ordering by JobId descending
-            };
-
-            int skipValue = (page - 1) * pageSize;
-            List<ListJobDto> jobs = await jobQuery
-                .Skip(skipValue)
-                .Take(pageSize)
-                .Select(j => new ListJobDto(
-                    j.Id,
-                    new AddressDTO(j.AddressId!.Value, (StateEnum)j.Address!.StateId!, j.Address!.StateId.Value, j.Address.Suburb, j.Address.Street, j.Address.PostCode),
-                    j.Contact != null ? new ContactDto(j.ContactId, j.Contact.FullName) : null,
-                    j.Contact != null && j.Contact.ParentContact != null ? new ContactDto(j.Contact.ParentContactId ?? 0, j.Contact.ParentContact!.FullName) : null,
-                    j.JobNumber,
-                    j.JobType.Name,
-                    j.JobType.Id))
-                .ToListAsync();
-
-            int total = await jobQuery.CountAsync();
-
-            // Create the paged response
-            PagedResponse<ListJobDto> pagedResponse = new(jobs, pageSize, page, total);
-            result.Value = pagedResponse;
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get council jobs: {Exception}", ex.Message);
-            return result.SetError(ErrorType.InternalError, "An error occured while getting the council jobs");
         }
     }
 }

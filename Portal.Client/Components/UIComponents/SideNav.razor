@@ -9,7 +9,7 @@
         <ul class="nav flex-column mt-3">
             @foreach (NavLinkItem navItem in NavLinks)
             {
-                <li class="nav-item px-1 @(Minimize ? "min" : "")">
+                <li class="nav-item pe-1 @(Minimize ? "min" : "")">
                     <div class="nav-link-container">
                         <NavLink class="nav-link" href="@(navItem.Link is null ? null : navItem.Link)" Match="@(navItem.MatchAll? NavLinkMatch.All: NavLinkMatch.Prefix)">
                             <MudIcon Icon="@navItem.Icon" Title="@navItem.Title" />

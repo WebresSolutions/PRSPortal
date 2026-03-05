@@ -7,9 +7,9 @@
 
 <div class="page">
     <SideNav NavToggled="@ToggleNav" NavLinks="navLinks" Minimize="hideSidebar"/>
-    <div class="top-row @(headerVisible ? "header-visible" : "header-hidden")">
+   @*  <div class="top-row @(headerVisible ? "header-visible" : "header-hidden")">
         <NavBar ShowNav="hideSidebar" ToggleNav=ToggleNav />
-    </div>
+    </div> *@
     @* <QuickSearch /> *@
     <div class="@MainClass">
         @Body
@@ -40,10 +40,10 @@
         {
             new NavLinkItem { Link = "", Title = "Home", Icon = Icons.Material.Filled.Home, MatchAll = true },
             new NavLinkItem { Link = "Jobs", Title = "Jobs", Icon = Icons.Material.Filled.Build },
-            new NavLinkItem { Link = $"TimeSheets/{today}", Title = "Times", Icon = Icons.Material.Filled.Timelapse },
-            new NavLinkItem { Link = "Quotes", Title = "Quotes", Icon = Icons.Material.Filled.Task },
             new NavLinkItem { Link = "Contacts", Title = "Contacts", Icon = Icons.Material.Filled.Groups },
             new NavLinkItem { Link = "Councils", Title = "Councils", Icon = Icons.Material.Filled.Home },
+            new NavLinkItem { Link = "Quotes", Title = "Quotes", Icon = Icons.Material.Filled.Task },
+            new NavLinkItem { Link = $"TimeSheets/{today}", Title = "Times", Icon = Icons.Material.Filled.Timelapse },
             new NavLinkItem
             {
                 Link = "Schedule",

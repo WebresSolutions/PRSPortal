@@ -598,57 +598,6 @@ public class ApiService : IApiService
         return res;
     }
     /// <summary>
-    /// Retrieves the jobs associated with a council with pagination.
-    /// </summary>
-    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
-    /// result will contain error information if the request fails.</remarks>
-    /// <param name="councilId">The unique identifier of the council.</param>
-    /// <param name="page">The page number (1-based).</param>
-    /// <param name="pageSize">The number of items per page.</param>
-    /// <param name="order">The sort direction (ascending or descending).</param>
-    /// <param name="orderby">Optional field name to sort by.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
-    public async Task<Result<PagedResponse<ListJobDto>>> GetCouncilJobs(int councilId, int page, int pageSize, SortDirectionEnum order, string? orderby)
-    {
-        Result<PagedResponse<ListJobDto>> res = new();
-        try
-        {
-            Dictionary<string, string> queryParameters = new()
-            {
-                { "page", page.ToString() },
-                { "pageSize", pageSize.ToString() },
-                { "order", ((int)order).ToString() }
-            };
-
-            if (orderby is not null)
-                queryParameters.Add("orderby", orderby ?? string.Empty);
-
-            FormUrlEncodedContent dictFormUrlEncoded = new(queryParameters);
-            string queryString = await dictFormUrlEncoded.ReadAsStringAsync();
-
-            HttpResponseMessage response = await _httpClient.GetAsync($"api/councils/{councilId}/jobs?{queryString}");
-            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
-                await NavigationToLoginPage();
-            if (response.IsSuccessStatusCode)
-            {
-                PagedResponse<ListJobDto>? jobs = await response.Content.ReadFromJsonAsync<PagedResponse<ListJobDto>>();
-                res.Value = jobs;
-            }
-            else
-            {
-                res.ConvertHttpResponseToError(response.StatusCode);
-                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get council jobs";
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Exception: {ex.Message}");
-            // Handle exception
-        }
-        return res;
-    }
-    /// <summary>
     /// Retrieves a paged list of contacts, optionally filtered by search term and sorted according to the specified criteria.
     /// </summary>
     /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The method does

@@ -35,12 +35,4 @@ public sealed class CouncilsEndpointTests
         Assert.True(response.StatusCode is HttpStatusCode.OK or HttpStatusCode.NotFound,
             $"Unexpected status: {response.StatusCode}");
     }
-
-    [Fact]
-    public async Task Get_council_jobs_returns_ok_or_bad_request()
-    {
-        HttpResponseMessage response = await _client.GetAsync("/api/councils/1/jobs?page=1&pageSize=10");
-        Assert.True(response.StatusCode is HttpStatusCode.OK or HttpStatusCode.NotFound or HttpStatusCode.BadRequest,
-            $"Unexpected status: {response.StatusCode}");
-    }
 }

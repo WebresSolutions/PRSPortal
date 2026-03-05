@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
-using Portal.Shared;
 using Portal.Shared.DTO.Councils;
-using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Controllers;
@@ -46,32 +44,6 @@ public static class CouncilEnpoints
             .WithSummary("Get council by ID")
             .WithDescription("Returns full details for a single council by council ID. Returns 400 if councilId is invalid.")
             .Produces<CouncilDetailsDto>();
-
-        // Gets jobs for a specific council with pagination
-        appGroup.MapGet("{councilId}/jobs", async (
-            [FromServices] ICouncilService councilService,
-            [FromRoute] int councilId,
-            [FromQuery] int page,
-            [FromQuery] int pageSize,
-            [FromQuery] string? orderby,
-            [FromQuery] SortDirectionEnum? order,
-            HttpContext httpContext
-            ) =>
-        {
-            if (councilId <= 0)
-                return Results.BadRequest($"Invalid council Id{councilId}. Value must be greater than 0.");
-
-            if (page <= 0)
-                page = 1;
-
-            order ??= SortDirectionEnum.Desc;
-
-            Result<PagedResponse<ListJobDto>> result = await councilService.GetCouncilJobs(councilId, page, pageSize, order, orderby);
-            return EndpointsHelper.ProcessResult(result, "An Error occurred getting council jobs");
-        })
-            .WithSummary("Get jobs for a council")
-            .WithDescription("Returns a paginated list of jobs associated with the specified council. Supports ordering via orderby and order query parameters.")
-            .Produces<PagedResponse<ListJobDto>>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

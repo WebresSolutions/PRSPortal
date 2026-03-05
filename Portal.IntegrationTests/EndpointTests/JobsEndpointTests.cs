@@ -31,6 +31,98 @@ public sealed class JobsEndpointTests
     }
 
     [Fact]
+    public async Task List_jobs_filtered_by_contactId_returns_only_jobs_for_that_contact()
+    {
+        int testJobNumber = 778001;
+        JobCreationDto createDto = new()
+        {
+            JobNumber = testJobNumber,
+            JobType = Shared.JobTypeEnum.Construction,
+            ContactId = 1,
+            Details = "Job for contact filter test",
+        };
+        HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
+        createResponse.EnsureSuccessStatusCode();
+        int? jobId = await createResponse.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(jobId);
+        Assert.True(jobId > 0);
+
+        HttpResponseMessage response = await _client.GetAsync($"/api/jobs?page=1&pageSize=50&contactId=1");
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        PagedResponse<ListJobDto>? resValue = await response.Content.ReadFromJsonAsync<PagedResponse<ListJobDto>>();
+        Assert.NotNull(resValue);
+        Assert.NotNull(resValue.Result);
+        ListJobDto? createdJob = resValue.Result.FirstOrDefault(j => j.JobId == jobId.Value);
+        Assert.NotNull(createdJob);
+        Assert.Equal(testJobNumber, createdJob.JobNumber);
+    }
+
+    [Fact]
+    public async Task List_jobs_filtered_by_councilId_returns_only_jobs_for_that_council()
+    {
+        int testJobNumber = 778002;
+        JobCreationDto createDto = new()
+        {
+            JobNumber = testJobNumber,
+            JobType = Shared.JobTypeEnum.Construction,
+            ContactId = 1,
+            CouncilId = 1,
+            Details = "Job for council filter test",
+        };
+        HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
+        createResponse.EnsureSuccessStatusCode();
+        int? jobId = await createResponse.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(jobId);
+        Assert.True(jobId > 0);
+
+        HttpResponseMessage response = await _client.GetAsync("/api/jobs?page=1&pageSize=50&councilId=1");
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        PagedResponse<ListJobDto>? resValue = await response.Content.ReadFromJsonAsync<PagedResponse<ListJobDto>>();
+        Assert.NotNull(resValue);
+        Assert.NotNull(resValue.Result);
+        ListJobDto? createdJob = resValue.Result.FirstOrDefault(j => j.JobId == jobId.Value);
+        Assert.NotNull(createdJob);
+        Assert.Equal(testJobNumber, createdJob.JobNumber);
+    }
+
+    [Fact]
+    public async Task List_jobs_filtered_by_contactId_and_councilId_returns_matching_jobs()
+    {
+        int testJobNumber = 778003;
+        JobCreationDto createDto = new()
+        {
+            JobNumber = testJobNumber,
+            JobType = Shared.JobTypeEnum.Construction,
+            ContactId = 1,
+            CouncilId = 1,
+            Details = "Job for combined filter test",
+        };
+        HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
+        createResponse.EnsureSuccessStatusCode();
+        int? jobId = await createResponse.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(jobId);
+        Assert.True(jobId > 0);
+
+        HttpResponseMessage response = await _client.GetAsync("/api/jobs?page=1&pageSize=50&contactId=1&councilId=1");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        PagedResponse<ListJobDto>? resValue = await response.Content.ReadFromJsonAsync<PagedResponse<ListJobDto>>();
+        Assert.NotNull(resValue);
+        Assert.NotNull(resValue.Result);
+        ListJobDto? createdJob = resValue.Result.FirstOrDefault(j => j.JobId == jobId.Value);
+        Assert.NotNull(createdJob);
+        Assert.Equal(testJobNumber, createdJob.JobNumber);
+
+        response = await _client.GetAsync("/api/jobs?page=1&pageSize=50&contactId=1&councilId=99999");
+        response.EnsureSuccessStatusCode();
+        resValue = await response.Content.ReadFromJsonAsync<PagedResponse<ListJobDto>>();
+        Assert.NotNull(resValue);
+        Assert.NotNull(resValue.Result);
+        Assert.DoesNotContain(resValue.Result, j => j.JobId == jobId.Value);
+    }
+
+    [Fact]
     public async Task Get_job_by_invalid_id_returns_bad_request()
     {
         HttpResponseMessage response = await _client.GetAsync("/api/jobs/0");

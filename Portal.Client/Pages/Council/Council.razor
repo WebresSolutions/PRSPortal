@@ -6,7 +6,7 @@
 @using Portal.Shared.DTO.Address
 @using Portal.Shared.Helpers
 
-<PageTitle>Council @(_council?.councilName ?? CouncilId.ToString()) - PRS Portal</PageTitle>
+<PageTitle>Council @(_council?.CouncilName ?? CouncilId.ToString()) - PRS Portal</PageTitle>
 
 @if (IsLoading)
 {
@@ -26,9 +26,9 @@ else
         <!-- Header -->
         <div class="council-header">
             <div class="header-left">
-                <h1>@_council.councilName</h1>
+                <h1>@_council.CouncilName</h1>
                 <div class="header-info">
-                    <span>@GetAddressString()</span>
+                    <span>@_council.Address?.ToDisplayString()</span>
                 </div>
             </div>
             <div class="header-right">
@@ -49,20 +49,12 @@ else
                     <ChildContent>
                         <div class="stats-mini">
                             <div class="stat-mini">
-                                <div class="stat-mini-value">@(_pagedJobs?.TotalCount ?? 0)</div>
+                                <div class="stat-mini-value">@(_council.JobCount)</div>
                                 <div class="stat-mini-label">Jobs</div>
                             </div>
                             <div class="stat-mini">
-                                <div class="stat-mini-value">-</div>
+                                <div class="stat-mini-value">@(_council.ContactCount)</div>
                                 <div class="stat-mini-label">Contacts</div>
-                            </div>
-                            <div class="stat-mini">
-                                <div class="stat-mini-value">-</div>
-                                <div class="stat-mini-label">Notes</div>
-                            </div>
-                            <div class="stat-mini">
-                                <div class="stat-mini-value">-</div>
-                                <div class="stat-mini-label">Activity</div>
                             </div>
                         </div>
                     </ChildContent>
@@ -74,18 +66,18 @@ else
                         <div class="info-list">
                             <div class="info-row">
                                 <span class="info-label">Phone</span>
-                                <span class="info-value">@(_council.phone ?? "-")</span>
+                                <span class="info-value">@(_council.Phone ?? "-")</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Email</span>
-                                <span class="info-value">@(_council.email ?? "-")</span>
+                                <span class="info-value">@(_council.Email ?? "-")</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Website</span>
                                 <span class="info-value">
-                                    @if (!string.IsNullOrWhiteSpace(_council.website))
+                                    @if (!string.IsNullOrWhiteSpace(_council.Website))
                                     {
-                                        <a href="@_council.website" target="_blank" rel="noopener noreferrer">@_council.website</a>
+                                        <a href="@_council.Website" target="_blank" rel="noopener noreferrer">@_council.Website</a>
                                     }
                                     else
                                     {
@@ -93,23 +85,23 @@ else
                                     }
                                 </span>
                             </div>
-                            @if (_council.address is not null)
+                            @if (_council.Address is not null)
                             {
                                 <div class="info-row">
                                     <span class="info-label">Address</span>
-                                    <span class="info-value">@(_council.address.Street ?? "-")</span>
+                                    <span class="info-value">@(_council.Address.Street ?? "-")</span>
                                 </div>
                                 <div class="info-row">
                                     <span class="info-label">Suburb</span>
-                                    <span class="info-value">@(_council.address.Suburb ?? "-")</span>
+                                    <span class="info-value">@(_council.Address.Suburb ?? "-")</span>
                                 </div>
                                 <div class="info-row">
                                     <span class="info-label">State</span>
-                                    <span class="info-value">@(_council.address.State.ToString() ?? "-")</span>
+                                    <span class="info-value">@(_council.Address.State.ToString() ?? "-")</span>
                                 </div>
                                 <div class="info-row">
                                     <span class="info-label">Postcode</span>
-                                    <span class="info-value">@(_council.address.PostCode ?? "-")</span>
+                                    <span class="info-value">@(_council.Address.PostCode ?? "-")</span>
                                 </div>
                             }
                         </div>
@@ -131,71 +123,50 @@ else
             <!-- Main Content -->
             <div class="content-area">
                 <!-- Jobs -->
-                <Card>
-                    <TitleContent>
-                        <div class="card-header-with-tabs">
-                            <div class="tabs">
-                                <button class="tab active">All</button>
-                                <button class="tab">Deleted</button>
-                            </div>
-                            <button class="btn-add">+ Add</button>
-                        </div>
-                    </TitleContent>
+                <Card ShowHeaderWithTabs="true" OnTabSelect="ChangeTabs" HeaderTitle="Jobs" Tabs="[TabTypeEnum.All, TabTypeEnum.Deleted]" OnAddButtonClick="@(() => _navigationManager.NavigateTo("/jobs/edit/"))">
                     <ChildContent>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Contact</th>
-                                    <th>Address</th>
-                                    <th>Suburb</th>
-                                    <th>Job Number</th>
-                                    <th>Job Type</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_pagedJobs?.Result is null || _pagedJobs.Result.Count == 0)
-                                {
-                                    <tr>
-                                        <td colspan="6" class="empty-state">No records</td>
-                                    </tr>
-                                }
-                                else
-                                {
-                                    @foreach (var job in _pagedJobs.Result)
-                                    {
-                                        <tr>
-                                            <td>@job.JoinedContactName</td>
-                                            <td>@(job.Address?.Street ?? "-")</td>
-                                            <td>@(job.Address?.Suburb ?? "-")</td>
-                                            <td>@(job.JobNumber?.ToString() ?? "-")</td>
-                                            <td>
-                                                <StatusBadge statusEnum="@((JobTypeEnum)job.JobTypeInt)" />
-                                            </td>
-                                            <td class="">
-                                                <span>
-                                                    <ButtonIcon Href="@($"/jobs/view/{job.JobId}")" Icon="bi bi-eye" CssClass="me-1" />
-                                                    <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{job.JobId}")" />
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                        @if (_pagedJobs is not null && _pagedJobs.TotalCount > 0)
-                        {
-                            <div class="pagination-controls">
-                                <div class="pagination-info">
-                                    Showing @((_currentPage - 1) * _rowsPerPage + 1) to @(Math.Min(_currentPage * _rowsPerPage, _pagedJobs.TotalCount)) of @_pagedJobs.TotalCount jobs
-                                </div>
-                                <div class="pagination-buttons">
-                                    <MudButton Variant="Variant.Text" Disabled="@(_currentPage <= 1)" OnClick="@(() => LoadJobs(_currentPage - 1))">Previous</MudButton>
-                                    <span class="page-info">Page @_currentPage of @_pagedJobs.TotalNumberPages</span>
-                                    <MudButton Variant="Variant.Text" Disabled="@(_currentPage >= _pagedJobs.TotalNumberPages)" OnClick="@(() => LoadJobs(_currentPage + 1))">Next</MudButton>
-                                </div>
-                            </div>
-                        }
+                        <MudDataGrid T="ListJobDto"
+                                     ServerData="LoadJobs"
+                                     Filterable="false"
+                                     SortMode="SortMode.Single"
+                                     Loading="base.IsLoading"
+                                     RowsPerPage="_filterState.PageSize"
+                                     CurrentPage="_filterState.Page"
+                                     CurrentPageChanged="@((page) => { _filterState.Page = page;})"
+                                     Dense=true
+                                     @ref="_jobGrid"
+                                     Striped="true">
+                            <Columns>
+                                <TemplateColumn ShowFilterIcon="false" Title="Job Type">
+                                    <CellTemplate>
+                                        <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job #" HeaderStyle="max-width: 75px">
+                                    <CellTemplate>
+                                        <a class="contact-link" href=@($"/jobs/view/{context.Item.JobId}")>@context.Item.JobNumber</a>
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Contact" HeaderStyle="max-width: 75px">
+                                    <CellTemplate>
+                                        <a class="contact-link" href=@($"/contacts/{context.Item.Contact1?.contactId}")>@context.Item.JoinedContactName</a>
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                <PropertyColumn Property="x => x.Address.Street" ShowFilterIcon="false" Title="Street" />
+                                <PropertyColumn Property="x => x.Address.Suburb" ShowFilterIcon="false" Title="Suburb" />
+                                <TemplateColumn StickyLeft="true" Title="Action" HeaderStyle="max-width: 130px">
+                                    <CellTemplate>
+                                        <div class="d-flex flex-row gap-1">
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{context.Item.JobId}")" />
+                                            <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => RemoveJob(context.Item.JobId))" />
+                                        </div>
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                            <PagerContent>
+                                <MudDataGridPager T="ListJobDto" />
+                            </PagerContent>
+                        </MudDataGrid>
                     </ChildContent>
                 </Card>
             </div>

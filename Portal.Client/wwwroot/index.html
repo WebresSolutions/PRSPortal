@@ -18,12 +18,12 @@
         <div class="position-relative vh-100">
             <div class="position-absolute top-50 start-50 translate-middle w-25 text-center">
                 <div class="loading">
-                    <img src="images/PRS-Primary-Logo.svg" style="height: 150px" />
-                    <div class="progress mt-2" style="height: 2em;">
+                    <img src="images/PRS-Primary-Logo.svg" style="height: 150px; max-width: 50%" class="pulse"/>
+                    <!--<div class="progress mt-2" style="height: 2em;">
                         <div id="progressbar" class="progress-bar progress-bar-striped progress-bar-animated"
                              style="width: 0; background-color: var(--color-secondary);">
                         </div>
-                    </div>
+                    </div>-->
                 </div>
             </div>
         </div>
@@ -62,10 +62,13 @@
             const prod = "Production";
             const dev = "Development";
             const staging = "Staging";
+            const devTunnel = "DevTunnel";
 
             // Set the correct app settings based on the env that the project is loading in
             if (window.location.hostname.includes("localhost")) {
                 env = dev;
+            } else if (window.location.hostname.includes("devtunnels.ms")) {
+                env = devTunnel;
             }
             else if (window.location.hostname.includes("staging")) {
                 env = staging;
