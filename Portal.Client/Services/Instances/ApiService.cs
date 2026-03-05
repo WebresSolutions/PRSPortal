@@ -24,11 +24,11 @@ public class ApiService : IApiService
     /// The HTTP client used for making API requests
     /// </summary>
     private readonly HttpClient _httpClient;
+
     /// <summary>
     /// Navigation manager for handling page navigation
     /// </summary>
     private readonly NavigationManager _navigationManager;
-
     /// <summary>
     /// Initializes a new instance of the ApiService class
     /// </summary>
@@ -44,7 +44,6 @@ public class ApiService : IApiService
         _httpClient = httpClientFactory.CreateClient(httpClientName);
         _navigationManager = navigationManager;
     }
-
     /// <summary>
     /// Retrieves a paged list of jobs, optionally filtered by name and sorted according to the specified criteria.
     /// </summary>
@@ -106,7 +105,6 @@ public class ApiService : IApiService
 
         return res;
     }
-
     /// <summary>
     /// Retrieves the details of a job with the specified identifier.
     /// </summary>
@@ -141,7 +139,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Creates a new job with the provided details.
     /// </summary>
@@ -171,7 +168,11 @@ public class ApiService : IApiService
         }
         return res;
     }
-
+    /// <summary>
+    /// Deletes a job with the specified identifier. If the user is not authorized, the method may trigger navigation to the login page. The returned result contains error information if the request fails.
+    /// </summary>
+    /// <param name="jobId"></param>
+    /// <returns></returns>
     public async Task<Result<bool>> DeleteJob(int jobId)
     {
         Result<bool> res = new();
@@ -198,7 +199,11 @@ public class ApiService : IApiService
         }
         return res;
     }
-
+    /// <summary>
+    /// Updates Job Details
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
     public async Task<Result<JobDetailsDto>> UpdateJob(JobDetailsDto data)
     {
         Result<JobDetailsDto> res = new();
@@ -226,7 +231,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Gets the notes for a job.
     /// </summary>
@@ -262,7 +266,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Creates or updates a job note. Use NoteId 0 to create; set NoteId to the existing note id to update.
     /// </summary>
@@ -294,7 +297,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Gets technical contacts filtered by jobId and/or contactId. At least one of jobId or contactId must be provided.
     /// </summary>
@@ -329,7 +331,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Creates or updates a technical contact (links a contact to a job with a role). Use Id 0 to create; set Id to the existing technical contact id to update.
     /// </summary>
@@ -359,7 +360,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Retrieves the list of available schedule slots for an individual on the specified date and job type.
     /// </summary>
@@ -407,7 +407,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Retrieves the list of available schedule colours from the server.
     /// </summary>
@@ -426,7 +425,6 @@ public class ApiService : IApiService
             res.SetError(arrayResult.Error ?? ErrorType.InternalError, arrayResult.ErrorDescription ?? "Failed to get schedule colours");
         return res;
     }
-
     /// <summary>
     /// Updates the schedule colour using the specified colour data.
     /// </summary>
@@ -462,7 +460,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Retrieves the current system settings from the server asynchronously.
     /// </summary>
@@ -498,7 +495,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Updates the system settings with the specified values asynchronously.
     /// </summary>
@@ -533,7 +529,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Retrieves all councils from the server asynchronously.
     /// </summary>
@@ -568,7 +563,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Retrieves the details of a council with the specified identifier.
     /// </summary>
@@ -603,7 +597,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Retrieves the jobs associated with a council with pagination.
     /// </summary>
@@ -655,7 +648,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Retrieves a paged list of contacts, optionally filtered by search term and sorted according to the specified criteria.
     /// </summary>
@@ -720,7 +712,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Retrieves the details of a contact with the specified identifier.
     /// </summary>
@@ -755,59 +746,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Retrieves the jobs associated with a contact with pagination.
-    /// </summary>
-    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
-    /// result will contain error information if the request fails.</remarks>
-    /// <param name="contactId">The unique identifier of the contact.</param>
-    /// <param name="page">The page number (1-based).</param>
-    /// <param name="pageSize">The number of items per page.</param>
-    /// <param name="order">The sort direction (ascending or descending).</param>
-    /// <param name="orderby">Optional field name to sort by.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
-    public async Task<Result<PagedResponse<ListJobDto>>> GetContactJobs(int contactId, int page, int pageSize, SortDirectionEnum order, string? orderby)
-    {
-        Result<PagedResponse<ListJobDto>> res = new();
-        try
-        {
-            Dictionary<string, string> queryParameters = new()
-            {
-                { "page", page.ToString() },
-                { "pageSize", pageSize.ToString() },
-                { "order", ((int)order).ToString() }
-            };
-
-            if (orderby is not null)
-                queryParameters.Add("orderby", orderby ?? string.Empty);
-
-            FormUrlEncodedContent dictFormUrlEncoded = new(queryParameters);
-            string queryString = await dictFormUrlEncoded.ReadAsStringAsync();
-
-            HttpResponseMessage response = await _httpClient.GetAsync($"api/contacts/{contactId}/jobs?{queryString}");
-            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
-                await NavigationToLoginPage();
-            if (response.IsSuccessStatusCode)
-            {
-                PagedResponse<ListJobDto>? jobs = await response.Content.ReadFromJsonAsync<PagedResponse<ListJobDto>>();
-                res.Value = jobs;
-            }
-            else
-            {
-                res.ConvertHttpResponseToError(response.StatusCode);
-                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get contact jobs";
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Exception: {ex.Message}");
-            // Handle exception
-        }
-        return res;
-    }
-
     /// <summary>
     /// Gets notes for a particular user. If the user is not authorized, the method may trigger navigation to the login page. The returned result contains error information if the request fails.
     /// </summary>
@@ -839,7 +777,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Gets a list of users
     /// </summary>
@@ -871,7 +808,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Gets timesheet entries for a user within a date range. Use userId 0 for the current user.
     /// </summary>
@@ -903,7 +839,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <summary>
     /// Adds a new timesheet entry for the current user.
     /// </summary>
@@ -968,7 +903,6 @@ public class ApiService : IApiService
     /// </summary>
     public Task<Result<TimeTypeDto[]>> GetTimeSheetTypes() =>
         GetTypesAsync<TimeTypeDto>("api/types/timesheet", "timesheet types");
-
     public Task<Result<ContactTypeDto[]>> GetContactTypes() =>
         GetTypesAsync<ContactTypeDto>("api/types/contact", "contact types");
     public Task<Result<JobTypeDto[]>> GetJobTypes() =>
@@ -983,7 +917,6 @@ public class ApiService : IApiService
         GetTypesAsync<TechnicalContactTypeDto>("api/types/technicalcontact", "technical contact types");
     public Task<Result<StateDto[]>> GetStates() =>
         GetTypesAsync<StateDto>("api/types/state", "states");
-
     private async Task<Result<T[]>> GetTypesAsync<T>(string url, string typeName)
     {
         Result<T[]> res = new();
@@ -1009,7 +942,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     private async Task<Result<T>> PutTypeAsync<T>(string url, T dto, string typeName)
     {
         Result<T> res = new();
@@ -1036,7 +968,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     public Task<Result<TimeTypeDto>> SaveTimeSheetType(TimeTypeDto dto) =>
         PutTypeAsync("api/types/timesheet", dto, "timesheet type");
     public Task<Result<ContactTypeDto>> SaveContactType(ContactTypeDto dto) =>

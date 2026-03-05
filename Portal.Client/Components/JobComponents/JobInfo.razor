@@ -3,46 +3,54 @@
 <Card Title="Job Information">
     <ChildContent>
         <div class="info-list">
-            @if (Contact is not null)
+            @if (Job.PrimaryContact is not null)
             {
                 <div class="info-row">
                     <span class="info-label">Contact</span>
                     <span class="info-value" @onmouseover="@(() => showViewContactButton = true)" @onmouseleave="@(() => showViewContactButton = false)">
-                        <a style="color: var(--color-secondary)" href=@($"/contacts/{Contact!.ContactId}")>@Contact.ContactName</a>
+                        <a style="color: var(--color-secondary)" href=@($"/contacts/{Job.PrimaryContact!.ContactId}")>@Job.PrimaryContact.ContactName</a>
                     </span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Email</span>
-                    <span class="info-value">@Contact.Email</span>
+                    <span class="info-value">@Job.PrimaryContact.Email</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Phone</span>
-                    <span class="info-value">@Contact.Phone</span>
+                    <span class="info-value">@Job.PrimaryContact.Phone</span>
                 </div>
             }
-            @if (Council is not null)
+            @if (Job.Council is not null)
             {
                 <div class="info-row">
                     <span class="info-label">Council</span>
 
                     <span class="info-value">
-                        <a style="color: var(--color-secondary)" href=@($"/councils/{Council!.CouncilId}")>@Council.CouncilName</a>
+                        <a style="color: var(--color-secondary)" href=@($"/councils/{Job.Council!.CouncilId}")>@Job.Council.CouncilName</a>
                     </span>
                 </div>
             }
-            @if (!string.IsNullOrEmpty(PlanRef))
+            @if (!string.IsNullOrEmpty(""))
             {
                 <div class="info-row">
                     <span class="info-label">Plan Ref</span>
-                    <span class="info-value">@PlanRef</span>
+                    <span class="info-value"></span>
                 </div>
             }
-            @if (!string.IsNullOrEmpty(Details))
+            @if (!string.IsNullOrEmpty(Job.Details))
             {
                 <div class="info-row">
-                    <span class="info-value">@Details</span>
+                    <span class="info-value">@Job.Details</span>
                 </div>
             }
+            <div class="info-row">
+                <span class="info-label">Created</span>
+                <span class="info-value">@Job.DateCreated.ToLocalTime().ToString("dd MM yy tt")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Created By</span>
+                <span class="info-value">@Job.CreatedBy</span>
+            </div>
         </div>
     </ChildContent>
 </Card>
@@ -52,22 +60,8 @@
     /// Gets or sets the contact information for the job
     /// </summary>
     [Parameter]
-    public JobContactDto? Contact { get; set; }
+    public JobDetailsDto Job { get; set; }
 
-    /// <summary>
-    /// Gets or sets the council information for the job
-    /// </summary>
-    [Parameter]
-    public JobCouncilDto? Council { get; set; }
-
-    [Parameter]
-    public string? Details { get; set; }
-
-    /// <summary>
-    /// Gets or sets the plan reference number
-    /// </summary>
-    [Parameter]
-    public string? PlanRef { get; set; }
 
     private bool showViewCouncilButton = false;
     private bool showViewContactButton = false;

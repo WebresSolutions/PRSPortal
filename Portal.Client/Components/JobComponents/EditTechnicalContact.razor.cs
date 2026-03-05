@@ -17,11 +17,11 @@ public partial class EditTechnicalContact
     /// <summary>
     /// The List of job contacts
     /// </summary>
-    private ListContactDto? JobContact = null!;
+    private ListContactDto? _jobContact = null!;
     /// <summary>
     /// List of contact types for the dropdown
     /// </summary>
-    private TechnicalContactTypeDto[] ContactTypes = [];
+    private TechnicalContactTypeDto[] _contactTypes = [];
     /// <summary>
     /// If adding a new contact, the header will show "Add Technical Contact", if editing an existing contact, it will show "Edit Technical Contact"
     /// </summary>
@@ -36,11 +36,11 @@ public partial class EditTechnicalContact
         base.IsLoading = true;
         Result<TechnicalContactTypeDto[]>? contactTypesResult = await _apiService.GetTechnicalContactTypes();
         if (contactTypesResult?.IsSuccess == true && contactTypesResult.Value is not null)
-            ContactTypes = contactTypesResult.Value;
+            _contactTypes = contactTypesResult.Value;
 
         if (Model.Id is not 0)
         {
-            JobContact = new()
+            _jobContact = new()
             {
                 FullName = Model.ContactName ?? "",
                 Email = Model.Email ?? "",
@@ -57,7 +57,7 @@ public partial class EditTechnicalContact
     /// <returns></returns>
     private void OnContactChanged(ListContactDto value)
     {
-        JobContact = value;
+        _jobContact = value;
         Model.ContactId = value.ContactId;
     }
 

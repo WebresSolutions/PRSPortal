@@ -1,6 +1,5 @@
 using Portal.Shared;
 using Portal.Shared.DTO.Contact;
-using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Services.Interfaces;
@@ -31,17 +30,5 @@ public interface IContactService
     /// cref="Result{ContactDetailsDto}"/> with contact details if found; otherwise, an error indicating that the contact was not
     /// found.</returns>
     Task<Result<ContactDetailsDto>> GetContactDetails(int contactId);
-
-    /// <summary>
-    /// Retrieves the jobs associated with a contact with pagination.
-    /// </summary>
-    /// <param name="contactId">The unique identifier of the contact.</param>
-    /// <param name="page">The page number (1-based).</param>
-    /// <param name="pageSize">The number of items per page.</param>
-    /// <param name="order">The sort direction (ascending or descending).</param>
-    /// <param name="orderby">Optional field name to sort by.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
-    Task<Result<PagedResponse<ListJobDto>>> GetContactJobs(int contactId, int page, int pageSize, SortDirectionEnum? order, string? orderby);
 }
 

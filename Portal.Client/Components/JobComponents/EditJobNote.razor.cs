@@ -23,13 +23,13 @@ public partial class EditJobNote
     /// </summary>
     public UserDto[] Users { get; set; } = [];
 
-    private MudExRichTextEdit Editor = null!;
+    private MudExRichTextEdit _editor = null!;
 
-    private string SaveContent = "";
+    private string _saveContent = "";
 
-    private bool Readonly = false;
+    private bool _readonly = false;
 
-    private int? AssignedUser;
+    private int? _assignedUser;
 
     /// <summary>
     /// Loads users for assignment and initializes the editor with the note content when parameters are set.
@@ -45,7 +45,7 @@ public partial class EditJobNote
             Snackbar.Add("Failed to load users for note assignment.", Severity.Error);
 
         if (Note.AssignedUser is not null)
-            AssignedUser = Users.FirstOrDefault(u => u.userId == Note.AssignedUser.userId)?.userId;
+            _assignedUser = Users.FirstOrDefault(u => u.userId == Note.AssignedUser.userId)?.userId;
 
         await Task.Delay(300);
 
@@ -57,11 +57,11 @@ public partial class EditJobNote
             if (Note.Content.Contains("data:image") && Note.Content.Length > 100000)
             {
                 Snackbar.Add("Large images detected. Performance may be affected.", Severity.Warning);
-                SaveContent = Note.Content;
+                _saveContent = Note.Content;
             }
             else
             {
-                SaveContent = Note.Content;
+                _saveContent = Note.Content;
             }
         }
 
@@ -74,7 +74,7 @@ public partial class EditJobNote
     /// <param name="value">The new content from the editor.</param>
     private void OnContentChanged(string value)
     {
-        SaveContent = value;
+        _saveContent = value;
         // Note.Content = value;
     }
 
@@ -84,9 +84,9 @@ public partial class EditJobNote
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SaveNote()
     {
-        Note.Content = SaveContent;
-        if (AssignedUser != Note.AssignedUser?.userId)
-            Note.AssignedUser = AssignedUser is null ? null : new UserDto(AssignedUser, Users.FirstOrDefault(u => u.userId == AssignedUser)?.displayName);
+        Note.Content = _saveContent;
+        if (_assignedUser != Note.AssignedUser?.userId)
+            Note.AssignedUser = _assignedUser is null ? null : new UserDto(_assignedUser, Users.FirstOrDefault(u => u.userId == _assignedUser)?.displayName);
 
         Result<List<JobNoteDto>> result = await _apiService.SaveJobNote(Note);
         if (result.IsSuccess && result.Value is not null)

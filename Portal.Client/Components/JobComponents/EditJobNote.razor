@@ -1,4 +1,4 @@
-﻿@using Portal.Shared.DTO.Job
+@using Portal.Shared.DTO.Job
 @using Portal.Shared.DTO.User
 @inject ISnackbar Snackbar
 
@@ -7,7 +7,7 @@
         <h4 class="header-border">Job Note</h4>
         <div class="edit-note-container border-rad">
             <div class="assign-user-container">
-                <MudSelect T="int?" Label="Assign a user" Clearable="true" Variant="Variant.Outlined" MultiSelection="false" @bind-Value="AssignedUser">
+                <MudSelect T="int?" Label="Assign a user" Clearable="true" Variant="Variant.Outlined" MultiSelection="false" @bind-Value="_assignedUser">
                     @foreach (UserDto user in Users)
                     {
                         <MudSelectItem T="int?" Value="@user.userId">@user.displayName</MudSelectItem>
@@ -16,11 +16,11 @@
                 <MudCheckBox Label="Action Required" @bind-value="Note.ActionRequired" />
             </div>
 
-            <MudExRichTextEdit @ref="@Editor"
-                               ReadOnly="@Readonly"
+            <MudExRichTextEdit @ref="_editor"
+                               ReadOnly="_readonly"
                                Height="500"
                                Class="m-2 border-rad"
-                               Value="@SaveContent"
+                               Value="@_saveContent"
                                ValueChanged="OnContentChanged"
                                Placeholder="Start typing...">
             </MudExRichTextEdit>

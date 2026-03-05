@@ -112,15 +112,27 @@
     [Parameter]
     public bool ShowHeaderWithTabs { get; set; } = false;
 
+    /// <summary>
+    /// Called when a tab is selected in the header tabs. Only has effect when <see cref="ShowHeaderWithTabs"/> is true.
+    /// </summary>
     [Parameter]
     public EventCallback<TabTypeEnum> OnTabSelect { get; set; }
 
+    /// <summary>
+    /// List of tabs to show in the header. Only has effect when <see cref="ShowHeaderWithTabs"/> is true. If empty, no tabs will be shown.
+    /// </summary>
     [Parameter]
     public HashSet<TabTypeEnum> Tabs { get; set; } = [];
 
+    /// <summary>
+    /// Called when the add button in the header with tabs is clicked. Only has effect when <see cref="ShowHeaderWithTabs"/> is true and the event has a delegate assigned.
+    /// </summary>
     [Parameter]
     public EventCallback TabButtonClick { get; set; }
 
+    /// <summary>
+    /// Changes the selected tab programmatically. Only has effect when <see cref="ShowHeaderWithTabs"/> is true and the tab is in <see cref="Tabs"/>.
+    /// </summary>
     [Parameter]
     public EventCallback<TabTypeEnum> ChangeTabs { get; set; }
     #endregion

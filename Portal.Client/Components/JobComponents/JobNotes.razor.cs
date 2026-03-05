@@ -24,11 +24,11 @@ public partial class JobNotes
     /// A copy of the original notes list used for filtering and searching. 
     /// This allows us to maintain the original list of notes while applying filters or search criteria to the displayed list without losing the original data.
     /// </summary>
-    List<JobNoteDto> NotesCopy { get; set; } = [];
+    private List<JobNoteDto> NotesCopy { get; set; } = [];
     /// <summary>
     /// A list of tabs for filtering notes based on their status (e.g., All, Action Required, Deleted).
     /// </summary>
-    public HashSet<TabTypeEnum> Tabs { get; set; } = [TabTypeEnum.All, TabTypeEnum.ActionRequired, TabTypeEnum.Deleted];
+    private HashSet<TabTypeEnum> Tabs { get; set; } = [TabTypeEnum.All, TabTypeEnum.ActionRequired, TabTypeEnum.Deleted];
     /// <summary>
     /// The card reference
     /// </summary>

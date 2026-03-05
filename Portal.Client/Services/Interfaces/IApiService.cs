@@ -196,19 +196,6 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a <see
     /// cref="Result{ContactDetailsDto}"/> object with the contact details if found; otherwise, contains error information.</returns>
     Task<Result<ContactDetailsDto>> GetContactDetails(int contactId);
-    /// <summary>
-    /// Retrieves the jobs associated with a contact with pagination.
-    /// </summary>
-    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
-    /// result will contain error information if the request fails.</remarks>
-    /// <param name="contactId">The unique identifier of the contact.</param>
-    /// <param name="page">The page number (1-based).</param>
-    /// <param name="pageSize">The number of items per page.</param>
-    /// <param name="order">The sort direction (ascending or descending).</param>
-    /// <param name="orderby">Optional field name to sort by.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
-    Task<Result<PagedResponse<ListJobDto>>> GetContactJobs(int contactId, int page, int pageSize, SortDirectionEnum order, string? orderby);
     #endregion
 
     #region USERS

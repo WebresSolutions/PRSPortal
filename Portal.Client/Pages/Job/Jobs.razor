@@ -15,11 +15,11 @@
                     <h2>Jobs</h2>
                 </div>
                 <div class="search-container">
-                    <MudTextField T="string" @bind-Value="_filterState.AddressSearch" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.AddressSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
+                    <MudTextField T="string" @bind-Value="_filterState.AddressSearch" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.AddressSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
                                   AdornmentIcon="@Icons.Material.Filled.OtherHouses" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _filterState.AddressSearch = null)"></MudTextField>
-                    <MudTextField T="string" @bind-Value="_filterState.JobNumberSearch" Placeholder="Search by Job Number" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.JobNumberSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
+                    <MudTextField T="string" @bind-Value="_filterState.JobNumberSearch" Placeholder="Search by Job Number" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.JobNumberSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
                                   AdornmentIcon="@Icons.Material.Filled.Numbers" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _filterState.JobNumberSearch = null)"></MudTextField>
-                    <MudTextField T="string" @bind-Value="_filterState.ContactSearch" Placeholder="Search by Contact" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.ContactSearch = x; await OnSearch(x); })" Variant="Variant.Outlined"
+                    <MudTextField T="string" @bind-Value="_filterState.ContactSearch" Placeholder="Search by Contact" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.ContactSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
                                   AdornmentIcon="@Icons.Material.Filled.Group" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _filterState.ContactSearch = null)"></MudTextField>
                 </div>
             </div>
@@ -42,16 +42,16 @@
                          @ref="_grid"
                          Striped="true">
                 <Columns>
-                    <TemplateColumn StickyLeft="true" Title="Action" HeaderStyle="max-width: 130px">
+                    <TemplateColumn ShowFilterIcon="false" Title="Job Type">
                         <CellTemplate>
-                            <div class="d-flex flex-row gap-1">
-                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($"/jobs/view/{context.Item.JobId}")" />
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{context.Item.JobId}")" />
-                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => RemoveJob(context.Item.JobId))" />
-                            </div>
+                            <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
                         </CellTemplate>
                     </TemplateColumn>
-                    <PropertyColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number #" HeaderStyle="max-width: 75px" />
+                    <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Sortable="true" Title="Job Number #" HeaderStyle="max-width: 75px">
+                        <CellTemplate>
+                            <a class="contact-link" href=@($"/jobs/view/{context.Item.JobId}")>@context.Item.JobNumber</a>
+                        </CellTemplate>
+                    </TemplateColumn>
                     @* <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" /> *@
                     <TemplateColumn ShowFilterIcon="false" Title="Contact">
                         <CellTemplate>
@@ -73,9 +73,12 @@
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.Address.Street" ShowFilterIcon="false" Title="Street" />
                     <PropertyColumn Property="x => x.Address.Suburb" ShowFilterIcon="false" Title="Suburb" />
-                    <TemplateColumn ShowFilterIcon="false" Title="Job Type">
+                    <TemplateColumn StickyRight="true" Title="Action" HeaderStyle="max-width: 130px">
                         <CellTemplate>
-                            <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
+                            <div class="d-flex flex-row gap-1">
+                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{context.Item.JobId}")" />
+                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => RemoveJob(context.Item.JobId))" />
+                            </div>
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>

@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Portal.Client.Components.JobComponents;
 using Portal.Client.Components.UIComponents;
 using Portal.Shared;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.ResponseModels;
 
-namespace Portal.Client.Components.JobComponents;
+namespace Portal.Client.Components.Contact;
 
-public partial class TechnicalContacts
+public partial class TechnicalContacts : IDisposable
 {
     /// <summary>
     /// The job id that these technical contacts belong to
@@ -28,7 +29,13 @@ public partial class TechnicalContacts
     /// <summary>
     /// The list of technical contacts
     /// </summary>
-    private TechnicalContactDto[] TechnicalContactDtos = [];
+    private TechnicalContactDto[] _technicalContactDtos = [];
+
+    /// <summary>
+    /// The reference to the MudDataGrid component, used to trigger data reloads when filter criteria change. 
+    /// This allows external methods (e.g., search input handlers) to refresh the grid data by calling _grid.ReloadServerData() after updating the filter state and URL query parameters. The grid will call the LoadJobs method to fetch the updated data from the API based on the current filter state.
+    /// </summary>
+    private MudDataGrid<TechnicalContactDto>? _grid;
 
     /// <summary>
     /// Called when the component is initialized, used to load the technical contacts
@@ -41,7 +48,7 @@ public partial class TechnicalContacts
 
         Result<TechnicalContactDto[]> contactsResult = await _apiService.GetTechnicalContacts(JobId, ContactId, false);
         if (contactsResult.IsSuccess)
-            TechnicalContactDtos = contactsResult.Value ?? [];
+            _technicalContactDtos = contactsResult.Value ?? [];
         else
             _snackbar.Add(contactsResult.ErrorDescription ?? "Failed to load technical contacts.", Severity.Error);
 
@@ -74,7 +81,7 @@ public partial class TechnicalContacts
             {
                 if (data.IsSuccess && data.Value is not null)
                 {
-                    TechnicalContactDtos = data.Value;
+                    _technicalContactDtos = data.Value;
                     return data.Value;
                 }
                 _snackbar.Add("Failed to load notes", Severity.Error);
@@ -131,5 +138,11 @@ public partial class TechnicalContacts
     {
         _cardRef?.SetSelectedTab(TabTypeEnum.All);
         await ChangeTabs(TabTypeEnum.All);
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        _grid?.Dispose();
     }
 }

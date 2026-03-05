@@ -15,18 +15,18 @@ public partial class CustomizableGrid
     /// <summary>
     /// Tracks the history of the grid when moving the components around.
     /// </summary>
-    private Stack<GridState> gridHistory = new();
-    private bool isEditing = false;
-    private GridState? GridState;
-    private GridItem? draggedItem;
-    private (double, double)? resizeStartPos;
+    private Stack<GridState> _gridHistory = new();
+    private bool _isEditing = false;
+    private GridState? _gridState;
+    private GridItem? _draggedItem;
+    private (double, double)? _resizeStartPos;
 
     /// <summary>
     /// Initializes the grid state and default grid items from the configured components.
     /// </summary>
     protected override void OnInitialized()
     {
-        GridState = new(GridRowsColumns.Item1, GridRowsColumns.Item2, 120, 8)
+        _gridState = new(GridRowsColumns.Item1, GridRowsColumns.Item2, 120, 8)
         {
             // Initialize grid with some items
             Items =
@@ -46,7 +46,7 @@ public partial class CustomizableGrid
     /// <param name="item">The grid item to be dragged. Cannot be null.</param>
     private void HandleDragStart(GridItem item)
     {
-        draggedItem = item;
+        _draggedItem = item;
     }
 
     /// <summary>
@@ -56,28 +56,28 @@ public partial class CustomizableGrid
     private void HandleDrop(DragEventArgs e)
     {
         // If we were resizing, don't move the item!
-        if (isResizing || draggedItem == null)
+        if (_isResizing || _draggedItem == null)
         {
-            isResizing = false;
+            _isResizing = false;
             return;
         }
 
-        double oldX = draggedItem.X;
-        double oldY = draggedItem.Y;
+        double oldX = _draggedItem.X;
+        double oldY = _draggedItem.Y;
 
-        draggedItem.X = (int)Math.Round(e.OffsetX / GridState!.CellSizePx);
-        draggedItem.Y = (int)Math.Round(e.OffsetY / GridState!.CellSizePx);
+        _draggedItem.X = (int)Math.Round(e.OffsetX / _gridState!.CellSizePx);
+        _draggedItem.Y = (int)Math.Round(e.OffsetY / _gridState!.CellSizePx);
 
-        if (!GridState!.IsDragValid(draggedItem))
+        if (!_gridState!.IsDragValid(_draggedItem))
         {
-            draggedItem.X = oldX;
-            draggedItem.Y = oldY;
+            _draggedItem.X = oldX;
+            _draggedItem.Y = oldY;
         }
 
-        draggedItem = null;
+        _draggedItem = null;
     }
 
-    private bool isResizing = false;
+    private bool _isResizing = false;
 
     /// <summary>
     /// Begins a resize operation for the specified grid item and records the starting pointer position.
@@ -86,9 +86,9 @@ public partial class CustomizableGrid
     /// <param name="item">The grid item being resized.</param>
     private void HandleResizeStart(DragEventArgs e, GridItem item)
     {
-        isResizing = true; // Flag to prevent 'HandleDrop' from firing for moves
-        resizeStartPos = (e.ClientX, e.ClientY);
-        draggedItem = item;
+        _isResizing = true; // Flag to prevent 'HandleDrop' from firing for moves
+        _resizeStartPos = (e.ClientX, e.ClientY);
+        _draggedItem = item;
     }
 
     /// <summary>
@@ -97,29 +97,29 @@ public partial class CustomizableGrid
     /// <param name="e">The drag event args with current client coordinates.</param>
     private void HandleResize(DragEventArgs e)
     {
-        if (resizeStartPos is null || draggedItem is null || e.ClientX == 0)
+        if (_resizeStartPos is null || _draggedItem is null || e.ClientX == 0)
             return;
 
         // Calculate how many cells the mouse has moved
-        double diffX = e.ClientX - resizeStartPos.Value.Item1;
-        double diffY = e.ClientY - resizeStartPos.Value.Item2;
+        double diffX = e.ClientX - _resizeStartPos.Value.Item1;
+        double diffY = e.ClientY - _resizeStartPos.Value.Item2;
 
         // Convert pixels to Grid Units
-        int colDelta = (int)Math.Round(diffX / (GridState!.CellSizePx * 2));
-        int rowDelta = (int)Math.Round(diffY / (GridState!.CellSizePx * 2));
+        int colDelta = (int)Math.Round(diffX / (_gridState!.CellSizePx * 2));
+        int rowDelta = (int)Math.Round(diffY / (_gridState!.CellSizePx * 2));
 
         if (colDelta != 0 || rowDelta != 0)
         {
-            draggedItem.ColSpan = Math.Max(1, draggedItem.ColSpan + colDelta);
-            draggedItem.RowSpan = Math.Max(1, draggedItem.RowSpan + rowDelta);
+            _draggedItem.ColSpan = Math.Max(1, _draggedItem.ColSpan + colDelta);
+            _draggedItem.RowSpan = Math.Max(1, _draggedItem.RowSpan + rowDelta);
 
-            if (!GridState!.IsResizeValid(draggedItem))
+            if (!_gridState!.IsResizeValid(_draggedItem))
             {
-                draggedItem.ColSpan = Math.Max(1, draggedItem.ColSpan - colDelta);
-                draggedItem.RowSpan = Math.Max(1, draggedItem.RowSpan - rowDelta);
+                _draggedItem.ColSpan = Math.Max(1, _draggedItem.ColSpan - colDelta);
+                _draggedItem.RowSpan = Math.Max(1, _draggedItem.RowSpan - rowDelta);
             }
 
-            resizeStartPos = (e.ClientX, e.ClientY);
+            _resizeStartPos = (e.ClientX, e.ClientY);
         }
     }
 
@@ -128,8 +128,8 @@ public partial class CustomizableGrid
     /// </summary>
     private void HandleResizeEnd()
     {
-        isResizing = false;
-        resizeStartPos = null;
-        draggedItem = null;
+        _isResizing = false;
+        _resizeStartPos = null;
+        _draggedItem = null;
     }
 }

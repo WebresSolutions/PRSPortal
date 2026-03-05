@@ -80,16 +80,28 @@
     gap: 1rem;
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1650px) {
     .main-grid {
-        grid-template-columns: 250px 1fr 320px;
+        grid-template-columns: 250px 1fr;
     }
+
+        .main-grid > *:nth-child(2),
+        .main-grid > *:nth-child(3) {
+            grid-column: 2;
+        }
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 800px) {
     .main-grid {
         grid-template-columns: 1fr;
     }
+
+        /* Use the same level of specificity to override the previous rule */
+        .main-grid > *,
+        .main-grid > *:nth-child(2),
+        .main-grid > *:nth-child(3) {
+            grid-column: 1;
+        }
 }
 
 .sidebar {

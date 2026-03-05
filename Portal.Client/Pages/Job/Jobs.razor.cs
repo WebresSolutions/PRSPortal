@@ -7,16 +7,8 @@ using Portal.Shared.Web;
 
 namespace Portal.Client.Pages.Job;
 
-public partial class Jobs
+public partial class Jobs : IDisposable
 {
-    private PagedResponse<ListJobDto>? _pagedResponse;
-    private readonly int _rowsPerPage = 25;
-    private MudDataGrid<ListJobDto>? _grid;
-    /// <summary>
-    /// Current filter and pagination state, synced from and to query parameters.
-    /// </summary>
-    private SessionSearchData _filterState = new();
-
     #region Query Parameters
     [Parameter]
     [SupplyParameterFromQuery(Name = "page")]
@@ -41,8 +33,26 @@ public partial class Jobs
     [Parameter]
     [SupplyParameterFromQuery(Name = "order")]
     public string? Order { get; set; }
+    #endregion
 
-    private bool ShowDeleted = false;
+    #region Private Fields 
+    /// <summary>
+    /// The paged response containing the current page of jobs and total count, used to bind data to the grid. Updated on each data load from the API.
+    /// </summary>
+    private PagedResponse<ListJobDto>? _pagedResponse;
+    /// <summary>
+    /// Rows per page for the grid, defaulting to 25. This is used as the default page size if not specified in query parameters and can be updated by the user through the grid's pagination controls, which will then update the URL query parameters accordingly.
+    /// </summary>
+    private readonly int _rowsPerPage = 25;
+    /// <summary>
+    /// The reference to the MudDataGrid component, used to trigger data reloads when filter criteria change. 
+    /// This allows external methods (e.g., search input handlers) to refresh the grid data by calling _grid.ReloadServerData() after updating the filter state and URL query parameters. The grid will call the LoadJobs method to fetch the updated data from the API based on the current filter state.
+    /// </summary>
+    private MudDataGrid<ListJobDto>? _grid;
+    /// <summary>
+    /// Current filter and pagination state, synced from and to query parameters.
+    /// </summary>
+    private SessionSearchData _filterState = new();
     #endregion
 
     /// <summary>
@@ -160,7 +170,7 @@ public partial class Jobs
             _filterState.Page = state.Page;
             _filterState.PageSize = state.PageSize;
             UpdateUrlFromState();
-            JobFilterDto search = new(apiPageNumber, apiPageSize, _filterState.AddressSearch, _filterState.ContactSearch, _filterState.JobNumberSearch, _filterState.OrderBy, _filterState.Order, ShowDeleted, null, null);
+            JobFilterDto search = new(apiPageNumber, apiPageSize, _filterState.AddressSearch, _filterState.ContactSearch, _filterState.JobNumberSearch, _filterState.OrderBy, _filterState.Order, _filterState.ShowDeleted, null, null);
             Result<PagedResponse<ListJobDto>>? apiResult = await _apiService.GetAllJobs(search);
 
             if (apiResult is not null && apiResult.IsSuccess && apiResult.Value is not null)
@@ -182,8 +192,8 @@ public partial class Jobs
         }
         catch (Exception)
         {
-
-            return new GridData<ListJobDto>() { Items = Enumerable.Empty<ListJobDto>(), TotalItems = 0 };
+            _snackbar?.Add("Error Loading Jobs", Severity.Error);
+            return new GridData<ListJobDto>() { Items = [], TotalItems = 0 };
         }
         finally
         {
@@ -206,7 +216,7 @@ public partial class Jobs
     /// </summary>
     /// <param name="text">The search text entered by the user</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    private Task OnSearch(string text)
+    private Task OnSearch()
     {
         _filterState.Page = 0;
         UpdateUrlFromState();
@@ -217,24 +227,13 @@ public partial class Jobs
     }
 
     /// <summary>
-    /// Clears the search filters, resets state to defaults, and navigates to the base URL.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private Task ClearSearch()
-    {
-        _filterState = new SessionSearchData();
-        _navigationManager.NavigateTo(_navigationManager.ToBaseRelativePath(_navigationManager.Uri).Split('?')[0], replace: true);
-        return _grid is not null ? _grid.ReloadServerData() : Task.CompletedTask;
-    }
-
-    /// <summary>
     /// Toggles visibility of deleted jobs based on the selected tab and reloads the grid.
     /// </summary>
     /// <param name="tabName">The name of the selected tab (e.g. "Deleted").</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task ShowDelete(TabTypeEnum tabType)
     {
-        ShowDeleted = tabType is TabTypeEnum.Deleted;
+        _filterState.ShowDeleted = tabType is TabTypeEnum.Deleted;
         if (_grid is not null)
             await _grid.ReloadServerData();
     }
@@ -263,6 +262,11 @@ public partial class Jobs
             else
                 _snackbar.Add(result.ErrorDescription ?? "Failed to delete Job.", Severity.Error);
         }
+    }
 
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        _grid?.Dispose();
     }
 }

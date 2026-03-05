@@ -6,7 +6,7 @@
 <Card @ref="_cardRef" ShowHeaderWithTabs="true" HeaderTitle="Technical Contacts" OnTabSelect="ChangeTabs" Tabs="[TabTypeEnum.All, TabTypeEnum.Deleted]" TabButtonClick="@(() => NewTechnicalContact(null))">
     <ChildContent>
         <MudDataGrid T="TechnicalContactDto"
-                     Items="@TechnicalContactDtos"
+                     Items="@_technicalContactDtos"
                      Dense="true"
                      Striped="true"
                      Loading="@base.IsLoading"
@@ -14,7 +14,8 @@
                      Breakpoint="Breakpoint.Sm"
                      FixedHeader="true"
                      SortMode="SortMode.None"
-                     RowsPerPage="10">
+                     RowsPerPage="10"
+                     @ref=@_grid>
             <Columns>
                 <PropertyColumn Property="x => x.ContactType" Title="Role" />
                 <TemplateColumn Title="@(JobId is not null ? "Contact" : "Job #")">
@@ -51,7 +52,7 @@
                 </TemplateColumn>
             </Columns>
             <NoRecordsContent>
-                <span class="empty-state">No records</span>
+                <span class="empty-state">No Records</span>
             </NoRecordsContent>
             <PagerContent>
                 <MudDataGridPager T="TechnicalContactDto" />

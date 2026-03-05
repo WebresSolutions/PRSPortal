@@ -18,7 +18,7 @@ public partial class Job : IDisposable
     private AdvancedGoogleMap? _map;
     private MapOptions _mapOptions = default!;
 
-    private readonly List<MarkerData> Markers = [];
+    private readonly List<MarkerData> _markers = [];
 
     /// <summary>
     /// Initializes the component by loading job details, notes, and configuring the map.
@@ -33,7 +33,7 @@ public partial class Job : IDisposable
         if (_job?.Address?.LatLng is not null)
         {
             center = new LatLngLiteral(_job.Address.LatLng.Latitude, _job.Address.LatLng.Longitude);
-            Markers.Add(new MarkerData
+            _markers.Add(new MarkerData
             {
                 Id = 1,
                 Lat = _job.Address.LatLng.Latitude,

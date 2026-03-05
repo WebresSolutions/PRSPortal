@@ -1,18 +1,18 @@
-﻿@if (GridState is not null)
+@if (_gridState is not null)
 {
-    <button @onclick="@(() => isEditing = !isEditing)">Edit</button>
-    <div class=@(isEditing ? "custom-grid edit" : "custom-grid")
-         style="@GridState.AsCss()"
+    <button @onclick="@(() => _isEditing = !_isEditing)">Edit</button>
+    <div class=@(_isEditing ? "custom-grid edit" : "custom-grid")
+         style="@_gridState.AsCss()"
          @ondragover:preventDefault
          @ondragover="() => { }"
          @ondrop="HandleDrop">
 
-        @foreach (GridItem item in GridState.Items)
+        @foreach (GridItem item in _gridState.Items)
         {
             if (!item.IsHidden)
             {
-                <div class=@(isEditing ? "outer-grid-item edit" : "outer-grid-item") style="@item.AsCss()">
-                    <div class="grid-item @(draggedItem == item ? "selected" : "")"
+                <div class=@(_isEditing ? "outer-grid-item edit" : "outer-grid-item") style="@item.AsCss()">
+                    <div class="grid-item @(_draggedItem == item ? "selected" : "")"
                          draggable="true"
                          @ondragstart="() => HandleDragStart(item)">
                         @if (item.Content is not null)
@@ -25,7 +25,7 @@
                             <small>Pos: @item.X, @item.Y</small>
                         }
                     </div>
-                    @if (isEditing)
+                    @if (_isEditing)
                     {
                         <div class="resize-item drag-right"
                              draggable="true"

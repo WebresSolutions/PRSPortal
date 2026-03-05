@@ -32,22 +32,22 @@ public partial class Schedule
     [Parameter]
     public int? JobType { get; set; }
 
-    private UserDto[] Users = [];
+    private UserDto[] _users = [];
 
     /// <summary>
     /// Gets or sets the date/time value for calendar display
     /// </summary>
-    private DateTime DateTime { get; set; }
+    private DateTime _dateTime;
 
     /// <summary>
     /// Gets or sets the job type enum value
     /// </summary>
-    private JobTypeEnum JobTypeEnum;
+    private JobTypeEnum _jobTypeEnum;
 
     /// <summary>
     /// Gets or sets the list of schedule slots with calendar event information
     /// </summary>
-    private List<ScheduleSlotDtoWithCalendar> scheduleSlots = [];
+    private List<ScheduleSlotDtoWithCalendar> _scheduleSlots = [];
     /// <summary>
     /// Called when the component is initialized.
     /// Data loading for the grid is now handled by LoadFacilitiesServerData.
@@ -60,22 +60,22 @@ public partial class Schedule
 
         Result<UserDto[]> users = await _apiService.GetUsersList();
         if (users.IsSuccess && users.Value is not null)
-            Users = users.Value;
+            _users = users.Value;
         else
             _snackbar.Add(users.ErrorDescription ?? "Error occured while loading the users", Severity.Error);
 
         // Parse date from route parameter or default to today
         if (string.IsNullOrEmpty(Date) || !DateOnly.TryParse(Date, out DateOnly dateOnly))
         {
-            dateOnly = DateOnly.FromDateTime(DateTime.Today);
+            dateOnly = DateOnly.FromDateTime(System.DateTime.Today);
             Date = dateOnly.ToString("yyyy-MM-dd");
         }
 
         // If no job type provided, default to Construction
         JobType ??= (int)JobTypeEnum.Construction;
 
-        DateTime = dateOnly.ToDateTime(new TimeOnly(0, 0));
-        JobTypeEnum = (JobTypeEnum)JobType.Value;
+        _dateTime = dateOnly.ToDateTime(new TimeOnly(0, 0));
+        _jobTypeEnum = (JobTypeEnum)JobType.Value;
 
         // Navigate to URL with parameters if they weren't provided
         if (NavigationManager != null)
@@ -106,8 +106,8 @@ public partial class Schedule
         {
             if (DateOnly.TryParse(Date, out DateOnly dateOnly))
             {
-                DateTime = dateOnly.ToDateTime(new TimeOnly(0, 0));
-                JobTypeEnum = (JobTypeEnum)JobType.Value;
+                _dateTime = dateOnly.ToDateTime(new TimeOnly(0, 0));
+                _jobTypeEnum = (JobTypeEnum)JobType.Value;
                 await LoadSchedule();
             }
         }
@@ -120,11 +120,11 @@ public partial class Schedule
     private async Task LoadSchedule()
     {
         base.IsLoading = true;
-        DateOnly dateOnly = DateOnly.FromDateTime(DateTime);
-        Result<List<ScheduleSlotDTO>> res = await _apiService.GetIndividualSchedule(dateOnly, JobTypeEnum);
+        DateOnly dateOnly = DateOnly.FromDateTime(_dateTime);
+        Result<List<ScheduleSlotDTO>> res = await _apiService.GetIndividualSchedule(dateOnly, _jobTypeEnum);
         if (res.Error is null && res.Value is not null)
         {
-            scheduleSlots = [.. res.Value.Select(x =>
+            _scheduleSlots = [.. res.Value.Select(x =>
                 new ScheduleSlotDtoWithCalendar()
                 {
                     Day = x.Day,
@@ -134,7 +134,7 @@ public partial class Schedule
                     Events = []
                 })];
 
-            foreach (ScheduleSlotDtoWithCalendar slot in scheduleSlots)
+            foreach (ScheduleSlotDtoWithCalendar slot in _scheduleSlots)
                 slot.SetEvents();
         }
         else
@@ -163,7 +163,7 @@ public partial class Schedule
     /// <returns>A task representing the asynchronous operation</returns>
     private void SwapJobType()
     {
-        JobTypeEnum newJobType = JobTypeEnum == JobTypeEnum.Construction ? JobTypeEnum.Surveying : JobTypeEnum.Construction;
+        JobTypeEnum newJobType = _jobTypeEnum == JobTypeEnum.Construction ? JobTypeEnum.Surveying : JobTypeEnum.Construction;
         if (NavigationManager != null && !string.IsNullOrEmpty(Date))
         {
             NavigationManager.NavigateTo($"/schedule/{Date}/{(int)newJobType}");

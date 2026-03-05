@@ -8,6 +8,8 @@ namespace Portal.Shared.DTO.Contact;
 /// </summary>
 public record ContactDetailsDto(
     int ContactId,
+    int ContactType,
+    string ContactTypeName,
     string FullName,
     string FirstName,
     string LastName,
@@ -21,6 +23,7 @@ public record ContactDetailsDto(
     int JobCount,
     int TechContactCount,
     int InvoicesCount,
-    int SubContactsCount
+    int SubContactsCount,
+    SubContactDto[] SubContacts
 );
 

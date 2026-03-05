@@ -1,4 +1,4 @@
-﻿@page "/jobs/edit/{JobId:int}"
+@page "/jobs/edit/{JobId:int}"
 @inherits BaseDataComponent
 @using Portal.Client.Components.JobComponents
 @using Portal.Client.Pages.Job
@@ -24,22 +24,22 @@
         }
         else
         {
-            @if (Model is not null)
+            @if (_model is not null)
             {
-                <EditForm Model="@Model" OnValidSubmit="@SubmitAsync" class="create-job-form">
+                <EditForm Model="@_model" OnValidSubmit="@SubmitAsync" class="create-job-form">
                     <div class="form-grid">
                         <div>
                             <h3 class="form-section-title border-bottom pb-2">Job Details</h3>
                             <div class="form-sections border-rad">
-                                <MudNumericField T="int" @bind-Value="Model.JobNumber" Label="Job Number" Variant="Variant.Outlined"
-                                                 Required="true" RequiredError="Job number is required" Class="" For="@(() => Model.JobNumber)" />
-                                <MudTextField @bind-Value="Model.Details" Label="Details" Variant="Variant.Outlined" Class=""
-                                              For="@(() => Model.Details)" Counter="2000" Lines="3" />
-                                <MudSelect T="JobTypeEnum" @bind-Value="Model.JobType" Label="Job Type" Variant="Variant.Outlined" Class="" For="@(() => Model.JobType)" Required="true">
+                                <MudNumericField T="int" @bind-Value="_model.JobNumber" Label="Job Number" Variant="Variant.Outlined"
+                                                 Required="true" RequiredError="Job number is required" Class="" For="@(() => _model.JobNumber)" />
+                                <MudTextField @bind-Value="_model.Details" Label="Details" Variant="Variant.Outlined" Class=""
+                                              For="@(() => _model.Details)" Counter="2000" Lines="3" />
+                                <MudSelect T="JobTypeEnum" @bind-Value="_model.JobType" Label="Job Type" Variant="Variant.Outlined" Class="" For="@(() => _model.JobType)" Required="true">
                                     <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
                                     <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
                                 </MudSelect>
-                                <MudAutocomplete T="ListContactDto" Label="Contact" Value="JobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
+                                <MudAutocomplete T="ListContactDto" Label="Contact" Value="_jobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
                                                  SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" MaxItems="50" Required="true">
                                     <MoreItemsTemplate>
                                         <div class="d-flex justify-content-center">
@@ -49,30 +49,30 @@
                                         </div>
                                     </MoreItemsTemplate>
                                 </MudAutocomplete>
-                                <MudSelect T="int?" @bind-Value="Model.CouncilId" Label="Council (optional)" Variant="Variant.Outlined" Clearable="true" Class="" For="@(() => Model.CouncilId)">
-                                    @foreach (var c in Councils)
+                                <MudSelect T="int?" @bind-Value="_model.CouncilId" Label="Council (optional)" Variant="Variant.Outlined" Clearable="true" Class="" For="@(() => _model.CouncilId)">
+                                    @foreach (var c in _councils)
                                     {
                                         <MudSelectItem T="int?" Value="@c.CouncilId">@c.CouncilName</MudSelectItem>
                                     }
                                 </MudSelect>
-                                <MudNumericField T="int?" @bind-Value="Model.JobColourId" Label="Job Colour ID (optional)" Variant="Variant.Outlined" Min="1" Class="" Clearable="true" For="@(() => Model.JobColourId)" />
+                                <MudNumericField T="int?" @bind-Value="_model.JobColourId" Label="Job Colour ID (optional)" Variant="Variant.Outlined" Min="1" Class="" Clearable="true" For="@(() => _model.JobColourId)" />
                             </div>
                         </div>
 
-                        @if (Model.Address is not null)
+                        @if (_model.Address is not null)
                         {
-                            <EditAddress Address="Model.Address" />
+                            <EditAddress Address="_model.Address" />
                         }
 
 
                         <div class="form-actions">
-                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="IsSubmitting" StartIcon="@Icons.Material.Filled.Save">Save Details</MudButton>
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_isSubmitting" StartIcon="@Icons.Material.Filled.Save">Save Details</MudButton>
                             <MudButton Variant="Variant.Outlined" Href="/jobs">Cancel</MudButton>
                         </div>
                     </div>
                 </EditForm>
             }
-            @if (Model is null)
+            @if (_model is null)
             {
                 <small>Details not loaded</small>
             }
@@ -89,20 +89,20 @@
     /// <summary>
     /// If submitting
     /// </summary>
-    private bool IsSubmitting;
+    private bool _isSubmitting;
     /// <summary>
     /// The model
     /// </summary>
-    private JobDetailsDto? Model;
+    private JobDetailsDto? _model;
     /// <summary>
     /// The List of job contacts
     /// </summary>
-    private ListContactDto? JobContact;
+    private ListContactDto? _jobContact;
 
     /// <summary>
     /// List of councils
     /// </summary>
-    private CouncilPartialDto[] Councils = [];
+    private CouncilPartialDto[] _councils = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -110,14 +110,14 @@
         await LoadJobData();
         Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
         if (councilResult?.IsSuccess == true && councilResult.Value is not null)
-            Councils = councilResult.Value;
-        if (Model is { PrimaryContact: not null })
+            _councils = councilResult.Value;
+        if (_model is { PrimaryContact: not null })
         {
-            JobContact = new()
+            _jobContact = new()
             {
-                ContactId = Model.ContactId,
-                FullName = Model.PrimaryContact.ContactName,
-                Phone = Model.PrimaryContact.Phone
+                ContactId = _model.ContactId,
+                FullName = _model.PrimaryContact.ContactName,
+                Phone = _model.PrimaryContact.Phone
             };
         }
     }
@@ -130,7 +130,7 @@
             Result<JobDetailsDto>? result = await _apiService.Job(JobId);
             if (result is not null && result.IsSuccess && result.Value is not null)
             {
-                Model = result.Value;
+                _model = result.Value;
             }
             else
             {
@@ -149,16 +149,16 @@
 
     private async Task SubmitAsync()
     {
-        if (Model!.JobNumber <= 0)
+        if (_model!.JobNumber <= 0)
         {
             _snackbar?.Add("Job number must be greater than 0.", Severity.Warning);
             return;
         }
 
-        IsSubmitting = true;
+        _isSubmitting = true;
         try
         {
-            Result<JobDetailsDto> result = await _apiService.UpdateJob(Model);
+            Result<JobDetailsDto> result = await _apiService.UpdateJob(_model);
             if (result.IsSuccess && result.Value is not null)
             {
                 _snackbar?.Add("Job created successfully.", Severity.Success);
@@ -169,14 +169,14 @@
         }
         finally
         {
-            IsSubmitting = false;
+            _isSubmitting = false;
         }
     }
 
     private void OnContactChanged(ListContactDto? value)
     {
-        JobContact = value;
-        Model!.ContactId = value?.ContactId ?? 0;
+        _jobContact = value;
+        _model!.ContactId = value?.ContactId ?? 0;
     }
 
     /// <summary>

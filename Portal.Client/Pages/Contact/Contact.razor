@@ -1,5 +1,6 @@
 @page "/contacts/{ContactId:int}"
 @inherits BaseDataComponent
+@using Portal.Client.Components.Contact
 @using Portal.Client.Components.JobComponents
 @using Portal.Shared
 @using Portal.Shared.DTO.Contact
@@ -12,7 +13,7 @@
 @if (IsLoading)
 {
     <div class="container">
-        <div class="loading-spinner">Loading...</div>
+        <Spinner />
     </div>
 }
 else if (_contact is null)
@@ -40,7 +41,7 @@ else
                     <h1> @_contact.FullName</h1>
                 }
                 <div class="header-info">
-                    <span>@GetAddressString()</span>
+                    <span>@(_contact.Address?.ToDisplayString())</span>
                 </div>
             </div>
             <div class="header-right">
@@ -152,89 +153,53 @@ else
             <!-- Main Content -->
             <div class="content-area">
                 <!-- Jobs -->
-                <Card>
-                    <TitleContent>
-                        <div class="card-header-with-tabs">
-                            <div class="tabs">
-                                <button class="tab active">All</button>
-                                <button class="tab">Deleted</button>
-                            </div>
-                            <button class="btn-add">+ Add</button>
-                        </div>
-                    </TitleContent>
+                <Card ShowHeaderWithTabs="true" OnTabSelect="ChangeTabs" HeaderTitle="Jobs" Tabs="[TabTypeEnum.All, TabTypeEnum.Deleted]" OnAddButtonClick="@(() => _navigationManager.NavigateTo("/jobs/edit/"))">
                     <ChildContent>
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Contact</th>
-                                    <th>Address</th>
-                                    <th>Suburb</th>
-                                    <th>Job Number</th>
-                                    <th>Job Type</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_pagedJobs?.Result is null || _pagedJobs.Result.Count == 0)
-                                {
-                                    <tr>
-                                        <td colspan="6" class="empty-state">No records</td>
-                                    </tr>
-                                }
-                                else
-                                {
-                                    @foreach (var job in _pagedJobs.Result)
-                                    {
-                                        <tr>
-                                            <td>@job.JoinedContactName</td>
-                                            <td>@(job.Address?.Street ?? "-")</td>
-                                            <td>@(job.Address?.Suburb ?? "-")</td>
-                                            <td>@(job.JobNumber?.ToString() ?? "-")</td>
-                                            <td>
-                                                <StatusBadge statusEnum="@((JobTypeEnum)job.JobTypeInt)" />
-                                            </td>
-                                            <td class="d-flex flex-row">
-                                                <ButtonIcon Href="@($"/jobs/view/{job.JobId}")" Icon="bi bi-eye" CssClass="me-1"/>
-                                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{job.JobId}")" />
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                        @if (_pagedJobs is not null && _pagedJobs.TotalCount > 0)
-                        {
-                            <div class="pagination-controls">
-                                <div class="pagination-info">
-                                    Showing @((_currentPage - 1) * _rowsPerPage + 1) to @(Math.Min(_currentPage * _rowsPerPage, _pagedJobs.TotalCount)) of @_pagedJobs.TotalCount jobs
-                                </div>
-                                <div class="pagination-buttons">
-                                    <MudButton Variant="Variant.Text" Disabled="@(_currentPage <= 1)" OnClick="@(() => LoadJobs(_currentPage - 1))">Previous</MudButton>
-                                    <span class="page-info">Page @_currentPage of @_pagedJobs.TotalNumberPages</span>
-                                    <MudButton Variant="Variant.Text" Disabled="@(_currentPage >= _pagedJobs.TotalNumberPages)" OnClick="@(() => LoadJobs(_currentPage + 1))">Next</MudButton>
-                                </div>
-                            </div>
-                        }
+                        <MudDataGrid T="ListJobDto"
+                                     ServerData="LoadJobs"
+                                     Filterable="false"
+                                     SortMode="SortMode.Single"
+                                     Loading="base.IsLoading"
+                                     RowsPerPage="_filterState.PageSize"
+                                     CurrentPage="_filterState.Page"
+                                     CurrentPageChanged="@((page) => { _filterState.Page = page;})"
+                                     Dense=true
+                                     @ref="_jobGrid"
+                                     Striped="true">
+                            <Columns>
+                                <TemplateColumn ShowFilterIcon="false" Title="Job Type">
+                                    <CellTemplate>
+                                        <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number #" HeaderStyle="max-width: 75px">
+                                    <CellTemplate>
+                                        <a class="contact-link" href=@($"/jobs/view/{context.Item.JobId}")>@context.Item.JobNumber</a>
+                                    </CellTemplate>
+                                </TemplateColumn>
+                                <PropertyColumn Property="x => x.Address.Street" ShowFilterIcon="false" Title="Street" />
+                                <PropertyColumn Property="x => x.Address.Suburb" ShowFilterIcon="false" Title="Suburb" />
+                                <TemplateColumn StickyLeft="true" Title="Action" HeaderStyle="max-width: 130px">
+                                    <CellTemplate>
+                                        <div class="d-flex flex-row gap-1">
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{context.Item.JobId}")" />
+                                            <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => RemoveJob(context.Item.JobId))" />
+                                        </div>
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                            <PagerContent>
+                                <MudDataGridPager T="ListJobDto" />
+                            </PagerContent>
+                        </MudDataGrid>
                     </ChildContent>
                 </Card>
+                <TechnicalContacts ContactId="@ContactId" />
             </div>
 
             <!-- Right Sidebar -->
             <div class="sidebar">
-                <!-- Notes -->
-                <TechnicalContacts ContactId="@ContactId" />
-
-                <!-- Activity -->
-                <Card Title="Activity">
-                    <ChildContent>
-                        <div class="activity-list">
-                            <div class="activity-item">
-                                <div class="activity-title">Contact Modified</div>
-                                <div class="activity-time">Recently</div>
-                            </div>
-                        </div>
-                    </ChildContent>
-                </Card>
+                <SubContacts SubContact="@_contact.SubContacts" />
             </div>
         </div>
     </div>

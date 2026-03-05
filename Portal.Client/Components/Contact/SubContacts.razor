@@ -1,0 +1,52 @@
+﻿@using Portal.Shared
+@using Portal.Shared.DTO.Contact
+@inherits BaseDataComponent
+
+<Card HeaderTitle="Sub Contacts" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Deleted]" OnTabSelect="ChangeTabs">
+    <ChildContent>
+        <MudDataGrid T="SubContactDto"
+                     Items="@SubContact"
+                     Dense="true"
+                     Striped="true"
+                     Loading="@base.IsLoading"
+                     Hover="true"
+                     Breakpoint="Breakpoint.Sm"
+                     FixedHeader="true"
+                     SortMode="SortMode.None"
+                     RowsPerPage="15"
+                     @ref=@_subContactGrid>
+            <Columns>
+                <PropertyColumn Property="x => x.FullName" Title="Role" />
+                <TemplateColumn Title="Contact">
+                    <CellTemplate>
+                        <a class="contact-link" href="/contacts/@context.Item.ContactId">@context.Item.FullName</a>
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.Mobile" Title="Phone" />
+                <PropertyColumn Property="x => x.Phone" Title="Phone" />
+                <PropertyColumn Property="x => x.Email" Title="Email" />
+                <TemplateColumn Title="Actions" HeaderStyle="width: 100px;" StickyRight="true">
+                    <CellTemplate>
+                        <div class="d-flex flex-row gap-1">
+                            @if (context.Item.Deleted)
+                            {
+                                <ButtonIcon Icon="bi bi-arrow-counterclockwise" CssClass="text-red" Title="Restore" />
+                            }
+                            else
+                            {
+                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
+                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
+                            }
+                        </div>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <NoRecordsContent>
+                <span class="empty-state">No Records</span>
+            </NoRecordsContent>
+            <PagerContent>
+                <MudDataGridPager T="SubContactDto" />
+            </PagerContent>
+        </MudDataGrid>
+    </ChildContent>
+</Card>

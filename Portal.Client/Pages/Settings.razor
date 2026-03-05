@@ -28,23 +28,23 @@
                         {
                             <section class="theme-container">
                                 <div>
-                                    <div class="preview" style="background: @primaryColour"></div>
+                                    <div class="preview" style="background: @_primaryColour"></div>
                                     <MudColorPicker ShowToolbar="true"
                                                     Label="Primary Colour"
                                                     Variant="Variant.Outlined"
                                                     ColorPickerView="ColorPickerView.GridCompact"
                                                     ColorPickerMode="ColorPickerMode.HEX"
-                                                    Value=primaryColour
+                                                    Value=_primaryColour
                                                     TextChanged="@((s) => SetColour(s, true))" />
                                 </div>
                                 <div>
-                                    <div class="preview" style="background: @secondaryColour"></div>
+                                    <div class="preview" style="background: @_secondaryColour"></div>
                                     <MudColorPicker ShowToolbar="true"
                                                     Label="Secondary Colour"
                                                     Variant="Variant.Outlined"
                                                     ColorPickerView="ColorPickerView.GridCompact"
                                                     ColorPickerMode="ColorPickerMode.HEX"
-                                                    Value=secondaryColour
+                                                    Value=_secondaryColour
                                                     TextChanged="@((s) => SetColour(s, false))" />
                                 </div>
                             </section>
@@ -215,7 +215,7 @@
                 <Collapseable Title="Hot Keys" Show="false">
                     <CollapseableContent>
                         <section>
-                            @foreach (HotKeyEntry hotKey in hotKeyEntries)
+                            @foreach (HotKeyEntry hotKey in _hotKeyEntries)
                             {
                                 <div>@hotKey.Description</div>
                             }

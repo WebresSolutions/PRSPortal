@@ -19,7 +19,7 @@ public partial class Contacts
 
     #region Constants
     private const string _ContactsSessionKey = "ContactsListSession";
-    private bool ShowDeleted = false;
+    private bool _showDeleted = false;
     #endregion
 
     #region Query Parameters
@@ -205,7 +205,7 @@ public partial class Contacts
                 _sessionData.SearchString,
                 _sessionData.OrderBy,
                 _sessionData.Order,
-                ShowDeleted);
+                _showDeleted);
 
             if (apiResult is not null && apiResult.IsSuccess && apiResult.Value is not null)
             {
@@ -282,7 +282,7 @@ public partial class Contacts
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task ShowDelete(TabTypeEnum tab)
     {
-        ShowDeleted = tab is TabTypeEnum.Deleted;
+        _showDeleted = tab is TabTypeEnum.Deleted;
         _grid?.ReloadServerData();
     }
 

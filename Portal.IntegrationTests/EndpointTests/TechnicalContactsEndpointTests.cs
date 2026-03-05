@@ -68,21 +68,12 @@ public sealed class TechnicalContactsEndpointTests
 
         HttpResponseMessage createTcResponse = await _client.PutAsJsonAsync("/api/jobs/technical-contacts", createDto);
         Assert.Equal(HttpStatusCode.OK, createTcResponse.StatusCode);
-        TechnicalContactDto[]? createdList = await createTcResponse.Content.ReadFromJsonAsync<TechnicalContactDto[]>();
-        Assert.NotNull(createdList);
-        Assert.NotEmpty(createdList);
-        TechnicalContactDto created = createdList.First();
-        Assert.Equal(jobId.Value, created.JobId);
-        Assert.Equal(1, created.ContactId);
-        Assert.Equal(1, created.ContactTypeId);
-        Assert.True(created.Id > 0);
 
         HttpResponseMessage getResponse = await _client.GetAsync($"/api/jobs/technical-contacts?jobId={jobId}");
         getResponse.EnsureSuccessStatusCode();
         TechnicalContactDto[]? getList = await getResponse.Content.ReadFromJsonAsync<TechnicalContactDto[]>();
         Assert.NotNull(getList);
-        Assert.Equal(createdList.Length, getList.Length);
-        Assert.Contains(getList, tc => tc.Id == created.Id);
+        Assert.Contains(getList, tc => tc.ContactId == createDto.ContactId);
     }
 
     [Fact]

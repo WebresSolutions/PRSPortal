@@ -18,8 +18,17 @@ public class SessionSearchData
     /// Gets or sets the search filter string
     /// </summary>
     public string? AddressSearch { get; set; }
+    /// <summary>
+    /// Contact Search. Search by name, phone and email
+    /// </summary>
     public string? ContactSearch { get; set; }
+    /// <summary>
+    /// Job number search string
+    /// </summary>
     public string? JobNumberSearch { get; set; }
+    /// <summary>
+    /// Search String
+    /// </summary>
     public string? SearchString { get; set; }
     /// <summary>
     /// Gets or sets the field name to order by
@@ -29,4 +38,8 @@ public class SessionSearchData
     /// Gets or sets the sort direction (ascending or descending)
     /// </summary>
     public SortDirectionEnum Order { get; set; } = SortDirectionEnum.Asc;
+    /// <summary>
+    /// Show deleted facilities/jobs in the listing when true. Defaults to false to hide deleted items.
+    /// </summary>
+    public bool ShowDeleted { get; set; } = false;
 }

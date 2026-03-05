@@ -28,6 +28,14 @@ public class JobDetailsDto
     /// </summary>
     public int? JobColourId { get; set; }
     /// <summary>
+    /// Gets or sets the date and time when the entity was created.
+    /// </summary>
+    public DateTime DateCreated { get; set; }
+    /// <summary>
+    /// Gets or sets the identifier of the user who created the entity.
+    /// </summary>
+    public string CreatedBy { get; set; } = "";
+    /// <summary>
     /// The last modified date of the job
     /// </summary>
     public LastModifiedDto? LastModified { get; set; }

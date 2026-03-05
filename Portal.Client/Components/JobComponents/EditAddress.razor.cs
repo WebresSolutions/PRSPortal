@@ -14,13 +14,13 @@ public partial class EditAddress : IDisposable
     /// <summary>
     /// the list of active markers on the map
     /// </summary>
-    private readonly List<MarkerData> Markers = [];
+    private readonly List<MarkerData> _markers = [];
     /// <summary>
     /// Marker clustering instance
     /// </summary>
-    private AdvancedGoogleMap? Map;
+    private AdvancedGoogleMap? _map;
 
-    private MapOptions MapOptions = default!;
+    private MapOptions _mapOptions = default!;
 
     /// <summary>
     /// Initializes the map with default or existing address coordinates and adds a draggable marker.
@@ -35,8 +35,8 @@ public partial class EditAddress : IDisposable
                 Longitude = 144.9631
             };
 
-        Markers.Add(new MarkerData { Id = 1, Lat = Address.LatLng!.Latitude, Lng = Address.LatLng!.Longitude, Title = "New", Draggable = true });
-        MapOptions = new MapOptions
+        _markers.Add(new MarkerData { Id = 1, Lat = Address.LatLng!.Latitude, Lng = Address.LatLng!.Longitude, Title = "New", Draggable = true });
+        _mapOptions = new MapOptions
         {
             Zoom = 10,
             Center = new LatLngLiteral(-37.8136, 144.9631),
@@ -60,6 +60,6 @@ public partial class EditAddress : IDisposable
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        _ = Map?.DisposeAsync();
+        _ = _map?.DisposeAsync();
     }
 }

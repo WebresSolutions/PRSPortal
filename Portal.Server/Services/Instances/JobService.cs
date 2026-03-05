@@ -41,7 +41,15 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
             query = !filter.Deleted ? query.Where(x => x.DeletedAt == null) : query.Where(x => x.DeletedAt != null);
 
             if (filter.ContactId.HasValue)
-                query = query.Where(x => x.ContactId == filter.ContactId.Value);
+            {
+                // Need to include the subcontacts of the contact id in the filter
+                int[] subContacts = await _dbContext.Contacts
+                    .AsNoTracking()
+                    .Where(x => x.ParentContactId == filter.ContactId.Value)
+                    .Select(x => x.Id)
+                    .ToArrayAsync();
+                query = query.Where(x => x.ContactId == filter.ContactId.Value || subContacts.Contains(x.ContactId));
+            }
 
             if (filter.CouncilId.HasValue)
                 query = query.Where(x => x.CouncilId == filter.CouncilId.Value);
@@ -158,6 +166,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 LastModifiedBy = x.ModifiedByUser != null ? x.ModifiedByUser.DisplayName : null,
                 NoteCount = x.JobNotes.Count(x => x.DeletedAt == null),
                 ContactCount = x.TechnicalContacts.Count(),
+                DateCreated = x.CreatedOn,
+                CreatedBy = x.CreatedByUser.DisplayName,
             })
             .FirstOrDefaultAsync();
 
@@ -675,10 +685,20 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         }
     }
 
+    /// <summary>
+    /// Retrieves the list of job notes assigned to a specified user.
+    /// </summary>
+    /// <param name="httpContext">The HTTP context containing user information. Used to determine the user if <paramref name="userId"/> is 0.</param>
+    /// <param name="userId">The identifier of the user whose assigned job notes are to be retrieved. If 0, the user ID is obtained from the
+    /// HTTP context.</param>
+    /// <param name="includeDeleted">A value indicating whether to include deleted job notes in the result. If <see langword="true"/>, deleted notes
+    /// are included; otherwise, only active notes are returned.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="Result{T}"/> with a
+    /// list of <see cref="JobNoteDto"/> objects assigned to the specified user. If no notes are found, the list is
+    /// empty.</returns>
     public async Task<Result<List<JobNoteDto>>> GetUserAssignedJobsNotes(HttpContext httpContext, int userId, bool includeDeleted)
     {
         Result<List<JobNoteDto>> result = new();
-
         try
         {
             if (userId is 0)

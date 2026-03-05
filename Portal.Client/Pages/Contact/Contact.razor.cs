@@ -4,19 +4,20 @@ using Portal.Shared;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
+using Portal.Shared.Web;
 
 namespace Portal.Client.Pages.Contact;
 
-public partial class Contact
+public partial class Contact : IDisposable
 {
     [Parameter]
     public required int ContactId { get; set; }
 
     #region Private Fields
     private ContactDetailsDto? _contact;
-    private PagedResponse<ListJobDto>? _pagedJobs;
-    private readonly int _rowsPerPage = 15;
-    private int _currentPage = 1;
+    private MudDataGrid<ListJobDto>? _jobGrid;
+    private SessionSearchData _filterState = new() { PageSize = 10 };
+    private PagedResponse<ListJobDto>? _pagedResponse;
     #endregion
 
     /// <summary>
@@ -57,9 +58,6 @@ public partial class Contact
             {
                 _snackbar?.Add("Error loading contact details", Severity.Error);
             }
-
-            // Load jobs separately with pagination
-            await LoadJobs(_currentPage);
         }
         catch (Exception ex)
         {
@@ -76,34 +74,130 @@ public partial class Contact
     /// </summary>
     /// <param name="page">The page number to load.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task LoadJobs(int page)
+   // <summary>
+    /// This method is called by the MudDataGrid to fetch data when needed (paging, sorting, filtering).
+    /// Implements server-side data loading with pagination and search capabilities.
+    /// </summary>
+    /// <param name="state">The current grid state containing pagination and sorting information</param>
+    /// <returns>A GridData object containing the current page of facilities and total count</returns>
+    private async Task<GridData<ListJobDto>> LoadJobs(GridState<ListJobDto> state)
     {
         try
         {
-            Result<PagedResponse<ListJobDto>>? jobsResult = await _apiService.GetContactJobs(ContactId, page, _rowsPerPage, SortDirectionEnum.Desc, null);
-            if (jobsResult is not null && jobsResult.IsSuccess && jobsResult.Value is not null)
+            int apiPageNumber = state.Page;
+            int apiPageSize = state.PageSize;
+            apiPageNumber++;
+
+            // Handle sorting from grid state
+            SortDefinition<ListJobDto>? sortDefinition = state.SortDefinitions.FirstOrDefault();
+            if (sortDefinition != null)
             {
-                _pagedJobs = jobsResult.Value;
-                _currentPage = page;
+                _filterState.Order = sortDefinition.Descending ? SortDirectionEnum.Desc : SortDirectionEnum.Asc;
+                _filterState.OrderBy = sortDefinition.SortBy switch
+                {
+                    string s when s == nameof(ListJobDto.Contact1)
+                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.PostCode)
+                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.Suburb)
+                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.Street)
+                            || s == nameof(ListJobDto.JobNumber) => s,
+                    _ => nameof(ListJobDto.JobId)
+                };
             }
             else
             {
-                _snackbar?.Add("Error loading contact jobs", Severity.Error);
+                _filterState.OrderBy = nameof(ListJobDto.JobId);
+                _filterState.Order = SortDirectionEnum.Desc;
+            }
+
+            _filterState.Page = state.Page;
+            _filterState.PageSize = state.PageSize;
+            JobFilterDto search = new(apiPageNumber, apiPageSize, _filterState.AddressSearch, _filterState.ContactSearch, _filterState.JobNumberSearch, _filterState.OrderBy, _filterState.Order, _filterState.ShowDeleted, ContactId, null);
+            Result<PagedResponse<ListJobDto>>? apiResult = await _apiService.GetAllJobs(search);
+
+            if (apiResult is not null && apiResult.IsSuccess && apiResult.Value is not null)
+            {
+                _pagedResponse = apiResult.Value;
+                // MudDataGrid requires GridData with Items for the current page and TotalItems count
+                return new GridData<ListJobDto>()
+                {
+                    Items = _pagedResponse.Result ?? Enumerable.Empty<ListJobDto>(),
+                    TotalItems = _pagedResponse.TotalCount
+                };
+            }
+            else
+            {
+                _snackbar?.Add("Error Loading Contact Jobs", Severity.Error);
+                return new GridData<ListJobDto>() { Items = [], TotalItems = 0 };
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _snackbar?.Add($"Error loading jobs: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
+            _snackbar?.Add("Error Loading Contact Jobs", Severity.Error);
+            return new GridData<ListJobDto>() { Items = [], TotalItems = 0 };
         }
     }
 
     /// <summary>
-    /// Returns a formatted address string (suburb, state, post code) for the current contact.
+    /// Prompts for confirmation and deletes the specified job, then refreshes the grid on success.
     /// </summary>
-    /// <returns>The formatted address or "No address" if none is set.</returns>
-    private string GetAddressString() => _contact?.Address?.ToDisplayString() ?? "No address";
+    /// <param name="jobId">The ID of the job to delete.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task RemoveJob(int jobId)
+    {
+        bool? confirm = await _dialog.ShowMessageBox(
+            "Confirm Delete",
+            "Are you sure you want to delete this Job?",
+            yesText: "Delete",
+            cancelText: "Cancel",
+            options: new DialogOptions { CloseOnEscapeKey = true });
+        if (confirm == true)
+        {
+            Result<bool> result = await _apiService.DeleteJob(jobId);
+            if (result.IsSuccess)
+            {
+                _snackbar.Add("Job deleted.", Severity.Success);
+                await RefreshGridData();
+            }
+            else
+                _snackbar.Add(result.ErrorDescription ?? "Failed to delete Job.", Severity.Error);
+        }
+
+    }
+
+    /// <summary>
+    /// Manually refreshes the grid's data from another action (e.g., after adding/editing a facility)
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation</returns>
+    public async Task RefreshGridData()
+    {
+        if (_jobGrid is not null)
+            await _jobGrid.ReloadServerData();
+    }
+
+    /// <summary>
+    /// Changes the current tab view and updates the displayed data based on the specified tab type.
+    /// </summary>
+    /// <param name="tab">The tab type to switch to. Use <see cref="TabTypeEnum.Deleted"/> to display deleted items; otherwise, active
+    /// items are shown.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    public async Task ChangeTabs(TabTypeEnum tab)
+    {
+        if (tab is TabTypeEnum.Deleted)
+        {
+            _filterState.ShowDeleted = true;
+            await RefreshGridData();
+        }
+        else
+        {
+            _filterState.ShowDeleted = false;
+            await RefreshGridData();
+        }
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        _jobGrid?.Dispose();
+    }
 }
 

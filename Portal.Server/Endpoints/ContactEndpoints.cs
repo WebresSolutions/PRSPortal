@@ -3,7 +3,6 @@ using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Contact;
-using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Controllers;
@@ -62,32 +61,6 @@ public static class ContactEndpoints
             .WithSummary("Get contact by ID")
             .WithDescription("Returns full details for a single contact by contact ID. Returns 400 if contactId is invalid.")
             .Produces<ContactDetailsDto>();
-
-        // Gets jobs for a specific contact with pagination
-        appGroup.MapGet("{contactId}/jobs", async (
-            [FromServices] IContactService contactService,
-            [FromRoute] int contactId,
-            [FromQuery] int page,
-            [FromQuery] int pageSize,
-            [FromQuery] string? orderby,
-            [FromQuery] SortDirectionEnum? order,
-            HttpContext httpContext
-            ) =>
-        {
-            if (contactId <= 0)
-                return Results.BadRequest($"Invalid contact Id {contactId}. Value must be greater than 0.");
-
-            if (page <= 0)
-                page = 1;
-
-            order ??= SortDirectionEnum.Desc;
-
-            Result<PagedResponse<ListJobDto>> result = await contactService.GetContactJobs(contactId, page, pageSize, order, orderby);
-            return EndpointsHelper.ProcessResult(result, "An error occurred while getting contact jobs");
-        })
-            .WithSummary("Get jobs for a contact")
-            .WithDescription("Returns a paginated list of jobs associated with the specified contact. Supports ordering via orderby and order query parameters.")
-            .Produces<PagedResponse<ListJobDto>>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

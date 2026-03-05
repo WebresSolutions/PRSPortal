@@ -5,7 +5,6 @@ using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
-using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 using Quartz.Util;
 
@@ -134,6 +133,8 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                 .Select(c => new
                 {
                     c.Id,
+                    c.TypeId,
+                    TypeName = c.Type.Name,
                     c.FullName,
                     c.FirstName,
                     c.LastName,
@@ -157,16 +158,28 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                     subContactCount = c.InverseParentContact.Count(sc => sc.DeletedAt == null && sc.ParentContactId == contactId),
                     jobCount = c.Jobs.Count(j => j.DeletedAt == null && j.ContactId == contactId),
                     techContactCount = c.TechnicalContacts.Count(j => j.DeletedAt == null && j.ContactId == contactId),
-                    invoiceCount = c.Invoices.Count(i => i.DeletedAt == null && i.ContactId == contactId)
+                    invoiceCount = c.Invoices.Count(i => i.DeletedAt == null && i.ContactId == contactId),
+                    subcontacts = c.InverseParentContact.Select(sub => new SubContactDto(
+                        sub.Id,
+                        c.Id,
+                        sub.TypeId,
+                        sub.Type.Name,
+                        sub.FullName,
+                        "",
+                        sub.Phone,
+                        sub.Email,
+                        sub.DeletedAt != null
+                    )).ToArray()
                 })
                 .FirstOrDefaultAsync();
 
             if (contactData is null)
                 return result.SetError(ErrorType.NotFound, $"Contact not found with Id: {contactId}");
 
-            // Return contact details without jobs (jobs loaded separately)
             result.Value = new ContactDetailsDto(
                 contactData.Id,
+                contactData.TypeId,
+                contactData.TypeName,
                 contactData.FullName,
                 contactData.FirstName,
                 contactData.LastName,
@@ -180,8 +193,9 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                 contactData.jobCount,
                 contactData.techContactCount,
                 contactData.invoiceCount,
-                contactData.subContactCount
-                ); // Empty list - jobs loaded via separate endpoint
+                contactData.subContactCount,
+                contactData.subcontacts
+                );
 
             return result;
         }
@@ -189,79 +203,6 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
         {
             _logger.LogError(ex, "Failed to get contact details: {Exception}", ex.Message);
             return result.SetError(ErrorType.InternalError, "An error occurred while getting the contact details");
-        }
-    }
-
-    /// <summary>
-    /// Retrieves the jobs associated with a contact with pagination.
-    /// </summary>
-    /// <param name="contactId">The unique identifier of the contact.</param>
-    /// <param name="page">The page number (1-based).</param>
-    /// <param name="pageSize">The number of items per page.</param>
-    /// <param name="order">The sort direction (ascending or descending).</param>
-    /// <param name="orderby">Optional field name to sort by.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{PagedResponse{ListJobDto}}"/> object with the paged list of jobs if found; otherwise, contains error information.</returns>
-    public async Task<Result<PagedResponse<ListJobDto>>> GetContactJobs(int contactId, int page, int pageSize, SortDirectionEnum? order, string? orderby)
-    {
-        Result<PagedResponse<ListJobDto>> result = new();
-        try
-        {
-            IQueryable<Data.Models.Job> jobQuery = _dbContext.Jobs
-                .AsNoTracking()
-                .Where(j => j.ContactId == contactId && j.DeletedAt == null)
-                .AsQueryable();
-
-            bool isDescending = order is SortDirectionEnum.Desc;
-            jobQuery = orderby switch
-            {
-                nameof(ListJobDto.JobId) => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Id)
-                    : jobQuery.OrderBy(x => x.Id),
-                nameof(ListJobDto.Contact1) + "." + nameof(ContactDto.fullName) => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Contact.FullName)
-                    : jobQuery.OrderBy(x => x.Contact.FullName),
-                nameof(ListJobDto.JobNumber) => isDescending
-                    ? jobQuery.OrderByDescending(x => x.JobNumber)
-                    : jobQuery.OrderBy(x => x.JobNumber),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.Suburb)}" => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Address!.Suburb)
-                    : jobQuery.OrderBy(x => x.Address!.Suburb),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.Street)}" => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Address!.Street)
-                    : jobQuery.OrderBy(x => x.Address!.Street),
-                $"{nameof(ListJobDto.Address)}.{nameof(AddressDTO.PostCode)}" => isDescending
-                    ? jobQuery.OrderByDescending(x => x.Address!.PostCode)
-                    : jobQuery.OrderBy(x => x.Address!.PostCode),
-                _ => jobQuery.OrderByDescending(x => x.Id) // Default ordering by JobId descending
-            };
-
-            int skipValue = (page - 1) * pageSize;
-            List<ListJobDto> jobs = await jobQuery
-                .Skip(skipValue)
-                .Take(pageSize)
-                .Select(j => new ListJobDto(
-                    j.Id,
-                    new AddressDTO(j.AddressId!.Value, (StateEnum)j.Address!.StateId!, j.Address!.StateId.Value, j.Address.Suburb, j.Address.Street, j.Address.PostCode),
-                    j.Contact != null ? new ContactDto(j.ContactId, j.Contact.FullName) : null,
-                    j.Contact != null && j.Contact.ParentContact != null ? new ContactDto(j.Contact.ParentContactId ?? 0, j.Contact.ParentContact!.FullName) : null,
-                    j.JobNumber,
-                    j.JobType.Name,
-                    j.JobType.Id))
-                .ToListAsync();
-
-            int total = await jobQuery.CountAsync();
-
-            // Create the paged response
-            PagedResponse<ListJobDto> pagedResponse = new(jobs, pageSize, page, total);
-            result.Value = pagedResponse;
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get contact jobs: {Exception}", ex.Message);
-            return result.SetError(ErrorType.InternalError, "An error occurred while getting the contact jobs");
         }
     }
 }

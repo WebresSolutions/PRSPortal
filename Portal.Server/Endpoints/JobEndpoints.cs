@@ -27,16 +27,14 @@ public static class JobEndpoints
            [AsParameters] JobFilterDto filter
        ) =>
         {
-            // Simple validation to ensure page is always at least 1
             int validatedPage = filter.Page <= 0 ? 1 : filter.Page;
             filter = filter with { Page = validatedPage };
 
             Result<PagedResponse<ListJobDto>> result = await jobService.GetAllJobs(filter);
-
             return EndpointsHelper.ProcessResult(result, "An error occurred while loading jobs");
         })
-       .WithSummary("List jobs")
-       .WithDescription("Returns a paginated list of jobs filtered by address, contact, or job number.")
+       .WithSummary("Lists Jobs")
+       .WithDescription("Returns a paginated list of jobs filtered by ContactId, CouncilId, Address, Contact, or Job Number")
        .Produces<PagedResponse<ListJobDto>>();
 
         // Create a new job with the provided details
@@ -149,7 +147,6 @@ public static class JobEndpoints
             ) =>
         {
             Result<List<JobNoteDto>> result;
-
             if (note.NoteId is 0)
                 result = await jobService.CreateNote(httpContext, note);
             else

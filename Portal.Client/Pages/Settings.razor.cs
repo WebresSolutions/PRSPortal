@@ -19,9 +19,9 @@ namespace Portal.Client.Pages;
 public partial class Settings
 {
     private List<ScheduleColourDto> _colours = [];
-    private string primaryColour = "#1976d2";
-    private string secondaryColour = "#1976d2";
-    private HotKeyEntry[] hotKeyEntries = [];
+    private string _primaryColour = "#1976d2";
+    private string _secondaryColour = "#1976d2";
+    private HotKeyEntry[] _hotKeyEntries = [];
 
     private List<TimeTypeDto> _timesheetTypes = [];
     private List<ContactTypeDto> _contactTypes = [];
@@ -40,8 +40,8 @@ public partial class Settings
     {
         base.IsLoading = true;
         await base.OnInitializedAsync();
-        primaryColour = await GetColour("--color-primary");
-        secondaryColour = await GetColour("--color-secondary");
+        _primaryColour = await GetColour("--color-primary");
+        _secondaryColour = await GetColour("--color-secondary");
         await LoadColours();
         await LoadAllTypes();
         base.IsLoading = false;
@@ -225,20 +225,20 @@ public partial class Settings
     /// <returns>A task representing the asynchronous operation</returns>
     private async Task SetColour(string colour, bool primary)
     {
-        if (colour == primaryColour && primary || colour == secondaryColour && !primary)
+        if (colour == _primaryColour && primary || colour == _secondaryColour && !primary)
             return;
 
         if (primary)
-            primaryColour = colour;
+            _primaryColour = colour;
         else
-            secondaryColour = colour;
+            _secondaryColour = colour;
 
         await Helpers.SetColour(_jsRuntime, colour, primary);
 
         SystemSettingsDto settingsObject = new()
         {
-            PrimaryColour = primaryColour,
-            SecondaryColour = secondaryColour
+            PrimaryColour = _primaryColour,
+            SecondaryColour = _secondaryColour
         };
 
         _sessionStorage.SetItem("SystemSettings", settingsObject);

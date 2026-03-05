@@ -12,19 +12,19 @@ public partial class CreateJob
     /// <summary>
     /// The List of job contacts
     /// </summary>
-    private ListContactDto? JobContact;
+    private ListContactDto? _jobContact;
     /// <summary>
     /// List of job creation dtos
     /// </summary>
-    private JobCreationDto Model = null!;
+    private JobCreationDto _model = null!;
     /// <summary>
     /// List of councils
     /// </summary>
-    private CouncilPartialDto[] Councils = [];
+    private CouncilPartialDto[] _councils = [];
     /// <summary>
     /// Flag for if submittiing the new job
     /// </summary>
-    private bool Submitting;
+    private bool _submitting;
 
     /// <summary>
     /// On initialized method for loading data on the first page load.
@@ -34,7 +34,7 @@ public partial class CreateJob
     {
         IsLoading = true;
         await base.OnInitializedAsync();
-        Model = new()
+        _model = new()
         {
             JobType = JobTypeEnum.Construction,
             JobNumber = 1,
@@ -46,7 +46,7 @@ public partial class CreateJob
 
         Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
         if (councilResult?.IsSuccess == true && councilResult.Value is not null)
-            Councils = councilResult.Value;
+            _councils = councilResult.Value;
 
 
         IsLoading = false;
@@ -59,8 +59,8 @@ public partial class CreateJob
     /// <param name="value">The selected contact, or null if cleared.</param>
     private void OnContactChanged(ListContactDto? value)
     {
-        JobContact = value;
-        Model.ContactId = value?.ContactId ?? 0;
+        _jobContact = value;
+        _model.ContactId = value?.ContactId ?? 0;
     }
 
     /// <summary>
@@ -69,16 +69,16 @@ public partial class CreateJob
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SubmitAsync()
     {
-        if (Model.JobNumber <= 0)
+        if (_model.JobNumber <= 0)
         {
             _snackbar?.Add("Job number must be greater than 0.", Severity.Warning);
             return;
         }
 
-        Submitting = true;
+        _submitting = true;
         try
         {
-            Result<int> result = await _apiService.CreateJob(Model);
+            Result<int> result = await _apiService.CreateJob(_model);
             if (result.IsSuccess && result.Value > 0)
             {
                 _snackbar?.Add("Job created successfully.", Severity.Success);
@@ -89,7 +89,7 @@ public partial class CreateJob
         }
         finally
         {
-            Submitting = false;
+            _submitting = false;
         }
     }
 

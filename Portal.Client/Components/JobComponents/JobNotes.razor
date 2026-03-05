@@ -13,7 +13,7 @@
         }
         else
         {
-            <div class="notes-container">
+            <div class="note-container">
                 @foreach (JobNoteDto note in Notes)
                 {
                     <div class="note-item @(note.ActionRequired ? "action-required" : "")">
@@ -21,23 +21,25 @@
                             <div class="">@((MarkupString)GetHighlightedText(note.Content))</div>
                         </div>
                         <div class="note-actions">
-                            @if (note.Deleted)
-                            {
-                                <ButtonIcon OnClick="@(async () => await DeleteNoteAsync(note))" Icon="bi bi-arrow-counterclockwise" CssClass="text-red"></ButtonIcon>
-                            }
-                            else
-                            {
-                                <ButtonIcon OnClick="@(async () => await OpenDialogAsync(note))" Icon="bi bi-eye"></ButtonIcon>
-                                <ButtonIcon OnClick="@(async () => await DeleteNoteAsync(note))" Icon="bi bi-trash" CssClass="text-red"></ButtonIcon>
-                            }
-                        </div>
-                        <div class="note-meta">
-                            <div class="note-date">Created: @GetNoteDate(note)</div>
-                            <div class="note-author"> By: @(note.CreatedBy ?? "")</div>
-                            @if (note.AssignedUser is not null)
-                            {
-                                <div class="note-author"> Assigned to: @(note.AssignedUser?.displayName ?? "")</div>
-                            }
+                            <div class="note-buttons">
+                                @if (note.Deleted)
+                                {
+                                    <ButtonIcon OnClick="@(async () => await DeleteNoteAsync(note))" Icon="bi bi-arrow-counterclockwise" CssClass="text-red"></ButtonIcon>
+                                }
+                                else
+                                {
+                                    <ButtonIcon OnClick="@(async () => await OpenDialogAsync(note))" Icon="bi bi-eye"></ButtonIcon>
+                                    <ButtonIcon OnClick="@(async () => await DeleteNoteAsync(note))" Icon="bi bi-trash" CssClass="text-red"></ButtonIcon>
+                                }
+                            </div>
+                            <div class="note-meta">
+                                <div class="note-date">Created: @GetNoteDate(note)</div>
+                                <div class="note-author"> By: @(note.CreatedBy ?? "")</div>
+                                @if (note.AssignedUser is not null)
+                                {
+                                    <div class="note-author"> Assigned to: @(note.AssignedUser?.displayName ?? "")</div>
+                                }
+                            </div>
                         </div>
                     </div>
                 }
@@ -45,23 +47,4 @@
         }
     </ChildContent>
 </Card>
-
-<style>
-    .notes-container {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        max-height: 800px;
-        overflow-y: auto;
-        padding-right: 0.5rem;
-    }
-
-    .note-actions {
-        display: flex;
-        flex-direction: row;
-        gap: 0.25rem;
-    }
-</style>
-
-
 
