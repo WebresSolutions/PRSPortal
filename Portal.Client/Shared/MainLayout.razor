@@ -6,7 +6,7 @@
 @inject HotKeys _hotKeys
 
 <div class="page">
-    <SideNav NavToggled="@ToggleNav" NavLinks="navLinks" Minimize="hideSidebar"/>
+    <SideNav NavToggled="@ToggleNav" NavLinks="navLinks" Minimize="_collapsed"/>
    @*  <div class="top-row @(headerVisible ? "header-visible" : "header-hidden")">
         <NavBar ShowNav="hideSidebar" ToggleNav=ToggleNav />
     </div> *@
@@ -27,7 +27,7 @@
 @code {
     protected HotKeysContext? _hotKeysContext;
     private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-    private bool hideSidebar = false;
+    private bool _collapsed = true;
     private bool headerVisible = true;
 
     private List<NavLinkItem> navLinks = new();
@@ -62,7 +62,7 @@
 
     private async Task ToggleNav()
     {
-        hideSidebar = !hideSidebar;
+        _collapsed = !_collapsed;
         SystemSettingsDto? sessionSettings = _sessionStorage.GetItem<SystemSettingsDto>("SystemSettings");
 
         if (sessionSettings is null)
@@ -74,7 +74,7 @@
                 return;
         }
 
-        sessionSettings?.NavbarCollapsed = hideSidebar;
+        sessionSettings?.NavbarCollapsed = _collapsed;
         // Save to session storage for next time
         _sessionStorage.SetItem("SystemSettings", sessionSettings);
         string settingsJson = JsonSerializer.Serialize(sessionSettings);
@@ -83,9 +83,9 @@
     }
 
 
-    private string MainClass => hideSidebar ? "main full" : "main";
+    private string MainClass => _collapsed ? "main full" : "main";
 
-    private string FullWidth => hideSidebar ? "full" : "";
+    private string FullWidth => _collapsed ? "full" : "";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -170,7 +170,7 @@
                 string.IsNullOrWhiteSpace(settings.SecondaryColour))
                 return;
 
-            hideSidebar = settings.NavbarCollapsed;
+            _collapsed = settings.NavbarCollapsed;
             // Save to session storage for next time
             _sessionStorage.SetItem("SystemSettings", settings);
 

@@ -14,7 +14,8 @@
                      FixedHeader="true"
                      SortMode="SortMode.None"
                      RowsPerPage="15"
-                     @ref=@_subContactGrid>
+                     @ref=@_subContactGrid             
+        >
             <Columns>
                 <PropertyColumn Property="x => x.FullName" Title="Role" />
                 <TemplateColumn Title="Contact">
@@ -25,7 +26,7 @@
                 <PropertyColumn Property="x => x.Mobile" Title="Phone" />
                 <PropertyColumn Property="x => x.Phone" Title="Phone" />
                 <PropertyColumn Property="x => x.Email" Title="Email" />
-                <TemplateColumn Title="Actions" HeaderStyle="width: 100px;" StickyRight="true">
+                <TemplateColumn Title="Actions" StickyRight="true">
                     <CellTemplate>
                         <div class="d-flex flex-row gap-1">
                             @if (context.Item.Deleted)

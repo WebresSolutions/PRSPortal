@@ -25,9 +25,8 @@ public partial class SubContacts : IDisposable
     {
         SubContact = tab switch
         {
-            TabTypeEnum.All => SubContact,
+            TabTypeEnum.All => _activeContacts,
             TabTypeEnum.Deleted => _deletedContacts,
-            TabTypeEnum.Active => _activeContacts,
             _ => SubContact
         };
     }

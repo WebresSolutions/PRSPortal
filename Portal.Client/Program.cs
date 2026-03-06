@@ -33,7 +33,7 @@ public class Program
             options.ProviderOptions.LoginMode = "redirect";
             options.ProviderOptions.DefaultAccessTokenScopes.Add("profile");
             options.ProviderOptions.DefaultAccessTokenScopes.Add("offline_access");
-            options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://{clientId}/read_as_user");
+            options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://{clientId}/Read_user");
         });
 
         string httpClient = builder.Configuration.GetValue<string>("HttpClient")
@@ -53,7 +53,7 @@ public class Program
             {
                 IAccessTokenProvider tokenProvider = sp.GetRequiredService<IAccessTokenProvider>();
                 NavigationManager navigationManager = sp.GetRequiredService<NavigationManager>();
-                string apiScope = $"api://{clientId}/read_as_user";
+                string apiScope = $"api://{clientId}/Read_user";
 
                 AuthorizationMessageHandler handler = new(
                     tokenProvider,

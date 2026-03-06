@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Portal.Data;
 using Portal.Data.Models;
 using Portal.Server.Services.Interfaces;
@@ -156,7 +156,6 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                     CreatedBy = c.CreatedByUser.DisplayName ?? c.CreatedByUser.Email ?? "Unknown",
                     c.CreatedOn,
                     subContactCount = c.InverseParentContact.Count(sc => sc.DeletedAt == null && sc.ParentContactId == contactId),
-                    jobCount = c.Jobs.Count(j => j.DeletedAt == null && j.ContactId == contactId),
                     techContactCount = c.TechnicalContacts.Count(j => j.DeletedAt == null && j.ContactId == contactId),
                     invoiceCount = c.Invoices.Count(i => i.DeletedAt == null && i.ContactId == contactId),
                     subcontacts = c.InverseParentContact.Select(sub => new SubContactDto(
@@ -176,6 +175,15 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
             if (contactData is null)
                 return result.SetError(ErrorType.NotFound, $"Contact not found with Id: {contactId}");
 
+            // Get sub contacts and build single list for job IN clause (parent + sub-contact ids)
+            int[] subContacts = await _dbContext.Contacts
+                .AsNoTracking()
+                .Where(c => c.ParentContactId == contactId && c.DeletedAt == null)
+                .Select(sub => sub.Id)
+                .ToArrayAsync();
+            int[] contactIdsForJobs = [contactId, .. subContacts];
+            int jobsCount = await _dbContext.Jobs.CountAsync(j => j.DeletedAt == null && contactIdsForJobs.Contains(j.ContactId));
+
             result.Value = new ContactDetailsDto(
                 contactData.Id,
                 contactData.TypeId,
@@ -190,7 +198,7 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                 contactData.ParentContact,
                 contactData.CreatedBy,
                 contactData.CreatedOn,
-                contactData.jobCount,
+                jobsCount,
                 contactData.techContactCount,
                 contactData.invoiceCount,
                 contactData.subContactCount,

@@ -179,7 +179,7 @@ else
                                 </TemplateColumn>
                                 <PropertyColumn Property="x => x.Address.Street" ShowFilterIcon="false" Title="Street" />
                                 <PropertyColumn Property="x => x.Address.Suburb" ShowFilterIcon="false" Title="Suburb" />
-                                <TemplateColumn StickyLeft="true" Title="Action" HeaderStyle="max-width: 130px">
+                                <TemplateColumn StickyLeft="true" Title="Action">
                                     <CellTemplate>
                                         <div class="d-flex flex-row gap-1">
                                             <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{context.Item.JobId}")" />
