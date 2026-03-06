@@ -52,9 +52,25 @@ public class CustomMiddleware(RequestDelegate next) // Remove dbContext from con
                 }
                 else
                 {
-                    // The order of the arguments must match the order of the placeholders {}
-                    logger.LogError("User with IdentityId {IdentityId} (Email: {Email}) not found in database.", identityId, email);
-                    throw new Exception($"Could not find user with Email {email} or IdentityId {identityId} in the database.");
+                    if (email.Contains("prs.au") && !await dbContext.AppUsers.AnyAsync(x => x.IdentityId == identityId))
+                    {
+                        // Create a new user 
+                        AppUser newUser = new()
+                        {
+                            IdentityId = identityId,
+                            Email = email,
+                            DisplayName = email.Split('@')[0],
+                            CreatedAt = DateTime.UtcNow,
+                        };
+                        dbContext.AppUsers.Add(newUser);
+                        await dbContext.SaveChangesAsync();
+                        appUser = newUser;
+                    }
+                    else
+                    {
+                        logger.LogError("User with IdentityId {IdentityId} (Email: {Email}) not found in database. Throwing exception.", identityId, email);
+                        throw new Exception($"Could not find user with Email {email} or IdentityId {identityId} in the database.");
+                    }
                 }
             }
 
