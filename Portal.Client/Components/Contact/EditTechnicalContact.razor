@@ -1,0 +1,61 @@
+@using Portal.Shared
+@using Portal.Shared.DTO.Contact
+@inherits BaseDataComponent
+
+<MudDialog>
+    <DialogContent>
+        <h4 class="header-border">@HeaderText</h4>
+        @if (!base.IsLoading)
+        {
+            <EditForm Model="@Model" class="create-technical-contact-form border-rad">
+                <DataAnnotationsValidator />
+                <div>
+                    <label for="contact">Contact</label>
+                    <MudAutocomplete T="ListContactDto" name="contact" Value="_jobContact" ValueChanged="OnContactChanged" Clearable="false" Variant="Variant.Outlined" DebounceInterval="200"
+                                     SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" MaxItems="100" Required="true">
+                        <MoreItemsTemplate>
+                            <div class="d-flex justify-content-center">
+                                <small>
+                                    Only the first 100 contacts are shown. Please refine your search to find the contact you are looking for.
+                                </small>
+                            </div>
+                        </MoreItemsTemplate>
+                    </MudAutocomplete>
+                </div>
+                <div>
+                    <label for="contact-role">Contact Role</label>
+                    <MudSelect T="int" name="contact-role" Variant="Variant.Outlined" Clearable="false" Class="" Required="true" @bind-Value="Model.ContactTypeId">
+                        @foreach (TechnicalContactTypeDto type in _contactTypes)
+                        {
+                            <MudSelectItem T="int" Value="@type.Id">@type.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </div>
+
+            </EditForm>
+            <div class="d-flex justify-content-center gap-1">
+                <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" OnClick="SubmitAsync" Text="Save" />
+                <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" OnClick="@(() => base.MudDialog?.Close(DialogResult.Cancel()))" Text="Close" />
+            </div>
+        }
+        else
+        {
+            <div style="min-height: 400px">
+                <Spinner />
+            </div>
+        }
+    </DialogContent>
+</MudDialog>
+
+<style>
+    .create-technical-contact-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 20px;
+        padding: var(--padding);
+        background: var(--color-light-grey);
+    }
+</style>
+
+

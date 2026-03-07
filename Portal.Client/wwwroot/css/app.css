@@ -12,7 +12,7 @@
     --color-light-grey: #f8fafc;
     --color-white: #FFFFFF;
     --color-yellow: #a16207;
-    --border-rad: 6px;
+    --border-rad: 10px;
     --padding: 10px;
     --colour-survey: #7DCE82;
     --colour-construction: #FF8360;
@@ -74,6 +74,11 @@ h2 {
 h1 {
     color: var(--color-primary);
     font-weight: 800;
+}
+
+label {
+    color: var(--color-primary) !important;
+    font-weight: 600;
 }
 
 .colour-secondary{
@@ -162,6 +167,9 @@ ul {
 .mud-table {
     box-shadow: none !important;
 }
+.mud-table-container {
+    overflow-y: hidden !important;
+}
 
 .shadow {
     box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px !important;
@@ -195,10 +203,6 @@ a {
 
 .mud-input.mud-input-filled.mud-input-underline:before {
     border-bottom: none !important;
-}
-
-.mud-table {
-    box-shadow: none !important;
 }
 
 .mud-button-filled.mud-button-filled-primary {

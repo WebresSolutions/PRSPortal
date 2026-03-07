@@ -69,5 +69,13 @@ public class ListContactDto
     public ListContactDto()
     {
     }
+
+    public override string ToString()
+    {
+        string res = FullName;
+        res += !string.IsNullOrEmpty(Email) ? $"/ {Email}" : "";
+        res += !string.IsNullOrEmpty(Email) ? $"/ {Phone}" : "";
+        return res;
+    }
 }
 

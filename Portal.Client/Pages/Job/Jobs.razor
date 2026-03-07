@@ -43,14 +43,14 @@
                          @ref="_grid"
                          Striped="true">
                 <Columns>
+                    <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Sortable="true" Title="Job #" HeaderStyle="max-width: 75px">
+                        <CellTemplate>
+                            <a class="contact-link" href=@($"/jobs/view/{context.Item.JobId}")>@context.Item.JobNumber</a>
+                        </CellTemplate>
+                    </TemplateColumn>
                     <TemplateColumn ShowFilterIcon="false" Title="Job Type">
                         <CellTemplate>
                             <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Sortable="true" Title="Job Number #" HeaderStyle="max-width: 75px">
-                        <CellTemplate>
-                            <a class="contact-link" href=@($"/jobs/view/{context.Item.JobId}")>@context.Item.JobNumber</a>
                         </CellTemplate>
                     </TemplateColumn>
                     @* <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" /> *@

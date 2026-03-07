@@ -18,11 +18,11 @@
                         <div class="timesheet-fields">
                             <div class="timesheet-field timesheet-field-main">
                                 <span class="timesheet-time">
-                                    @entry.Start.ToString("HH:mm")
+                                    @entry.Start.ToLocalTime().ToString("HH:mm")
                                     @if (entry.End is not null)
                                     {
                                         <span class="timesheet-time-sep">–</span>
-                                        @entry.End.Value.ToString("HH:mm")
+                                        @entry.End.Value.ToLocalTime().ToString("HH:mm")
                                     }
                                     else
                                     {

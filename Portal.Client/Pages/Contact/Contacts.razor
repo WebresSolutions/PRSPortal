@@ -9,11 +9,17 @@
 <div class="container">
     <PageHeader>
         <Content>
-            <div class="" style="min-width: 150px">
-                <h2>Contacts</h2>
+            <div class="page-header">
+                <div class="" style="min-width: 150px">
+                    <h2>Contacts</h2>
+                </div>
+                <div class="search-container">
+                    <MudTextField T="string" @bind-Value="_sessionData.NameSearch" Placeholder="Search by Name" Adornment="Adornment.Start" TextChanged="(async (x) => { _sessionData.NameSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.Person" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _sessionData.NameSearch = null)"></MudTextField>
+                    <MudTextField T="string" @bind-Value="_sessionData.AddressSearch" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { _sessionData.AddressSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.OtherHouses" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _sessionData.AddressSearch = null)"></MudTextField>
+                </div>
             </div>
-            <MudTextField T="string" @bind-Value="_sessionData.SearchString" Placeholder="Search" Adornment="Adornment.Start" TextChanged="(async (x) => await OnSearch(x))" Variant="Variant.Outlined"
-                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Large" Class="" Clearable="true" OnClearButtonClick="ClearSearch"></MudTextField>
         </Content>
     </PageHeader>
     <Card>
@@ -25,6 +31,7 @@
                          ServerData="LoadContacts"
                          Filterable="true"
                          SortMode="SortMode.Single"
+                         Hover="true"
                          Loading="base.IsLoading"
                          RowsPerPage="_rowsPerPage"
                          CurrentPage="_sessionData.Page"
@@ -33,15 +40,6 @@
                          @ref="_grid"
                          Striped="true">
                 <Columns>
-                    <TemplateColumn StickyLeft="true" Title="Action">
-                        <CellTemplate>
-                            <div class="d-flex flex-row">
-                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($"/contacts/{context.Item.ContactId}")" />
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
-                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
-                            </div>
-                        </CellTemplate>
-                    </TemplateColumn>
                     <PropertyColumn Property="x => x.ContactId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" />
                     <PropertyColumn Property="x => x.FullName" ShowFilterIcon="false" Title="Name" />
                     <PropertyColumn Property="x => x.Email" ShowFilterIcon="false" Title="Email" />
@@ -49,8 +47,8 @@
                     <TemplateColumn ShowFilterIcon="false" Title="Address">
                         <CellTemplate>
                             @if (context.Item.Address is not null && !string.IsNullOrEmpty(context.Item.Address.Street))
-                                {
-                                <p>@($"{context.Item.Address.Street}, {context.Item.Address.Suburb} {context.Item.Address.PostCode}")</p>
+                            {
+                                <p>@($"{context.Item.Address.ToDisplayString()}")</p>
                             }
                         </CellTemplate>
                     </TemplateColumn>
@@ -60,6 +58,15 @@
                             {
                                 <a class="contact-link" href=@($"/contacts/{context.Item.ParentContact.contactId}")>@context.Item.ParentContact.fullName</a>
                             }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn StickyRight="true" Title="Action">
+                        <CellTemplate>
+                            <div class="d-flex flex-row">
+                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($"/contacts/{context.Item.ContactId}")" />
+                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
+                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
+                            </div>
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>

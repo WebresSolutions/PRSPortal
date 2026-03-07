@@ -24,25 +24,17 @@ public static class ContactEndpoints
         // Gets all contacts with pagination and optional filtering/sorting
         appGroup.MapGet("", async (
             [FromServices] IContactService contactService,
-            [FromQuery] int page,
-            [FromQuery] int pageSize,
-            [FromQuery] string? searchFilter,
-            [FromQuery] string? orderby,
-            [FromQuery] SortDirectionEnum? order,
-            HttpContext httpContext,
-            [FromQuery] bool deleted = false
+            [AsParameters] ContactFilterDto filter
             ) =>
         {
-            if (page <= 0)
-                page = 1;
+            int validatedPage = filter.Page <= 0 ? 1 : filter.Page;
+            filter = filter with { Page = validatedPage };
 
-            order ??= SortDirectionEnum.Asc;
-
-            Result<PagedResponse<ListContactDto>> result = await contactService.GetAllContacts(page, pageSize, order, searchFilter, orderby, deleted);
+            Result<PagedResponse<ListContactDto>> result = await contactService.GetAllContacts(filter);
             return EndpointsHelper.ProcessResult(result, "An error occurred while loading contacts");
         })
             .WithSummary("List contacts")
-            .WithDescription("Returns a paginated list of contacts with optional search filter and sorting by page, pageSize, searchFilter, orderby, and order.")
+            .WithDescription("Returns a paginated list of contacts with optional search filters (name, email, phone, address, contactId) or searchFilter for type-ahead, and sorting.")
             .Produces<PagedResponse<ListContactDto>>();
 
         // Gets contact details without jobs

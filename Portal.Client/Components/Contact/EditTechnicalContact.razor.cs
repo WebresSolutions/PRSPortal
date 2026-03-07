@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Shared;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.ResponseModels;
 
-namespace Portal.Client.Components.JobComponents;
+namespace Portal.Client.Components.Contact;
 
 public partial class EditTechnicalContact
 {
@@ -88,7 +87,8 @@ public partial class EditTechnicalContact
     /// <returns></returns>
     public async Task<IEnumerable<ListContactDto>> SearchContacts(string search, CancellationToken token)
     {
-        Result<PagedResponse<ListContactDto>>? contactResult = await _apiService.GetAllContacts(100, 1, search, null, SortDirectionEnum.Asc);
+        ContactFilterDto filter = new(Page: 1, PageSize: 100, NameEmailPhoneSearch: search);
+        Result<PagedResponse<ListContactDto>>? contactResult = await _apiService.GetAllContacts(filter);
 
         if (contactResult?.IsSuccess == true && contactResult.Value?.Result is not null)
             return contactResult.Value.Result;

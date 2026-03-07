@@ -19,19 +19,9 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
     /// <summary>
     /// Retrieves a paged list of contacts with optional filtering and sorting
     /// </summary>
-    /// <param name="page">The page number to retrieve (1-based)</param>
-    /// <param name="pageSize">The number of items per page</param>
-    /// <param name="order">The sort direction (ascending or descending)</param>
-    /// <param name="searchFilter">Optional search filter for contact names, emails, or phone numbers</param>
-    /// <param name="orderby">Optional field name to sort by</param>
+    /// <param name="filter">Filter parameters including split search fields or searchFilter for type-ahead</param>
     /// <returns>A result containing a paged response of contact DTOs</returns>
-    public async Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(
-        int page,
-        int pageSize,
-        SortDirectionEnum? order,
-        string? searchFilter,
-        string? orderby,
-        bool deleted = false)
+    public async Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(ContactFilterDto filter)
     {
         Result<PagedResponse<ListContactDto>> result = new();
         try
@@ -40,11 +30,28 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                 .AsNoTracking()
                 .AsQueryable();
 
-            contactQuery = !deleted ? contactQuery.Where(x => x.DeletedAt == null) : contactQuery.Where(x => x.DeletedAt != null);
+            contactQuery = !filter.Deleted ? contactQuery.Where(x => x.DeletedAt == null) : contactQuery.Where(x => x.DeletedAt != null);
 
-            if (!searchFilter.IsNullOrWhiteSpace())
+            bool hasSplitSearch = !filter.NameEmailPhoneSearch.IsNullOrWhiteSpace() || !filter.AddressSearch.IsNullOrWhiteSpace();
+
+            if (hasSplitSearch)
             {
-                searchFilter = searchFilter!.Trim();
+                if (!filter.NameEmailPhoneSearch.IsNullOrWhiteSpace())
+                {
+                    string nameEmailSearch = filter.NameEmailPhoneSearch!.Trim();
+                    contactQuery = contactQuery.Where(contact =>
+                        contact.SearchVector.Matches(nameEmailSearch));
+                }
+                if (!filter.AddressSearch.IsNullOrWhiteSpace())
+                {
+                    string addressSearch = filter.AddressSearch!.Trim();
+                    contactQuery = contactQuery.Where(contact =>
+                        contact.Address != null && contact.Address.SearchVector != null && contact.Address.SearchVector.Matches(addressSearch));
+                }
+            }
+            else if (!filter.SearchFilter.IsNullOrWhiteSpace())
+            {
+                string searchFilter = filter.SearchFilter!.Trim();
                 bool isNumeric = int.TryParse(searchFilter, out int numericValue);
                 contactQuery = contactQuery.Where(contact =>
                             (isNumeric && contact.Id == numericValue)
@@ -52,8 +59,8 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                             || (contact.Address != null && contact.Address.SearchVector != null && contact.Address.SearchVector.Matches(searchFilter)));
             }
 
-            bool isDescending = order is SortDirectionEnum.Desc;
-            contactQuery = orderby switch
+            bool isDescending = filter.Order is SortDirectionEnum.Asc;
+            contactQuery = filter.OrderBy switch
             {
                 nameof(ListContactDto.ContactId) => isDescending
                     ? contactQuery.OrderByDescending(x => x.Id)
@@ -80,10 +87,10 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                 _ => contactQuery.OrderByDescending(x => x.Id) // Default ordering by ContactId
             };
 
-            int skipValue = (page - 1) * pageSize;
+            int skipValue = (filter.Page - 1) * filter.PageSize;
             List<ListContactDto> contacts = await contactQuery
                         .Skip(skipValue)
-                        .Take(pageSize)
+                        .Take(filter.PageSize)
                         .Select(x => new ListContactDto(
                             x.Id,
                             x.FullName,
@@ -101,7 +108,7 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                         .ToListAsync();
             int total = await contactQuery.CountAsync();
             // Create the paged response
-            PagedResponse<ListContactDto> pagedResponse = new(contacts, pageSize, page, total);
+            PagedResponse<ListContactDto> pagedResponse = new(contacts, filter.PageSize, filter.Page, total);
             result.Value = pagedResponse;
             return result;
         }

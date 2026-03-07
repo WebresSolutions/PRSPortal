@@ -1,4 +1,4 @@
-﻿namespace Portal.Shared.Web;
+namespace Portal.Shared.Web;
 
 /// <summary>
 /// Session data for the Facilities page
@@ -27,9 +27,25 @@ public class SessionSearchData
     /// </summary>
     public string? JobNumberSearch { get; set; }
     /// <summary>
-    /// Search String
+    /// Search String (legacy / type-ahead)
     /// </summary>
     public string? SearchString { get; set; }
+    /// <summary>
+    /// Contact name search (contacts page)
+    /// </summary>
+    public string? NameSearch { get; set; }
+    /// <summary>
+    /// Contact email search (contacts page)
+    /// </summary>
+    public string? EmailSearch { get; set; }
+    /// <summary>
+    /// Contact phone search (contacts page)
+    /// </summary>
+    public string? PhoneSearch { get; set; }
+    /// <summary>
+    /// Contact ID search (contacts page). AddressSearch (above) is also used for contacts page address search.
+    /// </summary>
+    public string? ContactIdSearch { get; set; }
     /// <summary>
     /// Gets or sets the field name to order by
     /// </summary>

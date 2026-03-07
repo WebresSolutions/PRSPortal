@@ -31,31 +31,54 @@
                         <div>
                             <h3 class="form-section-title border-bottom pb-2">Job Details</h3>
                             <div class="form-sections border-rad">
-                                <MudNumericField T="int" @bind-Value="_model.JobNumber" Label="Job Number" Variant="Variant.Outlined"
-                                                 Required="true" RequiredError="Job number is required" Class="" For="@(() => _model.JobNumber)" />
-                                <MudTextField @bind-Value="_model.Details" Label="Details" Variant="Variant.Outlined" Class=""
-                                              For="@(() => _model.Details)" Counter="2000" Lines="3" />
-                                <MudSelect T="JobTypeEnum" @bind-Value="_model.JobType" Label="Job Type" Variant="Variant.Outlined" Class="" For="@(() => _model.JobType)" Required="true">
-                                    <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
-                                    <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
-                                </MudSelect>
-                                <MudAutocomplete T="ListContactDto" Label="Contact" Value="_jobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
-                                                 SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" MaxItems="50" Required="true">
-                                    <MoreItemsTemplate>
-                                        <div class="d-flex justify-content-center">
-                                            <small>
-                                                Only the first 10 items are shown
-                                            </small>
-                                        </div>
-                                    </MoreItemsTemplate>
-                                </MudAutocomplete>
-                                <MudSelect T="int?" @bind-Value="_model.CouncilId" Label="Council (optional)" Variant="Variant.Outlined" Clearable="true" Class="" For="@(() => _model.CouncilId)">
-                                    @foreach (var c in _councils)
-                                    {
-                                        <MudSelectItem T="int?" Value="@c.CouncilId">@c.CouncilName</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                <MudNumericField T="int?" @bind-Value="_model.JobColourId" Label="Job Colour ID (optional)" Variant="Variant.Outlined" Min="1" Class="" Clearable="true" For="@(() => _model.JobColourId)" />
+                                <div>
+                                    <label for="job-number">Job Number</label>
+                                    <MudNumericField name="job-number" T="int" @bind-Value="_model.JobNumber" Variant="Variant.Outlined"
+                                                     Required="true" RequiredError="Job number is required" Class="" For="@(() => _model.JobNumber)" />
+                                </div>
+
+                                <div>
+                                    <label for="job-type">Job Type</label>
+                                    <MudSelect name="job-type" T="JobTypeEnum" @bind-Value="_model.JobType" Variant="Variant.Outlined" Class="" For="@(() => _model.JobType)" Required="true">
+                                        <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
+                                        <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
+                                    </MudSelect>
+                                </div>
+
+                                <div>
+                                    <label for="job-contact">Contact</label>
+                                    <MudAutocomplete name="job-contact" T="ListContactDto" Value="_jobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
+                                                     SearchFunc="@SearchContacts" ToStringFunc="@(e=> e.ToString())" MaxItems="50" Required="true">
+                                        <MoreItemsTemplate>
+                                            <div class="d-flex justify-content-center">
+                                                <small>
+                                                    Only the first 10 items are shown
+                                                </small>
+                                            </div>
+                                        </MoreItemsTemplate>
+                                    </MudAutocomplete>
+                                </div>
+
+                                <div>
+                                    <label for="job-council">Council</label>
+                                    <MudSelect name="job-council" T="int?" @bind-Value="_model.CouncilId" Variant="Variant.Outlined" Clearable="true" Class="" For="@(() => _model.CouncilId)">
+                                        @foreach (var c in _councils)
+                                        {
+                                            <MudSelectItem T="int?" Value="@c.CouncilId">@c.CouncilName</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </div>
+                                <div>
+                                    <label for="job-colour-id">Colour</label>
+                                    <MudNumericField name="job-colour-id" T="int?" @bind-Value="_model.JobColourId" Variant="Variant.Outlined" Min="1" Class="" Clearable="true" For="@(() => _model.JobColourId)" />
+                                </div>
+
+                                <div>
+                                    <label for="details">Details</label>
+                                    <MudTextField name="details" @bind-Value="_model.Details" Variant="Variant.Outlined" Class=""
+                                                  For="@(() => _model.Details)" Counter="2000" Lines="3" />
+                                </div>
+
                             </div>
                         </div>
 
@@ -64,11 +87,10 @@
                             <EditAddress Address="_model.Address" />
                         }
 
-
-                        <div class="form-actions">
-                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_isSubmitting" StartIcon="@Icons.Material.Filled.Save">Save Details</MudButton>
-                            <MudButton Variant="Variant.Outlined" Href="/jobs">Cancel</MudButton>
-                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_isSubmitting" StartIcon="@Icons.Material.Filled.Save">Save Details</MudButton>
+                        <MudButton Variant="Variant.Outlined" Href="/jobs">Cancel</MudButton>
                     </div>
                 </EditForm>
             }
@@ -80,121 +102,7 @@
     </Card>
 </div>
 
-@code {
-    /// <summary>
-    /// The Job id
-    /// </summary>
-    [Parameter]
-    public int JobId { get; set; }
-    /// <summary>
-    /// If submitting
-    /// </summary>
-    private bool _isSubmitting;
-    /// <summary>
-    /// The model
-    /// </summary>
-    private JobDetailsDto? _model;
-    /// <summary>
-    /// The List of job contacts
-    /// </summary>
-    private ListContactDto? _jobContact;
 
-    /// <summary>
-    /// List of councils
-    /// </summary>
-    private CouncilPartialDto[] _councils = [];
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        await LoadJobData();
-        Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
-        if (councilResult?.IsSuccess == true && councilResult.Value is not null)
-            _councils = councilResult.Value;
-        if (_model is { PrimaryContact: not null })
-        {
-            _jobContact = new()
-            {
-                ContactId = _model.ContactId,
-                FullName = _model.PrimaryContact.ContactName,
-                Phone = _model.PrimaryContact.Phone
-            };
-        }
-    }
-
-    private async Task LoadJobData()
-    {
-        IsLoading = true;
-        try
-        {
-            Result<JobDetailsDto>? result = await _apiService.Job(JobId);
-            if (result is not null && result.IsSuccess && result.Value is not null)
-            {
-                _model = result.Value;
-            }
-            else
-            {
-                _snackbar?.Add("Error loading job details", Severity.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            _snackbar?.Add($"Error: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    private async Task SubmitAsync()
-    {
-        if (_model!.JobNumber <= 0)
-        {
-            _snackbar?.Add("Job number must be greater than 0.", Severity.Warning);
-            return;
-        }
-
-        _isSubmitting = true;
-        try
-        {
-            Result<JobDetailsDto> result = await _apiService.UpdateJob(_model);
-            if (result.IsSuccess && result.Value is not null)
-            {
-                _snackbar?.Add("Job created successfully.", Severity.Success);
-                _navigationManager.NavigateTo($"/jobs/view/{result.Value.JobId}");
-            }
-            else
-                _snackbar?.Add(result.ErrorDescription ?? "Failed to create job.", Severity.Error);
-        }
-        finally
-        {
-            _isSubmitting = false;
-        }
-    }
-
-    private void OnContactChanged(ListContactDto? value)
-    {
-        _jobContact = value;
-        _model!.ContactId = value?.ContactId ?? 0;
-    }
-
-    /// <summary>
-    /// Used by the type ahead auto complete for searching contacts
-    /// </summary>
-    /// <param name="search">The search string</param>
-    /// <param name="token">The token</param>
-    /// <returns></returns>
-    public async Task<IEnumerable<ListContactDto>> SearchContacts(string search, CancellationToken token)
-    {
-        Result<PagedResponse<ListContactDto>>? contactResult = await _apiService.GetAllContacts(500, 1, search, null, SortDirectionEnum.Asc);
-
-        if (contactResult?.IsSuccess == true && contactResult.Value?.Result is not null)
-            return contactResult.Value.Result;
-        else
-            return [];
-    }
-}
 
 <style>
 
@@ -238,6 +146,7 @@
         display: flex;
         gap: 0.5rem;
         margin-top: 1.5rem;
+        justify-content: end
     }
 
     .map-hint {

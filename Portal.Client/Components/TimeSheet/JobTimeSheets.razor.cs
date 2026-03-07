@@ -35,7 +35,7 @@ public partial class JobTimeSheets
             [nameof(AddTimeSheetEntryDialog.OnSaved)] = OnSaved
         };
         DialogOptions options = new() { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, CloseButton = true };
-        await DialogService.ShowAsync<AddTimeSheetEntryDialog>("Add time entry", parameters, options);
+        await DialogService.ShowAsync<AddTimeSheetEntryDialog>("", parameters, options);
     }
 
     private async Task OpenEditDialog(TimeSheetDto entry)
@@ -46,7 +46,7 @@ public partial class JobTimeSheets
             [nameof(AddTimeSheetEntryDialog.OnSaved)] = OnSaved
         };
         DialogOptions options = new() { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, CloseButton = true };
-        await DialogService.ShowAsync<AddTimeSheetEntryDialog>("Edit time entry", parameters, options);
+        await DialogService.ShowAsync<AddTimeSheetEntryDialog>("", parameters, options);
     }
 
     private async Task DeleteEntry(TimeSheetDto entry)

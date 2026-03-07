@@ -598,42 +598,34 @@ public class ApiService : IApiService
         return res;
     }
     /// <summary>
-    /// Retrieves a paged list of contacts, optionally filtered by search term and sorted according to the specified criteria.
+    /// Retrieves a paged list of contacts, optionally filtered by split search fields or searchFilter for type-ahead, and sorted.
     /// </summary>
     /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The method does
     /// not throw exceptions for HTTP errors; instead, error information is included in the returned result.</remarks>
-    /// <param name="pageSize">The maximum number of contacts to include in each page of results. Must be a positive integer.</param>
-    /// <param name="pageNumber">The 1-based index of the page to retrieve. Must be greater than or equal to 1.</param>
-    /// <param name="searchFilter">An optional filter to return only contacts whose names, emails, or phone numbers contain the specified value. If null, no filtering is
-    /// applied.</param>
-    /// <param name="orderby">An optional field name by which to sort the results. If null, the default sort order is used.</param>
-    /// <param name="order">The direction in which to sort the results. Specify ascending or descending.</param>
+    /// <param name="filter">Filter parameters including page, pageSize, order, orderby, deleted, and optional search fields or searchFilter.</param>
     /// <returns>A result containing a paged response of contact data transfer objects. If no contacts match the criteria, the response
     /// contains an empty collection.</returns>
-    public async Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(
-        int pageSize,
-        int pageNumber,
-        string? searchFilter,
-        string? orderby,
-        SortDirectionEnum order,
-        bool deleted = false)
+    public async Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(ContactFilterDto filter)
     {
         Result<PagedResponse<ListContactDto>> res = new();
         try
         {
             Dictionary<string, string> queryParameters = new()
             {
-                { "pageSize", pageSize.ToString() },
-                { "page", pageNumber.ToString() },
-                { "order", ((int)order).ToString() },
-                { "deleted", deleted.ToString().ToLower() }
+                { "page", filter.Page.ToString() },
+                { "pageSize", filter.PageSize.ToString() },
+                { "order", ((int)filter.Order).ToString() },
+                { "deleted", filter.Deleted.ToString().ToLower() }
             };
 
-            if (searchFilter is not null)
-                queryParameters.Add("searchFilter", searchFilter ?? string.Empty);
-
-            if (orderby is not null)
-                queryParameters.Add("orderby", orderby ?? string.Empty);
+            if (!string.IsNullOrWhiteSpace(filter.OrderBy))
+                queryParameters.Add("orderby", filter.OrderBy);
+            if (!string.IsNullOrWhiteSpace(filter.SearchFilter))
+                queryParameters.Add("searchFilter", filter.SearchFilter);
+            if (!string.IsNullOrWhiteSpace(filter.NameEmailPhoneSearch))
+                queryParameters.Add("nameEmailPhoneSearch", filter.NameEmailPhoneSearch);
+            if (!string.IsNullOrWhiteSpace(filter.AddressSearch))
+                queryParameters.Add("addressSearch", filter.AddressSearch);
 
             FormUrlEncodedContent dictFormUrlEncoded = new(queryParameters);
             string queryString = await dictFormUrlEncoded.ReadAsStringAsync();

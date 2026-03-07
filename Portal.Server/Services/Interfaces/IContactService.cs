@@ -12,13 +12,9 @@ public interface IContactService
     /// <summary>
     /// Get all contacts with pagination, sorting, and filtering options.
     /// </summary>
-    /// <param name="page">The page number</param>
-    /// <param name="pageSize">The page size</param>
-    /// <param name="order">Order by direction (ascending or descending)</param>
-    /// <param name="searchFilter">The search filter</param>
-    /// <param name="orderby">Column to order by</param>
+    /// <param name="filter">Filter parameters including split search fields (name, email, phone, address, contactId) or searchFilter for type-ahead.</param>
     /// <returns>A paged list of contacts</returns>
-    Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(int page, int pageSize, SortDirectionEnum? order, string? searchFilter, string? orderby, bool deleted = false);
+    Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(ContactFilterDto filter);
 
     /// <summary>
     /// Retrieves detailed information for a contact specified by its unique identifier.

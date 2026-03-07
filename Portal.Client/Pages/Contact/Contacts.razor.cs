@@ -24,19 +24,23 @@ public partial class Contacts
 
     #region Query Parameters
     [Parameter]
-    [SupplyParameterFromQuery]
+    [SupplyParameterFromQuery(Name = "page")]
     public int? Page { get; set; }
 
     [Parameter]
-    [SupplyParameterFromQuery]
+    [SupplyParameterFromQuery(Name = "pageSize")]
     public int? PageSize { get; set; }
 
     [Parameter]
-    [SupplyParameterFromQuery]
-    public string? Search { get; set; }
+    [SupplyParameterFromQuery(Name = "name")]
+    public string? NameSearch { get; set; }
 
     [Parameter]
-    [SupplyParameterFromQuery]
+    [SupplyParameterFromQuery(Name = "address")]
+    public string? AddressSearch { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "order")]
     public string? Order { get; set; }
     #endregion
 
@@ -54,13 +58,13 @@ public partial class Contacts
             _sessionData.Page = Page.Value;
         if (PageSize.HasValue)
             _sessionData.PageSize = PageSize.Value;
-        if (!string.IsNullOrWhiteSpace(Search))
-            _sessionData.SearchString = Search;
+        if (NameSearch is not null)
+            _sessionData.NameSearch = NameSearch;
         if (!string.IsNullOrWhiteSpace(Order) && Enum.TryParse<SortDirectionEnum>(Order, true, out SortDirectionEnum orderEnum))
             _sessionData.Order = orderEnum;
 
         // Restore session data only if query parameters weren't provided
-        if (!Page.HasValue && !PageSize.HasValue && string.IsNullOrWhiteSpace(Search) && string.IsNullOrWhiteSpace(Order))
+        if (!Page.HasValue && !PageSize.HasValue && string.IsNullOrWhiteSpace(NameSearch) && string.IsNullOrWhiteSpace(AddressSearch) && string.IsNullOrWhiteSpace(Order))
         {
             SessionSearchData? savedSession = _sessionStorage.GetItem<SessionSearchData>(_ContactsSessionKey);
             if (savedSession is not null)
@@ -90,11 +94,17 @@ public partial class Contacts
             _sessionData.PageSize = PageSize.Value;
             dataChanged = true;
         }
-        if (!string.IsNullOrWhiteSpace(Search) && _sessionData.SearchString != Search)
+        if (NameSearch is not null && _sessionData.NameSearch != NameSearch)
         {
-            _sessionData.SearchString = Search;
+            _sessionData.NameSearch = NameSearch;
             dataChanged = true;
         }
+        if (AddressSearch is not null && _sessionData.AddressSearch != AddressSearch)
+        {
+            _sessionData.AddressSearch = AddressSearch;
+            dataChanged = true;
+        }
+
         if (!string.IsNullOrWhiteSpace(Order) && Enum.TryParse<SortDirectionEnum>(Order, true, out SortDirectionEnum orderEnum) && _sessionData.Order != orderEnum)
         {
             _sessionData.Order = orderEnum;
@@ -132,8 +142,11 @@ public partial class Contacts
         if (_sessionData.PageSize != 25) // Only add if not default
             queryParams["pageSize"] = _sessionData.PageSize.ToString();
 
-        if (!string.IsNullOrWhiteSpace(_sessionData.SearchString))
-            queryParams["search"] = _sessionData.SearchString;
+        if (!string.IsNullOrWhiteSpace(_sessionData.NameSearch))
+            queryParams["name"] = _sessionData.NameSearch;
+
+        if (!string.IsNullOrWhiteSpace(_sessionData.AddressSearch))
+            queryParams["address"] = _sessionData.AddressSearch;
 
         if (_sessionData.Order != SortDirectionEnum.Asc) // Only add if not default
             queryParams["order"] = _sessionData.Order.ToString();
@@ -199,13 +212,16 @@ public partial class Contacts
             _sessionData.PageSize = state.PageSize;
             SaveSessionData();
 
-            Result<PagedResponse<ListContactDto>>? apiResult = await _apiService.GetAllContacts(
-                apiPageSize,
+            ContactFilterDto filter = new(
                 apiPageNumber,
-                _sessionData.SearchString,
+                apiPageSize,
                 _sessionData.OrderBy,
                 _sessionData.Order,
-                _showDeleted);
+                Deleted: _showDeleted,
+                AddressSearch: _sessionData.AddressSearch,
+                NameEmailPhoneSearch: _sessionData.NameSearch,
+                SearchFilter: null);
+            Result<PagedResponse<ListContactDto>>? apiResult = await _apiService.GetAllContacts(filter);
 
             if (apiResult is not null && apiResult.IsSuccess && apiResult.Value is not null)
             {
@@ -246,33 +262,16 @@ public partial class Contacts
     }
 
     /// <summary>
-    /// Handles search input changes and triggers grid data reload with the new search criteria
+    /// Handles search input changes and triggers grid data reload with the new search criteria.
     /// </summary>
-    /// <param name="text">The search text entered by the user</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    private Task OnSearch(string text)
+    private Task OnSearch()
     {
-        _sessionData.SearchString = text;
-        // Reset to first page when search changes
         _sessionData.Page = 0;
         SaveSessionData();
         if (_grid is not null)
             return _grid!.ReloadServerData();
-
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Clears the search filter, resets session data to defaults, and reloads the grid.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private Task ClearSearch()
-    {
-        _sessionData.SearchString = string.Empty;
-        _sessionData.Page = 0;
-        _sessionStorage.RemoveItem(_ContactsSessionKey);
-        _sessionData = new SessionSearchData(); // Reset to defaults
-        return _grid!.ReloadServerData();
     }
 
     /// <summary>

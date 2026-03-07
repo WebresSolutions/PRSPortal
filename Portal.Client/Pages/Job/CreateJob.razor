@@ -38,31 +38,55 @@
                         <div>
                             <h3 class="form-section-title border-bottom pb-2">Job Details</h3>
                             <div class="form-sections border-rad">
-                                <MudNumericField T="int" @bind-Value="_model.JobNumber" Label="Job Number" Variant="Variant.Outlined"
-                                                 Required="true" RequiredError="Job number is required" Class="mb-3" For="@(() => _model.JobNumber)" />
-                                <MudTextField @bind-Value="_model.Details" Label="Description" Variant="Variant.Outlined" Class="mb-3"
-                                              For="@(() => _model.Details)" Counter="2000" Lines="3" />
-                                <MudSelect T="JobTypeEnum" @bind-Value="_model.JobType" Label="Job Type" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.JobType)" Required="true">
-                                    <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
-                                    <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
-                                </MudSelect>
-                                <MudAutocomplete T="ListContactDto" Label="Contact" Value="_jobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
-                                                 SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" MaxItems="50" Required="true">
-                                    <MoreItemsTemplate>
-                                        <div class="d-flex justify-content-center">
-                                            <small>
-                                                Only the first 10 items are shown
-                                            </small>
-                                        </div>
-                                    </MoreItemsTemplate>
-                                </MudAutocomplete>
-                                <MudSelect T="int?" @bind-Value="_model.CouncilId" Label="Council (optional)" Variant="Variant.Outlined" Clearable="true" Class="mb-3" For="@(() => _model.CouncilId)">
-                                    @foreach (var c in _councils)
-                                    {
-                                        <MudSelectItem T="int?" Value="@c.CouncilId">@c.CouncilName</MudSelectItem>
-                                    }
-                                </MudSelect>
-                                <MudNumericField T="int?" @bind-Value="_model.JobColourId" Label="Job Colour ID (optional)" Variant="Variant.Outlined" Min="1" Class="mb-3" Clearable="true" For="@(() => _model.JobColourId)" />
+                                <div>
+                                    <label for="job-number">Job Number</label>
+                                    <MudNumericField name="job-number" T="int" @bind-Value="_model.JobNumber" Variant="Variant.Outlined"
+                                                     Required="true" RequiredError="Job number is required" Class="mb-3" For="@(() => _model.JobNumber)" />
+                                </div>
+
+                                <div>
+                                    <label for="job-details">Details</label>
+                                    <MudTextField name="job-details" @bind-Value="_model.Details" Variant="Variant.Outlined" Class="mb-3"
+                                                  For="@(() => _model.Details)" Counter="2000" Lines="3" />
+                                </div>
+
+                                <div>
+                                    <label for="job-type">Job Type</label>
+                                    <MudSelect name="job-type" T="JobTypeEnum" @bind-Value="_model.JobType" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.JobType)" Required="true">
+                                        <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
+                                        <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
+                                    </MudSelect>
+                                </div>
+
+                                <div>
+                                    <label for="job-contact">Contact</label>
+                                    <MudAutocomplete name="job-contact" T="ListContactDto" Value="_jobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
+                                                     SearchFunc="@SearchContacts" ToStringFunc="@(e=> e.ToString())" MaxItems="50" Required="true">
+                                        <MoreItemsTemplate>
+                                            <div class="d-flex justify-content-center">
+                                                <small>
+                                                    Only the first 10 items are shown
+                                                </small>
+                                            </div>
+                                        </MoreItemsTemplate>
+                                    </MudAutocomplete>
+                                </div>
+
+                                <div>
+                                    <label for="job-council">Council</label>
+                                    <MudSelect name="job-council" T="int?" @bind-Value="_model.CouncilId" Variant="Variant.Outlined" Clearable="true" Class="mb-3" For="@(() => _model.CouncilId)">
+                                        @foreach (var c in _councils)
+                                        {
+                                            <MudSelectItem T="int?" Value="@c.CouncilId">@c.CouncilName</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </div>
+
+                                <div>
+                                    <label for="job-colour">Colour</label>
+                                    <MudNumericField name="job-colour" T="int?" @bind-Value="_model.JobColourId" Variant="Variant.Outlined" Min="1" Class="mb-3" Clearable="true" For="@(() => _model.JobColourId)" />
+                                </div>
+
                             </div>
                         </div>
 
@@ -71,11 +95,10 @@
                             <EditAddress Address="_model.Address" />
                         }
 
-
-                        <div class="form-actions">
-                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_submitting" StartIcon="@Icons.Material.Filled.Save">Create Job</MudButton>
-                            <MudButton Variant="Variant.Outlined" Href="/jobs">Cancel</MudButton>
-                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_submitting" StartIcon="@Icons.Material.Filled.Save">Create Job</MudButton>
+                        <MudButton Variant="Variant.Outlined" Href="/jobs">Cancel</MudButton>
                     </div>
                 </EditForm>
             }
@@ -124,6 +147,7 @@
         display: flex;
         gap: 0.5rem;
         margin-top: 1.5rem;
+        justify-content: end
     }
 
     .map-hint {

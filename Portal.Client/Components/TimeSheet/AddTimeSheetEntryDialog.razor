@@ -4,41 +4,56 @@
 
 <MudDialog>
     <DialogContent>
+        <h4 class="header-border">Time Entry</h4>
         <div class="add-timesheet-form border-rad">
-            <MudSelect T="int" @bind-Value="_typeId" Label="Type" Variant="Variant.Outlined" Class="mb-3" Required="true" RequiredError="Select a type">
-                @foreach (var t in _types)
-                {
-                    <MudSelectItem T="int" Value="@t.Id">@t.Name</MudSelectItem>
-                }
-            </MudSelect>
-            <MudDatePicker T="DateTime?"
-                           @bind-Date="_date"
-                           Label="Date"
-                           Variant="Variant.Outlined"
-                           Class="mb-3" />
-            <MudTimePicker T="TimeSpan?"
-                           @bind-Time="_startTime"
-                           Label="Start time"
-                           Variant="Variant.Outlined"
-                           Class="mb-3" />
-            <MudTimePicker T="TimeSpan?"
-                           @bind-Time="_endTime"
-                           Label="End time"
-                           Variant="Variant.Outlined"
-                           Class="mb-3"
-                           Clearable="true" />
-            <MudTextField T="string"
-                          @bind-Value="_description"
-                          Label="Description (optional)"
-                          Variant="Variant.Outlined"
-                          Lines="2"
-                          Class="mb-3" />
+            <div>
+                <label for="type">Type</label>
+                <MudSelect T="int" @bind-Value="_typeId" name="type" Variant="Variant.Outlined" Required="true" RequiredError="Select a type">
+                    @foreach (var t in _types)
+                    {
+                        <MudSelectItem T="int" Value="@t.Id">@t.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div>
+                <label for="date">Date</label>
+                <MudDatePicker T="DateTime?"
+                               @bind-Date="_date"
+                               name="date"
+                               Variant="Variant.Outlined"
+                               />
+            </div>
+            <div>
+                <label for="start-time">Start Time</label>
+                <MudTimePicker T="TimeSpan?"
+                               @bind-Time="_startTime"
+                               name="start-time"
+                               Variant="Variant.Outlined"/>
+            </div>
+            <div>
+                <label for="end-time">End Time</label>
+                <MudTimePicker T="TimeSpan?"
+                               @bind-Time="_endTime"
+                               name="End time"
+                               Variant="Variant.Outlined"
+                               Clearable="true" />
+            </div>
+            <div>
+                <label for="description">Description</label>
+                <MudTextField T="string"
+                              @bind-Value="_description"
+                              name="description"
+                              Variant="Variant.Outlined"
+                              Lines="2"/>
+            </div>
+            <div>
+                <label for="job-id">Job ID</label>
             <MudNumericField T="int?"
                              @bind-Value="_jobId"
-                             Label="Job ID (optional)"
+                             name="job-id"
                              Variant="Variant.Outlined"
-                             Min="1"
-                             Class="mb-3" />
+                             Min="1"/>
+            </div>
         </div>
     </DialogContent>
     <DialogActions>
@@ -91,8 +106,8 @@
         if (EditEntry is not null)
         {
             _date = EditEntry.Start.Date;
-            _startTime = EditEntry.Start.TimeOfDay;
-            _endTime = EditEntry.End?.TimeOfDay;
+            _startTime = EditEntry.Start.ToLocalTime().TimeOfDay;
+            _endTime = EditEntry.End?.ToLocalTime().TimeOfDay;
             _jobId = EditEntry.JobId;
             _description = EditEntry.Description;
             _typeId = EditEntry.TypeId;

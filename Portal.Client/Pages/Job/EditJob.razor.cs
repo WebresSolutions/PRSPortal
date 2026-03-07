@@ -1,5 +1,5 @@
+using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Shared;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
@@ -7,90 +7,104 @@ using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Pages.Job;
 
-public partial class CreateJob
+public partial class EditJob
 {
+    /// <summary>
+    /// The Job id
+    /// </summary>
+    [Parameter]
+    public int JobId { get; set; }
+    /// <summary>
+    /// If submitting
+    /// </summary>
+    private bool _isSubmitting;
+    /// <summary>
+    /// The model
+    /// </summary>
+    private JobDetailsDto? _model;
     /// <summary>
     /// The List of job contacts
     /// </summary>
     private ListContactDto? _jobContact;
-    /// <summary>
-    /// List of job creation dtos
-    /// </summary>
-    private JobCreationDto _model = null!;
+
     /// <summary>
     /// List of councils
     /// </summary>
     private CouncilPartialDto[] _councils = [];
-    /// <summary>
-    /// Flag for if submittiing the new job
-    /// </summary>
-    private bool _submitting;
 
-    /// <summary>
-    /// On initialized method for loading data on the first page load.
-    /// </summary>
-    /// <returns></returns>
     protected override async Task OnInitializedAsync()
     {
-        IsLoading = true;
         await base.OnInitializedAsync();
-        _model = new()
-        {
-            JobType = JobTypeEnum.Construction,
-            JobNumber = 1,
-            Address = new()
-            {
-                LatLng = new(-37.8136, 144.9631)
-            }
-        };
-
+        await LoadJobData();
         Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
         if (councilResult?.IsSuccess == true && councilResult.Value is not null)
             _councils = councilResult.Value;
-
-
-        IsLoading = false;
-
+        if (_model is { PrimaryContact: not null })
+        {
+            _jobContact = new()
+            {
+                ContactId = _model.ContactId,
+                FullName = _model.PrimaryContact.ContactName,
+                Phone = _model.PrimaryContact.Phone
+            };
+        }
     }
 
-    /// <summary>
-    /// Handles the selected contact change from the type-ahead and updates the job creation model.
-    /// </summary>
-    /// <param name="value">The selected contact, or null if cleared.</param>
-    private void OnContactChanged(ListContactDto? value)
+    private async Task LoadJobData()
     {
-        _jobContact = value;
-        _model.ContactId = value?.ContactId ?? 0;
+        IsLoading = true;
+        try
+        {
+            Result<JobDetailsDto>? result = await _apiService.Job(JobId);
+            if (result is not null && result.IsSuccess && result.Value is not null)
+            {
+                _model = result.Value;
+            }
+            else
+            {
+                _snackbar?.Add("Error loading job details", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _snackbar?.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
-    /// <summary>
-    /// Submits the job creation form, validates the model, and navigates to the new job on success.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SubmitAsync()
     {
-        if (_model.JobNumber <= 0)
+        if (_model!.JobNumber <= 0)
         {
             _snackbar?.Add("Job number must be greater than 0.", Severity.Warning);
             return;
         }
 
-        _submitting = true;
+        _isSubmitting = true;
         try
         {
-            Result<int> result = await _apiService.CreateJob(_model);
-            if (result.IsSuccess && result.Value > 0)
+            Result<JobDetailsDto> result = await _apiService.UpdateJob(_model);
+            if (result.IsSuccess && result.Value is not null)
             {
                 _snackbar?.Add("Job created successfully.", Severity.Success);
-                _navigationManager.NavigateTo($"/jobs/view/{result.Value}");
+                _navigationManager.NavigateTo($"/jobs/view/{result.Value.JobId}");
             }
             else
                 _snackbar?.Add(result.ErrorDescription ?? "Failed to create job.", Severity.Error);
         }
         finally
         {
-            _submitting = false;
+            _isSubmitting = false;
         }
+    }
+
+    private void OnContactChanged(ListContactDto? value)
+    {
+        _jobContact = value;
+        _model!.ContactId = value?.ContactId ?? 0;
     }
 
     /// <summary>
