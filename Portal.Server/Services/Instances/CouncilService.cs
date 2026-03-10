@@ -74,7 +74,7 @@ public class CouncilService(PrsDbContext _dbContext, ILogger<CouncilService> _lo
                             c.Address.Street,
                             c.Address.PostCode)
                         : null,
-                    jobCount = c.Jobs.Count(x => x.CouncilId == councilId),
+                    jobCount = c.Jobs.Count(x => x.CouncilId == councilId && x.DeletedAt == null),
                     contactCount = c.CouncilContacts.Count(x => x.CouncilId == councilId),
                 })
                 .FirstOrDefaultAsync();

@@ -30,17 +30,11 @@
                          @ref="_grid"
                          Striped="true">
                 <Columns>
-                    <TemplateColumn StickyLeft="true" Title="Action" HeaderStyle="max-width:80px">
+                    <TemplateColumn Property="x => x.CouncilName" ShowFilterIcon="false" Title="Council Name" >
                         <CellTemplate>
-                            <div class="d-flex flex-row">
-                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($"/contacts/{context.Item.CouncilId}")" />
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
-                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
-                            </div>
+                            <a class="contact-link" href=@($"/councils/{context.Item.CouncilId}")>@context.Item.CouncilName</a>
                         </CellTemplate>
                     </TemplateColumn>
-                    <PropertyColumn Property="x => x.CouncilId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" Title="ID" />
-                    <PropertyColumn Property="x => x.CouncilName" ShowFilterIcon="false" Title="Council Name" />
                     <PropertyColumn Property="x => x.Phone" ShowFilterIcon="false" Title="Phone" />
                     <PropertyColumn Property="x => x.Email" ShowFilterIcon="false" Title="Email" />
                     <PropertyColumn Property="x => x.Website" ShowFilterIcon="false" Title="Website">
@@ -48,6 +42,14 @@
                             <a href="@context.Item.Website"><small>@context.Item.Website</small></a>
                         </CellTemplate>
                     </PropertyColumn>
+                    <TemplateColumn StickyLeft="true" Title="Action" HeaderStyle="max-width:80px">
+                        <CellTemplate>
+                            <div class="d-flex flex-row">
+                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
+                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
                 </Columns>
                 <PagerContent>
                     <MudDataGridPager T="CouncilPartialDto" />

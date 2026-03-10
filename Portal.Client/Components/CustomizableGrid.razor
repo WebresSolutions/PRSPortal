@@ -1,6 +1,6 @@
 @if (_gridState is not null)
 {
-    <button @onclick="@(() => _isEditing = !_isEditing)">Edit</button>
+    <ButtonIcon CssClass="mb-4 text-end" @onclick="@(() => _isEditing = !_isEditing)" Icon="bi bi-pencil" />
     <div class=@(_isEditing ? "custom-grid edit" : "custom-grid")
          style="@_gridState.AsCss()"
          @ondragover:preventDefault
@@ -48,6 +48,7 @@
         border-radius: var(--border-rad);
         overflow: hidden;
         transition: ease-in-out all 1s;
+        /* z-index: 100; */
     }
 
         .custom-grid.edit:hover {
@@ -77,13 +78,18 @@
             border: 2px solid var(--color-primary);
             transition: ease-in-out all 0.1s;
             opacity: 0.3;
+            /* z-index: 0; */
         }
 
-    @@media(max-width: 700px) {
+    @@media(max-width: 1200px) {
         .custom-grid {
             grid-template-columns: 1fr !important;
             grid-template-rows: auto !important;
         }
+
+            .custom-grid > * {
+                grid-column: 1;
+            }
 
         .outer-grid-item {
             /* Force every item to span the full width of that single column */

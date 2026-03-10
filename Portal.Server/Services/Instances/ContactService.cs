@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 using Portal.Data;
 using Portal.Data.Models;
+using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Address;
@@ -218,6 +221,134 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
         {
             _logger.LogError(ex, "Failed to get contact details: {Exception}", ex.Message);
             return result.SetError(ErrorType.InternalError, "An error occurred while getting the contact details");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<int>> CreateContact(HttpContext httpContext, ContactCreationDto data)
+    {
+        Result<int> result = new();
+        try
+        {
+            if (await _dbContext.ContactTypes.FirstOrDefaultAsync(t => t.Id == data.TypeId) is null)
+                return result.SetError(ErrorType.BadRequest, "Invalid contact type");
+
+            if (data.ParentContactId.HasValue &&
+                await _dbContext.Contacts.FirstOrDefaultAsync(c => c.Id == data.ParentContactId.Value && c.DeletedAt == null) is null)
+                return result.SetError(ErrorType.BadRequest, "Invalid parent contact");
+
+            Address? address = null;
+            if (data.Address is not null)
+            {
+                address = new Address
+                {
+                    Street = data.Address.Street ?? "",
+                    PostCode = data.Address.PostCode ?? "",
+                    Suburb = data.Address.Suburb ?? "",
+                    StateId = (int?)data.Address.State ?? (int)StateEnum.VIC,
+                    CreatedByUserId = httpContext.UserId(),
+                    Country = "AUS"
+                };
+                if (data.Address.LatLng is not null)
+                    address.Geom = new Point(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
+                await _dbContext.Addresses.AddAsync(address);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            Contact contact = new()
+            {
+                TypeId = data.TypeId,
+                ParentContactId = data.ParentContactId,
+                FirstName = data.FirstName.Trim(),
+                LastName = data.LastName.Trim(),
+                Email = data.Email.Trim(),
+                Phone = data.Phone?.Trim(),
+                Fax = data.Fax?.Trim(),
+                AddressId = address?.Id,
+                CreatedByUserId = httpContext.UserId(),
+                CreatedOn = DateTime.UtcNow
+            };
+            await _dbContext.Contacts.AddAsync(contact);
+            await _dbContext.SaveChangesAsync();
+            return result.SetValue(contact.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create contact");
+            return result.SetError(ErrorType.InternalError, "Failed to create contact");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<ContactDetailsDto>> UpdateContact(HttpContext httpContext, ContactUpdateDto data)
+    {
+        Result<ContactDetailsDto> result = new();
+        try
+        {
+            Contact? contact = await _dbContext.Contacts
+                .Include(c => c.Address)
+                .Where(c => c.Id == data.ContactId && c.DeletedAt == null)
+                .FirstOrDefaultAsync();
+
+            if (contact is null)
+                return result.SetError(ErrorType.NotFound, "Contact not found");
+
+            if (await _dbContext.ContactTypes.FirstOrDefaultAsync(t => t.Id == data.TypeId) is null)
+                return result.SetError(ErrorType.BadRequest, "Invalid contact type");
+
+            if (data.ParentContactId.HasValue &&
+                await _dbContext.Contacts.FirstOrDefaultAsync(c => c.Id == data.ParentContactId.Value && c.DeletedAt == null) is null)
+                return result.SetError(ErrorType.BadRequest, "Invalid parent contact");
+
+            contact.TypeId = data.TypeId;
+            contact.ParentContactId = data.ParentContactId;
+            contact.FirstName = data.FirstName.Trim();
+            contact.LastName = data.LastName.Trim();
+            contact.Email = data.Email.Trim();
+            contact.Phone = data.Phone?.Trim();
+            contact.Fax = data.Fax?.Trim();
+            contact.ModifiedByUserId = httpContext.UserId();
+            contact.ModifiedOn = DateTime.UtcNow;
+
+            if (contact.Address is not null && data.Address is not null)
+            {
+                contact.Address.Street = data.Address.Street ?? "";
+                contact.Address.PostCode = data.Address.PostCode ?? "";
+                contact.Address.Suburb = data.Address.Suburb ?? "";
+                contact.Address.StateId = (int?)data.Address.State ?? (int)StateEnum.VIC;
+                contact.Address.ModifiedByUserId = httpContext.UserId();
+                contact.Address.ModifiedOn = DateTime.UtcNow;
+                if (data.Address.LatLng is not null)
+                    contact.Address.Geom = new Point(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
+                else
+                    contact.Address.Geom = null;
+            }
+            else if (data.Address is not null)
+            {
+                Address newAddress = new()
+                {
+                    Street = data.Address.Street ?? "",
+                    PostCode = data.Address.PostCode ?? "",
+                    Suburb = data.Address.Suburb ?? "",
+                    StateId = (int?)data.Address.State ?? (int)StateEnum.VIC,
+                    CreatedByUserId = httpContext.UserId(),
+                    Country = "AUS"
+                };
+                if (data.Address.LatLng is not null)
+                    newAddress.Geom = new Point(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
+                await _dbContext.Addresses.AddAsync(newAddress);
+                await _dbContext.SaveChangesAsync();
+                contact.AddressId = newAddress.Id;
+                contact.Address = newAddress;
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return await GetContactDetails(contact.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update contact");
+            return result.SetError(ErrorType.InternalError, "Failed to update contact");
         }
     }
 }

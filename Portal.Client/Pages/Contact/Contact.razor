@@ -46,7 +46,7 @@ else
             </div>
             <div class="header-right">
                 <div class="header-actions">
-                    <button class="btn-icon" title="Edit">✏️</button>
+                    <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/contacts/edit/{ContactId}")" />
                     <button class="btn-icon" title="Lock">🔒</button>
                     <button class="btn-icon" title="Print">🖨️</button>
                 </div>
@@ -175,7 +175,7 @@ else
                                 </TemplateColumn>
                                 <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number #" HeaderStyle="max-width: 75px">
                                     <CellTemplate>
-                                        <a class="contact-link" href=@($"/jobs/view/{context.Item.JobId}")>@context.Item.JobNumber</a>
+                                        <a class="contact-link" href=@($"/jobs/{context.Item.JobId}")>@context.Item.JobNumber</a>
                                     </CellTemplate>
                                 </TemplateColumn>
                                 <PropertyColumn Property="x => x.Address.Street" ShowFilterIcon="false" Title="Street" />

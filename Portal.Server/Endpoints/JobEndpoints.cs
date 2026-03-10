@@ -120,26 +120,6 @@ public static class JobEndpoints
         .WithDescription("Returns full details for a single job by job ID. Returns 400 if jobId is invalid.")
         .Produces<JobDetailsDto>();
 
-        // Gets notes for jobs assigned to a specific user, with optional inclusion of deleted notes
-        appGroup.MapGet("assignedUserNotes/{userId}", async (
-            [FromServices] IJobService jobService,
-            [FromRoute] int userId,
-            [FromQuery] bool? deleted,
-            HttpContext httpContext
-            ) =>
-        {
-            if (userId < 0)
-                return Results.BadRequest("Bad Request");
-
-            deleted ??= false;
-
-            Result<List<JobNoteDto>> result = await jobService.GetUserAssignedJobsNotes(httpContext, userId, deleted.Value);
-            return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
-        })
-        .WithSummary("Get notes for user's assigned jobs")
-        .WithDescription("Returns notes for all jobs assigned to the specified user. Use includeDeleted query parameter to include soft-deleted notes.")
-        .Produces<List<JobNoteDto>>();
-
         appGroup.MapPost("notes", async (
             [FromServices] IJobService jobService,
             [FromBody] JobNoteDto note,

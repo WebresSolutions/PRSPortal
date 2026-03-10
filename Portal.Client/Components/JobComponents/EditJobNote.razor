@@ -7,12 +7,15 @@
         <h4 class="header-border">Job Note</h4>
         <div class="edit-note-container border-rad">
             <div class="assign-user-container">
-                <MudSelect T="int?" Label="Assign a user" Clearable="true" Variant="Variant.Outlined" MultiSelection="false" @bind-Value="_assignedUser">
-                    @foreach (UserDto user in Users)
-                    {
-                        <MudSelectItem T="int?" Value="@user.userId">@user.displayName</MudSelectItem>
-                    }
-                </MudSelect>
+                <div>
+                    <label for="user-assign">Assign to a User</label>
+                    <MudSelect T="int?" name="user-assign" Clearable="true" Variant="Variant.Outlined" MultiSelection="false" @bind-Value="_assignedUser">
+                        @foreach (UserDto user in Users)
+                        {
+                            <MudSelectItem T="int?" Value="@user.userId">@user.displayName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </div>
                 <MudCheckBox Label="Action Required" @bind-value="Note.ActionRequired" />
             </div>
 

@@ -116,7 +116,7 @@
 .stat-mini-value {
     font-size: 1.25rem;
     font-weight: 900;
-    color: #2563eb;
+    color: var(--color-secondary);
 }
 
 .stat-mini-label {

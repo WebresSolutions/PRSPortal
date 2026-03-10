@@ -54,6 +54,37 @@ public static class ContactEndpoints
             .WithDescription("Returns full details for a single contact by contact ID. Returns 400 if contactId is invalid.")
             .Produces<ContactDetailsDto>();
 
+        // Create a new contact
+        appGroup.MapPost("", async (
+            [FromServices] IContactService contactService,
+            [FromBody] ContactCreationDto data,
+            HttpContext httpContext
+            ) =>
+        {
+            Result<int> result = await contactService.CreateContact(httpContext, data);
+            return EndpointsHelper.ProcessResult(result, "An error occurred while creating the contact");
+        })
+            .WithSummary("Create contact")
+            .WithDescription("Creates a new contact with the provided details.")
+            .Produces<int>();
+
+        // Update an existing contact
+        appGroup.MapPut("", async (
+            [FromServices] IContactService contactService,
+            [FromBody] ContactUpdateDto data,
+            HttpContext httpContext
+            ) =>
+        {
+            if (data.ContactId <= 0)
+                return Results.BadRequest("Invalid contact Id");
+
+            Result<ContactDetailsDto> result = await contactService.UpdateContact(httpContext, data);
+            return EndpointsHelper.ProcessResult(result, "An error occurred while updating the contact");
+        })
+            .WithSummary("Update contact")
+            .WithDescription("Updates an existing contact. Returns 400 if contactId is invalid.")
+            .Produces<ContactDetailsDto>();
+
         if (reqAuth)
             appGroup.RequireAuthorization();
         else

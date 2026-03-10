@@ -53,15 +53,6 @@ public interface IJobService
     Task<Result<List<JobNoteDto>>> UpdateNote(HttpContext httpContext, JobNoteDto note);
 
     /// <summary>
-    /// Gets the notes for jobs assigned to a specific user.
-    /// </summary>
-    /// <param name="httpContext"></param>
-    /// <param name="userId"></param>
-    /// <param name="includeDeleted"></param>
-    /// <returns></returns>
-    Task<Result<List<JobNoteDto>>> GetUserAssignedJobsNotes(HttpContext httpContext, int userId, bool includeDeleted);
-
-    /// <summary>
     /// 
     /// </summary>
     /// <param name="httpContext"></param>

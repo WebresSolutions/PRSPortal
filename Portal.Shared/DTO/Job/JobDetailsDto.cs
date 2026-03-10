@@ -1,4 +1,5 @@
-﻿using Portal.Shared.DTO.Address;
+using System.ComponentModel.DataAnnotations;
+using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.DTO.User;
@@ -14,18 +15,23 @@ public class JobDetailsDto
     /// <summary>
     /// Gets or sets the job number associated with this instance.
     /// </summary>
+    [Required(ErrorMessage = "Job number is required")]
+    [Range(1, int.MaxValue, ErrorMessage = "Job number must be at least 1")]
     public int JobNumber { get; set; }
     /// <summary>
     /// Details about the job, such as scope, requirements, or any relevant information that provides context for the job.
     /// </summary>
+    [MaxLength(2000, ErrorMessage = "Details cannot exceed 2000 characters")]
     public string? Details { get; set; }
     /// <summary>
     /// Gets or sets the type of job to be processed.
     /// </summary>
+    [Required(ErrorMessage = "Job type is required")]
     public JobTypeEnum JobType { get; set; }
     /// <summary>
     /// Get or set the job colour ID
     /// </summary>
+    [Range(1, int.MaxValue, ErrorMessage = "Job colour ID must be at least 1 when provided")]
     public int? JobColourId { get; set; }
     /// <summary>
     /// Gets or sets the date and time when the entity was created.
@@ -62,6 +68,7 @@ public class JobDetailsDto
     /// <summary>
     /// The Contact Id
     /// </summary>
+    [Range(1, int.MaxValue, ErrorMessage = "Contact is required")]
     public int ContactId { get; set; }
     /// <summary>
     /// Gets or sets the council information associated with the job.
@@ -70,6 +77,7 @@ public class JobDetailsDto
     /// <summary>
     /// The Council Id
     /// </summary>
+    [Range(1, int.MaxValue, ErrorMessage = "Council ID must be positive when provided")]
     public int? CouncilId { get; set; }
     /// <summary>
     /// Count of notes for the job

@@ -26,7 +26,9 @@
         {
             @if (_model is not null)
             {
-                <EditForm Model="@_model" OnValidSubmit="@SubmitAsync" class="create-job-form">
+                <EditForm Model="@_model" class="create-job-form" OnValidSubmit="SubmitAsync">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
                     <div class="form-grid">
                         <div>
                             <h3 class="form-section-title border-bottom pb-2">Job Details</h3>
@@ -35,6 +37,7 @@
                                     <label for="job-number">Job Number</label>
                                     <MudNumericField name="job-number" T="int" @bind-Value="_model.JobNumber" Variant="Variant.Outlined"
                                                      Required="true" RequiredError="Job number is required" Class="" For="@(() => _model.JobNumber)" />
+                                    <ValidationMessage For="@(() => _model.JobNumber)" />
                                 </div>
 
                                 <div>
@@ -43,6 +46,7 @@
                                         <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
                                         <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
                                     </MudSelect>
+                                    <ValidationMessage For="@(() => _model.JobType)" />
                                 </div>
 
                                 <div>
@@ -57,6 +61,7 @@
                                             </div>
                                         </MoreItemsTemplate>
                                     </MudAutocomplete>
+                                    <ValidationMessage For="@(() => _model.ContactId)" />
                                 </div>
 
                                 <div>
@@ -67,16 +72,19 @@
                                             <MudSelectItem T="int?" Value="@c.CouncilId">@c.CouncilName</MudSelectItem>
                                         }
                                     </MudSelect>
+                                    <ValidationMessage For="@(() => _model.CouncilId)" />
                                 </div>
                                 <div>
                                     <label for="job-colour-id">Colour</label>
                                     <MudNumericField name="job-colour-id" T="int?" @bind-Value="_model.JobColourId" Variant="Variant.Outlined" Min="1" Class="" Clearable="true" For="@(() => _model.JobColourId)" />
+                                    <ValidationMessage For="@(() => _model.JobColourId)" />
                                 </div>
 
                                 <div>
                                     <label for="details">Details</label>
                                     <MudTextField name="details" @bind-Value="_model.Details" Variant="Variant.Outlined" Class=""
                                                   For="@(() => _model.Details)" Counter="2000" Lines="3" />
+                                    <ValidationMessage For="@(() => _model.Details)" />
                                 </div>
 
                             </div>
@@ -89,8 +97,8 @@
 
                     </div>
                     <div class="form-actions">
-                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_isSubmitting" StartIcon="@Icons.Material.Filled.Save">Save Details</MudButton>
-                        <MudButton Variant="Variant.Outlined" Href="/jobs">Cancel</MudButton>
+                        <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" Text="Save" ButtonType="submit" />
+                        <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" Href="/jobs" Text="Close" />
                     </div>
                 </EditForm>
             }
@@ -146,7 +154,7 @@
         display: flex;
         gap: 0.5rem;
         margin-top: 1.5rem;
-        justify-content: end
+        justify-content: center;
     }
 
     .map-hint {

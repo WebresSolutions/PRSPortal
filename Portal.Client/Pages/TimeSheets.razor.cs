@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Portal.Client.Components.TimeSheet;
+using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.ResponseModels;
 using System.Globalization;
@@ -77,7 +78,7 @@ public partial class TimeSheets
             DateTime end = _weekStart.AddDays(7).ToDateTime(TimeOnly.MinValue);
             Result<TimeSheetDto[]> result = await _apiService.GetUserTimeSheets(_currentUserId, start, end);
             if (result.IsSuccess && result.Value is not null)
-                _entries = [.. result.Value.Select(x => new TimeSheetDto(x.Id, x.TypeId, x.Start, x.End, x.UserId, x.JobId, x.Description, ""))];
+                _entries = [.. result.Value.Select(x => new TimeSheetDto(x.Id, x.TypeId, x.Start.ToLocalTime(), x.End?.ToLocalTime(), x.UserId, x.JobId, x.Description, "", x.JobNumber))];
             else
                 _entries = [];
         }
@@ -144,10 +145,11 @@ public partial class TimeSheets
         {
             ["SelectedDate"] = SelectedDate,
             ["OnSaved"] = EventCallback.Factory.Create(this, LoadEntriesAsync),
-            ["EditEntry"] = defaultTimeSheet
+            ["EditEntry"] = defaultTimeSheet,
+            [nameof(AddTimeSheetEntryDialog.Job)] = defaultTimeSheet is not null ? new JobDetailsDto() { JobId = defaultTimeSheet.JobId ?? 0, JobNumber = defaultTimeSheet.JobNumber ?? 0 } : null
         };
         DialogOptions options = new() { CloseOnEscapeKey = true };
-        await _dialog.ShowAsync<AddTimeSheetEntryDialog>("Add time entry", parameters, options);
+        await _dialog.ShowAsync<AddTimeSheetEntryDialog>("", parameters, options);
     }
 
     /// <summary>

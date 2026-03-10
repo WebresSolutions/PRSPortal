@@ -19,8 +19,9 @@ public class JobCreationDto
     public required JobTypeEnum JobType { get; set; }
 
     /// <summary>
-    /// Optional Contact Id
+    /// Contact Id (required).
     /// </summary>
+    [Range(1, int.MaxValue, ErrorMessage = "Contact is required")]
     public int ContactId { get; set; }
 
     /// <summary>

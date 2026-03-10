@@ -43,7 +43,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
                 .Where(x => x.UserId == userId
                     && x.DateFrom >= startDate
                     && (x.DateTo <= endDate || x.DateTo == null))
-                .Select(t => new TimeSheetDto(t.Id, t.TypeId, t.DateFrom, t.DateTo, userId, t.JobId, t.Description, ""))
+                .Select(t => new TimeSheetDto(t.Id, t.TypeId, t.DateFrom, t.DateTo, userId, t.JobId, t.Description, "", t.Job != null ? t.Job.JobNumber : 0))
                 .ToArrayAsync();
 
             return res;
@@ -100,7 +100,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
             await _dbContext.TimesheetEntries.AddAsync(newEntry);
             await _dbContext.SaveChangesAsync();
 
-            res.Value = new TimeSheetDto(newEntry.Id, entry.TypeId, newEntry.DateFrom, newEntry.DateTo, userId, newEntry.JobId, newEntry.Description, "");
+            res.Value = new TimeSheetDto(newEntry.Id, entry.TypeId, newEntry.DateFrom, newEntry.DateTo, userId, newEntry.JobId, newEntry.Description, "", 0);
             return res;
         }
         catch (Exception ex)
@@ -155,7 +155,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
 
             await _dbContext.SaveChangesAsync();
 
-            res.Value = new TimeSheetDto(existingEntry.Id, existingEntry.TypeId, existingEntry.DateFrom, existingEntry.DateTo, userId, existingEntry.JobId, existingEntry.Description, "");
+            res.Value = new TimeSheetDto(existingEntry.Id, existingEntry.TypeId, existingEntry.DateFrom, existingEntry.DateTo, userId, existingEntry.JobId, existingEntry.Description, "", 0);
             return res;
         }
         catch (Exception ex)
@@ -227,7 +227,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
             // Get all timesheets from the user
             res.Value = await _dbContext.TimesheetEntries
                 .Where(x => x.DateFrom >= startDate && (x.DateTo <= endDate || x.DateTo == null))
-                .Select(t => new TimeSheetDto(t.Id, t.TypeId, t.DateFrom, t.DateTo, t.UserId, t.JobId, t.Description, ""))
+                .Select(t => new TimeSheetDto(t.Id, t.TypeId, t.DateFrom, t.DateTo, t.UserId, t.JobId, t.Description, "", 0))
                 .ToArrayAsync();
 
             return res;

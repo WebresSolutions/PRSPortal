@@ -91,4 +91,12 @@ public class ListJobDto
     {
         Address = null!;
     }
+
+    public override string ToString()
+    {
+        string res = "#" + JobNumber?.ToString() ?? "";
+        res += Address is not null ? $" {Address.ToDisplayString()}" : "";
+        res += $"- {JobType}";
+        return res;
+    }
 }

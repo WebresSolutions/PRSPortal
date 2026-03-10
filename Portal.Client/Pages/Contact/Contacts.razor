@@ -24,7 +24,7 @@
     </PageHeader>
     <Card>
         <TitleContent>
-            <HeaderTabs OnTabSelect="ShowDelete" Href="/jobs/create" />
+            <HeaderTabs OnTabSelect="ShowDelete" Href="/contacts/create" />
         </TitleContent>
         <ChildContent>
             <MudDataGrid T="ListContactDto"
@@ -40,8 +40,11 @@
                          @ref="_grid"
                          Striped="true">
                 <Columns>
-                    <PropertyColumn Property="x => x.ContactId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" />
-                    <PropertyColumn Property="x => x.FullName" ShowFilterIcon="false" Title="Name" />
+                    <TemplateColumn Property="x => x.FullName" ShowFilterIcon="false" Title="Name">
+                        <CellTemplate>
+                            <a class="contact-link" href=@($"/contacts/{context.Item.ContactId}")>@context.Item.FullName</a>
+                        </CellTemplate>
+                    </TemplateColumn>
                     <PropertyColumn Property="x => x.Email" ShowFilterIcon="false" Title="Email" />
                     <PropertyColumn Property="x => x.Phone" ShowFilterIcon="false" Title="Phone" />
                     <TemplateColumn ShowFilterIcon="false" Title="Address">
@@ -62,9 +65,8 @@
                     </TemplateColumn>
                     <TemplateColumn StickyRight="true" Title="Action">
                         <CellTemplate>
-                            <div class="d-flex flex-row">
-                                <ButtonIcon Icon="bi bi-eye" Title="Edit" Href="@($"/contacts/{context.Item.ContactId}")" />
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
+                            <div class="d-flex flex-row gap-1">
+                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/contacts/edit/{context.Item.ContactId}")" />
                                 <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
                             </div>
                         </CellTemplate>

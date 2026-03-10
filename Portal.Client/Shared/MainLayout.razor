@@ -39,11 +39,11 @@
         navLinks = new List<NavLinkItem>
         {
             new NavLinkItem { Link = "", Title = "Home", Icon = Icons.Material.Filled.Home, MatchAll = true },
-            new NavLinkItem { Link = "Jobs", Title = "Jobs", Icon = Icons.Material.Filled.Build },
-            new NavLinkItem { Link = "Contacts", Title = "Contacts", Icon = Icons.Material.Filled.Groups },
-            new NavLinkItem { Link = "Councils", Title = "Councils", Icon = Icons.Material.Filled.Home },
-            new NavLinkItem { Link = "Quotes", Title = "Quotes", Icon = Icons.Material.Filled.Task },
-            new NavLinkItem { Link = $"TimeSheets/{today}", Title = "Times", Icon = Icons.Material.Filled.Timelapse },
+            new NavLinkItem { Link = "jobs", Title = "Jobs", Icon = Icons.Material.Filled.Build },
+            new NavLinkItem { Link = "contacts", Title = "Contacts", Icon = Icons.Material.Filled.Groups },
+            new NavLinkItem { Link = "councils", Title = "Councils", Icon = Icons.Material.Filled.Home },
+            new NavLinkItem { Link = "quotes", Title = "Quotes", Icon = Icons.Material.Filled.Task },
+            new NavLinkItem { Link = $"timeSheets/{today}", Title = "Times", Icon = Icons.Material.Filled.Timelapse },
             new NavLinkItem
             {
                 Link = "Schedule",
@@ -51,8 +51,8 @@
                 Icon = Icons.Material.Filled.CalendarMonth,
                 SubLinks = new List<NavLinkItem>
                 {
-                    new NavLinkItem { Link = $"Schedule/{today}/1", Title = "Construction", Icon = Icons.Material.Filled.Build },
-                    new NavLinkItem { Link = $"Schedule/{today}/2", Title = "Surveying", Icon = Icons.Material.Filled.Map }
+                    new NavLinkItem { Link = $"schedule/{today}/1", Title = "Construction", Icon = Icons.Material.Filled.Build },
+                    new NavLinkItem { Link = $"schedule/{today}/2", Title = "Surveying", Icon = Icons.Material.Filled.Map }
                 }
             },
             new NavLinkItem { Link = "Settings", Title = "Settings", Icon = Icons.Material.Filled.Settings },

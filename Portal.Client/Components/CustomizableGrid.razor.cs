@@ -10,7 +10,7 @@ public partial class CustomizableGrid
     public (int, int) GridRowsColumns { get; set; }
 
     [Parameter]
-    public required Dictionary<string, RenderFragment> Components { get; set; }
+    public required Dictionary<string, GridItem> Components { get; set; }
 
     /// <summary>
     /// Tracks the history of the grid when moving the components around.
@@ -28,15 +28,7 @@ public partial class CustomizableGrid
     {
         _gridState = new(GridRowsColumns.Item1, GridRowsColumns.Item2, 120, 8)
         {
-            // Initialize grid with some items
-            Items =
-            [
-                new GridItem { X = 0, Y = 0, ItemId = "item1", ColSpan = 5, RowSpan = 3, Content = Components["UserDetails"]},
-                new GridItem { X = 5, Y = 0, ItemId = "item2", ColSpan = 5, RowSpan = 3, Content = Components["SystemSettings"]},
-                new GridItem { X = 0, Y = 3, ItemId = "item3", ColSpan = 6, RowSpan = 2, Content = Components["UserNotes"]},
-                new GridItem { X = 6, Y = 3, ItemId = "item4", ColSpan = 4, RowSpan = 2},
-                new GridItem { X = 0, Y = 5, ItemId = "item5", ColSpan = 10, RowSpan = 1},
-            ]
+            Items = [.. Components.Select(x => x.Value)]
         };
     }
 

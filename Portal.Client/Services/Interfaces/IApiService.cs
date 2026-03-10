@@ -178,6 +178,18 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a <see
     /// cref="Result{ContactDetailsDto}"/> object with the contact details if found; otherwise, contains error information.</returns>
     Task<Result<ContactDetailsDto>> GetContactDetails(int contactId);
+    /// <summary>
+    /// Creates a new contact with the provided details.
+    /// </summary>
+    /// <param name="data">The contact creation data.</param>
+    /// <returns>A result containing the new contact ID on success.</returns>
+    Task<Result<int>> CreateContact(ContactCreationDto data);
+    /// <summary>
+    /// Updates an existing contact with the provided details.
+    /// </summary>
+    /// <param name="data">The contact update data.</param>
+    /// <returns>A result containing the updated contact details on success.</returns>
+    Task<Result<ContactDetailsDto>> UpdateContact(ContactUpdateDto data);
     #endregion
 
     #region USERS
@@ -185,7 +197,7 @@ public interface IApiService
     /// Gets notes for a particular user. If the user is not authorized, the method may trigger navigation to the login page. The returned result contains error information if the request fails.
     /// </summary>
     /// <returns></returns>
-    Task<Result<JobNoteDto[]>> GetUserNotes();
+    Task<Result<JobNoteDto[]>> GetUserNotes(bool includeDeleted = false, bool? actionRequired = null);
     /// <summary>
     /// Gets a list of users
     /// </summary>

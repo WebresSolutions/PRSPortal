@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Portal.Shared;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.ResponseModels;
@@ -26,5 +27,21 @@ public interface IContactService
     /// cref="Result{ContactDetailsDto}"/> with contact details if found; otherwise, an error indicating that the contact was not
     /// found.</returns>
     Task<Result<ContactDetailsDto>> GetContactDetails(int contactId);
+
+    /// <summary>
+    /// Creates a new contact with the provided details.
+    /// </summary>
+    /// <param name="httpContext">The HTTP context for the current user.</param>
+    /// <param name="data">The contact creation data.</param>
+    /// <returns>A result containing the new contact ID on success.</returns>
+    Task<Result<int>> CreateContact(HttpContext httpContext, ContactCreationDto data);
+
+    /// <summary>
+    /// Updates an existing contact with the provided details.
+    /// </summary>
+    /// <param name="httpContext">The HTTP context for the current user.</param>
+    /// <param name="data">The contact update data.</param>
+    /// <returns>A result containing the updated contact details on success.</returns>
+    Task<Result<ContactDetailsDto>> UpdateContact(HttpContext httpContext, ContactUpdateDto data);
 }
 

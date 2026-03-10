@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.ResponseModels;
 
@@ -12,7 +13,7 @@ public partial class JobTimeSheets
 
     /// <summary>Optional job id to pre-fill when adding a new time entry from a job page.</summary>
     [Parameter]
-    public int? JobId { get; set; }
+    public JobDetailsDto? Job { get; set; }
 
     /// <summary>Invoked after add, edit, or delete so the parent can refresh data (e.g. reload job).</summary>
     [Parameter]
@@ -23,6 +24,7 @@ public partial class JobTimeSheets
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        TimeSheetsList = TimeSheetsList.Select(x => x = x with { End = x.End?.ToLocalTime(), Start = x.Start.ToLocalTime() });
         TotalHours = TimeSheetsList.Where(x => x.End is not null).Sum(x => (x.End! - x.Start).Value.TotalHours);
     }
 
@@ -31,7 +33,7 @@ public partial class JobTimeSheets
         DialogParameters parameters = new()
         {
             [nameof(AddTimeSheetEntryDialog.SelectedDate)] = DateOnly.FromDateTime(DateTime.Today),
-            [nameof(AddTimeSheetEntryDialog.JobId)] = JobId,
+            [nameof(AddTimeSheetEntryDialog.Job)] = Job,
             [nameof(AddTimeSheetEntryDialog.OnSaved)] = OnSaved
         };
         DialogOptions options = new() { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, CloseButton = true };
@@ -43,7 +45,8 @@ public partial class JobTimeSheets
         DialogParameters parameters = new()
         {
             [nameof(AddTimeSheetEntryDialog.EditEntry)] = entry,
-            [nameof(AddTimeSheetEntryDialog.OnSaved)] = OnSaved
+            [nameof(AddTimeSheetEntryDialog.OnSaved)] = OnSaved,
+            [nameof(AddTimeSheetEntryDialog.Job)] = Job
         };
         DialogOptions options = new() { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, CloseButton = true };
         await DialogService.ShowAsync<AddTimeSheetEntryDialog>("", parameters, options);

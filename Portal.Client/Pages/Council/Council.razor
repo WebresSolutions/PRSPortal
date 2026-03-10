@@ -144,7 +144,7 @@ else
                                 </TemplateColumn>
                                 <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job #" HeaderStyle="max-width: 75px">
                                     <CellTemplate>
-                                        <a class="contact-link" href=@($"/jobs/view/{context.Item.JobId}")>@context.Item.JobNumber</a>
+                                        <a class="contact-link" href=@($"/jobs/{context.Item.JobId}")>@context.Item.JobNumber</a>
                                     </CellTemplate>
                                 </TemplateColumn>
                                 <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Contact" HeaderStyle="max-width: 75px">

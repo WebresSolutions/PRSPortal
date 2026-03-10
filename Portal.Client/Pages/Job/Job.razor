@@ -1,4 +1,4 @@
-@page "/jobs/view/{JobId:int}"
+@page "/jobs/{JobId:int}"
 @inherits BaseDataComponent
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
@@ -79,7 +79,7 @@ else
                 <!-- Job Info -->
                 <JobInfo Job="@_job"/>
 
-                <JobTimeSheets TimeSheetsList="_job.TimeSheets" JobId="JobId" OnSaved="LoadJobData" />
+                <JobTimeSheets TimeSheetsList="_job.TimeSheets" Job="_job" OnSaved="LoadJobData" />
 
                 <!-- Quick Actions -->
                 <Card Title="Quick Actions">

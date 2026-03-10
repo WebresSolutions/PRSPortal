@@ -157,7 +157,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                     : null,
                 TimeSheets = x.TimesheetEntries
                     .Select(ts
-                        => new TimeSheetDto(ts.Id, ts.TypeId, ts.DateFrom, ts.DateTo, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName))
+                        => new TimeSheetDto(ts.Id, ts.TypeId, ts.DateFrom, ts.DateTo, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName, x.JobNumber ?? 0))
                     .ToList(),
                 ContactId = x.ContactId,
                 Council = x.Council != null ? new JobCouncilDto(x.Council.Id, x.Council.Name) : null,
@@ -685,47 +685,5 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         }
     }
 
-    /// <summary>
-    /// Retrieves the list of job notes assigned to a specified user.
-    /// </summary>
-    /// <param name="httpContext">The HTTP context containing user information. Used to determine the user if <paramref name="userId"/> is 0.</param>
-    /// <param name="userId">The identifier of the user whose assigned job notes are to be retrieved. If 0, the user ID is obtained from the
-    /// HTTP context.</param>
-    /// <param name="includeDeleted">A value indicating whether to include deleted job notes in the result. If <see langword="true"/>, deleted notes
-    /// are included; otherwise, only active notes are returned.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="Result{T}"/> with a
-    /// list of <see cref="JobNoteDto"/> objects assigned to the specified user. If no notes are found, the list is
-    /// empty.</returns>
-    public async Task<Result<List<JobNoteDto>>> GetUserAssignedJobsNotes(HttpContext httpContext, int userId, bool includeDeleted)
-    {
-        Result<List<JobNoteDto>> result = new();
-        try
-        {
-            if (userId is 0)
-                userId = httpContext.UserId();
 
-            result.Value = await _dbContext.JobNotes
-                .Where(x => x.AssignedUserId == userId &&
-                    (includeDeleted || x.DeletedAt == null)
-                )
-                .Select(n => new JobNoteDto
-                {
-                    NoteId = n.Id,
-                    Content = n.Note,
-                    AssignedUser = n.AssignedUserId != null
-                    ? new(n.AssignedUserId.Value, n.AssignedUser!.DisplayName ?? "")
-                    : null,
-                    DateCreated = n.CreatedOn
-                })
-                .OrderByDescending(n => n.DateCreated)
-                .ToListAsync();
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get user assigned job notes");
-            return result.SetError(ErrorType.InternalError, "Failed to get user assigned job notes");
-        }
-    }
 }

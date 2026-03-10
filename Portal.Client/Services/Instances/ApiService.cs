@@ -44,6 +44,7 @@ public class ApiService : IApiService
         _httpClient = httpClientFactory.CreateClient(httpClientName);
         _navigationManager = navigationManager;
     }
+
     /// <summary>
     /// Retrieves a paged list of jobs, optionally filtered by name and sorted according to the specified criteria.
     /// </summary>
@@ -687,16 +688,81 @@ public class ApiService : IApiService
         }
         return res;
     }
+
+    /// <summary>
+    /// Creates a new contact with the provided details.
+    /// </summary>
+    public async Task<Result<int>> CreateContact(ContactCreationDto data)
+    {
+        Result<int> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/contacts", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                int? id = await response.Content.ReadFromJsonAsync<int>();
+                if (id.HasValue)
+                    res.Value = id.Value;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to create contact";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Updates an existing contact with the provided details.
+    /// </summary>
+    public async Task<Result<ContactDetailsDto>> UpdateContact(ContactUpdateDto data)
+    {
+        Result<ContactDetailsDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync("api/contacts", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                ContactDetailsDto? contact = await response.Content.ReadFromJsonAsync<ContactDetailsDto>();
+                if (contact is not null)
+                    res.Value = contact;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to update contact";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
     /// <summary>
     /// Gets notes for a particular user. If the user is not authorized, the method may trigger navigation to the login page. The returned result contains error information if the request fails.
     /// </summary>
     /// <returns></returns>
-    public async Task<Result<JobNoteDto[]>> GetUserNotes()
+    public async Task<Result<JobNoteDto[]>> GetUserNotes(bool includeDeleted = false, bool? actionRequired = null)
     {
         Result<JobNoteDto[]> res = new();
         try
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"api/jobs/assignedUserNotes/0");
+            string url = $"api/users/notes/0?deleted={includeDeleted.ToString().ToLowerInvariant()}";
+            if (actionRequired is not null)
+                url += $"&actionRequired={actionRequired?.ToString().ToLowerInvariant()}";
+
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
             if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
                 await NavigationToLoginPage();
 
