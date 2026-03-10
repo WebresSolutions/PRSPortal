@@ -489,3 +489,5 @@ $RECYCLE.BIN/
 **/.vs
 **/bin
 **/obj
+/Portal.Client/wwwroot/appsettings.json
+/Portal.Client/wwwroot/appsettings.Development.json
