@@ -86,7 +86,7 @@
 <style>
     .job-file-container {
         display: grid;
-        grid-template-columns: repeat(auto-fill, 200px);
+        grid-template-columns: repeat(3, 1fr);
         gap: 0.5rem;
         grid-auto-rows: 1fr;
     }
@@ -101,6 +101,8 @@
         display: flex;
         flex-direction: column;
         border: 2px solid var(--color-primary);
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
 
         .job-file:hover {

@@ -4,7 +4,9 @@
     gap: 0.5rem;
     max-height: 800px;
     overflow-y: auto;
+    overflow-x: hidden;
     padding-right: 0.5rem;
+    min-width: 0;
 }
 
 .note-item {
@@ -17,6 +19,7 @@
     flex-direction: column;
     position: relative;
     border: 1px solid #e2e8f0;
+    min-width: 0;
 }
     .note-item.action-required {
         border-color: #f87171;
@@ -27,9 +30,18 @@
     min-height: 80px;
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+    word-break: break-word;
     padding-right: 0.5rem;
     margin-bottom: 0.5rem;
+    min-width: 0;
 }
+
+    .note-content > div {
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
 
 .note-title {
     font-weight: 600;

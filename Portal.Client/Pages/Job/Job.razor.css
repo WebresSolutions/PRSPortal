@@ -13,6 +13,12 @@
         overflow: visible;
     }
 
+    /* Sidebar cards must not overflow their flex container */
+    .job-detail-container .sidebar ::deep .card-container {
+        min-width: 0;
+        overflow: hidden;
+    }
+
         .job-detail-container ::deep .card-container .container {
             padding: 0;
             margin: 0;
@@ -121,6 +127,8 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .content-area {
