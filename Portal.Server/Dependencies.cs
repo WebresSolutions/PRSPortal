@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Portal.Data;
+using Portal.Server.Mocks;
 using Portal.Server.Options;
 using Portal.Server.Services.Instances;
 using Portal.Server.Services.Interfaces;
@@ -48,6 +50,7 @@ public static class Dependencies
 
         builder.Services.AddAuthorization();
         builder.Services.Configure<XeroOptions>(builder.Configuration.GetSection("XeroSettings"));
+        builder.Services.Configure<SharePointOptions>(builder.Configuration.GetSection("SharepointOptions"));
 
         builder.WebHost.UseStaticWebAssets();
         builder.Services.AddControllersWithViews();
@@ -56,12 +59,21 @@ public static class Dependencies
         string tenantId = builder.Configuration.GetValue<string>("AzureAd:TenantId") ?? throw new Exception("tenantid missing");
         string clientId = builder.Configuration.GetValue<string>("AzureAd:ClientId") ?? throw new Exception("tenantid missing");
 
-        // Use a factory lambda to register the instance
+        // Register the graph service.
         builder.Services.AddSingleton<IGraphService>(sp => new GraphService(clientId, tenantId));
-
-        // Inject Services
+        // Injects in memory cache
         builder.Services.AddMemoryCache();
-        builder.Services.AddScoped<IAccountingApi, AccountingApi>();
+        // This is the acconting api from xero
+        builder.Services.AddTransient<ISharePointService>(provider =>
+        {
+            SharePointOptions options = provider.GetRequiredService<IOptions<SharePointOptions>>().Value;
+            if (options.UseMock)
+                return new SharePointServiceMock(options);
+            else
+                return new SharePointService(options);
+        });
+        builder.Services.AddScoped<IFileService, FileService>();
+        builder.Services.AddSingleton<IAccountingApi, AccountingApi>();
         builder.Services.AddScoped<IXeroIntegrationService, XeroIntegrationService>();
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IScheduleService, ScheduleService>();

@@ -1,8 +1,9 @@
-using System.ComponentModel.DataAnnotations;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
+using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.DTO.User;
+using System.ComponentModel.DataAnnotations;
 
 namespace Portal.Shared.DTO.Job;
 
@@ -50,22 +51,6 @@ public class JobDetailsDto
     /// </summary>
     public string? LastModifiedBy { get; set; }
     /// <summary>
-    /// The address dto
-    /// </summary>
-    public AddressDTO? Address { get; set; }
-    /// <summary>
-    /// Gets or sets the colour information associated with the job.
-    /// </summary>
-    public JobColourDto? Colour { get; set; }
-    /// <summary>
-    /// Gets or sets the contact information associated with the job.
-    /// </summary>
-    public JobContactDto? PrimaryContact { get; set; }
-    /// <summary>
-    /// Secondary Job Contacts
-    /// </summary>
-    public List<TechnicalContactDto> TechnicalContacts { get; set; } = [];
-    /// <summary>
     /// The Contact Id
     /// </summary>
     [Range(1, int.MaxValue, ErrorMessage = "Contact is required")]
@@ -97,6 +82,22 @@ public class JobDetailsDto
     /// </summary>
     public int SiteVisitCount { get; set; }
     /// <summary>
+    /// The address dto
+    /// </summary>
+    public AddressDTO? Address { get; set; }
+    /// <summary>
+    /// Gets or sets the colour information associated with the job.
+    /// </summary>
+    public JobColourDto? Colour { get; set; }
+    /// <summary>
+    /// Gets or sets the contact information associated with the job.
+    /// </summary>
+    public JobContactDto? PrimaryContact { get; set; }
+    /// <summary>
+    /// List of jobs files. Will not included the file content, just metadata such as file name, size, type, etc.
+    /// </summary>
+    public List<FileDto> JobFiles { get; set; } = [];
+    /// <summary>
     /// Gets or sets the collection of notes associated with the job.
     /// </summary>
     public List<JobNoteDto> Notes { get; set; } = [];
@@ -113,4 +114,8 @@ public class JobDetailsDto
     /// List of timesheets
     /// </summary>
     public List<TimeSheetDto> TimeSheets { get; set; } = [];
+    /// <summary>
+    /// Secondary Job Contacts
+    /// </summary>
+    public List<TechnicalContactDto> TechnicalContacts { get; set; } = [];
 }

@@ -49,6 +49,7 @@ public sealed class PortalWebApplicationFactory : WebApplicationFactory<Program>
                 ["ApiSettings:EnableSwagger"] = "false",
                 ["AzureAd:TenantId"] = "3f0723ef-ae58-4ab8-8b75-e4a6e8eeee31",
                 ["AzureAd:ClientId"] = "26b1d3cf-bc97-4c99-a5ec-bdda667e9fb9",
+                ["SharepointOptions:UseMock"] = "true",
                 // TestUserContextMiddleware uses these so HttpContext.Items["UserId"] and ["UserEmail"] are set (matches seed user)
                 ["Testing:TestUserId"] = "1",
                 ["Testing:TestUserEmail"] = "testuser@example.com",

@@ -242,6 +242,11 @@ CREATE TABLE file_type(
 
 COMMENT ON TABLE file_type IS 'File type and metadata';
 
+INSERT INTO file_type(id, name, description) VALUES (1, 'General', 'General Files.');
+INSERT INTO file_type(id, name, description) VALUES (2, 'Job', 'General Job Files.');
+INSERT INTO file_type(id, name, description) VALUES (3, 'Surveying', 'Surveying Files.');
+INSERT INTO file_type(id, name, description) VALUES (4, 'Construction', 'Construction Files.');
+
 -- ============================================================================
 -- FILE TABLE
 -- ============================================================================
@@ -249,15 +254,15 @@ COMMENT ON TABLE file_type IS 'File type and metadata';
 CREATE TABLE app_file (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     file_type_id INT NOT NULL REFERENCES file_type(id),
-    filename VARCHAR(255) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
     title VARCHAR(255),
     description TEXT,
     external_id VARCHAR(255) UNIQUE,
     file_hash VARCHAR(64) NOT NULL,
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_by_user_id INT NOT NULL REFERENCES app_user(id),
-    modified_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_by_user_id INT REFERENCES app_user(id),
+    modified_on TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMPTZ DEFAULT NULL
 );
 

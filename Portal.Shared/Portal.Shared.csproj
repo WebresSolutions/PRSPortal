@@ -16,4 +16,8 @@
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ApiModels\" />
+  </ItemGroup>
+
 </Project>

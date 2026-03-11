@@ -82,7 +82,7 @@ public partial class CreateJob
             if (result.IsSuccess && result.Value > 0)
             {
                 _snackbar?.Add("Job created successfully.", Severity.Success);
-                _navigationManager.NavigateTo($"/jobs/view/{result.Value}");
+                _navigationManager.NavigateTo($"/jobs/{result.Value}");
             }
             else
                 _snackbar?.Add(result.ErrorDescription ?? "Failed to create job.", Severity.Error);

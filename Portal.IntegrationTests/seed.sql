@@ -14,6 +14,11 @@ VALUES (
 INSERT INTO timesheet_entry_type(name, description) VALUES ('Job', 'Job');
 INSERT INTO timesheet_entry_type(name, description) VALUES ('Regular', 'Regular work hours');
 
+INSERT INTO file_type(id, name, description) VALUES (1, 'General', 'General Files.');
+INSERT INTO file_type(id, name, description) VALUES (2, 'Job', 'General Job Files.');
+INSERT INTO file_type(id, name, description) VALUES (3, 'Surveying', 'Surveying Files.');
+INSERT INTO file_type(id, name, description) VALUES (4, 'Construction', 'Construction Files.');
+
 INSERT INTO job_type(id, name, abbreviation) VALUES (1, 'Construction', 'CONSTRUCTION');
 INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
 

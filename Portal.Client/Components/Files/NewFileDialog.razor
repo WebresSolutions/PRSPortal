@@ -1,0 +1,168 @@
+@using Portal.Shared.DTO.File
+@inherits BaseDataComponent
+@inject IApiService ApiService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <h4 class="header-border">New File</h4>
+        @if (!base.IsLoading)
+        {
+            <div class="new-file-container border-rad grey-background">
+                <p class="mb-2">Select a file to upload to this job</p>
+                <div class="file-upload-zone">
+                    <InputFile OnChange="OnFileSelected"
+                               accept="*"
+                               class="file-upload-input" />
+                    <span class="file-upload-label">@(_selectedFile != null ? _selectedFile.Name : "Click or drop file here")</span>
+                </div>
+                <div>
+                    <label>Description</label>
+                    <MudTextField T="string"/>
+                </div>
+            </div>
+            <div class="d-flex justify-content-center gap-1 mt-2">
+                <ButtonIcon Icon="bi bi-save-fill"
+                            CssClass="text-green"
+                            Text="Save"
+                            Disabled="@_saving"
+                            OnClick="SaveFile" />
+                <ButtonIcon Icon="bi bi-x-circle"
+                            CssClass="text-red"
+                            Disabled="@_saving"
+                            OnClick="@(() => base.MudDialog?.Close(DialogResult.Cancel()))"
+                            Text="Close" />
+            </div>
+        }
+        else
+        {
+            <div style="min-height: 400px">
+                <Spinner />
+            </div>
+        }
+    </DialogContent>
+</MudDialog>
+
+<style>
+    .new-file-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        height: 400px;
+        min-width: 350px;
+        overflow-y: auto;
+        padding: var(--padding);
+    }
+
+    .file-upload-zone {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 120px;
+        padding: 1rem;
+        border: 2px dashed #ccc;
+        border-radius: var(--border-rad);
+        background: #f5f5f5;
+        cursor: pointer;
+    }
+
+        .file-upload-zone:hover {
+            border-color: var(--color-secondary);
+            background: #eee;
+        }
+
+    .file-upload-input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .file-upload-label {
+        pointer-events: none;
+        color: #666;
+        font-size: 0.9rem;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public int? JobId { get; set; }
+
+    [Parameter]
+    public int FileTypeId { get; set; } = 1;
+
+    private IBrowserFile? _selectedFile;
+    private bool _saving;
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        _selectedFile = e.FileCount > 0 ? e.File : null;
+        StateHasChanged();
+    }
+
+    private async Task SaveFile()
+    {
+        if (JobId <= 0)
+        {
+            Snackbar.Add("Job is not set. Cannot save file.", Severity.Error);
+            return;
+        }
+
+        IBrowserFile? browserFile = _selectedFile;
+        if (browserFile is null)
+        {
+            Snackbar.Add("Please select a file to upload.", Severity.Warning);
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            await using Stream stream = browserFile.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024); // 20 MB
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            byte[] content = ms.ToArray();
+
+            if (JobId is null)
+            {
+                // If there are potentially other files that can be saved rather than just to a job
+            }
+            else
+            {
+                FileDto dto = new()
+                {
+                    JobId = JobId.Value,
+                    FileId = 0,
+                    FileName = browserFile.Name,
+                    ContentType = browserFile.ContentType,
+                    Content = content,
+                    FileTypeId = FileTypeId
+                };
+
+                Result<int> result = await ApiService.SaveJobFile(JobId.Value, dto);
+                if (result.IsSuccess)
+                {
+                    Snackbar.Add("File saved successfully.", Severity.Success);
+                    base.MudDialog?.Close(DialogResult.Ok(true));
+                }
+                else
+                {
+                    Snackbar.Add(result.ErrorDescription ?? "Failed to save file.", Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

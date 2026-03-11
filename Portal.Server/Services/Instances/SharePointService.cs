@@ -8,6 +8,7 @@ using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Identity.Client;
 using Microsoft.Kiota.Abstractions;
+using Moq;
 using Portal.Server.Options;
 using Portal.Server.Services.Interfaces;
 using System.Text;
@@ -22,50 +23,9 @@ namespace Portal.Server.Services.Instances;
 public class SharePointService : ISharePointService
 {
     /// <summary>
-    /// Gets or sets the Site ID for the SharePoint site.
+    /// Configurable options for sharepoint
     /// </summary>
-    public string SiteId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the Drive ID for the SharePoint drive.
-    /// </summary>
-    public string DriveId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the file URL key for the SharePoint file.
-    /// </summary>
-    public string FileUrlKey { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the Client ID for the application.
-    /// </summary>
-    private string ClientId { get; }
-
-    /// <summary>
-    /// Gets or sets the Tenant ID for the Azure Active Directory.
-    /// </summary>
-    private string TenantId { get; }
-
-    /// <summary>
-    /// Gets or sets the scope of permissions required for accessing Microsoft Graph.
-    /// </summary>
-    private string[] Scope { get; }
-
-    /// <summary>
-    /// Gets or sets the Client Secret used to authenticate with Azure Active Directory.
-    /// </summary>
-    private string ClientSecret { get; }
-
-    /// <summary>
-    /// Gets or sets the base folder path for SharePoint storage.
-    /// </summary>
-    public string BaseFolder { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the cache folder path for local file caching.
-    /// </summary>
-    public string CacheFolder { get; set; } = string.Empty;
-
+    private readonly SharePointOptions _options;
     /// <summary>
     /// The client secret credential used to authenticate with Azure services.
     /// </summary>
@@ -75,17 +35,9 @@ public class SharePointService : ISharePointService
     /// Constructor that takes a config
     /// </summary>
     /// <param name="config"></param>
-    public SharePointService(GraphOptions config)
+    public SharePointService(SharePointOptions config)
     {
-        ClientId = config.ClientId;
-        TenantId = config.TenantId;
-        ClientSecret = config.ClientSecret;
-        SiteId = config.SiteId;
-        DriveId = config.DriveId;
-        Scope = [config.Scopes];
-        FileUrlKey = config.FileUrlKey;
-        BaseFolder = config.BaseFolder;
-        CacheFolder = config.CacheFolder;
+        _options = config;
         CreateClientCredential();
     }
 
@@ -102,7 +54,12 @@ public class SharePointService : ISharePointService
                 AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
             };
             // Create a new ClientSecretCredential
-            ClientSecretCredential = new ClientSecretCredential(TenantId, ClientId, ClientSecret, options);
+            if (_options.UseMock)
+            {
+                ClientSecretCredential = new Mock<ClientSecretCredential>().Object;
+                return;
+            }
+            ClientSecretCredential = new ClientSecretCredential(_options.TenantId, _options.ClientId, _options.ClientSecret, options);
         }
         catch (Exception)
         {
@@ -123,7 +80,7 @@ public class SharePointService : ISharePointService
                 throw new InvalidOperationException("ClientSecretCredential is not initialized.");
 
             // Return a new GraphServiceClient instance using the client secret credentials and scope
-            return new GraphServiceClient(ClientSecretCredential, Scope);
+            return new GraphServiceClient(ClientSecretCredential, [_options.Scopes]);
         }
         catch (Exception)
         {
@@ -143,16 +100,16 @@ public class SharePointService : ISharePointService
         try
         {
             // Build the authority URL for the tenant
-            string authority = $"https://login.microsoftonline.com/{TenantId}";
+            string authority = $"https://login.microsoftonline.com/{_options.TenantId}";
 
             // Create a confidential client application
-            IConfidentialClientApplication app = ConfidentialClientApplicationBuilder.Create(ClientId)
-                .WithClientSecret(ClientSecret)
+            IConfidentialClientApplication app = ConfidentialClientApplicationBuilder.Create(_options.ClientId)
+                .WithClientSecret(_options.ClientSecret)
                 .WithAuthority(new Uri(authority))
                 .Build();
 
             // Acquire an access token for the client
-            AuthenticationResult result = await app.AcquireTokenForClient(Scope)
+            AuthenticationResult result = await app.AcquireTokenForClient([_options.Scopes])
                 .ExecuteAsync();
 
             // Set the access token
@@ -304,7 +261,7 @@ public class SharePointService : ISharePointService
             GraphServiceClient graphClient = GetGraphClient();
 
             // Get the drive for the site
-            Drive driveItem = await graphClient.Sites[SiteId].Drive.GetAsync() ?? throw new Exception($"SharePoint site not found - {SiteId}");
+            Drive driveItem = await graphClient.Sites[_options.SiteId].Drive.GetAsync() ?? throw new Exception($"SharePoint site not found - {_options.SiteId}");
 
             // Build the request for the file
             DriveItemItemRequestBuilder itemRequestBuilder = graphClient.Drives[driveItem.Id].Items[externalId];
@@ -351,8 +308,8 @@ public class SharePointService : ISharePointService
             GraphServiceClient graphClient = GetGraphClient();
 
             // Get the drive based on the site id
-            Drive drive = await graphClient.Sites[SiteId].Drive.GetAsync()
-                          ?? throw new Exception($"SharePoint site not found - {SiteId}");
+            Drive drive = await graphClient.Sites[_options.SiteId].Drive.GetAsync()
+                          ?? throw new Exception($"SharePoint site not found - {_options.SiteId}");
             // The Id of the drive being uploaded to
             string driveId = drive.Id ?? string.Empty;
 
@@ -391,7 +348,7 @@ public class SharePointService : ISharePointService
             GraphServiceClient graphClient = GetGraphClient();
 
             // Get the drive based on the site ID
-            Drive drive = await graphClient.Sites[SiteId].Drive.GetAsync() ?? throw new Exception($"SharePoint site not found - {SiteId}");
+            Drive drive = await graphClient.Sites[_options.SiteId].Drive.GetAsync() ?? throw new Exception($"SharePoint site not found - {_options.SiteId}");
             // The ID of the drive being uploaded to
             string driveId = drive.Id ?? string.Empty;
 
@@ -440,8 +397,8 @@ public class SharePointService : ISharePointService
             GraphServiceClient graphClient = GetGraphClient();
 
             // Get the drive based on the site ID
-            Drive drive = await graphClient.Sites[SiteId].Drive.GetAsync()
-                          ?? throw new Exception($"SharePoint site not found - {SiteId}");
+            Drive drive = await graphClient.Sites[_options.SiteId].Drive.GetAsync()
+                          ?? throw new Exception($"SharePoint site not found - {_options.SiteId}");
             string driveId = drive.Id ?? string.Empty;
 
             // Get the drive item to be replaced
@@ -491,8 +448,8 @@ public class SharePointService : ISharePointService
             GraphServiceClient graphClient = GetGraphClient();
 
             // Get the drive based on the site ID
-            Drive drive = await graphClient.Sites[SiteId].Drive.GetAsync()
-                          ?? throw new Exception($"SharePoint site not found - {SiteId}");
+            Drive drive = await graphClient.Sites[_options.SiteId].Drive.GetAsync()
+                          ?? throw new Exception($"SharePoint site not found - {_options.SiteId}");
             string driveId = drive.Id ?? string.Empty;
 
             // Get the drive item to be replaced
@@ -552,8 +509,8 @@ public class SharePointService : ISharePointService
             GraphServiceClient graphClient = GetGraphClient();
 
             // Get the drive based on the site ID
-            Drive drive = await graphClient.Sites[SiteId].Drive.GetAsync()
-                          ?? throw new Exception($"SharePoint site not found - {SiteId}");
+            Drive drive = await graphClient.Sites[_options.SiteId].Drive.GetAsync()
+                          ?? throw new Exception($"SharePoint site not found - {_options.SiteId}");
             string driveId = drive.Id ?? string.Empty;
 
             // Create the request body
@@ -654,6 +611,7 @@ public class SharePointService : ISharePointService
             throw;
         }
     }
+
 
     /// <summary>
     /// Creates folders in SharePoint based on the specified path using a batch request.

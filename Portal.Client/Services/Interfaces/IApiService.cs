@@ -2,6 +2,7 @@ using Portal.Shared;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
+using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
@@ -82,6 +83,13 @@ public interface IApiService
     /// <param name="dto">The technical contact to create or update.</param>
     /// <returns>The updated list of technical contacts for the job.</returns>
     Task<Result<TechnicalContactDto[]>> SaveTechnicalContact(SaveTechnicalContactTypeDto dto);
+    /// <summary>
+    /// Saves (uploads or replaces) a file for a job.
+    /// </summary>
+    /// <param name="jobId">The job id to attach the file to.</param>
+    /// <param name="file">The file DTO with content, name, type, etc.</param>
+    /// <returns>The file id on success.</returns>
+    Task<Result<int>> SaveJobFile(int jobId, FileDto file);
     #endregion
 
     #region SCHEDULE

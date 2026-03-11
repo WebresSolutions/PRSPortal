@@ -47,14 +47,13 @@ else
             <div class="header-right">
                 <div class="header-actions">
                     <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/contacts/edit/{ContactId}")" />
-                    <button class="btn-icon" title="Lock">🔒</button>
-                    <button class="btn-icon" title="Print">🖨️</button>
                 </div>
             </div>
         </div>
 
         <!-- Main Grid -->
         <div class="main-grid">
+
             <!-- Left Sidebar -->
             <div class="sidebar">
                 <!-- Quick Stats -->
@@ -149,58 +148,60 @@ else
                     </ChildContent>
                 </Card>
             </div>
+            <div class="main-content">
 
-            <!-- Main Content -->
-            <div class="content-area">
-                <!-- Jobs -->
-                <Card ShowHeaderWithTabs="true" OnTabSelect="ChangeTabs" HeaderTitle="Jobs" Tabs="[TabTypeEnum.All, TabTypeEnum.Deleted]" OnAddButtonClick="@(() => _navigationManager.NavigateTo("/jobs/edit/"))">
-                    <ChildContent>
-                        <MudDataGrid T="ListJobDto"
-                                     ServerData="LoadJobs"
-                                     Filterable="false"
-                                     SortMode="SortMode.Single"
-                                     Loading="base.IsLoading"
-                                     RowsPerPage="_filterState.PageSize"
-                                     CurrentPage="_filterState.Page"
-                                     CurrentPageChanged="@((page) => { _filterState.Page = page;})"
-                                     Dense=true
-                                     Hover="true"
-                                     @ref="_jobGrid"
-                                     Striped="true">
-                            <Columns>
-                                <TemplateColumn ShowFilterIcon="false" Title="Job Type">
-                                    <CellTemplate>
-                                        <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
-                                    </CellTemplate>
-                                </TemplateColumn>
-                                <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number #" HeaderStyle="max-width: 75px">
-                                    <CellTemplate>
-                                        <a class="contact-link" href=@($"/jobs/{context.Item.JobId}")>@context.Item.JobNumber</a>
-                                    </CellTemplate>
-                                </TemplateColumn>
-                                <PropertyColumn Property="x => x.Address.Street" ShowFilterIcon="false" Title="Street" />
-                                <PropertyColumn Property="x => x.Address.Suburb" ShowFilterIcon="false" Title="Suburb" />
-                                <TemplateColumn StickyLeft="true" Title="Action">
-                                    <CellTemplate>
-                                        <div class="d-flex flex-row gap-1">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{context.Item.JobId}")" />
-                                            <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => RemoveJob(context.Item.JobId))" />
-                                        </div>
-                                    </CellTemplate>
-                                </TemplateColumn>
-                            </Columns>
-                            <PagerContent>
-                                <MudDataGridPager T="ListJobDto" />
-                            </PagerContent>
-                        </MudDataGrid>
-                    </ChildContent>
-                </Card>
-                <TechnicalContacts ContactId="@ContactId" />
-            </div>
+                <!-- Main Content -->
+                <div class="content-area">
+                    <!-- Jobs -->
+                    <Card ShowHeaderWithTabs="true" OnTabSelect="ChangeTabs" HeaderTitle="Jobs" Tabs="[TabTypeEnum.All, TabTypeEnum.Deleted]" OnAddButtonClick="@(() => _navigationManager.NavigateTo("/jobs/edit/"))">
+                        <ChildContent>
+                            <MudDataGrid T="ListJobDto"
+                                         ServerData="LoadJobs"
+                                         Filterable="false"
+                                         SortMode="SortMode.Single"
+                                         Loading="base.IsLoading"
+                                         RowsPerPage="_filterState.PageSize"
+                                         CurrentPage="_filterState.Page"
+                                         CurrentPageChanged="@((page) => { _filterState.Page = page;})"
+                                         Dense=true
+                                         Hover="true"
+                                         @ref="_jobGrid"
+                                         Striped="true">
+                                <Columns>
+                                    <TemplateColumn ShowFilterIcon="false" Title="Job Type">
+                                        <CellTemplate>
+                                            <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
+                                        </CellTemplate>
+                                    </TemplateColumn>
+                                    <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number #" HeaderStyle="max-width: 75px">
+                                        <CellTemplate>
+                                            <a class="contact-link" href=@($"/jobs/{context.Item.JobId}")>@context.Item.JobNumber</a>
+                                        </CellTemplate>
+                                    </TemplateColumn>
+                                    <PropertyColumn Property="x => x.Address.Street" ShowFilterIcon="false" Title="Street" />
+                                    <PropertyColumn Property="x => x.Address.Suburb" ShowFilterIcon="false" Title="Suburb" />
+                                    <TemplateColumn StickyLeft="true" Title="Action">
+                                        <CellTemplate>
+                                            <div class="d-flex flex-row gap-1">
+                                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{context.Item.JobId}")" />
+                                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => RemoveJob(context.Item.JobId))" />
+                                            </div>
+                                        </CellTemplate>
+                                    </TemplateColumn>
+                                </Columns>
+                                <PagerContent>
+                                    <MudDataGridPager T="ListJobDto" />
+                                </PagerContent>
+                            </MudDataGrid>
+                        </ChildContent>
+                    </Card>
+                    <TechnicalContacts ContactId="@ContactId" />
+                </div>
 
-            <!-- Right Sidebar -->
-            <div class="sidebar">
-                <SubContacts SubContact="@_contact.SubContacts" />
+                <!-- Right Sidebar -->
+                <div class="sidebar">
+                    <SubContacts SubContact="@_contact.SubContacts" />
+                </div>
             </div>
         </div>
     </div>

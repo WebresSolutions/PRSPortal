@@ -3,7 +3,7 @@
 /// <summary>
 /// Contains the config settings for the Igraph service
 /// </summary>
-public class GraphOptions
+public class SharePointOptions
 {
     /// <summary>
     /// The Client Id
@@ -41,4 +41,8 @@ public class GraphOptions
     /// The cache folder
     /// </summary>
     public string CacheFolder { get; set; } = string.Empty;
+    /// <summary>
+    /// Flag for if saving to sharepoi
+    /// </summary>
+    public bool UseMock { get; set; }
 }

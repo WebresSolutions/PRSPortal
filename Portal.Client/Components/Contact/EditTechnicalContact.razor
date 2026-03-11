@@ -33,7 +33,7 @@
                 </div>
 
             </EditForm>
-            <div class="d-flex justify-content-center gap-1">
+            <div class="d-flex justify-content-center gap-1 mt-1">
                 <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" OnClick="SubmitAsync" Text="Save" />
                 <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" OnClick="@(() => base.MudDialog?.Close(DialogResult.Cancel()))" Text="Close" />
             </div>
@@ -55,6 +55,7 @@
         margin: 20px;
         padding: var(--padding);
         background: var(--color-light-grey);
+        min-width: 350px;
     }
 </style>
 

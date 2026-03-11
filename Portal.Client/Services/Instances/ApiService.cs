@@ -4,6 +4,7 @@ using Portal.Shared;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
+using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
@@ -361,6 +362,37 @@ public class ApiService : IApiService
         }
         return res;
     }
+
+    /// <summary>
+    /// Saves (uploads or replaces) a file for a job.
+    /// </summary>
+    public async Task<Result<int>> SaveJobFile(int jobId, FileDto file)
+    {
+        Result<int> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"api/jobs/{jobId}/files", file);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                int? fileId = await response.Content.ReadFromJsonAsync<int?>();
+                if (fileId.HasValue)
+                    res.Value = fileId.Value;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to save job file";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
     /// <summary>
     /// Retrieves the list of available schedule slots for an individual on the specified date and job type.
     /// </summary>

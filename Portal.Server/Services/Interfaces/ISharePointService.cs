@@ -8,36 +8,6 @@ namespace Portal.Server.Services.Interfaces;
 public interface ISharePointService
 {
     /// <summary>
-    /// Gets or sets the ID of the SharePoint site.
-    /// This is used to identify the specific site within SharePoint where operations will be performed.
-    /// </summary>
-    string SiteId { get; set; }
-
-    /// <summary>
-    /// Gets or sets the ID of the drive associated with the SharePoint site.
-    /// The drive ID represents the specific document library or drive within the SharePoint site.
-    /// </summary>
-    string DriveId { get; set; }
-
-    /// <summary>
-    /// Gets or sets the subpath or key for the file within the SharePoint site.
-    /// This key is used to locate a specific file within the SharePoint structure.
-    /// </summary>
-    string FileUrlKey { get; set; }
-
-    /// <summary>
-    /// Gets or sets the base folder path within the SharePoint site.
-    /// This is the root folder where operations such as file uploads and downloads will be performed.
-    /// </summary>
-    public string BaseFolder { get; set; }
-
-    /// <summary>
-    /// Gets or sets the cache folder path used for local caching of SharePoint files.
-    /// This folder is used to temporarily store files locally before or after they are processed by the service.
-    /// </summary>
-    public string CacheFolder { get; set; }
-
-    /// <summary>
     /// Retrieves an instance of <see cref="GraphServiceClient"/> to interact with Microsoft Graph API.
     /// This client is used to perform various operations such as accessing sites, lists, and files within SharePoint.
     /// </summary>

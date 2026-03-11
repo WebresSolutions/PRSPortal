@@ -1,4 +1,5 @@
 using Portal.Shared.DTO.Contact;
+using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
@@ -101,4 +102,13 @@ public interface IJobService
     /// <returns>A task that represents the asynchronous operation. The task result contains an array of updated technical
     /// contact data transfer objects. The array will be empty if no contacts were updated.</returns>
     Task<Result<TechnicalContactDto[]>> UpdateTechnicalContact(HttpContext httpContext, SaveTechnicalContactTypeDto dto);
+
+    /// <summary>
+    /// Uploads file for a job
+    /// </summary>
+    /// <param name="jobId">The Job Id this is being uploaded to</param>
+    /// <param name="file">The file being uploaded</param>
+    /// <param name="context">The http context for validateing who is saving</param>
+    /// <returns>The job file ID</returns>
+    Task<Result<int>> SaveJobFile(HttpContext context, int jobId, FileDto file);
 }

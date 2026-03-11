@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
@@ -357,5 +358,117 @@ public sealed class JobsEndpointTests
         Assert.NotNull(updatedNote);
         Assert.Equal(updateNote.Content, updatedNote.Content);
         Assert.Equal(updateNote.ActionRequired, updatedNote.ActionRequired);
+    }
+
+    [Fact]
+    public async Task Save_job_file_returns_ok_and_file_id()
+    {
+        int jobId = 1; // Seed has job with id 1
+        FileDto fileDto = new()
+        {
+            JobId = jobId,
+            FileId = 0,
+            ContentType = "application/pdf",
+            Content = [0x25, 0x50, 0x44, 0x46], // PDF magic bytes
+            FileName = "test-document.pdf",
+            FileTypeId = 1,
+            DateCreated = DateTime.UtcNow,
+            DateModified = DateTime.UtcNow,
+        };
+
+        HttpResponseMessage response = await _client.PutAsJsonAsync($"/api/jobs/{jobId}/files", fileDto);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        int? fileId = await response.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(fileId);
+        Assert.True(fileId > 0);
+    }
+
+    [Fact]
+    public async Task Save_job_file_then_get_job_details_includes_file()
+    {
+        JobCreationDto jobDto = new()
+        {
+            JobNumber = 778100,
+            JobType = Shared.JobTypeEnum.Construction,
+            ContactId = 1,
+            Details = "Job for file attachment test",
+        };
+
+        HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
+        createJobResponse.EnsureSuccessStatusCode();
+        int? jobId = await createJobResponse.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(jobId);
+        Assert.True(jobId > 0);
+
+        FileDto fileDto = new()
+        {
+            JobId = jobId.Value,
+            FileId = 0,
+            ContentType = "text/plain",
+            Content = System.Text.Encoding.UTF8.GetBytes("Hello, job file."),
+            FileName = "note.txt",
+            FileTypeId = 1,
+            DateCreated = DateTime.UtcNow,
+            DateModified = DateTime.UtcNow,
+        };
+
+        HttpResponseMessage saveFileResponse = await _client.PutAsJsonAsync($"/api/jobs/{jobId}/files", fileDto);
+        Assert.Equal(HttpStatusCode.OK, saveFileResponse.StatusCode);
+        int? fileId = await saveFileResponse.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(fileId);
+        Assert.True(fileId > 0);
+
+        HttpResponseMessage getJobResponse = await _client.GetAsync($"/api/jobs/{jobId}");
+        getJobResponse.EnsureSuccessStatusCode();
+        JobDetailsDto? job = await getJobResponse.Content.ReadFromJsonAsync<JobDetailsDto>();
+        Assert.NotNull(job);
+        Assert.NotNull(job.JobFiles);
+        Assert.NotEmpty(job.JobFiles);
+        FileDto? savedFile = job.JobFiles.FirstOrDefault(f => f.FileId == fileId);
+        Assert.NotNull(savedFile);
+        Assert.Equal(fileDto.FileName, savedFile.FileName);
+        Assert.Equal(fileDto.FileTypeId, savedFile.FileTypeId);
+    }
+
+    [Fact]
+    public async Task Save_job_file_with_invalid_job_id_returns_bad_request()
+    {
+        FileDto fileDto = new()
+        {
+            JobId = 0,
+            FileId = 0,
+            ContentType = "application/pdf",
+            Content = [0x25, 0x50, 0x44, 0x46],
+            FileName = "test.pdf",
+            FileTypeId = 1,
+            DateCreated = DateTime.UtcNow,
+            DateModified = DateTime.UtcNow,
+        };
+
+        HttpResponseMessage response = await _client.PutAsJsonAsync("/api/jobs/0/files", fileDto);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        response = await _client.PutAsJsonAsync("/api/jobs/-1/files", fileDto);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Save_job_file_for_nonexistent_job_returns_bad_request()
+    {
+        int nonexistentJobId = 999999;
+        FileDto fileDto = new()
+        {
+            JobId = nonexistentJobId,
+            FileId = 0,
+            ContentType = "application/pdf",
+            Content = [0x25, 0x50, 0x44, 0x46],
+            FileName = "test.pdf",
+            FileTypeId = 1,
+            DateCreated = DateTime.UtcNow,
+            DateModified = DateTime.UtcNow,
+        };
+
+        HttpResponseMessage response = await _client.PutAsJsonAsync($"/api/jobs/{nonexistentJobId}/files", fileDto);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

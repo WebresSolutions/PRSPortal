@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared.DTO.Contact;
+using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
@@ -175,6 +176,25 @@ public static class JobEndpoints
         })
         .WithSummary("Create or update technical contact")
         .WithDescription("Links a contact to a job with a specific role (technical contact type). Returns the updated list of technical contacts for the job.")
+        .Produces<TechnicalContactDto[]>();
+
+        // Create a new technical contact (link a contact to a job with a role)
+        appGroup.MapPut("{jobId}/files", async (
+            [FromServices] IJobService jobService,
+            [FromBody] FileDto dto,
+            [FromRoute] int jobId,
+            HttpContext httpContext
+            ) =>
+        {
+            if (jobId is < 0)
+                return Results.BadRequest("Invalid Job Id");
+
+            Result<int> result = await jobService.SaveJobFile(httpContext, jobId, dto);
+
+            return EndpointsHelper.ProcessResult(result, "An error occurred while save the job");
+        })
+        .WithSummary("Create or Update a job file.")
+        .WithDescription("Uploads a file to sharepoint. Will create a database object linking the the sharepoint file.")
         .Produces<TechnicalContactDto[]>();
 
         if (reqAuth)

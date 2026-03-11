@@ -7,6 +7,7 @@ using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
+using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.DTO.User;
@@ -19,7 +20,7 @@ namespace Portal.Server.Services.Instances;
 /// Service implementation for job-related business logic
 /// Handles job retrieval, filtering, and data transformation
 /// </summary>
-public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : IJobService
+public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IFileService _fileService) : IJobService
 {
     /// <summary>
     /// Retrieves a paged list of jobs with optional filtering and sorting
@@ -93,8 +94,6 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                     x.JobType.Name,
                     x.JobTypeId
                 ));
-            string querystring = jobs.ToQueryString();
-            Console.WriteLine(querystring);
             // Materialize the query
             List<ListJobDto> jobsList = await jobs.ToListAsync();
 
@@ -168,6 +167,18 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
                 ContactCount = x.TechnicalContacts.Count(),
                 DateCreated = x.CreatedOn,
                 CreatedBy = x.CreatedByUser.DisplayName,
+                JobFiles = x.JobFiles.Select(jf => new FileDto
+                {
+                    JobId = x.Id,
+                    FileId = jf.FileId,
+                    FileName = jf.File.Filename,
+                    CreatedBy = jf.CreatedByUser.DisplayName ?? "",
+                    DateCreated = jf.CreatedOn,
+                    FileType = jf.File.FileType.Name,
+                    FileTypeId = jf.File.FileTypeId,
+                    Description = jf.File.Description,
+                    Title = jf.File.Title ?? ""
+                }).ToList()
             })
             .FirstOrDefaultAsync();
 
@@ -682,6 +693,51 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger) : 
         {
             _logger.LogError(ex, "Failed to updated new technical contact");
             return result.SetError(ErrorType.InternalError, "Failed to get job notes");
+        }
+    }
+
+    /// <summary>
+    /// Saves a file a job. Can either create a new file or update a new one.
+    /// </summary>
+    /// <param name="context">Http Context of the caller</param>
+    /// <param name="jobId">The Job Id</param>
+    /// <param name="file">The file dto. </param>
+    /// <returns>The id of the new file.</returns>
+    public async Task<Result<int>> SaveJobFile(HttpContext context, int jobId, FileDto file)
+    {
+        Result<int> res = new();
+        try
+        {
+            if (jobId < 0 || await _dbContext.Jobs.FindAsync(jobId) is not Job job)
+                return res.SetError(ErrorType.BadRequest, "Coiuld not find job with matching Id to save.");
+
+            // Save the file (creates new or updates existing AppFile)
+            Result<AppFile> savedfile = await _fileService.SaveFile(file, context.UserId());
+            if (!savedfile.IsSuccess || savedfile.Value is null)
+                return res.SetError(ErrorType.BadRequest, savedfile.ErrorDescription);
+
+            // Only create a new job-file link when adding a new file; existing file is already linked
+            if (file.FileId is 0)
+            {
+                JobFile jobFile = new()
+                {
+                    CreatedByUserId = context.UserId(),
+                    CreatedOn = DateTime.UtcNow,
+                    File = savedfile.Value,
+                    FileId = savedfile.Value.Id,
+                    Job = job,
+                    JobId = jobId,
+                };
+                await _dbContext.JobFiles.AddAsync(jobFile);
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return res.SetValue(savedfile.Value.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save job file");
+            return res.SetError(ErrorType.InternalError, "Failed to get job notes");
         }
     }
 

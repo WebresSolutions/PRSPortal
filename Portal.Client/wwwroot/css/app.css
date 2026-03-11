@@ -85,6 +85,10 @@ label {
     color: var(--color-secondary) !important;
 }
 
+.grey-background{
+    background-color: var(--color-light-grey);
+}
+
 a.btn-link {
     color: #1c1b1d;
     text-decoration: none;

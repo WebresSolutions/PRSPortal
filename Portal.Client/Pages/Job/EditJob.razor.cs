@@ -90,7 +90,7 @@ public partial class EditJob
             if (result.IsSuccess && result.Value is not null)
             {
                 _snackbar?.Add("Job created successfully.", Severity.Success);
-                _navigationManager.NavigateTo($"/jobs/view/{result.Value.JobId}");
+                _navigationManager.NavigateTo($"/jobs/{result.Value.JobId}");
             }
             else
                 _snackbar?.Add(result.ErrorDescription ?? "Failed to create job.", Severity.Error);
