@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Portal.Data;
-using Portal.Server.Mocks;
 using Portal.Server.Options;
 using Portal.Server.Services.Instances;
 using Portal.Server.Services.Interfaces;
+using Portal.Server.Services.Mocks;
 using Xero.NetStandard.OAuth2.Api;
 
 namespace Portal.Server;
@@ -56,8 +56,8 @@ public static class Dependencies
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
 
-        string tenantId = builder.Configuration.GetValue<string>("AzureAd:TenantId") ?? throw new Exception("tenantid missing");
-        string clientId = builder.Configuration.GetValue<string>("AzureAd:ClientId") ?? throw new Exception("tenantid missing");
+        string tenantId = builder.Configuration.GetValue<string>("AzureAd:TenantId") ?? "";
+        string clientId = builder.Configuration.GetValue<string>("AzureAd:ClientId") ?? "";
 
         // Register the graph service.
         builder.Services.AddSingleton<IGraphService>(sp => new GraphService(clientId, tenantId));

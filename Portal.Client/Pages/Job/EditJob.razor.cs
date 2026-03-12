@@ -15,10 +15,6 @@ public partial class EditJob
     [Parameter]
     public int JobId { get; set; }
     /// <summary>
-    /// If submitting
-    /// </summary>
-    private bool _isSubmitting;
-    /// <summary>
     /// The model
     /// </summary>
     private JobDetailsDto? _model;
@@ -83,7 +79,6 @@ public partial class EditJob
             return;
         }
 
-        _isSubmitting = true;
         try
         {
             Result<JobDetailsDto> result = await _apiService.UpdateJob(_model);
@@ -97,7 +92,7 @@ public partial class EditJob
         }
         finally
         {
-            _isSubmitting = false;
+
         }
     }
 

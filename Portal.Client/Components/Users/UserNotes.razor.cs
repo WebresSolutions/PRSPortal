@@ -40,8 +40,10 @@ public partial class UserNotes
     /// <returns>A task representing the asynchronous operation.</returns>
     protected override async Task OnParametersSetAsync()
     {
+        base.IsLoading = true;
         await base.OnParametersSetAsync();
         await SyncNotesFromParameter();
+        base.IsLoading = false;
     }
 
     /// <summary>

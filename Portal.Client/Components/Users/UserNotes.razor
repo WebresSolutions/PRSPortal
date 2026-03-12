@@ -6,44 +6,50 @@
         <MudTextField Placeholder="Search" @bind-Value="SearchString"
                       TextChanged="SearchNotes" DebounceInterval="250" Clearable=true
                       OnClearButtonClick="ClearSearch" Class="mb-3" Variant="Variant.Outlined" />
-
-        @if (Notes.Length is 0)
+        @if (base.IsLoading)
         {
-            <div class="empty-state">No records</div>
+            <Spinner/>
         }
         else
         {
-            <div class="note-container">
-                @foreach (JobNoteDto note in Notes)
-                {
-                    <div class="note-item @(note.ActionRequired ? "action-required" : "")">
-                        <div class="note-content">
-                            <div class="">@((MarkupString)GetHighlightedText(note.Content))</div>
-                        </div>
-                        <div class="note-actions">
-                            <div class="note-buttons">
-                                @if (note.Deleted)
-                                {
-                                    <ButtonIcon OnClick="@(async () => await DeleteNoteAsync(note))" Icon="bi bi-arrow-counterclockwise" CssClass="text-red"></ButtonIcon>
-                                }
-                                else
-                                {
-                                    <ButtonIcon OnClick="@(async () => await OpenDialogAsync(note))" Icon="bi bi-eye"></ButtonIcon>
-                                    <ButtonIcon OnClick="@(async () => await DeleteNoteAsync(note))" Icon="bi bi-trash" CssClass="text-red"></ButtonIcon>
-                                }
+            @if (Notes.Length is 0)
+            {
+                <div class="empty-state">No records</div>
+            }
+            else
+            {
+                <div class="note-container">
+                    @foreach (JobNoteDto note in Notes)
+                    {
+                        <div class="note-item @(note.ActionRequired ? "action-required" : "")">
+                            <div class="note-content">
+                                <div class="">@((MarkupString)GetHighlightedText(note.Content))</div>
                             </div>
-                            <div class="note-meta">
-                                <div class="note-date">Created: @GetNoteDate(note)</div>
-                                <div class="note-author"> By: @(note.CreatedBy ?? "")</div>
-                                @if (note.AssignedUser is not null)
-                                {
-                                    <div class="note-author"> Assigned to: @(note.AssignedUser?.displayName ?? "")</div>
-                                }
+                            <div class="note-actions">
+                                <div class="note-buttons">
+                                    @if (note.Deleted)
+                                    {
+                                        <ButtonIcon OnClick="@(async () => await DeleteNoteAsync(note))" Icon="bi bi-arrow-counterclockwise" CssClass="text-red"></ButtonIcon>
+                                    }
+                                    else
+                                    {
+                                        <ButtonIcon OnClick="@(async () => await OpenDialogAsync(note))" Icon="bi bi-eye"></ButtonIcon>
+                                        <ButtonIcon OnClick="@(async () => await DeleteNoteAsync(note))" Icon="bi bi-trash" CssClass="text-red"></ButtonIcon>
+                                    }
+                                </div>
+                                <div class="note-meta">
+                                    <div class="note-date">Created: @GetNoteDate(note)</div>
+                                    <div class="note-author"> By: @(note.CreatedBy ?? "")</div>
+                                    @if (note.AssignedUser is not null)
+                                    {
+                                        <div class="note-author"> Assigned to: @(note.AssignedUser?.displayName ?? "")</div>
+                                    }
+                                </div>
                             </div>
                         </div>
-                    </div>
-                }
-            </div>
+                    }
+                </div>
+            }
         }
     </ChildContent>
 </Card>

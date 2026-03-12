@@ -1,5 +1,6 @@
 ﻿using Portal.Data;
 using Portal.Data.Models;
+using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared.DTO.File;
 using Portal.Shared.Helpers;
@@ -134,8 +135,41 @@ public class FileService : IFileService
             await _dbContext.SaveChangesAsync();
             return result.SetValue(true);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to remove the sharepoint file.");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Gets files data
+    /// </summary>
+    /// <param name="fileId"></param>
+    /// <returns>File Dto Result</returns>
+    public async Task<Result<FileDto>> GetFileData(int fileId)
+    {
+        Result<FileDto> result = new();
+        try
+        {
+            // Get the file from the database
+            if (await _dbContext.AppFiles.FindAsync(fileId) is not AppFile file)
+                return result.SetError(ErrorType.BadRequest, "Could not find file with matching Id");
+
+            if (string.IsNullOrEmpty(file.ExternalId))
+                return result.SetError(ErrorType.BadRequest, "File does not contain a valid file Id");
+
+            (string FileName, string ContentType, byte[] FileBytes) = await _sharepointService.GetFileByIdAsync(file.ExternalId);
+
+            FileDto dto = file.ToDto();
+            dto.Content = FileBytes;
+            dto.ContentType = ContentType;
+
+            return result.SetValue(dto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get the file from sharepoint.");
             throw;
         }
     }

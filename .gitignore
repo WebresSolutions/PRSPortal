@@ -492,3 +492,4 @@ $RECYCLE.BIN/
 /Portal.Client/wwwroot/appsettings.json
 /Portal.Client/wwwroot/appsettings.Development.json
 /Portal.Server/appsettings.Development.json
+/Portal.Server/appsettings.json

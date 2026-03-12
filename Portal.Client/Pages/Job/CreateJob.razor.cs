@@ -22,11 +22,6 @@ public partial class CreateJob
     /// </summary>
     private CouncilPartialDto[] _councils = [];
     /// <summary>
-    /// Flag for if submittiing the new job
-    /// </summary>
-    private bool _submitting;
-
-    /// <summary>
     /// On initialized method for loading data on the first page load.
     /// </summary>
     /// <returns></returns>
@@ -74,8 +69,6 @@ public partial class CreateJob
             _snackbar?.Add("Job number must be greater than 0.", Severity.Warning);
             return;
         }
-
-        _submitting = true;
         try
         {
             Result<int> result = await _apiService.CreateJob(_model);
@@ -89,7 +82,6 @@ public partial class CreateJob
         }
         finally
         {
-            _submitting = false;
         }
     }
 
@@ -109,6 +101,4 @@ public partial class CreateJob
         else
             return [];
     }
-
-
 }

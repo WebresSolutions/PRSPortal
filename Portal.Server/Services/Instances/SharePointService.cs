@@ -253,7 +253,7 @@ public class SharePointService : ISharePointService
     /// </summary>
     /// <param name="externalId">The external ID for the file.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the file name, content type, and file bytes.</returns>
-    public async Task<(string FileName, string ContentType, byte[] FileBytes)> GetFileByIdAsync(string externalId)
+    public virtual async Task<(string FileName, string ContentType, byte[] FileBytes)> GetFileByIdAsync(string externalId)
     {
         try
         {

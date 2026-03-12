@@ -1,5 +1,6 @@
 using Portal.Data;
 using Portal.Server.Controllers;
+using Portal.Server.Endpoints;
 using Portal.Server.Middleware;
 using Portal.Server.Services.Interfaces;
 using Scalar.AspNetCore;
@@ -94,6 +95,7 @@ public class Program
         app.AddTimeSheetendpoints(enableAuth);
         app.AddTypesEndpoints(enableAuth);
         app.AddUserEndpoints(enableAuth);
+        app.AddFileEndpoints(enableAuth);
 
         // Seed database with an initial client application and test user
         using (IServiceScope scope = app.Services.CreateScope())

@@ -7,7 +7,7 @@
             {
                 <div class="info-row">
                     <span class="info-label">Contact</span>
-                    <span class="info-value" @onmouseover="@(() => showViewContactButton = true)" @onmouseleave="@(() => showViewContactButton = false)">
+                    <span class="info-value">
                         <a style="color: var(--color-secondary)" href=@($"/contacts/{Job.PrimaryContact!.ContactId}")>@Job.PrimaryContact.ContactName</a>
                     </span>
                 </div>
@@ -60,10 +60,7 @@
     /// Gets or sets the contact information for the job
     /// </summary>
     [Parameter]
-    public JobDetailsDto Job { get; set; }
+    public required JobDetailsDto Job { get; set; }
 
-
-    private bool showViewCouncilButton = false;
-    private bool showViewContactButton = false;
 }
 
