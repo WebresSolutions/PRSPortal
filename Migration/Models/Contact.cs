@@ -27,6 +27,8 @@ public partial class Contact
 
     public string? Phone { get; set; }
 
+    public string? Mobile { get; set; }
+
     public string? Fax { get; set; }
 
     public int? AddressId { get; set; }

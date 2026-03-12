@@ -12,11 +12,17 @@ public partial class AppFile
 
     public int FileTypeId { get; set; }
 
-    public string Filename { get; set; } = null!;
+    public string FileName { get; set; } = null!;
 
     public string? Title { get; set; }
 
     public string? Description { get; set; }
+
+    public long ContentSize { get; set; }
+
+    public string FilePath { get; set; } = null!;
+
+    public string FileExtension { get; set; } = null!;
 
     /// <summary>
     /// Reference to external storage system (S3, etc)
@@ -32,9 +38,9 @@ public partial class AppFile
 
     public DateTime CreatedOn { get; set; }
 
-    public int ModifiedByUserId { get; set; }
+    public int? ModifiedByUserId { get; set; }
 
-    public DateTime ModifiedOn { get; set; }
+    public DateTime? ModifiedOn { get; set; }
 
     /// <summary>
     /// Soft delete TIMESTAMPTZ - NULL means active
@@ -47,5 +53,5 @@ public partial class AppFile
 
     public virtual ICollection<JobFile> JobFiles { get; set; } = new List<JobFile>();
 
-    public virtual AppUser ModifiedByUser { get; set; } = null!;
+    public virtual AppUser? ModifiedByUser { get; set; }
 }

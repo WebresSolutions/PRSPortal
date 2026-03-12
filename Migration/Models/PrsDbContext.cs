@@ -182,6 +182,7 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
+            entity.Property(e => e.ContentSize).HasColumnName("content_size");
             entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -189,19 +190,27 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.DeletedAt)
                 .HasComment("Soft delete TIMESTAMPTZ - NULL means active")
                 .HasColumnName("deleted_at");
-            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Description)
+                .HasMaxLength(400)
+                .HasColumnName("description");
             entity.Property(e => e.ExternalId)
                 .HasMaxLength(255)
                 .HasComment("Reference to external storage system (S3, etc)")
                 .HasColumnName("external_id");
+            entity.Property(e => e.FileExtension)
+                .HasMaxLength(10)
+                .HasColumnName("file_extension");
             entity.Property(e => e.FileHash)
                 .HasMaxLength(64)
                 .HasComment("SHA-256 hash for duplicate detection")
                 .HasColumnName("file_hash");
-            entity.Property(e => e.FileTypeId).HasColumnName("file_type_id");
-            entity.Property(e => e.Filename)
+            entity.Property(e => e.FileName)
                 .HasMaxLength(255)
-                .HasColumnName("filename");
+                .HasColumnName("file_name");
+            entity.Property(e => e.FilePath)
+                .HasMaxLength(255)
+                .HasColumnName("file_path");
+            entity.Property(e => e.FileTypeId).HasColumnName("file_type_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -222,7 +231,6 @@ public partial class PrsDbContext : DbContext
 
             entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.AppFileModifiedByUsers)
                 .HasForeignKey(d => d.ModifiedByUserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("app_file_modified_by_user_id_fkey");
         });
 
@@ -357,6 +365,9 @@ public partial class PrsDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("last_name");
             entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
+            entity.Property(e => e.Mobile)
+                .HasMaxLength(50)
+                .HasColumnName("mobile");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.ParentContactId).HasColumnName("parent_contact_id");

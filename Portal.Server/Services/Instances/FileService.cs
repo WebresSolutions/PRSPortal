@@ -67,7 +67,7 @@ public class FileService : IFileService
 
                 // Only re-upload the file if the content has changed (determined by comparing file hashes) or if the filename has changed.
                 // This prevents unnecessary uploads to the sharepoint service when only the filename is updated.
-                if (existingFile.FileHash != fileHash || existingFile.Filename != file.FileName)
+                if (existingFile.FileHash != fileHash || existingFile.FileName != file.FileName)
                     externalId = string.IsNullOrEmpty(existingFile.ExternalId)
                         ? await _sharepointService.SaveFileAsync(memeStream, file.FileName, file.FileName, []) ?? throw new Exception("Error occured while saving the file to sharepoint")
                         : await _sharepointService.ReplaceDriveItemData(memeStream, existingFile.ExternalId) ?? throw new Exception("Error occured while saving the file to sharepoint");
@@ -75,6 +75,9 @@ public class FileService : IFileService
                     externalId = existingFile.ExternalId ?? throw new Exception("Existing file is missing ExternalId.");
 
                 UpdateFileDetails(file, modifiedByUserId, existingFile);
+                existingFile.ContentSize = file.Content.Length;
+                existingFile.FilePath = "";
+                existingFile.FileExtension = "";
                 existingFile.ExternalId = externalId;
                 existingFile.FileHash = fileHash;
                 _dbContext.AppFiles.Update(existingFile);
@@ -93,11 +96,14 @@ public class FileService : IFileService
                 // Create a new AppFile record in the database
                 AppFile newfile = new()
                 {
-                    Filename = file.FileName,
+                    FileName = file.FileName,
                     FileHash = fileHash,
                     ExternalId = savedFile,
                     FileTypeId = file.FileTypeId,
                     Description = file.Description,
+                    FilePath = "",
+                    FileExtension = "",
+                    ContentSize = file.Content.Length,
                     CreatedByUserId = modifiedByUserId,
                     ModifiedByUserId = modifiedByUserId,
                     CreatedOn = DateTime.UtcNow,
@@ -109,7 +115,6 @@ public class FileService : IFileService
 
                 result.SetValue(newfile);
             }
-
 
             return result;
         }
@@ -123,7 +128,7 @@ public class FileService : IFileService
         {
             existingFile.ModifiedOn = DateTime.UtcNow;
             existingFile.ModifiedByUserId = modifiedByUserId;
-            existingFile.Filename = file.FileName;
+            existingFile.FileName = file.FileName;
             existingFile.FileTypeId = file.FileTypeId;
             existingFile.Description = file.Description?.Length > 400 ? file.Description.Take(395).ToString() : file.Description;
         }

@@ -53,7 +53,7 @@ public class FileDto
     /// <summary>
     /// Gets or sets the date the file was last modified.
     /// </summary>
-    public DateTime DateModified { get; set; }
+    public DateTime? DateModified { get; set; }
 
     /// <summary>
     /// Gets or sets the identifier of the creator of the file.

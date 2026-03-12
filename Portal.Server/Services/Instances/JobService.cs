@@ -171,9 +171,10 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 {
                     JobId = x.Id,
                     FileId = jf.FileId,
-                    FileName = jf.File.Filename,
+                    FileName = jf.File.FileName,
                     CreatedBy = jf.CreatedByUser.DisplayName ?? "",
                     DateCreated = jf.CreatedOn,
+                    DateModified = jf.File.ModifiedOn,
                     FileType = jf.File.FileType.Name,
                     FileTypeId = jf.File.FileTypeId,
                     Description = jf.File.Description,

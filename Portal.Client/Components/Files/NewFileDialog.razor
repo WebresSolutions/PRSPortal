@@ -14,7 +14,7 @@
                 <div class="new-file-container border-rad grey-background">
                     <div>
                         <label>Title</label>
-                        <MudTextField T="string" Variant="Variant.Outlined" Required="true"/>
+                        <MudTextField T="string" Variant="Variant.Outlined" Required="true" Value="_file.Title"/>
                         <ValidationMessage For="@(() => _file.Title)" />
                     </div>
                     <p class="mb-2">Select a file to upload to this job</p>
@@ -35,7 +35,7 @@
                     </div>
                     <div>
                         <label>Description</label>
-                        <MudTextField T="string" Variant="Variant.Outlined" Lines="2" />
+                        <MudTextField T="string" Variant="Variant.Outlined" Lines="2" Value="_file.Description" />
                     </div>
                     <ValidationSummary />
                 </div>
@@ -113,7 +113,7 @@
     [Parameter]
     public int? JobId { get; set; }
 
-    private FileDto _file = new();
+    private FileDto _file = new() { FileName = "", Title = ""};
     private FileTypeDto[] _fileTypes = [];
     private IBrowserFile? _selectedFile;
     private bool _saving;
@@ -134,9 +134,18 @@
         base.IsLoading = false;
     }
 
-    private void OnFileSelected(InputFileChangeEventArgs e)
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
     {
         _selectedFile = e.FileCount > 0 ? e.File : null;
+        IBrowserFile? browserFile = _selectedFile;
+        await using Stream stream = browserFile.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024); // 20 MB
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        byte[] content = ms.ToArray();
+        _file.FileName = e.File.Name;
+        _file.FileName = browserFile.Name;
+        _file.ContentType = browserFile.ContentType;
+        _file.Content = content;
         StateHasChanged();
     }
 
@@ -148,8 +157,8 @@
             return;
         }
 
-        IBrowserFile? browserFile = _selectedFile;
-        if (browserFile is null)
+
+        if (_file.Content is null or [])
         {
             Snackbar.Add("Please select a file to upload.", Severity.Warning);
             return;
@@ -158,10 +167,7 @@
         _saving = true;
         try
         {
-            await using Stream stream = browserFile.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024); // 20 MB
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            byte[] content = ms.ToArray();
+            
 
             if (JobId is null)
             {
@@ -170,9 +176,7 @@
             else
             {
                 _file.JobId = JobId.Value;
-                _file.FileName = browserFile.Name;
-                _file.ContentType = browserFile.ContentType;
-                _file.Content = content;
+
 
                 Result<int> result = await ApiService.SaveJobFile(JobId.Value, _file);
                 if (result.IsSuccess)

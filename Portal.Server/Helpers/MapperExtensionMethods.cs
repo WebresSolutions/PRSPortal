@@ -18,7 +18,7 @@ public static class MapperExtensionMethods
         return new FileDto
         {
             FileId = appFile.Id,
-            FileName = appFile.Filename,
+            FileName = appFile.FileName,
             Description = appFile.Description,
             Title = appFile.Title ?? "",
             DateCreated = appFile.CreatedOn,
@@ -44,7 +44,7 @@ public static class MapperExtensionMethods
         {
             Id = dto.FileId,
             FileTypeId = dto.FileTypeId,
-            Filename = dto.FileName,
+            FileName = dto.FileName,
             Title = string.IsNullOrEmpty(dto.Title) ? null : dto.Title,
             Description = dto.Description,
             CreatedOn = dto.DateCreated,

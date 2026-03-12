@@ -155,8 +155,8 @@ CREATE TABLE contact (
     last_name VARCHAR(100) NOT NULL,
     full_name VARCHAR(201) NOT NULL GENERATED ALWAYS AS (first_name || ' ' || last_name) STORED,
     email VARCHAR(255) NOT NULL,
-    phone VARCHAR(25),
-    mobile VARCHAR(25)
+    phone VARCHAR(50),
+    mobile VARCHAR(50),
     fax VARCHAR(50),
     address_id INT REFERENCES address(id),
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
@@ -757,3 +757,6 @@ CREATE TABLE dashboard_item (
 
 CREATE INDEX idx_dashboard_item_dashboard_id ON dashboard_item(dashboard_id);
 CREATE INDEX idx_dashboard_item_content ON dashboard_item(content_id);
+
+
+
