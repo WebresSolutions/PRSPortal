@@ -43,4 +43,18 @@ public static class Helpers
         string css = await jsRuntime.InvokeAsync<string>("getCssVariable", variableName);
         return css;
     }
+
+    /// <summary>
+    /// Downloads file to the browser
+    /// </summary>
+    /// <param name="js">Js Reference</param>
+    /// <param name="data">The binary data</param>
+    /// <param name="fileName">The file name</param>
+    /// <returns></returns>
+    public static async Task DownloadFileToBrowser(IJSRuntime js, byte[] data, string fileName)
+    {
+        using MemoryStream memeStream = new(data);
+        using DotNetStreamReference steamRef = new(memeStream);
+        await js.InvokeVoidAsync("downloadFileFromStream", fileName, steamRef);
+    }
 }

@@ -90,6 +90,12 @@ public interface IApiService
     /// <param name="file">The file DTO with content, name, type, etc.</param>
     /// <returns>The file id on success.</returns>
     Task<Result<int>> SaveJobFile(int jobId, FileDto file);
+    /// <summary>
+    /// Gets file data (metadata and content) by file id.
+    /// </summary>
+    /// <param name="fileId">The unique identifier of the file to retrieve.</param>
+    /// <returns>A result containing the file DTO with content on success.</returns>
+    Task<Result<FileDto>> GetFileData(int fileId);
     #endregion
 
     #region SCHEDULE

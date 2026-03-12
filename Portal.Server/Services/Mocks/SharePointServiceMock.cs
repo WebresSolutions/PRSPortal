@@ -84,9 +84,9 @@ public class SharePointServiceMock(SharePointOptions config) : SharePointService
     /// <returns>A dummy file</returns>
     public override async Task<(string FileName, string ContentType, byte[] FileBytes)> GetFileByIdAsync(string externalId)
     {
-        const string dummyFile = "dokumen.pub_fundamentals-of-software-architecture-an-engineering-approach-1nbsped-1492043451-9781492043454.pdf";
+        const string dummyFile = "Screenshot 2025-10-31 094058.png";
         string path = Path.Combine(Directory.GetCurrentDirectory(), $"TestFiles/{dummyFile}");
         byte[] result = await File.ReadAllBytesAsync(path);
-        return (dummyFile, ".pdf", result);
+        return (dummyFile, "png", result);
     }
 }

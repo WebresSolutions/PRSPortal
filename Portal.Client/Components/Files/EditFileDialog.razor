@@ -1,4 +1,5 @@
 @using Portal.Shared.DTO.File
+@using Portal.Shared.DTO.Job
 @inherits BaseDataComponent
 @inject IApiService ApiService
 @inject ISnackbar Snackbar
@@ -11,24 +12,34 @@
             <EditForm Model="@File" class="edit-file-container border-rad grey-background">
                 <DataAnnotationsValidator />
                 <div>
-                    <label>Title</label>
-                    <MudTextField T="string" Value="File.Title" Variant="Variant.Outlined"/>
+                    <label for="title">Title</label>
+                    <MudTextField T="string" Value="File.Title" Variant="Variant.Outlined" Required="true" />
                 </div>
                 <div>
                     <p class="mb-2">Select a new file to replace the current one</p>
                     <div class="file-upload-zone">
                         <InputFile OnChange="OnFileSelected"
-                                  accept="*"
-                                  class="file-upload-input"  />
+                                   accept="*"
+                                   class="file-upload-input" />
                         <span class="file-upload-label">@(_selectedFile != null ? _selectedFile.Name : "Click or drop file here")</span>
                     </div>
                     <p class="mt-2 current-file"><strong>Current file:</strong> @File.FileName</p>
                 </div>
                 <div>
-                    <label>Description</label>
-                    <MudTextField T="string" Value="File.Description" Variant="Variant.Outlined" />
+                    <label for="file-type">File Type</label>
+                    <MudSelect name="file-type" T="int" @bind-Value="File.FileTypeId" Variant="Variant.Outlined">
+                        @foreach (FileTypeDto fType in _fileTypes)
+                        {
+                            <MudSelectItem Value="fType.Id">@fType.Name</MudSelectItem>
+                        }
+                    </MudSelect>
                 </div>
-                <small>Uploaded on: @File.DateCreated.ToLocalTime().ToString("g")</small>
+                <div>
+                    <label>Description</label>
+                    <MudTextField T="string" Value="File.Description" Variant="Variant.Outlined" Lines="2" />
+                </div>
+                <small>Uploaded On: @File.DateCreated.ToLocalTime().ToString("g")</small>
+                <small>Created By: @File.CreatedBy</small>
             </EditForm>
             <div class="d-flex justify-content-center gap-1 mt-2">
                 <ButtonIcon Icon="bi bi-save-fill"
@@ -57,10 +68,11 @@
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        height: 400px;
+        height: fit-content;
         min-width: 350px;
         overflow-y: auto;
         padding: var(--padding);
+        max-height: 600px;
     }
 
     .file-upload-zone {
@@ -105,6 +117,22 @@
 
     private IBrowserFile? _selectedFile;
     private bool _saving;
+    private FileTypeDto[] _fileTypes = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        base.IsLoading = true;
+        Result<FileTypeDto[]> filesResult = await _apiService.GetFileTypes();
+        if (filesResult.IsSuccess)
+            _fileTypes = filesResult.Value!;
+        else
+            _snackbar.Add("Could not load file types", Severity.Error);
+
+        if (_fileTypes is not [])
+            File.FileTypeId = _fileTypes.FirstOrDefault()!.Id;
+
+        base.IsLoading = false;
+    }
 
     private void OnFileSelected(InputFileChangeEventArgs e)
     {

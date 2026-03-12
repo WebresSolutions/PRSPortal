@@ -1,38 +1,57 @@
 @using Portal.Shared.DTO.File
+@using Portal.Shared.DTO.Job
 @inherits BaseDataComponent
 @inject IApiService ApiService
 @inject ISnackbar Snackbar
 
-<MudDialog>
+<MudDialog Style="min-width: 400px">
     <DialogContent>
         <h4 class="header-border">New File</h4>
         @if (!base.IsLoading)
         {
-            <div class="new-file-container border-rad grey-background">
-                <p class="mb-2">Select a file to upload to this job</p>
-                <div class="file-upload-zone">
-                    <InputFile OnChange="OnFileSelected"
-                               accept="*"
-                               class="file-upload-input" />
-                    <span class="file-upload-label">@(_selectedFile != null ? _selectedFile.Name : "Click or drop file here")</span>
+            <EditForm Model="@_file" OnValidSubmit="SaveFile">
+                <DataAnnotationsValidator />
+                <div class="new-file-container border-rad grey-background">
+                    <div>
+                        <label>Title</label>
+                        <MudTextField T="string" Variant="Variant.Outlined" Required="true"/>
+                        <ValidationMessage For="@(() => _file.Title)" />
+                    </div>
+                    <p class="mb-2">Select a file to upload to this job</p>
+                    <div class="file-upload-zone">
+                        <InputFile OnChange="OnFileSelected"
+                                   accept="*"
+                                   class="file-upload-input" />
+                        <span class="file-upload-label">@(_selectedFile != null ? _selectedFile.Name : "Click or drop file here")</span>
+                    </div>
+                    <div>
+                        <label for="file-type">File Type</label>
+                        <MudSelect name="file-type" T="int" @bind-Value="_file.FileTypeId" Variant="Variant.Outlined">
+                            @foreach (FileTypeDto fType in _fileTypes)
+                            {
+                                <MudSelectItem Value="fType.Id">@fType.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </div>
+                    <div>
+                        <label>Description</label>
+                        <MudTextField T="string" Variant="Variant.Outlined" Lines="2" />
+                    </div>
+                    <ValidationSummary />
                 </div>
-                <div>
-                    <label>Description</label>
-                    <MudTextField T="string"/>
+                <div class="d-flex justify-content-center gap-1 mt-2">
+                    <ButtonIcon Icon="bi bi-save-fill"
+                                CssClass="text-green"
+                                Text="Save"
+                                ButtonType="submit"
+                                Disabled="@_saving" />
+                    <ButtonIcon Icon="bi bi-x-circle"
+                                CssClass="text-red"
+                                Disabled="@_saving"
+                                OnClick="@(() => base.MudDialog?.Close(DialogResult.Cancel()))"
+                                Text="Close" />
                 </div>
-            </div>
-            <div class="d-flex justify-content-center gap-1 mt-2">
-                <ButtonIcon Icon="bi bi-save-fill"
-                            CssClass="text-green"
-                            Text="Save"
-                            Disabled="@_saving"
-                            OnClick="SaveFile" />
-                <ButtonIcon Icon="bi bi-x-circle"
-                            CssClass="text-red"
-                            Disabled="@_saving"
-                            OnClick="@(() => base.MudDialog?.Close(DialogResult.Cancel()))"
-                            Text="Close" />
-            </div>
+            </EditForm>
         }
         else
         {
@@ -48,10 +67,11 @@
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        height: 400px;
+        height: fit-content;
         min-width: 350px;
         overflow-y: auto;
         padding: var(--padding);
+        max-height: 600px;
     }
 
     .file-upload-zone {
@@ -93,11 +113,26 @@
     [Parameter]
     public int? JobId { get; set; }
 
-    [Parameter]
-    public int FileTypeId { get; set; } = 1;
-
+    private FileDto _file = new();
+    private FileTypeDto[] _fileTypes = [];
     private IBrowserFile? _selectedFile;
     private bool _saving;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        base.IsLoading = true;
+
+        Result<FileTypeDto[]> filesResult = await _apiService.GetFileTypes();
+        if (filesResult.IsSuccess)
+            _fileTypes = filesResult.Value!;
+        else
+            _snackbar.Add("Could not load file types", Severity.Error);
+
+        if (_fileTypes is not [])
+            _file.FileTypeId = _fileTypes.FirstOrDefault()!.Id;
+
+        base.IsLoading = false;
+    }
 
     private void OnFileSelected(InputFileChangeEventArgs e)
     {
@@ -134,17 +169,12 @@
             }
             else
             {
-                FileDto dto = new()
-                {
-                    JobId = JobId.Value,
-                    FileId = 0,
-                    FileName = browserFile.Name,
-                    ContentType = browserFile.ContentType,
-                    Content = content,
-                    FileTypeId = FileTypeId
-                };
+                _file.JobId = JobId.Value;
+                _file.FileName = browserFile.Name;
+                _file.ContentType = browserFile.ContentType;
+                _file.Content = content;
 
-                Result<int> result = await ApiService.SaveJobFile(JobId.Value, dto);
+                Result<int> result = await ApiService.SaveJobFile(JobId.Value, _file);
                 if (result.IsSuccess)
                 {
                     Snackbar.Add("File saved successfully.", Severity.Success);

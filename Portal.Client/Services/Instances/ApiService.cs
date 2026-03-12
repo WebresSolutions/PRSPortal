@@ -394,6 +394,36 @@ public class ApiService : IApiService
     }
 
     /// <summary>
+    /// Gets file data (metadata and content) by file id.
+    /// </summary>
+    public async Task<Result<FileDto>> GetFileData(int fileId)
+    {
+        Result<FileDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/files/{fileId}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                FileDto? dto = await response.Content.ReadFromJsonAsync<FileDto>();
+                if (dto is not null)
+                    res.Value = dto;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get file";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
     /// Retrieves the list of available schedule slots for an individual on the specified date and job type.
     /// </summary>
     /// <remarks>If the user is not authorized, the operation will redirect to the login page. The returned

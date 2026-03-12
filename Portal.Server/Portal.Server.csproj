@@ -45,7 +45,7 @@
 		</EmbeddedResource>
 	</ItemGroup>
 	<ItemGroup>
-	  <None Update="TestFiles\dokumen.pub_fundamentals-of-software-architecture-an-engineering-approach-1nbsped-1492043451-9781492043454.pdf">
+	  <None Update="TestFiles\Screenshot 2025-10-31 094058.png">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

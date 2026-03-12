@@ -3,7 +3,6 @@ using Portal.Data.Models;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared.DTO.File;
-using Portal.Shared.Helpers;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Services.Instances;
@@ -42,16 +41,23 @@ public class FileService : IFileService
             if (await _dbContext.FileTypes.FindAsync(file.FileTypeId) is null)
                 return result.SetError(ErrorType.BadRequest, "Invalid file type.");
 
-            // Convert the file to a memory stream for uploading
-            using MemoryStream memeStream = new(file.Content);
             // Create the file hash 
             string fileHash = await FileHelper.GetFileHash(file.Content);
 
             if (file.FileId is not 0)
             {
-
                 if (await _dbContext.AppFiles.FindAsync(file.FileId) is not AppFile existingFile)
                     return result.SetError(ErrorType.NotFound, "File not found.");
+
+                if (file.Content is [])
+                {
+                    UpdateFileDetails(file, modifiedByUserId, existingFile);
+                    _dbContext.AppFiles.Update(existingFile);
+                    await _dbContext.SaveChangesAsync();
+                    result.SetValue(existingFile);
+                }
+
+                using MemoryStream memeStream = new(file.Content);
 
                 // If the file hash matches, return the existing file without re-uploading
                 if (existingFile.FileHash == fileHash)
@@ -68,19 +74,16 @@ public class FileService : IFileService
                 else
                     externalId = existingFile.ExternalId ?? throw new Exception("Existing file is missing ExternalId.");
 
-                existingFile.FileHash = fileHash;
-                existingFile.ModifiedOn = DateTime.UtcNow;
+                UpdateFileDetails(file, modifiedByUserId, existingFile);
                 existingFile.ExternalId = externalId;
-                existingFile.ModifiedByUserId = modifiedByUserId;
-                existingFile.Filename = file.FileName;
-                existingFile.FileTypeId = file.FileTypeId;
-
+                existingFile.FileHash = fileHash;
                 _dbContext.AppFiles.Update(existingFile);
                 await _dbContext.SaveChangesAsync();
                 result.SetValue(existingFile);
             }
             else
             {
+                using MemoryStream memeStream = new(file.Content);
                 // Save the file to the graph service
                 string? savedFile = await _sharepointService.SaveFileAsync(memeStream, file.FileName, file.FileName, []);
 
@@ -114,6 +117,15 @@ public class FileService : IFileService
         {
             _logger.LogError(ex, "Failed to save file to sharepoint");
             throw;
+        }
+
+        static void UpdateFileDetails(FileDto file, int modifiedByUserId, AppFile existingFile)
+        {
+            existingFile.ModifiedOn = DateTime.UtcNow;
+            existingFile.ModifiedByUserId = modifiedByUserId;
+            existingFile.Filename = file.FileName;
+            existingFile.FileTypeId = file.FileTypeId;
+            existingFile.Description = file.Description?.Length > 400 ? file.Description.Take(395).ToString() : file.Description;
         }
     }
 

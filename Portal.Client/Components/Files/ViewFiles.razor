@@ -16,9 +16,12 @@
         <div class="job-file-container">
             @foreach (FileDto file in Files)
             {
-                <div class="job-file" @onclick="@(async () => await EditFile(file))">
+                <div class="job-file" >
                     <strong>@file.FileName..</strong>
-                    <small>Created By: @file.CreatedBy</small>
+                    <div class="d-flex flex-row gap-1">
+                        <ButtonIcon Onclick="@(async () => await EditFile(file))" Icon="bi bi-eye-fill" />
+                        <ButtonIcon OnClick="@(() => DownloadFile(file.FileId))" Icon="bi bi-cloud-arrow-down-fill" Disabled="_disabled"/>
+                    </div>
                 </div>
             }
         </div>
@@ -29,59 +32,7 @@
     </ChildContent>
 </Card>
 
-@code {
-    /// <summary>
-    /// Required. The job id that these files belong to (for adding new files).
-    /// </summary>
-    [Parameter]
-    public required int JobId { get; set; }
 
-    /// <summary>
-    /// Required. The files being viewed.
-    /// </summary>
-    [Parameter]
-    public required IEnumerable<FileDto> Files { get; set; }
-
-    /// <summary>
-    /// Callback for when a file is created or edited.
-    /// </summary>
-    [Parameter]
-    public EventCallback OnFilesEdited { get; set; }
-
-    /// <summary>
-    /// The card reference
-    /// </summary>
-    private Card? _cardRef;
-
-    public async Task CreateNewFile()
-    {
-        DialogParameters parameter = new DialogParameters<NewFileDialog> { { "JobId", JobId } };
-        DialogOptions options = new() { CloseButton = false, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
-        IDialogReference dialogRef = await _dialog.ShowAsync<NewFileDialog>("", parameter, options);
-        DialogResult? result = await dialogRef.Result;
-
-        if (result is { Canceled: false })
-        {
-            _cardRef?.SetSelectedTab(TabTypeEnum.All);
-            await OnFilesEdited.InvokeAsync();
-        }
-    }
-
-    public async Task EditFile(FileDto file)
-    {
-        DialogParameters parameter = new DialogParameters<EditFileDialog> { { "File", file } };
-        DialogOptions options = new() { CloseButton = false, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
-        IDialogReference dialogRef = await _dialog.ShowAsync<EditFileDialog>("", parameter, options);
-        DialogResult? result = await dialogRef.Result;
-
-        if (result is { Canceled: false})
-        {
-            _cardRef?.SetSelectedTab(TabTypeEnum.All);
-            await OnFilesEdited.InvokeAsync();
-        }
-
-    }
-}
 
 <style>
     .job-file-container {
@@ -92,9 +43,9 @@
     }
 
     .job-file {
-        background-color: #f1f5f9;
+        background-color: white;
         width: 100%;
-        height: 80px;
+        height: 100px;
         border-radius: var(--border-rad);
         padding: 10px;
         transition: ease-in-out 0.2s;
@@ -104,12 +55,6 @@
         overflow-wrap: break-word;
         word-break: break-word;
     }
-
-        .job-file:hover {
-            background-color: #e2e8f0;
-            cursor: pointer;
-            transition: ease-in-out 0.2s;
-        }
 
     .empty-state {
         text-align: center;

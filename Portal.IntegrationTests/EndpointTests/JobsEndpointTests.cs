@@ -407,9 +407,7 @@ public sealed class JobsEndpointTests
             ContentType = "text/plain",
             Content = System.Text.Encoding.UTF8.GetBytes("Hello, job file."),
             FileName = "note.txt",
-            FileTypeId = 1,
-            DateCreated = DateTime.UtcNow,
-            DateModified = DateTime.UtcNow,
+            FileTypeId = 1
         };
 
         HttpResponseMessage saveFileResponse = await _client.PutAsJsonAsync($"/api/jobs/{jobId}/files", fileDto);

@@ -42,6 +42,7 @@ public class FileDto
     /// <summary>
     /// The title of the file
     /// </summary>
+    [Required]
     public string Title { get; set; } = "";
 
     /// <summary>
