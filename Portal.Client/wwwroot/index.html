@@ -177,6 +177,25 @@
             anchorElement.remove();
             URL.revokeObjectURL(url);
         };
+        // Side nav flyout: close when clicking outside
+        let _sideNavClickHandler = null;
+        window.addSideNavClickOutside = function (dotNetRef) {
+            if (_sideNavClickHandler) return;
+            _sideNavClickHandler = function (ev) {
+                const sidebar = document.querySelector('.sidebar');
+                if (sidebar && !sidebar.contains(ev.target)) {
+                    dotNetRef.invokeMethodAsync('InvokeCloseFlyouts');
+                    window.removeSideNavClickOutside();
+                }
+            };
+            setTimeout(function () { document.addEventListener('click', _sideNavClickHandler); }, 0);
+        };
+        window.removeSideNavClickOutside = function () {
+            if (_sideNavClickHandler) {
+                document.removeEventListener('click', _sideNavClickHandler);
+                _sideNavClickHandler = null;
+            }
+        };
     </script>
 </body>
 </html>

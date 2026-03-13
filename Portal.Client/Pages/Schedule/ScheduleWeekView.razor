@@ -1,0 +1,186 @@
+@page "/schedule/week"
+@page "/schedule/week/{date?}/{jobType:int?}"
+@using Portal.Client.Components.ScheduleComponents
+@using Portal.Shared
+@using Portal.Shared.DTO.Schedule
+@inherits BaseDataComponent
+
+<PageTitle>Schedule Week - PRS Portal</PageTitle>
+<div class="container">
+    <PageHeader>
+        <Content>
+            <div class="header-left">
+                <div class="header-content">
+                    @if (!base.IsLoading)
+                    {
+                        <h1>Schedule week – @_jobTypeEnum.GetDisplayName()</h1>
+                        <div class="header-info">
+                            <span>@_weekStart.ToString("ddd d MMM") – @_weekEnd.ToString("ddd d MMM yyyy")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="header-right">
+                @if (!base.IsLoading)
+                {
+                    <StatusBadge statusEnum="_jobTypeEnum" OnClick="@(() => SwapJobType())" />
+                    <div class="header-controls">
+                        <div class="d-flex flex-row gap-1 align-content-center">
+                            <ButtonIcon Icon="bi bi-arrow-left" Title="Previous week" OnClick="PreviousWeek" />
+                            <ButtonIcon Icon="bi bi-arrow-right" Title="Next week" OnClick="NextWeek" />
+                        </div>
+                    </div>
+                }
+            </div>
+        </Content>
+    </PageHeader>
+
+    @if (!base.IsLoading)
+    {
+        <div class="week-grid">
+            @for (int i = 0; i < 5; i++)
+            {
+                var day = _weekStart.AddDays(i);
+                var items = GetItemsForDay(day);
+                <div class="week-day-column">
+                    <div class="week-day-header">@day.ToString("ddd")<br /><small>@day.ToString("d MMM")</small></div>
+                    <div class="week-day-items">
+                        @foreach (var entry in items.OrderBy(x => x.Schedule.Start))
+                        {
+                            <div class="week-item" style="border-left: 4px solid @(entry.Schedule.Colour?.ColourHex ?? "#ccc")">
+                                <span class="week-item-time">@TimeRange(entry.Schedule.Start, entry.Schedule.End)</span>
+                                @if (!string.IsNullOrWhiteSpace(entry.Schedule.Description))
+                                {
+                                    <span class="week-item-desc">@entry.Schedule.Description</span>
+                                }
+                                @if (entry.Schedule.Job != null)
+                                {
+                                    <a href="/jobs/@entry.Schedule.Job.JobId" class="week-item-job">@entry.Schedule.Job.JobNumber</a>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
+    }
+</div>
+
+<style>
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 280px;
+    }
+
+        .header-content h1 {
+            color: var(--color-primary);
+            font-size: 1.75rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+    .header-info {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .header-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .week-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .week-day-column {
+        background: var(--color-white);
+        border-radius: var(--border-rad);
+        border: 1px solid var(--color-grey);
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .week-day-header {
+        padding: 0.5rem;
+        font-weight: 600;
+        color: var(--color-primary);
+        border-bottom: 1px solid var(--color-grey);
+        text-align: center;
+    }
+
+        .week-day-header small {
+            font-weight: 400;
+            color: #64748b;
+        }
+
+    .week-day-items {
+        padding: 0.5rem;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .week-item {
+        padding: 0.35rem 0.5rem;
+        margin-bottom: 0.35rem;
+        background: var(--color-background);
+        border-radius: 6px;
+        font-size: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+
+    .week-item-time {
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .week-item-desc {
+        color: #334155;
+    }
+
+    .week-item-job {
+        color: var(--color-secondary);
+        text-decoration: none;
+    }
+
+        .week-item-job:hover {
+            text-decoration: underline;
+        }
+
+    @@media (max-width: 900px) {
+        .week-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 500px) {
+        .week-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

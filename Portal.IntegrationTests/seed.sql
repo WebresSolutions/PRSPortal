@@ -38,6 +38,9 @@ INSERT INTO technical_contact_type (id, name, description) VALUES (2, 'Builder',
 INSERT INTO technical_contact_type (id, name, description) VALUES (3, 'Previous Client', 'Previous Client');
 INSERT INTO technical_contact_type (id, name, description) VALUES (4, 'Technical Contact', 'Technical Contact');
 
+insert into schedule_colour ( color, description, created_at) values('#FF0000', 'Test Colour', CURRENT_TIMESTAMP);
+insert into schedule_colour ( color, description, created_at) values('#FFFFFF', 'Test Colour 2', CURRENT_TIMESTAMP);
+
 INSERT INTO address (street, suburb, state_id, post_code, country, created_by_user_id, geom, geohash)
     VALUES ('123 Maple Avenue', 'Richmond', 1, '3121', 'Australia', 1, ST_SetSRID(ST_Point(144.9913, -37.8230), 4326), 'r1p9g5');
 INSERT INTO address (street, suburb, state_id, post_code, country, created_by_user_id, geom, geohash)
@@ -99,3 +102,4 @@ INSERT INTO job_note (job_id, note, action_required, created_by_user_id)
     VALUES (3, 'Graffiti removal started. High-pressure cleaner in use.', FALSE, 1);
 INSERT INTO job_note (job_id, note, action_required, created_by_user_id)
     VALUES (4, 'Graffiti removal started. High-pressure cleaner in use.', TRUE, 1);
+

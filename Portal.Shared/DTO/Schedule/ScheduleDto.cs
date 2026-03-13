@@ -21,7 +21,7 @@ public class ScheduleDto
     /// <summary>
     /// Gets or sets the identifier of the schedule slot this schedule belongs to
     /// </summary>
-    public int? ScheduleSlotID { get; set; }
+    public int? ScheduleTrackId { get; set; }
     /// <summary>
     /// Gets or sets the color information for the schedule
     /// </summary>

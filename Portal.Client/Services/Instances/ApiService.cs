@@ -433,9 +433,9 @@ public class ApiService : IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with a list of
     /// ScheduleSlotDTO instances representing the available schedule slots. If no slots are available, the list will be
     /// empty.</returns>
-    public async Task<Result<List<ScheduleSlotDTO>>> GetIndividualSchedule(DateOnly date, JobTypeEnum jobType)
+    public async Task<Result<List<ScheduleTrackDto>>> GetIndividualSchedule(DateOnly date, JobTypeEnum jobType)
     {
-        Result<List<ScheduleSlotDTO>> res = new();
+        Result<List<ScheduleTrackDto>> res = new();
         try
         {
             Dictionary<string, string> queryParameters = new()
@@ -454,7 +454,7 @@ public class ApiService : IApiService
 
             if (response.IsSuccessStatusCode)
             {
-                List<ScheduleSlotDTO>? slots = await response.Content.ReadFromJsonAsync<List<ScheduleSlotDTO>>();
+                List<ScheduleTrackDto>? slots = await response.Content.ReadFromJsonAsync<List<ScheduleTrackDto>>();
                 res.Value = slots;
             }
             else
@@ -521,8 +521,107 @@ public class ApiService : IApiService
             Console.WriteLine($"Exception: {ex.Message}");
             // Handle exception
         }
+            return res;
+    }
+
+    /// <summary>
+    /// Creates or updates a schedule. Use Id 0 to create; set Id to the existing schedule id to update.
+    /// </summary>
+    public async Task<Result<int>> UpdateSchedule(UpdateScheduleDto data)
+    {
+        Result<int> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync("api/schedule", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                int? id = await response.Content.ReadFromJsonAsync<int>();
+                if (id.HasValue)
+                    res.Value = id.Value;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to save schedule";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
         return res;
     }
+
+    /// <summary>
+    /// Creates or updates a schedule track (day slot). Use ScheduleTrackId 0 to create.
+    /// </summary>
+    public async Task<Result<ScheduleTrackDto>> UpdateScheduleTrack(UpdateScheduleTrackDto data)
+    {
+        Result<ScheduleTrackDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync("api/schedule/tracks", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                ScheduleTrackDto? dto = await response.Content.ReadFromJsonAsync<ScheduleTrackDto>();
+                if (dto is not null)
+                    res.Value = dto;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to save schedule track";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Gets the weekly schedule for the given job type, optionally for the week containing the specified day.
+    /// </summary>
+    public async Task<Result<WeeklyScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay = null)
+    {
+        Result<WeeklyScheduleDto[]> res = new();
+        try
+        {
+            Dictionary<string, string> queryParams = new()
+            {
+                { "jobType", jobType.ToString() }
+            };
+            if (weekDay.HasValue)
+                queryParams["weekDay"] = weekDay.Value.ToString("yyyy-MM-dd");
+
+            FormUrlEncodedContent dictFormUrlEncoded = new(queryParams);
+            string queryString = await dictFormUrlEncoded.ReadAsStringAsync();
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/schedule/week?{queryString}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                WeeklyScheduleDto[]? data = await response.Content.ReadFromJsonAsync<WeeklyScheduleDto[]>();
+                res.Value = data ?? Array.Empty<WeeklyScheduleDto>();
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get weekly schedule";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
     /// <summary>
     /// Retrieves the current system settings from the server asynchronously.
     /// </summary>

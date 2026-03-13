@@ -1,9 +1,18 @@
 ﻿@using Portal.Client.Components.UIComponents
 @using Portal.Shared
 
-<div class="status-badge" style=@($"background-color: {color}")>
-    @statusEnum.GetDisplayName()
-</div>
+@if (Onclick.HasDelegate)
+{
+    <div class="status-badge" style=@($"background-color: {color}") @onclick=@(() => Onclick.InvokeAsync())>
+        @statusEnum.GetDisplayName()
+    </div>
+}
+else
+{
+    <div class="status-badge" style=@($"background-color: {color}")>
+        @statusEnum.GetDisplayName()
+    </div>
+}
 
 @code {
     /// <summary>
@@ -11,6 +20,9 @@
     /// </summary>
     [Parameter]
     public JobTypeEnum statusEnum { get; set; }
+
+    [Parameter]
+    public EventCallback Onclick { get; set; }
 
     /// <summary>
     /// The background color for the status badge based on the status enum
@@ -35,6 +47,7 @@
         font-size: 14px;
         text-align: center;
         max-width: 120px;
+        cursor: @(Onclick.HasDelegate ? "pointer" : "default");
     }
 
 </style>

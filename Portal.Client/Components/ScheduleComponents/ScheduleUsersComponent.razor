@@ -8,14 +8,19 @@
             <div style="min-height: 60px">
                 @if (IsEditing)
                 {
-                    <MudSelect T="int?" Label="Assigned Users" HelperText="Select the Users " MultiSelection="true" Variant="Variant.Outlined">
-                        @foreach (UserDto user in Users)
-                        {
-                            <MudSelectItem T="int?" Value="@user.userId">@user.displayName</MudSelectItem>
-                        }
-                    </MudSelect>
+                    <div class="border-rad padding grey-background">
+                        <MudSelect T="int?" Label="Assigned Users" HelperText="Select the Users " MultiSelection="true" Variant="Variant.Outlined">
+                            @foreach (UserDto user in Users)
+                            {
+                                <MudSelectItem T="int?" Value="@user.userId">@user.displayName</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </div>
 
-                    <ButtonIcon Icon="bi bi-save" Title="Save" CssClass="text-green" OnClick="@(() => SaveAssignedUsers())" />
+                    <div class="d-flex justify-content-center gap-1">
+                        <ButtonIcon Icon="bi bi-save" Title="Save" CssClass="text-green" OnClick="@(() => SaveAssignedUsers())" />
+                        <ButtonIcon Icon="bi bi-x-circle" Title="Save" CssClass="text-red" OnClick="@(() => IsEditing = false)" />
+                    </div>
                 }
                 else
                 {
@@ -47,16 +52,16 @@
             </div>
         </ToolbarContent>
         <CellTemplate>
-            <div class="schedule-items shadow-deep" style="background-color: @context.Colour; width: 98%">
+            <div class="schedule-items shadow-deep" style="border-left: 4px solid @(context.Colour ?? "#ccc"); background: var(--color-background)">
                 <MudIconButton OnClick="@(() => OpenDialogAsync(context))" Size="Size.Small" Variant="Variant.Text" Color="Color.Info" Icon="@Icons.Material.Filled.RemoveRedEye" />
                 @if (context.JobAddress is not null && context.JobNumber is not null && context.JobId is not null)
                 {
-                    <small style="background-color: @context.Colour">
+                    <small style="">
                         Job: @context.JobNumber - @context.JobAddress
                     </small>
                     <hr />
                 }
-                <small style="background-color: @context.Colour; overflow: scroll">
+                <small style="overflow: scroll">
                     <strong>Notes:</strong> @context.Text
                 </small>
             </div>
@@ -97,7 +102,7 @@
 
     private void SaveAssignedUsers()
     {
-        
+
     }
 
     private async Task OpenDialogAsync(CustomCalendarItem cal)

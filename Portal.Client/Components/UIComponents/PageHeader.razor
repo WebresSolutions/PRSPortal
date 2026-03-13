@@ -1,4 +1,4 @@
-﻿<div class="d-flex flex-row gap-4 header">
+﻿<div class="header">
     @Content
 </div>
 
@@ -18,5 +18,12 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-direction: row;
+    }
+
+    @@media(max-width: 1000px) {
+        .header {
+            flex-direction: column;
+        }
     }
 </style>

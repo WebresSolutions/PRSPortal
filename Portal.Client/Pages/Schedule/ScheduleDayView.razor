@@ -13,7 +13,6 @@
         <Content>
             <div class="header-left">
                 <div class="header-content">
-
                     @if (!base.IsLoading)
                     {
                         <h1>
@@ -27,18 +26,16 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="header-controls">
-                    <MudDatePicker T="DateTime?" Date="@((DateTime?)_dateTime)" Label="Select Date" Variant="Variant.Outlined" Class="mt-0 mb-0" DateChanged="@((x) => ReloadCalendar(DateOnly.FromDateTime(x!.Value)))" />
-                    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="LoadSchedule" StartIcon="@Icons.Material.Filled.Add">Add Staff Track</MudButton>
-                </div>
                 @if (!base.IsLoading)
                 {
-                    <StatusBadge statusEnum="_jobTypeEnum" />
+                    <StatusBadge statusEnum="_jobTypeEnum" OnClick="@(() => SwapJobType())" />
                 }
-                <div class="header-actions">
-                    <ButtonIcon Icon="bi bi-eye" Title="Edit" OnClick="SwapJobType"/>
-                    <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
-                    <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
+                <div class="header-controls">
+                    <div class="d-flex flex-row gap-1 align-content-center">
+                        <MudDatePicker T="DateTime?" Date="@((DateTime?)_dateTime)" Label="Select Date" Variant="Variant.Outlined" Class="mt-0 mb-0" DateChanged="@((x) => ReloadCalendar(DateOnly.FromDateTime(x!.Value)))" />
+                        <ButtonIcon Icon="bi bi-arrow-left" Title="Edit" OnClick="@(() => _dateTime = _dateTime.AddDays(-1))" />
+                        <ButtonIcon Icon="bi bi-arrow-right" Title="Edit" OnClick="@(() => _dateTime = _dateTime.AddDays(1))" />
+                    </div>
                 </div>
             </div>
         </Content>
@@ -49,7 +46,7 @@
         <div class="scheduler-container">
             @foreach (ScheduleSlotDtoWithCalendar slot in _scheduleSlots)
             {
-                <ScheduleUsersComponent Slot="slot" Users="_users"/>
+                <ScheduleUsersComponent Slot="slot" Users="_users" />
             }
         </div>
     }
@@ -65,12 +62,15 @@
         display: flex;
         align-items: center;
         gap: 1rem;
+        justify-content:center;
     }
 
     .header-content {
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
+        min-width: 300px;
+
     }
 
         .header-content h1 {
@@ -91,6 +91,9 @@
         display: flex;
         align-items: center;
         gap: 1rem;
+        min-width: 500px;
+        justify-content: center;
+        align-items:center;
     }
 
     .header-controls {
@@ -104,9 +107,9 @@
         gap: 0.5rem;
     }
 
-    .schedule-track-actions{
+    .schedule-track-actions {
         display: flex;
-        flex-direction:row;
+        flex-direction: row;
         gap: var(--padding);
     }
 

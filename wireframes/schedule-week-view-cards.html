@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - Week View (Cards by Day)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8fafc;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        
+        /* Header – matches single-day Schedule.razor */
+        .header {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .header-left { display: flex; align-items: center; gap: 1.5rem; }
+        .header-left h1 { color: #2563eb; font-size: 1.75rem; font-weight: 900; }
+        .header-info { color: #64748b; font-size: 0.9rem; }
+        .header-right { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .header-controls { display: flex; align-items: center; gap: 1rem; }
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .btn-nav {
+            padding: 0.5rem 1rem;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #475569;
+        }
+        .date-picker-wrap {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 0.9rem;
+        }
+        .btn-icon { width: 36px; height: 36px; border: none; background: #f1f5f9; border-radius: 8px; cursor: pointer; }
+        .btn-success {
+            background: #10b981; color: white;
+            padding: 0.5rem 1rem;
+            border: none; border-radius: 8px;
+            font-weight: 600; cursor: pointer;
+        }
+
+        /* Week as 7 day columns – each column = one day, like single-day tracks */
+        .week-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 1400px) { .week-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 900px)  { .week-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 500px)  { .week-grid { grid-template-columns: 1fr; } }
+
+        .day-column {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 1rem;
+            min-height: 200px;
+        }
+        .day-column .day-title {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+        .day-column .day-date {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+        }
+        .schedule-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .schedule-item {
+            padding: 0.6rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            font-size: 0.8rem;
+        }
+        .schedule-item .party { font-weight: 600; color: #1e293b; }
+        .schedule-item .time { color: #64748b; font-size: 0.75rem; }
+        .schedule-item .job { font-weight: 600; color: #166534; }
+        .schedule-item .address { color: #475569; margin-top: 0.25rem; }
+        .schedule-item .notes { color: #64748b; margin-top: 0.25rem; font-size: 0.75rem; }
+        .schedule-item.labour { background: #f1f5f9; color: #64748b; }
+
+        /* Alternative: week as list of day sections (stacked) */
+        .day-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .day-section-header {
+            padding: 0.75rem 1rem;
+            background: #f8fafc;
+            font-weight: 700;
+            color: #334155;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .day-section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+        .day-section .schedule-item { min-height: 80px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header – same as single-day -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Schedule – Cadastrals</h1>
+                <div class="header-info">
+                    <span>Week view</span>
+                    <span> • </span>
+                    <span>Mar 9 – Mar 15, 2026</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-controls">
+                    <button class="btn-nav">&laquo; Previous</button>
+                    <div class="date-picker-wrap">Date: 2026-03-13</div>
+                    <button class="btn-nav">Next &raquo;</button>
+                    <span class="badge">Cadastrals</span>
+                    <button class="btn-success">Add Staff Track</button>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn-icon" title="View">&#128065;</button>
+                    <button class="btn-icon" title="Edit">&#9998;</button>
+                    <button class="btn-icon" title="Delete" style="color: #dc2626;">&#128465;</button>
+                </div>
+            </div>
+        </div>
+
+        <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
+            <strong>Option A:</strong> Week as 7 day columns. Each column is like one “day” from the single-day view.
+        </p>
+        <div class="week-grid">
+            <div class="day-column">
+                <div class="day-title">Mon</div>
+                <div class="day-date">Mar 09, 2026</div>
+                <div class="schedule-items">
+                    <div class="schedule-item labour">08:00 – 17:00 — LABOUR DAY</div>
+                </div>
+            </div>
+            <div class="day-column">
+                <div class="day-title">Tue</div>
+                <div class="day-date">Mar 10, 2026</div>
+                <div class="schedule-items">
+                    <div class="schedule-item">
+                        <span class="party">Sam</span> <span class="time">08:00 – 12:00</span>
+                        <div class="job">C22572</div>
+                        <div class="address">35 WINTER CRESCENT, RESERVOIR</div>
+                        <div class="notes">Re-estab + As-built</div>
+                    </div>
+                    <div class="schedule-item">
+                        <span class="party">Sam</span> <span class="time">13:00 – 17:00</span>
+                        <div class="job">C22623</div>
+                        <div class="address">39 MEDFIELD AVENUE, AVONDALE HEIGHTS</div>
+                    </div>
+                    <div class="schedule-item">
+                        <span class="party">Matthew</span> <span class="time">08:00 – 17:00</span>
+                        <div class="job">C23134</div>
+                        <div class="address">100 ROSEHILL ROAD, LOWER PLENTY</div>
+                    </div>
+                </div>
+            </div>
+            <div class="day-column">
+                <div class="day-title">Wed</div>
+                <div class="day-date">Mar 11, 2026</div>
+                <div class="schedule-items">
+                    <div class="schedule-item">
+                        <span class="party">Gabriel</span> <span class="time">08:00 – 17:00</span>
+                        <div class="job">C23138</div>
+                        <div class="address">16 MYRTLE AVENUE, NEWCOMB</div>
+                    </div>
+                    <div class="schedule-item">
+                        <span class="party">Cameron</span> <span class="time">08:00 – 17:00</span>
+                        <div class="job">C23139</div>
+                        <div class="address">5 NORHAM COURT, BERWICK</div>
+                    </div>
+                </div>
+            </div>
+            <div class="day-column">
+                <div class="day-title">Thu</div>
+                <div class="day-date">Mar 12, 2026</div>
+                <div class="schedule-items"><em style="color: #94a3b8;">No entries</em></div>
+            </div>
+            <div class="day-column">
+                <div class="day-title">Fri</div>
+                <div class="day-date">Mar 13, 2026</div>
+                <div class="schedule-items"><em style="color: #94a3b8;">No entries</em></div>
+            </div>
+            <div class="day-column">
+                <div class="day-title">Sat</div>
+                <div class="day-date">Mar 14, 2026</div>
+                <div class="schedule-items"><em style="color: #94a3b8;">No entries</em></div>
+            </div>
+            <div class="day-column">
+                <div class="day-title">Sun</div>
+                <div class="day-date">Mar 15, 2026</div>
+                <div class="schedule-items"><em style="color: #94a3b8;">No entries</em></div>
+            </div>
+        </div>
+
+        <p style="margin: 2rem 0 1rem; color: #64748b; font-size: 0.9rem;">
+            <strong>Option B:</strong> Week as stacked day sections. Each section uses the same card grid as the single-day view (staff tracks as cards).
+        </p>
+        <div class="day-section">
+            <div class="day-section-header">Tue, Mar 10, 2026</div>
+            <div class="day-section-grid">
+                <div class="schedule-item">
+                    <span class="party">Sam</span> <span class="time">08:00 – 12:00 / 13:00 – 17:00</span>
+                    <div class="job">C22572, C22623</div>
+                    <div class="address">35 WINTER CRESCENT; 39 MEDFIELD AVENUE</div>
+                </div>
+                <div class="schedule-item">
+                    <span class="party">Matthew</span> <span class="time">08:00 – 17:00</span>
+                    <div class="job">C23134</div>
+                    <div class="address">100 ROSEHILL ROAD, LOWER PLENTY</div>
+                </div>
+                <div class="schedule-item">
+                    <span class="party">Luke</span> <span class="time">08:00 – 17:00</span>
+                    <div class="job">C23111</div>
+                    <div class="address">38 SPENSLEY STREET, CLIFTON HILL</div>
+                </div>
+            </div>
+        </div>
+        <div class="day-section">
+            <div class="day-section-header">Wed, Mar 11, 2026</div>
+            <div class="day-section-grid">
+                <div class="schedule-item">
+                    <span class="party">Gabriel</span> <span class="time">08:00 – 17:00</span>
+                    <div class="job">C23138</div>
+                    <div class="address">16 MYRTLE AVENUE, NEWCOMB</div>
+                </div>
+                <div class="schedule-item">
+                    <span class="party">Cameron</span> <span class="time">08:00 – 17:00</span>
+                    <div class="job">C23139</div>
+                    <div class="address">5 NORHAM COURT, BERWICK</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -109,7 +109,7 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with a list of
     /// ScheduleSlotDTO instances representing the available schedule slots. If no slots are available, the list will be
     /// empty.</returns>
-    Task<Result<List<ScheduleSlotDTO>>> GetIndividualSchedule(DateOnly date, JobTypeEnum jobType);
+    Task<Result<List<ScheduleTrackDto>>> GetIndividualSchedule(DateOnly date, JobTypeEnum jobType);
     /// <summary>
     /// Retrieves the list of available schedule colours from the server.
     /// </summary>
@@ -129,6 +129,25 @@ public interface IApiService
     /// cref="Result{SystemSettingDto}"/> object with the retrieved system settings if the request is successful;
     /// otherwise, contains error information.</returns>
     Task<Result<ScheduleColourDto>> UpdateScheduleColour(ScheduleColourDto colour);
+    /// <summary>
+    /// Creates or updates a schedule. Use Id 0 to create; set Id to the existing schedule id to update.
+    /// </summary>
+    /// <param name="data">The schedule data. Start must be before end; span cannot exceed 12 hours.</param>
+    /// <returns>The schedule id on success.</returns>
+    Task<Result<int>> UpdateSchedule(UpdateScheduleDto data);
+    /// <summary>
+    /// Creates or updates a schedule track (day slot). Use ScheduleTrackId 0 to create.
+    /// </summary>
+    /// <param name="data">The schedule track data.</param>
+    /// <returns>The created or updated schedule track DTO.</returns>
+    Task<Result<ScheduleTrackDto>> UpdateScheduleTrack(UpdateScheduleTrackDto data);
+    /// <summary>
+    /// Gets the weekly schedule for the given job type, optionally for the week containing the specified day.
+    /// </summary>
+    /// <param name="jobType">The job type to filter by.</param>
+    /// <param name="weekDay">Optional date; if omitted, the current week is used.</param>
+    /// <returns>The weekly schedule entries.</returns>
+    Task<Result<WeeklyScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay = null);
     #endregion
 
     #region SETTINGS

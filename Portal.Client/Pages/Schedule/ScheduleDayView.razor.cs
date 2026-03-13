@@ -6,13 +6,13 @@ using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 
-namespace Portal.Client.Pages;
+namespace Portal.Client.Pages.Schedule;
 
 /// <summary>
 /// Blazor page component for displaying and managing schedules
 /// Shows schedule slots for a specific date and job type with calendar integration
 /// </summary>
-public partial class Schedule
+public partial class ScheduleDayView
 {
     /// <summary>
     /// Gets or sets the navigation manager for page navigation
@@ -42,7 +42,7 @@ public partial class Schedule
     /// <summary>
     /// Gets or sets the job type enum value
     /// </summary>
-    private JobTypeEnum _jobTypeEnum;
+    private JobTypeEnum _jobTypeEnum = JobTypeEnum.Surveying;
 
     /// <summary>
     /// Gets or sets the list of schedule slots with calendar event information
@@ -121,7 +121,7 @@ public partial class Schedule
     {
         base.IsLoading = true;
         DateOnly dateOnly = DateOnly.FromDateTime(_dateTime);
-        Result<List<ScheduleSlotDTO>> res = await _apiService.GetIndividualSchedule(dateOnly, _jobTypeEnum);
+        Result<List<ScheduleTrackDto>> res = await _apiService.GetIndividualSchedule(dateOnly, _jobTypeEnum);
         if (res.Error is null && res.Value is not null)
         {
             _scheduleSlots = [.. res.Value.Select(x =>

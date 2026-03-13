@@ -6,7 +6,7 @@ namespace Portal.Shared.DTO.Schedule;
 /// Data transfer object representing a schedule slot
 /// Contains a time slot with associated schedules and assigned users
 /// </summary>
-public class ScheduleSlotDTO
+public class ScheduleTrackDto
 {
     /// <summary>
     /// Gets or sets the unique identifier for the schedule slot

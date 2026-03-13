@@ -89,6 +89,9 @@ label {
     background-color: var(--color-light-grey);
 }
 
+.padding{
+    padding: var(--padding);
+}
 a.btn-link {
     color: #1c1b1d;
     text-decoration: none;

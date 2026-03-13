@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - Week View (Table)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8fafc;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        
+        /* Header – matches single-day Schedule.razor */
+        .header {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .header-left { display: flex; align-items: center; gap: 1.5rem; }
+        .header-left h1 { color: #2563eb; font-size: 1.75rem; font-weight: 900; }
+        .header-info { color: #64748b; font-size: 0.9rem; }
+        .header-right { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .header-controls { display: flex; align-items: center; gap: 1rem; }
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .btn-nav {
+            padding: 0.5rem 1rem;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #475569;
+        }
+        .btn-nav:hover { background: #e2e8f0; }
+        .date-picker-wrap {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 0.9rem;
+        }
+        .btn-icon {
+            width: 36px; height: 36px;
+            border: none; background: #f1f5f9;
+            border-radius: 8px; cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-success {
+            background: #10b981; color: white;
+            padding: 0.5rem 1rem;
+            border: none; border-radius: 8px;
+            font-weight: 600; cursor: pointer;
+        }
+
+        /* Layout: main table + optional sidebar */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 1.5rem;
+        }
+        @media (max-width: 1200px) {
+            .main-layout { grid-template-columns: 1fr; }
+        }
+
+        .schedule-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .schedule-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .schedule-table td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+        .schedule-table tr:hover { background: #f8fafc; }
+        .schedule-table .col-day { width: 140px; font-weight: 600; color: #1e293b; }
+        .schedule-table .col-parties { width: 100px; }
+        .schedule-table .col-time { width: 110px; white-space: nowrap; }
+        .schedule-table .col-job { width: 90px; }
+        .schedule-table .col-address { min-width: 180px; }
+        .schedule-table .col-notes { min-width: 220px; font-size: 0.8rem; color: #475569; }
+        .day-group-header td {
+            background: #f1f5f9;
+            font-weight: 700;
+            color: #334155;
+            padding: 0.5rem 1rem;
+        }
+        .job-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #dcfce7;
+            color: #166534;
+            font-weight: 600;
+        }
+        .job-na { background: #f1f5f9; color: #64748b; }
+
+        /* Sidebar search – matches legacy Schedule page */
+        .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+        .search-card {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .search-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .search-card label { display: block; font-size: 0.8rem; color: #64748b; margin-bottom: 0.25rem; }
+        .search-card input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .search-card .btn-search {
+            width: 100%;
+            padding: 0.5rem;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.25rem;
+        }
+        .search-card .btn-clear {
+            width: 100%;
+            padding: 0.4rem;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header – same pattern as single-day Schedule -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Schedule – Cadastrals</h1>
+                <div class="header-info">
+                    <span>Week view</span>
+                    <span> • </span>
+                    <span>Mar 9 – Mar 15, 2026</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-controls">
+                    <button class="btn-nav">&laquo; Previous</button>
+                    <div class="date-picker-wrap">Date: 2026-03-13</div>
+                    <button class="btn-nav">Next &raquo;</button>
+                    <span class="badge">Cadastrals</span>
+                    <button class="btn-success">Add Staff Track</button>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn-icon" title="View">&#128065;</button>
+                    <button class="btn-icon" title="Edit">&#9998;</button>
+                    <button class="btn-icon" title="Delete" style="color: #dc2626;">&#128465;</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <!-- Main: week table -->
+            <div class="schedule-card">
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th class="col-day">Day</th>
+                            <th class="col-parties">Parties</th>
+                            <th class="col-time">Time</th>
+                            <th class="col-job">Job Number</th>
+                            <th class="col-address">Address</th>
+                            <th class="col-notes">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="day-group-header">
+                            <td colspan="6">Mon, Mar 09, 2026</td>
+                        </tr>
+                        <tr>
+                            <td class="col-day"></td>
+                            <td class="col-parties"></td>
+                            <td class="col-time">08:00 – 17:00</td>
+                            <td class="col-job"><span class="job-badge job-na">NA</span></td>
+                            <td class="col-address"></td>
+                            <td class="col-notes">LABOUR DAY</td>
+                        </tr>
+                        <tr class="day-group-header">
+                            <td colspan="6">Tue, Mar 10, 2026</td>
+                        </tr>
+                        <tr>
+                            <td class="col-day"></td>
+                            <td class="col-parties">Sam</td>
+                            <td class="col-time">08:00 – 12:00</td>
+                            <td class="col-job"><span class="job-badge">C22572</span></td>
+                            <td class="col-address">35 WINTER CRESCENT, RESERVOIR</td>
+                            <td class="col-notes">Re-estab + As-built. ACCESS CONFIRMED…</td>
+                        </tr>
+                        <tr>
+                            <td class="col-day"></td>
+                            <td class="col-parties">Sam</td>
+                            <td class="col-time">13:00 – 17:00</td>
+                            <td class="col-job"><span class="job-badge">C22623</span></td>
+                            <td class="col-address">39 MEDFIELD AVENUE, AVONDALE HEIGHTS</td>
+                            <td class="col-notes">New boundary. Please knock on door…</td>
+                        </tr>
+                        <tr>
+                            <td class="col-day"></td>
+                            <td class="col-parties">Matthew</td>
+                            <td class="col-time">08:00 – 17:00</td>
+                            <td class="col-job"><span class="job-badge">C23134</span></td>
+                            <td class="col-address">100 ROSEHILL ROAD, LOWER PLENTY</td>
+                            <td class="col-notes">Access confirmed.</td>
+                        </tr>
+                        <tr>
+                            <td class="col-day"></td>
+                            <td class="col-parties">Luke</td>
+                            <td class="col-time">08:00 – 17:00</td>
+                            <td class="col-job"><span class="job-badge">C23111</span></td>
+                            <td class="col-address">38 SPENSLEY STREET, CLIFTON HILL</td>
+                            <td class="col-notes">Assistant needed.</td>
+                        </tr>
+                        <tr class="day-group-header">
+                            <td colspan="6">Wed, Mar 11, 2026</td>
+                        </tr>
+                        <tr>
+                            <td class="col-day"></td>
+                            <td class="col-parties">Gabriel</td>
+                            <td class="col-time">08:00 – 17:00</td>
+                            <td class="col-job"><span class="job-badge">C23138</span></td>
+                            <td class="col-address">16 MYRTLE AVENUE, NEWCOMB</td>
+                            <td class="col-notes"></td>
+                        </tr>
+                        <tr>
+                            <td class="col-day"></td>
+                            <td class="col-parties">Cameron</td>
+                            <td class="col-time">08:00 – 17:00</td>
+                            <td class="col-job"><span class="job-badge">C23139</span></td>
+                            <td class="col-address">5 NORHAM COURT, BERWICK</td>
+                            <td class="col-notes"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sidebar: search panels -->
+            <aside class="sidebar">
+                <div class="search-card">
+                    <h3>Job Search</h3>
+                    <label>Contact</label>
+                    <input type="text" placeholder="Contact">
+                    <label>Address</label>
+                    <input type="text" placeholder="Address">
+                    <label>Suburb</label>
+                    <input type="text" placeholder="Suburb">
+                    <label>Cadastral No.</label>
+                    <input type="text" placeholder="Cadastral No.">
+                    <label>Setout No.</label>
+                    <input type="text" placeholder="Setout No.">
+                    <button class="btn-search">Search</button>
+                    <button class="btn-clear">Clear Forms</button>
+                </div>
+                <div class="search-card">
+                    <h3>Contact Search</h3>
+                    <label>Name</label>
+                    <input type="text" placeholder="Name">
+                    <label>Email</label>
+                    <input type="text" placeholder="Email">
+                    <label>Phone</label>
+                    <input type="text" placeholder="Phone">
+                    <button class="btn-search">Search</button>
+                </div>
+                <div class="search-card">
+                    <h3>Task Search</h3>
+                    <label>Checklist</label>
+                    <input type="text" placeholder="Checklist">
+                    <button class="btn-search">Search</button>
+                </div>
+            </aside>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,5 +1,6 @@
 using Portal.Data.Models;
 using Portal.Shared.DTO.File;
+using Portal.Shared.DTO.Schedule;
 
 namespace Portal.Server.Helpers;
 
@@ -8,6 +9,38 @@ namespace Portal.Server.Helpers;
 /// </summary>
 public static class MapperExtensionMethods
 {
+    public static Schedule ScheduleToDataObject(this UpdateScheduleDto dto)
+    {
+        return new Schedule()
+        {
+            Id = dto.Id,
+            JobId = dto.JobId,
+            Notes = dto.Description,
+            StartTime = dto.Start,
+            EndTime = dto.End,
+            ScheduleTrackId = dto.TrackId,
+            ScheduleColourId = dto.ColourId,
+            DeletedAt = dto.Delete ? DateTime.UtcNow : null
+        };
+    }
+
+
+    /// <summary>
+    /// Maps a schedule track to a Dto
+    /// </summary>
+    /// <param name="dataObject"></param>
+    /// <returns></returns>
+    public static ScheduleTrackDto ScheduleTrackToDto(this ScheduleTrack dataObject)
+    {
+        return new ScheduleTrackDto()
+        {
+            AssignedUsers = [.. dataObject.ScheduleUsers?.Select(x => new Shared.DTO.User.UserDto(x.UserId, x.User.DisplayName)) ?? []],
+            Schedule = [],
+            Day = dataObject.Date ?? DateOnly.MaxValue,
+            SlotId = dataObject.Id
+        };
+    }
+
     /// <summary>
     /// Maps an AppFile to a FileDto.
     /// </summary>

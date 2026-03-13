@@ -31,12 +31,12 @@ public static class ScheduleEndpoints
             HttpContext httpContext
             ) =>
         {
-            Result<List<ScheduleSlotDTO>> result = await schService.GetScheduleSlotsForDate(date, jobType);
+            Result<List<ScheduleTrackDto>> result = await schService.GetScheduleSlotsForDate(httpContext, date, jobType);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading schedule slots");
         })
             .WithSummary("Get schedule slots for date")
             .WithDescription("Returns schedule slots for a given date and job type. Requires date and jobType query parameters.")
-            .Produces<List<ScheduleSlotDTO>>();
+            .Produces<List<ScheduleTrackDto>>();
 
         // Gets schedule colours
         appGroup.MapGet("colours", async (
@@ -67,6 +67,48 @@ public static class ScheduleEndpoints
             .WithSummary("Update schedule colour")
             .WithDescription("Updates a schedule colour. ColourHex must start with '#' and be non-empty. Returns 400 for invalid colour.")
             .Produces<ScheduleColourDto>();
+
+        // Create or update a schedule (single calendar entry)
+        appGroup.MapPut("", async (
+            [FromServices] IScheduleService schService,
+            [FromBody] UpdateScheduleDto data,
+            HttpContext httpContext
+            ) =>
+        {
+            Result<int> result = await schService.UpdateSchedule(httpContext, data);
+            return EndpointsHelper.ProcessResult(result, "An error occurred while saving the schedule");
+        })
+            .WithSummary("Update schedule")
+            .WithDescription("Creates a new schedule when Id is 0, or updates/soft-deletes an existing schedule.")
+            .Produces<int>();
+
+        // Create or update a schedule track (day slot with assigned users)
+        appGroup.MapPut("tracks", async (
+            [FromServices] IScheduleService schService,
+            [FromBody] UpdateScheduleTrackDto data,
+            HttpContext httpContext
+            ) =>
+        {
+            Result<ScheduleTrackDto> result = await schService.UpdateScheduleTrack(httpContext, data);
+            return EndpointsHelper.ProcessResult(result, "An error occurred while saving the schedule track");
+        })
+            .WithSummary("Update schedule track")
+            .WithDescription("Creates a new schedule track when ScheduleTrackId is 0, or updates assigned users and date for an existing track.")
+            .Produces<ScheduleTrackDto>();
+
+        // Get weekly schedule
+        appGroup.MapGet("week", async (
+            [FromServices] IScheduleService schService,
+            [FromQuery] JobTypeEnum jobType,
+            [FromQuery] DateOnly? weekDay
+            ) =>
+        {
+            Result<WeeklyScheduleDto[]> result = await schService.GetWeeklySchedule(jobType, weekDay);
+            return EndpointsHelper.ProcessResult(result, "An error occurred while loading the weekly schedule");
+        })
+            .WithSummary("Get weekly schedule")
+            .WithDescription("Returns all schedule entries for the week containing the given date (or current week if weekDay is omitted), filtered by job type.")
+            .Produces<WeeklyScheduleDto[]>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

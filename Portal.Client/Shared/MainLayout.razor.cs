@@ -29,17 +29,10 @@ public partial class MainLayout : IAsyncDisposable
         new NavLinkItem { Link = "councils", Title = "Councils", Icon = Icons.Material.Filled.Home },
         new NavLinkItem { Link = "quotes", Title = "Quotes", Icon = Icons.Material.Filled.Task },
         new NavLinkItem { Link = $"timeSheets/{today}", Title = "Times", Icon = Icons.Material.Filled.Timelapse },
-        new NavLinkItem
-        {
-            Link = "Schedule",
-            Title = "Schedule",
-            Icon = Icons.Material.Filled.CalendarMonth,
-            SubLinks =
-            [
-                new NavLinkItem { Link = $"schedule/{today}/1", Title = "Construction", Icon = Icons.Material.Filled.Build },
-                new NavLinkItem { Link = $"schedule/{today}/2", Title = "Surveying", Icon = Icons.Material.Filled.Map }
-            ]
-        },
+        new NavLinkItem { Link = $"schedule/{today}/1", Title = "Construction", Icon = Icons.Material.Filled.Build },
+        new NavLinkItem { Link = $"schedule/{today}/2", Title = "Surveying", Icon = Icons.Material.Filled.Map },
+        new NavLinkItem { Link = $"schedule/week/{today}/1", Title = "C Week", Icon = Icons.Material.Filled.Map },
+        new NavLinkItem { Link = $"schedule/week/{today}/2", Title = "S Week", Icon = Icons.Material.Filled.Map },
         new NavLinkItem { Link = "Settings", Title = "Settings", Icon = Icons.Material.Filled.Settings },
         new NavLinkItem { Link = "Admin", Title = "Admin", Icon = Icons.Material.Filled.AdminPanelSettings }
     ];

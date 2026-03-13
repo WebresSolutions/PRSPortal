@@ -7,7 +7,7 @@ namespace Portal.Client.Webmodels;
 /// Extended schedule slot DTO with calendar event information
 /// Adds calendar-specific properties for rendering in calendar views
 /// </summary>
-public class ScheduleSlotDtoWithCalendar : ScheduleSlotDTO
+public class ScheduleSlotDtoWithCalendar : ScheduleTrackDto
 {
     /// <summary>
     /// Gets or sets the list of calendar events for this schedule slot
