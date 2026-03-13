@@ -13,7 +13,7 @@
                 <DataAnnotationsValidator />
                 <div>
                     <label for="title">Title</label>
-                    <MudTextField T="string" Value="File.Title" Variant="Variant.Outlined" Required="true" />
+                    <MudTextField T="string" @bind-Value="File.Title" Variant="Variant.Outlined" Required="true" />
                 </div>
                 <div>
                     <p class="mb-2">Select a new file to replace the current one</p>
@@ -30,13 +30,13 @@
                     <MudSelect name="file-type" T="int" @bind-Value="File.FileTypeId" Variant="Variant.Outlined">
                         @foreach (FileTypeDto fType in _fileTypes)
                         {
-                            <MudSelectItem Value="fType.Id">@fType.Name</MudSelectItem>
+                            <MudSelectItem Value="@fType.Id">@fType.Name</MudSelectItem>
                         }
                     </MudSelect>
                 </div>
                 <div>
                     <label>Description</label>
-                    <MudTextField T="string" Value="File.Description" Variant="Variant.Outlined" Lines="2" />
+                    <MudTextField T="string" @bind-value="File.Description" Variant="Variant.Outlined" Lines="2" />
                 </div>
                 <small>Uploaded On: @File.DateCreated.ToLocalTime().ToString("g")</small>
                 <small>Created By: @File.CreatedBy</small>
@@ -128,9 +128,6 @@
         else
             _snackbar.Add("Could not load file types", Severity.Error);
 
-        if (_fileTypes is not [])
-            File.FileTypeId = _fileTypes.FirstOrDefault()!.Id;
-
         base.IsLoading = false;
     }
 
@@ -173,6 +170,8 @@
                 FileTypeId = File.FileTypeId,
                 DateCreated = File.DateCreated,
                 DateModified = DateTime.UtcNow,
+                Title = File.Title,
+                Description = File.Description
             };
 
             Result<int> result = await ApiService.SaveJobFile(File.JobId, dto);

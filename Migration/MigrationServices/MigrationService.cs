@@ -906,7 +906,9 @@ internal class MigrationService(
                 Models.ScheduleColour color = scheduleColours.FirstOrDefault(c => c.Color == (scheduleOld.Colour is not null && scheduleOld.Colour.StartsWith('#') && scheduleOld.Colour.Length == 7 ? scheduleOld.Colour : "#FFFFFF"))
                     ?? scheduleColours.First();
 
-                if (scheduleOld.ScheduleTrackId is not null && scheduleTracksToAdd.TryGetValue(scheduleOld.ScheduleTrackId.Value, out Models.ScheduleTrack? scheduleTrack))
+                if (scheduleOld.ScheduleTrackId is not null
+                    && scheduleOld.StartTime < scheduleOld.EndTime
+                    && scheduleTracksToAdd.TryGetValue(scheduleOld.ScheduleTrackId.Value, out Models.ScheduleTrack? scheduleTrack))
                 {
                     Models.Schedule schedule = new()
                     {

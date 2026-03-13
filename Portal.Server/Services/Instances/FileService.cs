@@ -49,9 +49,9 @@ public class FileService : IFileService
                 if (await _dbContext.AppFiles.FindAsync(file.FileId) is not AppFile existingFile)
                     return result.SetError(ErrorType.NotFound, "File not found.");
 
-                if (file.Content is [])
+                if (file.Content.Length is 0)
                 {
-                    UpdateFileDetails(file, modifiedByUserId, existingFile);
+                    existingFile = UpdateFileDetails(file, modifiedByUserId, existingFile);
                     _dbContext.AppFiles.Update(existingFile);
                     await _dbContext.SaveChangesAsync();
                     result.SetValue(existingFile);
@@ -74,7 +74,7 @@ public class FileService : IFileService
                 else
                     externalId = existingFile.ExternalId ?? throw new Exception("Existing file is missing ExternalId.");
 
-                UpdateFileDetails(file, modifiedByUserId, existingFile);
+                existingFile = UpdateFileDetails(file, modifiedByUserId, existingFile);
                 existingFile.ContentSize = file.Content.Length;
                 existingFile.FilePath = "";
                 existingFile.FileExtension = "";
@@ -96,6 +96,7 @@ public class FileService : IFileService
                 // Create a new AppFile record in the database
                 AppFile newfile = new()
                 {
+                    Title = file.Title,
                     FileName = file.FileName,
                     FileHash = fileHash,
                     ExternalId = savedFile,
@@ -124,13 +125,15 @@ public class FileService : IFileService
             throw;
         }
 
-        static void UpdateFileDetails(FileDto file, int modifiedByUserId, AppFile existingFile)
+        static AppFile UpdateFileDetails(FileDto file, int modifiedByUserId, AppFile existingFile)
         {
+            existingFile.Title = file.Title;
             existingFile.ModifiedOn = DateTime.UtcNow;
             existingFile.ModifiedByUserId = modifiedByUserId;
             existingFile.FileName = file.FileName;
             existingFile.FileTypeId = file.FileTypeId;
             existingFile.Description = file.Description?.Length > 400 ? file.Description.Take(395).ToString() : file.Description;
+            return existingFile;
         }
     }
 

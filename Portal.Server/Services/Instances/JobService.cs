@@ -727,7 +727,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     File = savedfile.Value,
                     FileId = savedfile.Value.Id,
                     Job = job,
-                    JobId = jobId,
+                    JobId = jobId
                 };
                 await _dbContext.JobFiles.AddAsync(jobFile);
             }

@@ -14,13 +14,13 @@
                 <div class="new-file-container border-rad grey-background">
                     <div>
                         <label>Title</label>
-                        <MudTextField T="string" Variant="Variant.Outlined" Required="true" Value="_file.Title"/>
+                        <MudTextField T="string" Variant="Variant.Outlined" Required="true" @bind-Value="_file.Title" MaxLength="50"/>
                         <ValidationMessage For="@(() => _file.Title)" />
                     </div>
                     <p class="mb-2">Select a file to upload to this job</p>
                     <div class="file-upload-zone">
                         <InputFile OnChange="OnFileSelected"
-                                   accept="*"
+                                   accept="image/*,.pdf"
                                    class="file-upload-input" />
                         <span class="file-upload-label">@(_selectedFile != null ? _selectedFile.Name : "Click or drop file here")</span>
                     </div>
@@ -29,15 +29,14 @@
                         <MudSelect name="file-type" T="int" @bind-Value="_file.FileTypeId" Variant="Variant.Outlined">
                             @foreach (FileTypeDto fType in _fileTypes)
                             {
-                                <MudSelectItem Value="fType.Id">@fType.Name</MudSelectItem>
+                                <MudSelectItem Value="@fType.Id">@fType.Name</MudSelectItem>
                             }
                         </MudSelect>
                     </div>
                     <div>
                         <label>Description</label>
-                        <MudTextField T="string" Variant="Variant.Outlined" Lines="2" Value="_file.Description" />
+                        <MudTextField T="string" Variant="Variant.Outlined" Lines="2" @bind-Value="_file.Description" MaxLength="400"/>
                     </div>
-                    <ValidationSummary />
                 </div>
                 <div class="d-flex justify-content-center gap-1 mt-2">
                     <ButtonIcon Icon="bi bi-save-fill"
@@ -137,15 +136,16 @@
     private async Task OnFileSelected(InputFileChangeEventArgs e)
     {
         _selectedFile = e.FileCount > 0 ? e.File : null;
-        IBrowserFile? browserFile = _selectedFile;
+        if (_selectedFile is null)
+            return;
+
+        IBrowserFile browserFile = _selectedFile;
         await using Stream stream = browserFile.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024); // 20 MB
         using var ms = new MemoryStream();
         await stream.CopyToAsync(ms);
-        byte[] content = ms.ToArray();
-        _file.FileName = e.File.Name;
         _file.FileName = browserFile.Name;
         _file.ContentType = browserFile.ContentType;
-        _file.Content = content;
+        _file.Content = ms.ToArray(); ;
         StateHasChanged();
     }
 
@@ -157,7 +157,6 @@
             return;
         }
 
-
         if (_file.Content is null or [])
         {
             Snackbar.Add("Please select a file to upload.", Severity.Warning);
@@ -167,8 +166,6 @@
         _saving = true;
         try
         {
-            
-
             if (JobId is null)
             {
                 // If there are potentially other files that can be saved rather than just to a job
@@ -176,7 +173,6 @@
             else
             {
                 _file.JobId = JobId.Value;
-
 
                 Result<int> result = await ApiService.SaveJobFile(JobId.Value, _file);
                 if (result.IsSuccess)

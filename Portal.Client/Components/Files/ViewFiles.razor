@@ -16,11 +16,14 @@
         <div class="job-file-container">
             @foreach (FileDto file in Files)
             {
-                <div class="job-file" >
-                    <strong>@file.FileName..</strong>
-                    <div class="d-flex flex-row gap-1">
+                <div class="job-file">
+                    <div>
+                        <strong>@file.Title</strong>
+                        <small>@file.FileName.Trim()..</small>
+                    </div>
+                    <div class="d-flex flex-column gap-1">
                         <ButtonIcon Onclick="@(async () => await EditFile(file))" Icon="bi bi-eye-fill" />
-                        <ButtonIcon OnClick="@(() => DownloadFile(file.FileId))" Icon="bi bi-cloud-arrow-down-fill" Disabled="_disabled"/>
+                        <ButtonIcon OnClick="@(() => DownloadFile(file.FileId))" Icon="bi bi-cloud-arrow-down-fill" Disabled="_disabled" />
                     </div>
                 </div>
             }
@@ -50,8 +53,11 @@
         padding: 10px;
         transition: ease-in-out 0.2s;
         display: flex;
-        flex-direction: column;
-        border: 2px solid var(--color-primary);
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+        gap: 5px;
+        border: 2px solid var(--color-grey);
         overflow-wrap: break-word;
         word-break: break-word;
     }
