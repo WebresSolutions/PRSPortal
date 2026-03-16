@@ -1,5 +1,5 @@
-@page "/schedule/week"
-@page "/schedule/week/{date?}/{jobType:int?}"
+@page "/week"
+@page "/week/{date?}/{jobType:int?}"
 @using Portal.Client.Components.ScheduleComponents
 @using Portal.Shared
 @using Portal.Shared.DTO.Schedule
@@ -25,7 +25,7 @@
                 {
                     <StatusBadge statusEnum="_jobTypeEnum" OnClick="@(() => SwapJobType())" />
                     <div class="header-controls">
-                        <div class="d-flex flex-row gap-1 align-content-center">
+                        <div class="d-flex flex-row gap-2 align-content-center">
                             <ButtonIcon Icon="bi bi-arrow-left" Title="Previous week" OnClick="PreviousWeek" />
                             <ButtonIcon Icon="bi bi-arrow-right" Title="Next week" OnClick="NextWeek" />
                         </div>
@@ -43,7 +43,7 @@
                 var day = _weekStart.AddDays(i);
                 var items = GetItemsForDay(day);
                 <div class="week-day-column">
-                    <div class="week-day-header">@day.ToString("ddd")<br /><small>@day.ToString("d MMM")</small></div>
+                    <div class="week-day-header"><a title="View Day" class="contact-link" href=@($"/schedule/{day.ToString("yyyy-MM-dd")}/{(int)JobType!}")>@day.ToString("ddd")</a><br /><small>@day.ToString("d MMM")</small></div>
                     <div class="week-day-items">
                         @foreach (var entry in items.OrderBy(x => x.Schedule.Start))
                         {
@@ -55,7 +55,10 @@
                                 }
                                 @if (entry.Schedule.Job != null)
                                 {
-                                    <a href="/jobs/@entry.Schedule.Job.JobId" class="week-item-job">@entry.Schedule.Job.JobNumber</a>
+                                    <span>
+                                        <b>Job: </b>
+                                        <a href="/jobs/@entry.Schedule.Job.JobId" class="week-item-job">@entry.Schedule.Job.JobNumber</a>
+                                    </span>
                                 }
                             </div>
                         }
@@ -66,7 +69,7 @@
     }
     else
     {
-        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
+        @* <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" /> *@
     }
 </div>
 

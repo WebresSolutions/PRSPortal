@@ -1,5 +1,4 @@
-﻿using Heron.MudCalendar;
-using Portal.Shared.DTO.Schedule;
+﻿using Portal.Shared.DTO.Schedule;
 
 namespace Portal.Client.Webmodels;
 
@@ -7,7 +6,7 @@ namespace Portal.Client.Webmodels;
 /// Extended schedule slot DTO with calendar event information
 /// Adds calendar-specific properties for rendering in calendar views
 /// </summary>
-public class ScheduleSlotDtoWithCalendar : ScheduleTrackDto
+public class ScheduleTrackDtoWithCalendar : ScheduleTrackDto
 {
     /// <summary>
     /// Gets or sets the list of calendar events for this schedule slot
@@ -29,35 +28,17 @@ public class ScheduleSlotDtoWithCalendar : ScheduleTrackDto
             JobNumber = s.Job?.JobNumber,
             JobAddress = s.Job?.Address is not null ? $"{s.Job.Address.Street}, {s.Job.Address.Suburb}, {s.Job.Address.PostCode}" : string.Empty,
             JobId = s.Job?.JobId,
-            ColourId = s.Colour.ScheduleColourId
+            ColourId = s.Colour.ScheduleColourId,
+            TrackId = s.ScheduleTrackId ?? throw new ArgumentNullException(nameof(s)),
+            ScheduleItemId = s.ScheduleId
         })];
     }
-}
 
-/// <summary>
-/// Custom calendar item with additional job-related properties
-/// Extends the base calendar item with job number and address information
-/// </summary>
-public class CustomCalendarItem : CalendarItem
-{
-    /// <summary>
-    /// Gets or sets the color hex code for the calendar item
-    /// </summary>
-    public required string Colour { get; set; }
-    /// <summary>
-    /// Gets or sets the job number associated with this calendar item
-    /// </summary>
-    public int? JobNumber { get; set; }
-    /// <summary>
-    /// Gets or sets the formatted job address string
-    /// </summary>
-    public string JobAddress { get; set; } = string.Empty;
-    /// <summary>
-    /// Gets or sets the unique identifier of the job associated with this entity.
-    /// </summary>
-    public int? JobId { get; set; }
-    /// <summary>
-    /// Gets or sets the unique identifier for the colour.
-    /// </summary>
-    public int ColourId { get; set; }
+    public ScheduleTrackDto GetDto() => new()
+    {
+        AssignedUsers = base.AssignedUsers,
+        TrackId = base.TrackId,
+        Day = base.Day,
+        Schedule = base.Schedule,
+    };
 }

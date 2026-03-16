@@ -148,6 +148,12 @@ public interface IApiService
     /// <param name="weekDay">Optional date; if omitted, the current week is used.</param>
     /// <returns>The weekly schedule entries.</returns>
     Task<Result<WeeklyScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay = null);
+    /// <summary>
+    /// Soft deletes a schedule track
+    /// </summary>
+    /// <param name="id">The id of the schedule track</param>
+    /// <returns>Id of the deleted schedule</returns>
+    Task<Result<int>> DeleteScheduleTrack(int id);
     #endregion
 
     #region SETTINGS

@@ -8,7 +8,7 @@
     {
         <div class="card-header-simple">
             <h3>@HeaderTitle</h3>
-            <ButtonIcon Icon="bi bi-plus" CssClass="text-green" Title="Edit" OnClick="OnAddButtonClick" />
+            <ButtonIcon Icon=@ButtonIcon CssClass="text-green" Title="Edit" OnClick="OnAddButtonClick" />
         </div>
     }
     @if (ShowHeaderWithTabs)
@@ -18,7 +18,7 @@
             <HeaderTabs Href="#" OnTabSelect="OnTabSelect" ShowAddButton="false" ShowBorderBottom="false" Tabs="Tabs" @ref="HeaderTabsRef" />
             @if (IsEventSet)
             {
-                <ButtonIcon Icon="bi bi-plus" CssClass="text-green" Title="Edit" OnClick="TabButtonClick" />
+                <ButtonIcon Icon="@ButtonIcon" CssClass="text-green" Title="Edit" OnClick="TabButtonClick" />
             }
         </div>
     }
@@ -135,6 +135,9 @@
     /// </summary>
     [Parameter]
     public EventCallback<TabTypeEnum> ChangeTabs { get; set; }
+
+    [Parameter]
+    public string ButtonIcon { get; set; } = "bi bi-plus";
     #endregion
 
     private bool IsEventSet => TabButtonClick.HasDelegate;

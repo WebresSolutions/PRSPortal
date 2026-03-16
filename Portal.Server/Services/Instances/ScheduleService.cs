@@ -29,14 +29,14 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
         try
         {
             IQueryable<ScheduleTrackDto> query = _prsDbContext.ScheduleTracks
-                .Where(st => st.Date == dateOnly && st.JobTypeId == (int)jobType)
+                .Where(st => st.Date == dateOnly && st.JobTypeId == (int)jobType && st.DeletedAt == null)
                 .AsSplitQuery() // Add this line
                 .Select(st => new ScheduleTrackDto()
                 {
                     Day = st.Date ?? dateOnly,
                     AssignedUsers = st.ScheduleUsers.Select(su
                         => new UserDto(su.UserId, su.User.DisplayName)).ToList(),
-                    SlotId = st.Id,
+                    TrackId = st.Id,
                     Schedule = st.Schedules.Select(s
                         => new ScheduleDto()
                         {
@@ -142,11 +142,13 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
 
                 existing.ModifiedByUserId = userId;
                 existing.ModifiedOn = DateTime.UtcNow;
-                existing.StartTime = data.Start;
-                existing.EndTime = data.End;
+                // Store as UTC kind so PostgreSQL accepts it, but do not convert - 7am stays 7am for everyone
+                existing.StartTime = DateTime.SpecifyKind(data.Start, DateTimeKind.Utc);
+                existing.EndTime = DateTime.SpecifyKind(data.End, DateTimeKind.Utc);
                 existing.DeletedAt = data.Delete ? DateTime.UtcNow : null;
                 existing.Notes = data.Description;
                 existing.ScheduleColourId = data.ColourId;
+                existing.JobId = data.JobId;
 
                 await _prsDbContext.SaveChangesAsync();
                 return result.SetValue(existing.Id);
@@ -231,6 +233,34 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
     }
 
     /// <summary>
+    /// Soft delete a schedule track
+    /// </summary>
+    /// <param name="context">The http context of the caller </param>
+    /// <param name="id">The id of the track to delete</param>
+    /// <returns>The Id of the track.</returns>
+    public async Task<Result<int>> DeleteTrack(HttpContext context, int id)
+    {
+        Result<int> res = new();
+        try
+        {
+            // find the schedule track
+            if (await _prsDbContext.ScheduleTracks.FindAsync(id) is not ScheduleTrack track)
+                return res.SetError(ErrorType.BadRequest, $"Invalid schedule track Id: {id}");
+
+            track.DeletedAt = DateTime.UtcNow;
+            track.ModifiedByUserId = context.UserId();
+            track.ModifiedByUser = null;
+            await _prsDbContext.SaveChangesAsync();
+            return res.SetValue(id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create schedule slot.");
+            return res.SetError(ErrorType.InternalError, "Failed to create the schedule slot.");
+        }
+    }
+
+    /// <summary>
     /// Gets a schedule for the week
     /// </summary>
     /// <param name="jobType">Filtered by job type </param>
@@ -248,10 +278,12 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
 
             result.Value = await _prsDbContext.Schedules
                 .AsSplitQuery()
-                .Where(x => x.DeletedAt == null
+                .Where(x =>
+                    x.DeletedAt == null
                     && x.ScheduleTrack != null
                     && x.ScheduleTrack.Date >= monday
                     && x.ScheduleTrack.Date < endOfWeek
+                    && x.ScheduleTrack.DeletedAt == null
                     && x.ScheduleTrack.JobTypeId == (int)jobType)
                 .Select(s =>
                     new WeeklyScheduleDto()

@@ -677,8 +677,8 @@ CREATE TABLE schedule(
     schedule_track_id INT NOT NULL REFERENCES schedule_track(id),
     schedule_colour_id INT NOT NULL REFERENCES schedule_colour(id),
     legacy_id INT,
-    start_time TIMESTAMPTZ NOT NULL,
-    end_time TIMESTAMPTZ NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
     job_id INT REFERENCES job(id),
     notes TEXT,
     deleted_at TIMESTAMPTZ DEFAULT NULL,
@@ -757,6 +757,3 @@ CREATE TABLE dashboard_item (
 
 CREATE INDEX idx_dashboard_item_dashboard_id ON dashboard_item(dashboard_id);
 CREATE INDEX idx_dashboard_item_content ON dashboard_item(content_id);
-
-
-

@@ -1,71 +1,104 @@
-﻿<MudDialog>
+﻿@using Portal.Shared.DTO.Job
+<MudDialog>
     <DialogContent>
-        <h4 class="header-border">Edit Schedule</h4>
-        <div class="item-container border-rad">
-            <div class="time-selectors">
-                <MudTimePicker Label="Time From"
-                               Variant="Variant.Outlined"
-                               Time="@TimeFrom" />
-                <MudTimePicker Label="Time To"
-                               Variant="Variant.Outlined"
-                               Time="@TimeTo" />
-            </div>
-
-            <div class="item-row">
-                <span class="item-label">Colour</span>
-                <span class="item-value">@CalendarItem.Colour</span>
-            </div>
-
-
-            @if (CalendarItem is { JobNumber: null })
-            {
-
-            }
-            else
-            {
-                <b>Job Details</b>
-                <div class="item-row">
-                    <span class="item-label">Job #</span>
-                    <span class="item-value"><a class="contact-link" href=@($"/jobs/{CalendarItem.JobId}")>@CalendarItem.JobNumber</a></span>
-                </div>
-                <div class="item-row">
-                    <span class="item-label">Address</span>
-                    <span class="item-value">@CalendarItem.JobAddress</span>
-                </div>
-            }
-            <MudTextField T="string" Label="Notes" Variant="Variant.Outlined" Text="@CalendarItem.Text" Lines="4" />
+        <div class="header-border d-flex flex-row justify-content-between">
+            <h4 class="">Schedule</h4> <ButtonIcon Icon="bi bi-pen" OnClick="@(() => _isEditing = !_isEditing)" />
         </div>
+        @if (!_isEditing)
+        {
+            <div class="item-container border-rad">
+                <div class="time-selectors">
+                    <div>
+                        <label>From:</label>
+                        <br />
+                        <b>@_timeFrom</b>
+                    </div>
+                    <div>
+                        <label>To:</label>
+                        <br />
+                        <b>@_timeTo</b>
+                    </div>
+                </div>
+
+                <div class="item-row">
+                    <span class="item-label">Colour</span>
+                    <span class="item-value">@CalendarItem.Colour</span>
+                </div>
+
+                @if (CalendarItem.JobId is not null)
+                {
+                    <section class="mt-2">
+                        <b>Job Details</b>
+                        <div class="item-row">
+                            <span class="item-label">Job #</span>
+                            <span class="item-value"><a class="contact-link" href=@($"/jobs/{CalendarItem.JobId}")>@CalendarItem.JobNumber</a></span>
+                        </div>
+                        <div class="item-row">
+                            <span class="item-label">Address</span>
+                            <span class="item-value">@CalendarItem.JobAddress</span>
+                        </div>
+                    </section>
+                }
+                <label>Note: </label>
+                <p class="calendar-text">
+                    @CalendarItem.Text
+                </p>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="_UpdateScheduleDto" OnValidSubmit="OnSave">
+                <div class="item-container border-rad">
+                    <div class="time-selectors">
+                        <div>
+                            <label>From:</label>
+                            <MudTimePicker Variant="Variant.Outlined"
+                                           Time="@_timeFrom" TimeChanged="@((x) => _timeFrom = x!.Value)"/>
+                        </div>
+                        <div>
+                            <label>To:</label>
+                            <MudTimePicker Variant="Variant.Outlined"
+                                           Time="@_timeTo" TimeChanged="@((x) => _timeTo = x!.Value)" />
+                        </div>
+                    </div>
+
+                    <div class="item-row">
+                        <span class="item-label">Colour</span>
+                        <span class="item-value">@CalendarItem.Colour</span>
+                    </div>
+                    <div>
+                        <label>Job: </label>
+                        <MudAutocomplete DebounceInterval="200" Clearable=true T="ListJobDto" Dense="true" SearchFunc="@((x, y) => GetJobsFromSearch(x))" ToStringFunc="@((x) => x.ToString())" Variant="Variant.Outlined" ValueChanged="@((x) => _UpdateScheduleDto.JobId = x.JobId)">
+                            <MoreItemsTemplate>
+                                <div class="d-flex justify-content-center">
+                                    <small>
+                                        Only the first 50 items are shown
+                                    </small>
+                                </div>
+                            </MoreItemsTemplate>
+                        </MudAutocomplete>
+                    </div>
+                    <div>
+                        <label for="description">Description: </label>
+                        <MudTextField name="description" T="string" Variant="Variant.Outlined" Text="@_UpdateScheduleDto.Description" Lines="4" />
+                    </div>
+                </div>
+                <div class="d-flex justify-content-center gap-2 flex-row mt-2">
+                    <ButtonIcon Icon="bi bi-save" ButtonType="submit" CssClass="text-green" />
+                    <ButtonIcon Icon="bi bi-x" CssClass="text-red" OnClick="@(() => MudDialog?.Close(DialogResult.Cancel()))" />
+                </div>
+            </EditForm>
+        }
     </DialogContent>
 </MudDialog>
 
-
-@code {
-    [Parameter]
-    public required CustomCalendarItem CalendarItem { get; set; }
-
-    private TimeSpan? TimeFrom;
-
-    private TimeSpan? TimeTo;
-
-    protected override void OnInitialized()
-    {
-        TimeFrom = CalendarItem.Start.TimeOfDay;
-
-        if (CalendarItem.End is not null)
-            TimeTo = CalendarItem.End.Value.TimeOfDay;
-    }
-
-}
-
 <style>
-
-
     .item-container {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        height: 600px;
-        min-width: 350px;
+        height: 400px;
+        width: 350px;
         overflow-y: auto;
         padding: var(--padding);
         background: var(--color-light-grey);
@@ -121,9 +154,24 @@
         display: flex;
         gap: 1rem;
         margin: 0.5rem 0;
+        flex-direction: row;
+        justify-content: space-between;
     }
 
         .time-selectors .mud-input-control {
             flex: 1;
         }
+
+    .calendar-text {
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        max-height: 400px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        border: 1px solid #e2e8f0;
+        min-width: 0;
+    }
 </style>

@@ -22,20 +22,27 @@ public partial class MainLayout : IAsyncDisposable
         base.OnInitialized();
         string today = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
         navLinks =
-    [
-        new NavLinkItem { Link = "", Title = "Home", Icon = Icons.Material.Filled.Home, MatchAll = true },
-        new NavLinkItem { Link = "jobs", Title = "Jobs", Icon = Icons.Material.Filled.Build },
-        new NavLinkItem { Link = "contacts", Title = "Contacts", Icon = Icons.Material.Filled.Groups },
-        new NavLinkItem { Link = "councils", Title = "Councils", Icon = Icons.Material.Filled.Home },
-        new NavLinkItem { Link = "quotes", Title = "Quotes", Icon = Icons.Material.Filled.Task },
-        new NavLinkItem { Link = $"timeSheets/{today}", Title = "Times", Icon = Icons.Material.Filled.Timelapse },
-        new NavLinkItem { Link = $"schedule/{today}/1", Title = "Construction", Icon = Icons.Material.Filled.Build },
-        new NavLinkItem { Link = $"schedule/{today}/2", Title = "Surveying", Icon = Icons.Material.Filled.Map },
-        new NavLinkItem { Link = $"schedule/week/{today}/1", Title = "C Week", Icon = Icons.Material.Filled.Map },
-        new NavLinkItem { Link = $"schedule/week/{today}/2", Title = "S Week", Icon = Icons.Material.Filled.Map },
-        new NavLinkItem { Link = "Settings", Title = "Settings", Icon = Icons.Material.Filled.Settings },
-        new NavLinkItem { Link = "Admin", Title = "Admin", Icon = Icons.Material.Filled.AdminPanelSettings }
-    ];
+        [   new NavLinkItem { Link = "", Title = "Home", Icon = Icons.Material.Filled.Home, MatchAll = true },
+            new NavLinkItem { Link = "jobs", Title = "Jobs", Icon = Icons.Material.Filled.Build },
+            new NavLinkItem { Link = "contacts", Title = "Contacts", Icon = Icons.Material.Filled.AccountBox },
+            new NavLinkItem { Link = "councils", Title = "Councils", Icon = Icons.Material.Filled.Group },
+            new NavLinkItem { Link = "quotes", Title = "Quotes", Icon = Icons.Material.Filled.Task },
+            new NavLinkItem { Link = $"timeSheets/{today}", Title = "Times", Icon = Icons.Material.Filled.Timelapse },
+            new NavLinkItem { Link = $"schedule", Title = "Daily", Icon = Icons.Material.Outlined.Today,
+                SubLinks = [
+                        new NavLinkItem { Link = $"schedule/{today}/1", Title = "Construction", Icon = Icons.Material.Filled.CalendarMonth },
+                        new NavLinkItem { Link = $"schedule/{today}/2", Title = "Surveying", Icon = Icons.Material.Filled.CalendarMonth }
+                    ],
+            },
+            new NavLinkItem { Link = $"week", Title = "Weekly", Icon = Icons.Material.Filled.CalendarMonth,
+                SubLinks = [
+                    new NavLinkItem { Link = $"week/{today}/1", Title = "Construction", Icon = Icons.Material.Filled.CalendarMonth },
+                    new NavLinkItem { Link = $"week/{today}/2", Title = "Surveying", Icon = Icons.Material.Filled.CalendarMonth }
+                ],
+            },
+            new NavLinkItem { Link = "Settings", Title = "Settings", Icon = Icons.Material.Filled.Settings },
+            new NavLinkItem { Link = "Admin", Title = "Admin", Icon = Icons.Material.Filled.AdminPanelSettings }
+        ];
     }
 
     private async Task ToggleNav()

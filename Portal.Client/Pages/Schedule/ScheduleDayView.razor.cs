@@ -47,7 +47,7 @@ public partial class ScheduleDayView
     /// <summary>
     /// Gets or sets the list of schedule slots with calendar event information
     /// </summary>
-    private List<ScheduleSlotDtoWithCalendar> _scheduleSlots = [];
+    private List<ScheduleTrackDtoWithCalendar> _scheduleSlots = [];
     /// <summary>
     /// Called when the component is initialized.
     /// Data loading for the grid is now handled by LoadFacilitiesServerData.
@@ -125,16 +125,16 @@ public partial class ScheduleDayView
         if (res.Error is null && res.Value is not null)
         {
             _scheduleSlots = [.. res.Value.Select(x =>
-                new ScheduleSlotDtoWithCalendar()
+                new ScheduleTrackDtoWithCalendar()
                 {
                     Day = x.Day,
-                    SlotId = x.SlotId,
+                    TrackId = x.TrackId,
                     Schedule = x.Schedule,
                     AssignedUsers = x.AssignedUsers,
                     Events = []
                 })];
 
-            foreach (ScheduleSlotDtoWithCalendar slot in _scheduleSlots)
+            foreach (ScheduleTrackDtoWithCalendar slot in _scheduleSlots)
                 slot.SetEvents();
         }
         else
@@ -152,9 +152,7 @@ public partial class ScheduleDayView
     private void ReloadCalendar(DateOnly dateOnly)
     {
         if (NavigationManager != null && JobType.HasValue)
-        {
             NavigationManager.NavigateTo($"/schedule/{dateOnly:yyyy-MM-dd}/{JobType.Value}");
-        }
     }
 
     /// <summary>
@@ -170,7 +168,17 @@ public partial class ScheduleDayView
         }
     }
 
+    public async Task NewTrack()
+    {
+        DateOnly date = DateOnly.FromDateTime(_dateTime.Date);
+        UpdateScheduleTrackDto track = new() { Date = date, ScheduleTrackId = 0, JobTypeEnum = (JobTypeEnum)JobType! };
 
+        Result<ScheduleTrackDto> result = await _apiService.UpdateScheduleTrack(track);
+        if (result.IsSuccess)
+            await LoadSchedule();
+        else
+            _snackbar.Add("Failed to create new schedule track", Severity.Error);
+    }
 
     /// <summary>
     /// Navigates back to the previous page

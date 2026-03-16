@@ -521,7 +521,7 @@ public class ApiService : IApiService
             Console.WriteLine($"Exception: {ex.Message}");
             // Handle exception
         }
-            return res;
+        return res;
     }
 
     /// <summary>
@@ -608,6 +608,35 @@ public class ApiService : IApiService
             {
                 WeeklyScheduleDto[]? data = await response.Content.ReadFromJsonAsync<WeeklyScheduleDto[]>();
                 res.Value = data ?? Array.Empty<WeeklyScheduleDto>();
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get weekly schedule";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Deletes a schedule track.
+    /// </summary>
+    public async Task<Result<int>> DeleteScheduleTrack(int id)
+    {
+        Result<int> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/schedule/tracks/{id}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                int data = await response.Content.ReadFromJsonAsync<int>();
+                res.Value = data;
             }
             else
             {

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Portal.Client.Components.ScheduleComponents;
+using Portal.Client.Webmodels;
 using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.ResponseModels;
@@ -11,22 +13,19 @@ namespace Portal.Client.Pages.Schedule;
 /// </summary>
 public partial class ScheduleWeekView
 {
-    [Inject]
-    private NavigationManager? NavigationManager { get; set; }
-
     /// <summary>Route: Monday of the week (yyyy-MM-dd). Optional, defaults to current week.</summary>
     [Parameter]
     public string? Date { get; set; }
 
     /// <summary>Route: job type (1 = Construction, 2 = Surveying). Optional.</summary>
     [Parameter]
-    public int? JobType { get; set; }
+    public int? JobType { get; set; } = 1;
 
     private JobTypeEnum _jobTypeEnum = JobTypeEnum.Construction;
     private DateOnly _weekStart; // Monday
     private DateOnly _weekEnd;   // Sunday
     private WeeklyScheduleDto[] _weekData = [];
-    private Dictionary<DateOnly, List<WeeklyScheduleDto>> _byDay = new();
+    private Dictionary<DateOnly, List<WeeklyScheduleDto>> _byDay = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -43,15 +42,28 @@ public partial class ScheduleWeekView
         _weekStart = parsed;
         _weekEnd = _weekStart.AddDays(6);
 
-        if (NavigationManager != null && (!NavigationManager.Uri.Contains("/schedule/week/") || !NavigationManager.Uri.Contains($"{_weekStart:yyyy-MM-dd}")))
-        {
-            NavigationManager.NavigateTo($"/schedule/week/{_weekStart:yyyy-MM-dd}/{JobType.Value}", replace: false);
-        }
+        if (!_navigationManager.Uri.Contains("/week/") || !_navigationManager.Uri.Contains($"{_weekStart:yyyy-MM-dd}"))
+            _navigationManager.NavigateTo($"/week/{_weekStart:yyyy-MM-dd}/{JobType.Value}", replace: false);
 
         await LoadWeek();
         base.IsLoading = false;
     }
 
+    private async Task OpenDialogAsync(CustomCalendarItem cal)
+    {
+        Console.WriteLine("Opening dialog for calendar item: " + cal?.Text);
+
+        if (cal == null)
+        {
+            Console.WriteLine("Calendar item is null!");
+            return;
+        }
+
+        DialogParameters parameter = new DialogParameters<CustomCalendarItem> { { "CalendarItem", cal } };
+        DialogOptions options = new() { CloseButton = true, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
+
+        IDialogReference _ = await _dialog.ShowAsync<ViewScheduleIndividualDialog>("", parameter, options);
+    }
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
@@ -91,28 +103,27 @@ public partial class ScheduleWeekView
     {
         _weekStart = _weekStart.AddDays(-7);
         _weekEnd = _weekStart.AddDays(6);
-        if (NavigationManager != null && JobType.HasValue)
-            NavigationManager.NavigateTo($"/schedule/week/{_weekStart:yyyy-MM-dd}/{JobType.Value}");
+        if (_navigationManager != null && JobType.HasValue)
+            _navigationManager.NavigateTo($"/week/{_weekStart:yyyy-MM-dd}/{JobType.Value}");
     }
 
     private void NextWeek()
     {
         _weekStart = _weekStart.AddDays(7);
         _weekEnd = _weekStart.AddDays(6);
-        if (NavigationManager != null && JobType.HasValue)
-            NavigationManager.NavigateTo($"/schedule/week/{_weekStart:yyyy-MM-dd}/{JobType.Value}");
+        if (_navigationManager != null && JobType.HasValue)
+            _navigationManager.NavigateTo($"/week/{_weekStart:yyyy-MM-dd}/{JobType.Value}");
     }
 
     private void SwapJobType()
     {
         JobTypeEnum next = _jobTypeEnum == JobTypeEnum.Construction ? JobTypeEnum.Surveying : JobTypeEnum.Construction;
-        if (NavigationManager != null)
-            NavigationManager.NavigateTo($"/schedule/week/{_weekStart:yyyy-MM-dd}/{(int)next}");
+        _navigationManager?.NavigateTo($"/week/{_weekStart:yyyy-MM-dd}/{(int)next}");
     }
 
     private List<WeeklyScheduleDto> GetItemsForDay(DateOnly day)
     {
-        return _byDay.TryGetValue(day, out var list) ? list : [];
+        return _byDay.TryGetValue(day, out List<WeeklyScheduleDto>? list) ? list : [];
     }
 
     private static string TimeRange(DateTime start, DateTime end) =>

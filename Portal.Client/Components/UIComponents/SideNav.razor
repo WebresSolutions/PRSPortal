@@ -17,14 +17,14 @@
                             {
                                 <span class="nav-link-text">@navItem.Title</span>
                             }
+                            @if (navItem.SubLinks.Count > 0 && !Minimize)
+                            {
+                                <i class="@(expandedItems.ContainsKey(navItem) && expandedItems[navItem] ? "bi bi-chevron-up" : "bi bi-chevron-down") nav-chevron"
+                                   role="button"
+                                   @onclick="@(() => ToggleSubLinks(navItem))"
+                                   title="@(expandedItems.ContainsKey(navItem) && expandedItems[navItem] ? "Collapse" : "Expand")"></i>
+                            }
                         </NavLink>
-                        @if (navItem.SubLinks.Count > 0 && !Minimize)
-                        {
-                            <i class="@(expandedItems.ContainsKey(navItem) && expandedItems[navItem] ? "bi bi-chevron-up" : "bi bi-chevron-down") nav-chevron"
-                               role="button"
-                               @onclick="@(() => ToggleSubLinks(navItem))"
-                               title="@(expandedItems.ContainsKey(navItem) && expandedItems[navItem] ? "Collapse" : "Expand")"></i>
-                        }
                     </div>
                 </li>
                 @if (!Minimize && navItem.SubLinks.Count > 0 && expandedItems.ContainsKey(navItem) && expandedItems[navItem])
@@ -37,7 +37,7 @@
                                     <NavLink class="nav-link sublink" href="@subLink.Link" Match="NavLinkMatch.Prefix">
                                         @if (!string.IsNullOrEmpty(subLink.Icon))
                                         {
-                                            <MudIcon Icon="@subLink.Icon" Title="@subLink.Title" />
+                                            <MudIcon Icon="@subLink.Icon" Title="@subLink.Title" Size="Size.Small" />
                                         }
                                         @subLink.Title
                                     </NavLink>

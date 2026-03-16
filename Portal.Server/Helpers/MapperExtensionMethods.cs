@@ -16,8 +16,9 @@ public static class MapperExtensionMethods
             Id = dto.Id,
             JobId = dto.JobId,
             Notes = dto.Description,
-            StartTime = dto.Start,
-            EndTime = dto.End,
+            // Store as UTC kind so PostgreSQL accepts it, but do not convert - 7am stays 7am for everyone
+            StartTime = DateTime.SpecifyKind(dto.Start, DateTimeKind.Utc),
+            EndTime = DateTime.SpecifyKind(dto.End, DateTimeKind.Utc),
             ScheduleTrackId = dto.TrackId,
             ScheduleColourId = dto.ColourId,
             DeletedAt = dto.Delete ? DateTime.UtcNow : null
@@ -37,7 +38,7 @@ public static class MapperExtensionMethods
             AssignedUsers = [.. dataObject.ScheduleUsers?.Select(x => new Shared.DTO.User.UserDto(x.UserId, x.User.DisplayName)) ?? []],
             Schedule = [],
             Day = dataObject.Date ?? DateOnly.MaxValue,
-            SlotId = dataObject.Id
+            TrackId = dataObject.Id
         };
     }
 

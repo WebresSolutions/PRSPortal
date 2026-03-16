@@ -4,7 +4,6 @@ using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.ResponseModels;
-using System.Collections.Generic;
 using Quartz.Util;
 
 namespace Portal.Server.Controllers;
@@ -95,6 +94,21 @@ public static class ScheduleEndpoints
             .WithSummary("Update schedule track")
             .WithDescription("Creates a new schedule track when ScheduleTrackId is 0, or updates assigned users and date for an existing track.")
             .Produces<ScheduleTrackDto>();
+
+        appGroup.MapDelete("tracks/{id}", async (
+            [FromServices] IScheduleService schService,
+            [FromRoute] int id,
+            HttpContext httpContext) =>
+        {
+            if (id <= 0)
+                return Results.BadRequest($"Invalid Id: {id}");
+
+            Result<int> result = await schService.DeleteTrack(httpContext, id);
+            return EndpointsHelper.ProcessResult(result, "An error occurred while saving the schedule track");
+        })
+            .WithSummary("Soft delete a schedule track")
+            .WithDescription("Sets the deleted at on the schedule track")
+            .Produces<int>();
 
         // Get weekly schedule
         appGroup.MapGet("week", async (

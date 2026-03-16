@@ -98,7 +98,7 @@ public sealed class ScheduleEndpointTests
         UpdateScheduleDto dto = new()
         {
             Id = 0,
-            TrackId = slots[0].SlotId,
+            TrackId = slots[0].TrackId,
             Start = DateTime.UtcNow.Date.AddHours(14),
             End = DateTime.UtcNow.Date.AddHours(8),
             ColourId = colours[0].ScheduleColourId,
@@ -125,7 +125,7 @@ public sealed class ScheduleEndpointTests
         UpdateScheduleDto dto = new()
         {
             Id = 0,
-            TrackId = slots[0].SlotId,
+            TrackId = slots[0].TrackId,
             Start = DateTime.UtcNow.Date.AddHours(8),
             End = DateTime.UtcNow.Date.AddHours(21),
             ColourId = colours[0].ScheduleColourId,
@@ -154,7 +154,7 @@ public sealed class ScheduleEndpointTests
         UpdateScheduleDto dto = new()
         {
             Id = 0,
-            TrackId = slots[0].SlotId,
+            TrackId = slots[0].TrackId,
             Start = DateTime.UtcNow.Date.AddHours(8),
             End = DateTime.UtcNow.Date.AddHours(12),
             ColourId = colours[0].ScheduleColourId,
@@ -190,7 +190,7 @@ public sealed class ScheduleEndpointTests
         Assert.NotNull(colours);
         Assert.True(colours.Count > 0);
 
-        int trackId = slots[0].SlotId;
+        int trackId = slots[0].TrackId;
         int colourId = colours.Count > 1 ? colours[1].ScheduleColourId : colours[0].ScheduleColourId;
 
         UpdateScheduleDto createDto = new()
@@ -253,7 +253,7 @@ public sealed class ScheduleEndpointTests
         Assert.True(response.IsSuccessStatusCode, $"Unexpected status: {response.StatusCode}");
         ScheduleTrackDto? track = await response.Content.ReadFromJsonAsync<ScheduleTrackDto>();
         Assert.NotNull(track);
-        Assert.True(track.SlotId > 0);
+        Assert.True(track.TrackId > 0);
         Assert.Equal(dto.Date, track.Day);
     }
 
@@ -269,5 +269,63 @@ public sealed class ScheduleEndpointTests
         };
         HttpResponseMessage response = await _client.PutAsJsonAsync("/api/schedule/tracks", dto);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_track_with_invalid_id_returns_bad_request()
+    {
+        HttpResponseMessage response = await _client.DeleteAsync("/api/schedule/tracks/0");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        response = await _client.DeleteAsync("/api/schedule/tracks/-1");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_track_with_nonexistent_id_returns_bad_request()
+    {
+        HttpResponseMessage response = await _client.DeleteAsync("/api/schedule/tracks/99999");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_track_returns_ok_and_soft_deletes()
+    {
+        // Create a track
+        DateOnly trackDate = new DateOnly(2026, 4, 15);
+        UpdateScheduleTrackDto createDto = new()
+        {
+            ScheduleTrackId = 0,
+            JobTypeEnum = JobTypeEnum.Construction,
+            Date = trackDate,
+            AssignedUsers = [1]
+        };
+        HttpResponseMessage createResponse = await _client.PutAsJsonAsync("/api/schedule/tracks", createDto);
+        createResponse.EnsureSuccessStatusCode();
+        ScheduleTrackDto? createdTrack = await createResponse.Content.ReadFromJsonAsync<ScheduleTrackDto>();
+        Assert.NotNull(createdTrack);
+        int trackId = createdTrack.TrackId;
+        Assert.True(trackId > 0);
+
+        // Confirm track appears in slots for that date
+        HttpResponseMessage slotsResp = await _client.GetAsync($"/api/schedule/slots?date={trackDate:yyyy-MM-dd}&jobType=1");
+        slotsResp.EnsureSuccessStatusCode();
+        List<ScheduleTrackDto>? slotsBefore = await slotsResp.Content.ReadFromJsonAsync<List<ScheduleTrackDto>>();
+        Assert.NotNull(slotsBefore);
+        Assert.Contains(slotsBefore, t => t.TrackId == trackId);
+
+        // Delete the track
+        HttpResponseMessage deleteResponse = await _client.DeleteAsync($"/api/schedule/tracks/{trackId}");
+        Assert.True(deleteResponse.IsSuccessStatusCode, $"Unexpected status: {deleteResponse.StatusCode}");
+        int? returnedId = await deleteResponse.Content.ReadFromJsonAsync<int>();
+        Assert.NotNull(returnedId);
+        Assert.Equal(trackId, returnedId);
+
+        // Confirm track no longer appears in slots (soft-deleted)
+        slotsResp = await _client.GetAsync($"/api/schedule/slots?date={trackDate:yyyy-MM-dd}&jobType=1");
+        slotsResp.EnsureSuccessStatusCode();
+        List<ScheduleTrackDto>? slotsAfter = await slotsResp.Content.ReadFromJsonAsync<List<ScheduleTrackDto>>();
+        Assert.NotNull(slotsAfter);
+        Assert.DoesNotContain(slotsAfter, t => t.TrackId == trackId);
     }
 }

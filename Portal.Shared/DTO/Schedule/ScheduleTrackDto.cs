@@ -11,7 +11,7 @@ public class ScheduleTrackDto
     /// <summary>
     /// Gets or sets the unique identifier for the schedule slot
     /// </summary>
-    public int SlotId { get; set; }
+    public int TrackId { get; set; }
     /// <summary>
     /// Gets or sets the date of the schedule slot
     /// </summary>
