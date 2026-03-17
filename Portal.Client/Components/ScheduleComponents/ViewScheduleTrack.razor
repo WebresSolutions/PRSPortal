@@ -40,14 +40,15 @@
                  ShowDatePicker="false"
                  View="@CalendarView.Day"
                  ShowPrevNextButtons="false"
-                 CurrentDay="Track.Day.ToDateTime(new TimeOnly(8, 0))"
+                 CurrentDay="Track.Day.ToDateTime(new TimeOnly(7, 0))"
+                 DayStartTime="new TimeOnly(7, 0, 0)"
                  ShowCurrentTime="true"
                  ShowMonth=false
                  ShowWeek=false
                  Items="Track.Events"
                  EnableDragItems="false"
-                 Style="min-height: 600px !important"
-                 DayCellHeight="25"
+                 Style="min-height: 660px !important"
+                 DayCellHeight="26"
                  Class="shadow">
         <ToolbarContent>
             <div class="schedule-track-actions">

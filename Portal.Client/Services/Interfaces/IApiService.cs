@@ -130,6 +130,12 @@ public interface IApiService
     /// otherwise, contains error information.</returns>
     Task<Result<ScheduleColourDto>> UpdateScheduleColour(ScheduleColourDto colour);
     /// <summary>
+    /// Gets a single schedule by id.
+    /// </summary>
+    /// <param name="id">The schedule id.</param>
+    /// <returns>The schedule DTO if found.</returns>
+    Task<Result<ScheduleDto>> GetSchedule(int id);
+    /// <summary>
     /// Creates or updates a schedule. Use Id 0 to create; set Id to the existing schedule id to update.
     /// </summary>
     /// <param name="data">The schedule data. Start must be before end; span cannot exceed 12 hours.</param>

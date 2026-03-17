@@ -39,6 +39,7 @@ public static class SettingsEndpoints
             HttpContext httpContext
             ) =>
         {
+            StringNormalizer.Normalize(settingsDto);
             Result<SystemSettingDto> result = await setService.UpdateSystemSettings(settingsDto);
             return EndpointsHelper.ProcessResult(result, "An Error occured while saving system settings");
         })

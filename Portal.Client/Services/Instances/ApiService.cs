@@ -525,6 +525,36 @@ public class ApiService : IApiService
     }
 
     /// <summary>
+    /// Gets a single schedule by id.
+    /// </summary>
+    public async Task<Result<ScheduleDto>> GetSchedule(int id)
+    {
+        Result<ScheduleDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/schedule/{id}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                ScheduleDto? dto = await response.Content.ReadFromJsonAsync<ScheduleDto>();
+                if (dto is not null)
+                    res.Value = dto;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to load schedule";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
     /// Creates or updates a schedule. Use Id 0 to create; set Id to the existing schedule id to update.
     /// </summary>
     public async Task<Result<int>> UpdateSchedule(UpdateScheduleDto data)

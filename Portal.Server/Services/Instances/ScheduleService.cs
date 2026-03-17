@@ -99,6 +99,69 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
     }
 
     /// <summary>
+    /// Gets a single schedule by id.
+    /// </summary>
+    /// <param name="id">The schedule id.</param>
+    /// <returns>The schedule DTO if found.</returns>
+    public async Task<Result<ScheduleDto>> GetSchedule(int id)
+    {
+        Result<ScheduleDto> result = new();
+        try
+        {
+            Schedule? schedule = await _prsDbContext.Schedules
+                .AsNoTracking()
+                .Include(s => s.ScheduleColour)
+                .Include(s => s.ScheduleTrack)
+                .Include(s => s.Job).ThenInclude(j => j!.Address)
+                .FirstOrDefaultAsync(s => s.Id == id && s.DeletedAt == null);
+
+            if (schedule is null)
+            {
+                return result.SetError(ErrorType.NotFound, $"Schedule with Id {id} not found.");
+            }
+
+            DateOnly trackDate = schedule.ScheduleTrack?.Date ?? DateOnly.FromDateTime(DateTime.UtcNow);
+            result.Value = new ScheduleDto
+            {
+                ScheduleId = schedule.Id,
+                Start = schedule.StartTime,
+                End = schedule.EndTime,
+                ScheduleTrackId = schedule.ScheduleTrackId,
+                ScheduleTrackDate = trackDate,
+                Colour = new ScheduleColourDto
+                {
+                    ScheduleColourId = schedule.ScheduleColour.Id,
+                    ColourHex = schedule.ScheduleColour.Color,
+                    Description = schedule.ScheduleColour.Color
+                },
+                Description = schedule.Notes ?? "",
+                Job = schedule.Job != null
+                    ? new ScheduleJobPartialDto
+                    {
+                        JobId = schedule.Job.Id,
+                        JobNumber = schedule.Job.JobNumber,
+                        Address = schedule.Job.AddressId != null && schedule.Job.Address != null
+                            ? new AddressDTO(
+                                schedule.Job.AddressId.Value,
+                                (StateEnum)(schedule.Job.Address.StateId ?? 0),
+                                schedule.Job.Address.StateId ?? 0,
+                                schedule.Job.Address.Suburb ?? "",
+                                schedule.Job.Address.Street ?? "",
+                                schedule.Job.Address.PostCode ?? "")
+                            : null
+                    }
+                    : null
+            };
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get schedule {ScheduleId}", id);
+            return result.SetError(ErrorType.InternalError, "Failed to load schedule.");
+        }
+    }
+
+    /// <summary>
     /// Updates or creates a schedule
     /// </summary>
     /// <param name="context">The http contex</param>

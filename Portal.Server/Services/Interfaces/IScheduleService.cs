@@ -1,4 +1,4 @@
-﻿using Portal.Shared;
+using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.ResponseModels;
 
@@ -28,6 +28,12 @@ public interface IScheduleService
     /// <param name="colour">The schedule color DTO to update or create</param>
     /// <returns>A result containing the updated or created schedule color DTO</returns>
     Task<Result<ScheduleColourDto>> UpdateScheduleColour(ScheduleColourDto colour);
+    /// <summary>
+    /// Gets a single schedule by id.
+    /// </summary>
+    /// <param name="id">The schedule id.</param>
+    /// <returns>The schedule DTO if found.</returns>
+    Task<Result<ScheduleDto>> GetSchedule(int id);
     /// <summary>
     /// Updates a schedule on a schedule track
     /// </summary>

@@ -91,7 +91,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
                 TypeId = entry.TypeId,
                 DateFrom = utcStart,
                 DateTo = utcEnd,
-                Description = entry.Description,
+                Description = StringNormalizer.TrimAndTruncate(entry.Description, 4000),
                 JobId = entry.JobId,
                 CreatedByUserId = httpContext.UserId(),
                 ModifiedByUserId = httpContext.UserId(),
@@ -148,7 +148,7 @@ public class TimeSheetService(PrsDbContext _dbContext, ILogger<TimeSheetService>
 
             existingEntry.DateFrom = utcStart;
             existingEntry.DateTo = utcEnd;
-            existingEntry.Description = entry.Description;
+            existingEntry.Description = StringNormalizer.TrimAndTruncate(entry.Description, 4000);
             existingEntry.ModifiedByUserId = httpContext.UserId();
             existingEntry.ModifiedOn = DateTime.UtcNow;
             existingEntry.JobId = entry.JobId;

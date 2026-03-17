@@ -45,6 +45,7 @@ public static class JobEndpoints
             HttpContext httpContext
             ) =>
         {
+            StringNormalizer.Normalize(data);
             Result<int> result = await jobService.CreateJob(httpContext, data);
             return EndpointsHelper.ProcessResult(result, "An Error occured while loading facilities");
         })
@@ -59,6 +60,7 @@ public static class JobEndpoints
             HttpContext httpContext
             ) =>
         {
+            StringNormalizer.Normalize(data);
             if (data.JobId <= 0)
                 return Results.BadRequest("Invalid Job Id");
 
@@ -127,6 +129,7 @@ public static class JobEndpoints
             HttpContext httpContext
             ) =>
         {
+            StringNormalizer.Normalize(note);
             Result<List<JobNoteDto>> result;
             if (note.NoteId is 0)
                 result = await jobService.CreateNote(httpContext, note);
@@ -166,6 +169,7 @@ public static class JobEndpoints
             HttpContext httpContext
             ) =>
         {
+            StringNormalizer.Normalize(dto);
             Result<TechnicalContactDto[]> result;
             if (dto.Id is 0)
                 result = await jobService.NewTechnicalContact(httpContext, dto);
@@ -186,6 +190,7 @@ public static class JobEndpoints
             HttpContext httpContext
             ) =>
         {
+            StringNormalizer.Normalize(dto);
             if (jobId is < 0)
                 return Results.BadRequest("Invalid Job Id");
 

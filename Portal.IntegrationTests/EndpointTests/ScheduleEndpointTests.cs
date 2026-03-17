@@ -33,6 +33,69 @@ public sealed class ScheduleEndpointTests
     }
 
     [Fact]
+    public async Task Get_schedule_with_invalid_id_returns_bad_request()
+    {
+        HttpResponseMessage response = await _client.GetAsync("/api/schedule/0");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        response = await _client.GetAsync("/api/schedule/-1");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_schedule_with_nonexistent_id_returns_not_found()
+    {
+        HttpResponseMessage response = await _client.GetAsync("/api/schedule/99999");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_schedule_with_valid_id_returns_ok_and_schedule_dto()
+    {
+        // Create a schedule first
+        HttpResponseMessage slotsResp = await _client.GetAsync($"/api/schedule/slots?date={DateTime.UtcNow:yyyy-MM-dd}&jobType=1");
+        slotsResp.EnsureSuccessStatusCode();
+        List<ScheduleTrackDto>? slots = await slotsResp.Content.ReadFromJsonAsync<List<ScheduleTrackDto>>();
+        Assert.NotNull(slots);
+        Assert.True(slots.Count > 0);
+
+        HttpResponseMessage coloursResp = await _client.GetAsync("/api/schedule/colours");
+        coloursResp.EnsureSuccessStatusCode();
+        List<ScheduleColourDto>? colours = await coloursResp.Content.ReadFromJsonAsync<List<ScheduleColourDto>>();
+        Assert.NotNull(colours);
+        Assert.True(colours.Count > 0);
+
+        UpdateScheduleDto createDto = new()
+        {
+            Id = 0,
+            TrackId = slots[0].TrackId,
+            Start = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(10)),
+            End = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(14)),
+            ColourId = colours[0].ScheduleColourId,
+            Notes = "Get schedule integration test"
+        };
+        HttpResponseMessage createResponse = await _client.PutAsJsonAsync("/api/schedule", createDto);
+        createResponse.EnsureSuccessStatusCode();
+        int scheduleId = await createResponse.Content.ReadFromJsonAsync<int>();
+        Assert.True(scheduleId > 0);
+
+        // Get schedule by id
+        HttpResponseMessage getResponse = await _client.GetAsync($"/api/schedule/{scheduleId}");
+        getResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+        ScheduleDto? schedule = await getResponse.Content.ReadFromJsonAsync<ScheduleDto>();
+        Assert.NotNull(schedule);
+        Assert.Equal(scheduleId, schedule.ScheduleId);
+        Assert.Equal(createDto.TrackId, schedule.ScheduleTrackId);
+        Assert.Equal(createDto.Start, schedule.Start);
+        Assert.Equal(createDto.End, schedule.End);
+        Assert.Equal(createDto.Notes, schedule.Description);
+        Assert.NotNull(schedule.Colour);
+        Assert.Equal(createDto.ColourId, schedule.Colour.ScheduleColourId);
+    }
+
+    [Fact]
     public async Task Get_colours_returns_ok()
     {
         HttpResponseMessage response = await _client.GetAsync("/api/schedule/colours");
@@ -61,7 +124,7 @@ public sealed class ScheduleEndpointTests
     {
         HttpResponseMessage response = await _client.GetAsync("/api/schedule/week?jobType=1&weekDay=2026-03-13");
         Assert.True(response.IsSuccessStatusCode, $"Unexpected status: {response.StatusCode}");
-        WeeklyScheduleDto[]? data = await response.Content.ReadFromJsonAsync<WeeklyScheduleDto[]>();
+        WeeklyGroupedByScheduleDto[]? data = await response.Content.ReadFromJsonAsync<WeeklyGroupedByScheduleDto[]>();
         Assert.NotNull(data);
     }
 

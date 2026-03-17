@@ -20,7 +20,7 @@
                             @_jobTypeEnum.GetDisplayName()
                         </h1>
                         <div class="header-info">
-                            <span>@_dateTime.ToString("dddd, MMMM d, yyyy")</span>
+                            <span><a class="contact-link" title="View Week" href=@($"week/{_dateTime.ToString("yyyy-MM-dd")}")>@_dateTime.ToString("dddd, MMMM d, yyyy")</a></span>
                         </div>
                     }
                 </div>

@@ -61,6 +61,7 @@ public static class ContactEndpoints
             HttpContext httpContext
             ) =>
         {
+            StringNormalizer.Normalize(data);
             Result<int> result = await contactService.CreateContact(httpContext, data);
             return EndpointsHelper.ProcessResult(result, "An error occurred while creating the contact");
         })
@@ -75,6 +76,7 @@ public static class ContactEndpoints
             HttpContext httpContext
             ) =>
         {
+            StringNormalizer.Normalize(data);
             if (data.ContactId <= 0)
                 return Results.BadRequest("Invalid contact Id");
 

@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Client.Webmodels;
 using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
-using Portal.Shared.Helpers;
 
 namespace Portal.Client.Components.ScheduleComponents;
 
@@ -36,15 +34,7 @@ public partial class ScheduleWeekDay
 
     private async Task OpenDialogAsync(WeeklyScheduleDto cal)
     {
-        CustomCalendarItem calendarItem = new()
-        {
-            Colour = cal.Schedule.Colour.ColourHex,
-            ColourId = cal.Schedule.Colour.ScheduleColourId,
-            Start = DateTimeBuilder.cal.Schedule.Start,
-
-        };
-
-        DialogParameters parameter = new DialogParameters<CustomCalendarItem> { { "CalendarItem", calendarItem } };
+        DialogParameters parameter = new DialogParameters<int> { { "ScheduleId", cal.Schedule.ScheduleId } };
         DialogOptions options = new() { CloseButton = false, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
 
         IDialogReference res = await _dialog.ShowAsync<ViewEditSchedule>("", parameter, options);

@@ -57,6 +57,7 @@ public static class ScheduleEndpoints
             HttpContext httpContext
             ) =>
         {
+            StringNormalizer.Normalize(colour);
             if (colour.ColourHex.IsNullOrWhiteSpace() || !colour.ColourHex.StartsWith('#'))
                 return Results.BadRequest(new { Message = "Invalid ScheduleColour" });
 
@@ -67,6 +68,22 @@ public static class ScheduleEndpoints
             .WithDescription("Updates a schedule colour. ColourHex must start with '#' and be non-empty. Returns 400 for invalid colour.")
             .Produces<ScheduleColourDto>();
 
+        // Get a single schedule by id
+        appGroup.MapGet("{id}", async (
+            [FromServices] IScheduleService schService,
+            [FromRoute] int id,
+            HttpContext httpContext
+            ) =>
+        {
+            if (id <= 0)
+                return Results.BadRequest(new { Message = "Invalid schedule id." });
+            Result<ScheduleDto> result = await schService.GetSchedule(id);
+            return EndpointsHelper.ProcessResult(result, "An error occurred while loading the schedule");
+        })
+            .WithSummary("Get schedule by id")
+            .WithDescription("Returns a single schedule by its id.")
+            .Produces<ScheduleDto>();
+
         // Create or update a schedule (single calendar entry)
         appGroup.MapPut("", async (
             [FromServices] IScheduleService schService,
@@ -74,6 +91,7 @@ public static class ScheduleEndpoints
             HttpContext httpContext
             ) =>
         {
+            StringNormalizer.Normalize(data);
             Result<int> result = await schService.UpdateSchedule(httpContext, data);
             return EndpointsHelper.ProcessResult(result, "An error occurred while saving the schedule");
         })

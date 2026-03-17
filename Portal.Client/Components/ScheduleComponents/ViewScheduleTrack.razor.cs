@@ -79,7 +79,7 @@ public partial class ViewScheduleTrack
             return;
         }
 
-        DialogParameters parameter = new DialogParameters<CustomCalendarItem> { { "CalendarItem", cal } };
+        DialogParameters parameter = new DialogParameters<int> { { "ScheduleId", cal.ScheduleItemId } };
         DialogOptions options = new() { CloseButton = false, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
 
         IDialogReference res = await _dialog.ShowAsync<ViewEditSchedule>("", parameter, options);

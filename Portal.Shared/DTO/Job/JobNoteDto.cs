@@ -1,4 +1,5 @@
-﻿using Portal.Shared.DTO.User;
+using System.ComponentModel.DataAnnotations;
+using Portal.Shared.DTO.User;
 
 namespace Portal.Shared.DTO.Job;
 
@@ -19,6 +20,7 @@ public class JobNoteDto
     /// <summary>
     /// Gets or sets the content or text of the note
     /// </summary>
+    [MaxLength(4000, ErrorMessage = "Note content cannot exceed 4000 characters")]
     public required string Content { get; set; }
     /// <summary>
     /// Gets or sets the date and time when the note was created

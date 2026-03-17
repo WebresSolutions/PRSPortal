@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Portal.Shared.DTO.Schedule;
 
@@ -35,6 +35,7 @@ public class UpdateScheduleDto
     /// <summary>
     /// Gets or sets the description or notes for the schedule
     /// </summary>
+    [MaxLength(4000, ErrorMessage = "Notes cannot exceed 4000 characters")]
     public string Notes { get; set; } = string.Empty;
 
     public bool Delete { get; set; }

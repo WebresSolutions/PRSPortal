@@ -90,11 +90,13 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         Result<TimeTypeDto> res = new();
         try
         {
-            if (string.IsNullOrWhiteSpace(dto.Name))
+            string name = StringNormalizer.TrimAndTruncate(dto.Name, 50) ?? "";
+            if (string.IsNullOrWhiteSpace(name))
                 return res.SetError(ErrorType.BadRequest, "Name is required");
+            string? description = StringNormalizer.TrimAndTruncate(dto.Description, 255);
             if (dto.Id == 0)
             {
-                var e = new TimesheetEntryType { Name = dto.Name, Description = dto.Description };
+                var e = new TimesheetEntryType { Name = name, Description = description };
                 await _dbContext.TimesheetEntryTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new TimeTypeDto(e.Id, e.Name, e.Description));
@@ -103,8 +105,8 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             {
                 var e = await _dbContext.TimesheetEntryTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Timesheet type not found");
-                e.Name = dto.Name;
-                e.Description = dto.Description;
+                e.Name = name;
+                e.Description = description;
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new TimeTypeDto(e.Id, e.Name, e.Description));
             }
@@ -122,11 +124,13 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         Result<ContactTypeDto> res = new();
         try
         {
-            if (string.IsNullOrWhiteSpace(dto.Name))
+            string name = StringNormalizer.TrimAndTruncate(dto.Name, 50) ?? "";
+            if (string.IsNullOrWhiteSpace(name))
                 return res.SetError(ErrorType.BadRequest, "Name is required");
+            string? description = StringNormalizer.TrimAndTruncate(dto.Description, 255);
             if (dto.Id == 0)
             {
-                var e = new ContactType { Name = dto.Name, Description = dto.Description, CreatedOn = DateTime.UtcNow };
+                var e = new ContactType { Name = name, Description = description, CreatedOn = DateTime.UtcNow };
                 await _dbContext.ContactTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new ContactTypeDto(e.Id, e.Name, e.Description));
@@ -135,8 +139,8 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             {
                 var e = await _dbContext.ContactTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Contact type not found");
-                e.Name = dto.Name;
-                e.Description = dto.Description;
+                e.Name = name;
+                e.Description = description;
                 e.ModifiedOn = DateTime.UtcNow;
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new ContactTypeDto(e.Id, e.Name, e.Description));
@@ -155,13 +159,15 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         Result<JobTypeDto> res = new();
         try
         {
-            if (string.IsNullOrWhiteSpace(dto.Name))
+            string name = StringNormalizer.TrimAndTruncate(dto.Name, 50) ?? "";
+            string abbreviation = StringNormalizer.TrimAndTruncate(dto.Abbreviation, 15) ?? "";
+            if (string.IsNullOrWhiteSpace(name))
                 return res.SetError(ErrorType.BadRequest, "Name is required");
-            if (string.IsNullOrWhiteSpace(dto.Abbreviation))
+            if (string.IsNullOrWhiteSpace(abbreviation))
                 return res.SetError(ErrorType.BadRequest, "Abbreviation is required");
             if (dto.Id == 0)
             {
-                var e = new JobType { Name = dto.Name, Abbreviation = dto.Abbreviation, CreatedAt = DateTime.UtcNow };
+                var e = new JobType { Name = name, Abbreviation = abbreviation, CreatedAt = DateTime.UtcNow };
                 await _dbContext.JobTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new JobTypeDto(e.Id, e.Name, e.Abbreviation));
@@ -170,8 +176,8 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             {
                 var e = await _dbContext.JobTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Job type not found");
-                e.Name = dto.Name;
-                e.Abbreviation = dto.Abbreviation;
+                e.Name = name;
+                e.Abbreviation = abbreviation;
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new JobTypeDto(e.Id, e.Name, e.Abbreviation));
             }
@@ -189,11 +195,12 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         Result<JobColourDto> res = new();
         try
         {
-            string color = dto.colour ?? string.Empty;
+            string color = (dto.colour ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(color))
                 return res.SetError(ErrorType.BadRequest, "Colour is required");
             if (!color.StartsWith("#"))
                 color = "#" + color;
+            color = StringNormalizer.TrimAndTruncate(color, 20) ?? color;
             if (dto.Id == 0)
             {
                 var e = new JobColour { Color = color, CreatedAt = DateTime.UtcNow };
@@ -223,11 +230,13 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         Result<FileTypeDto> res = new();
         try
         {
-            if (string.IsNullOrWhiteSpace(dto.Name))
+            string name = StringNormalizer.TrimAndTruncate(dto.Name, 255) ?? "";
+            if (string.IsNullOrWhiteSpace(name))
                 return res.SetError(ErrorType.BadRequest, "Name is required");
+            string? description = StringNormalizer.TrimAndTruncate(dto.Description, 255);
             if (dto.Id == 0)
             {
-                var e = new FileType { Name = dto.Name, Description = dto.Description, CreatedAt = DateTime.UtcNow };
+                var e = new FileType { Name = name, Description = description, CreatedAt = DateTime.UtcNow };
                 await _dbContext.FileTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new FileTypeDto(e.Id, e.Name, e.Description));
@@ -236,8 +245,8 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             {
                 var e = await _dbContext.FileTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "File type not found");
-                e.Name = dto.Name;
-                e.Description = dto.Description;
+                e.Name = name;
+                e.Description = description;
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new FileTypeDto(e.Id, e.Name, e.Description));
             }
@@ -255,12 +264,14 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         Result<JobTaskTypeDto> res = new();
         try
         {
-            if (string.IsNullOrWhiteSpace(dto.Name))
+            string name = StringNormalizer.TrimAndTruncate(dto.Name, 255) ?? "";
+            if (string.IsNullOrWhiteSpace(name))
                 return res.SetError(ErrorType.BadRequest, "Name is required");
+            string? description = StringNormalizer.TrimAndTruncate(dto.Description, 255);
             int userId = httpContext.UserId();
             if (dto.Id == 0)
             {
-                var e = new JobTaskType { Name = dto.Name, Description = dto.Description, CreatedByUserId = userId, CreatedOn = DateTime.UtcNow };
+                var e = new JobTaskType { Name = name, Description = description, CreatedByUserId = userId, CreatedOn = DateTime.UtcNow };
                 await _dbContext.JobTaskTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new JobTaskTypeDto(e.Id, e.Name, e.Description));
@@ -269,8 +280,8 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             {
                 var e = await _dbContext.JobTaskTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Job task type not found");
-                e.Name = dto.Name;
-                e.Description = dto.Description;
+                e.Name = name;
+                e.Description = description;
                 e.ModifiedByUserId = userId;
                 e.ModifiedOn = DateTime.UtcNow;
                 await _dbContext.SaveChangesAsync();
@@ -290,11 +301,13 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         Result<TechnicalContactTypeDto> res = new();
         try
         {
-            if (string.IsNullOrWhiteSpace(dto.Name))
+            string name = StringNormalizer.TrimAndTruncate(dto.Name, 50) ?? "";
+            if (string.IsNullOrWhiteSpace(name))
                 return res.SetError(ErrorType.BadRequest, "Name is required");
+            string? description = StringNormalizer.TrimAndTruncate(dto.Description, 255);
             if (dto.Id == 0)
             {
-                var e = new TechnicalContactType { Name = dto.Name, Description = dto.Description, CreatedOn = DateTime.UtcNow };
+                var e = new TechnicalContactType { Name = name, Description = description, CreatedOn = DateTime.UtcNow };
                 await _dbContext.TechnicalContactTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new TechnicalContactTypeDto(e.Id, e.Name, e.Description));
@@ -303,8 +316,8 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             {
                 var e = await _dbContext.TechnicalContactTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Technical contact type not found");
-                e.Name = dto.Name;
-                e.Description = dto.Description;
+                e.Name = name;
+                e.Description = description;
                 e.ModifiedOn = DateTime.UtcNow;
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new TechnicalContactTypeDto(e.Id, e.Name, e.Description));

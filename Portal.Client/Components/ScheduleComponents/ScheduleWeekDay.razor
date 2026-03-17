@@ -20,7 +20,7 @@
                         string users = string.Join(", ", groupByTrackItem.Value.First().AssignedUsers.Select(u => u.displayName ?? ""));
                     }
                     <div>
-                        <b class="contact-link">@users</b>
+                        <b class="contact-link mb-2">@users</b>
                     </div>
                     @foreach (var entry in groupByTrackItem.Value)
                     {

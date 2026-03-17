@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Portal.Shared.DTO.File;
 
@@ -32,17 +32,20 @@ public class FileDto
     /// Gets or sets the name of the file.
     /// </summary>
     [Required]
+    [MaxLength(255)]
     public string FileName { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the description of the file.
     /// </summary>
+    [MaxLength(400)]
     public string? Description { get; set; }
 
     /// <summary>
     /// The title of the file
     /// </summary>
     [Required]
+    [MaxLength(255)]
     public string Title { get; set; } = "";
 
     /// <summary>

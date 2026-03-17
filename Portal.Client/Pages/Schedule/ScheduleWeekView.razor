@@ -12,12 +12,16 @@
             <div class="header-left">
                 <div class="header-content">
                     <h1>Schedule week – @_jobTypeEnum.GetDisplayName()</h1>
-                    @if (!base.IsLoading)
-                    {
-                        <div class="header-info">
+                    <div class="header-info">
+                        @if (!base.IsLoading)
+                        {
                             <span>@_weekStart.ToString("ddd d MMM") – @_weekEnd.ToString("ddd d MMM yyyy")</span>
-                        </div>
-                    }
+                        }
+                        else
+                        {
+                            <span>&nbsp;</span>
+                        }
+                    </div>
                 </div>
             </div>
             <div class="header-right">
@@ -39,7 +43,8 @@
             {
                 DateOnly day = _weekStart.AddDays(i);
                 List<WeeklyScheduleDto> items = GetItemsForDay(day);
-                <ScheduleWeekDay Day="day" Items="items" JobType="(JobTypeEnum)_jobTypeEnum"/>
+
+                <ScheduleWeekDay Day="day" Items="items" JobType="(JobTypeEnum)_jobTypeEnum"  OnUpdate="LoadWeek"/>
             }
         </div>
     }
@@ -89,6 +94,7 @@
         gap: 0.5rem;
         margin-top: 1rem;
     }
+
     @@media (max-width: 900px) {
         .week-grid {
             grid-template-columns: repeat(2, 1fr);
