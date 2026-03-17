@@ -68,7 +68,7 @@
                     </div>
                     <div>
                         <label>Job: </label>
-                        <MudAutocomplete DebounceInterval="200" Clearable=true T="ListJobDto" Dense="true" SearchFunc="@((x, y) => GetJobsFromSearch(x))" ToStringFunc="@((x) => x.ToString())" Variant="Variant.Outlined" ValueChanged="@((x) => _UpdateScheduleDto.JobId = x.JobId)">
+                        <MudAutocomplete DebounceInterval="200" Clearable=true T="ListJobDto" Dense="true" SearchFunc="@((x, y) => GetJobsFromSearch(x))" ToStringFunc="@((x) => x.ToString())" Variant="Variant.Outlined" ValueChanged="@OnJobSelected" Value="_selectedJob">
                             <MoreItemsTemplate>
                                 <div class="d-flex justify-content-center">
                                     <small>
@@ -80,7 +80,7 @@
                     </div>
                     <div>
                         <label for="description">Description: </label>
-                        <MudTextField name="description" T="string" Variant="Variant.Outlined" Text="@_UpdateScheduleDto.Description" Lines="4" />
+                        <MudTextField name="description" T="string" Variant="Variant.Outlined" @bind-value="@_UpdateScheduleDto.Notes" Lines="4" />
                     </div>
                 </div>
                 <div class="d-flex justify-content-center gap-2 flex-row mt-2">

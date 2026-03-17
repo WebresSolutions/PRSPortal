@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Client.Components.ScheduleComponents;
-using Portal.Client.Webmodels;
 using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.ResponseModels;
@@ -24,7 +22,7 @@ public partial class ScheduleWeekView
     private JobTypeEnum _jobTypeEnum = JobTypeEnum.Construction;
     private DateOnly _weekStart; // Monday
     private DateOnly _weekEnd;   // Sunday
-    private WeeklyScheduleDto[] _weekData = [];
+    private WeeklyGroupedByScheduleDto[] _weekData = [];
     private Dictionary<DateOnly, List<WeeklyScheduleDto>> _byDay = [];
 
     protected override async Task OnInitializedAsync()
@@ -49,21 +47,6 @@ public partial class ScheduleWeekView
         base.IsLoading = false;
     }
 
-    private async Task OpenDialogAsync(CustomCalendarItem cal)
-    {
-        Console.WriteLine("Opening dialog for calendar item: " + cal?.Text);
-
-        if (cal == null)
-        {
-            Console.WriteLine("Calendar item is null!");
-            return;
-        }
-
-        DialogParameters parameter = new DialogParameters<CustomCalendarItem> { { "CalendarItem", cal } };
-        DialogOptions options = new() { CloseButton = true, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
-
-        IDialogReference _ = await _dialog.ShowAsync<ViewScheduleIndividualDialog>("", parameter, options);
-    }
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
@@ -86,16 +69,17 @@ public partial class ScheduleWeekView
     private async Task LoadWeek()
     {
         base.IsLoading = true;
-        Result<WeeklyScheduleDto[]> res = await _apiService.GetWeeklySchedule(_jobTypeEnum, _weekStart);
+        Result<WeeklyGroupedByScheduleDto[]> res = await _apiService.GetWeeklySchedule(_jobTypeEnum, _weekStart);
         if (res.IsSuccess && res.Value != null)
         {
             _weekData = res.Value;
             _byDay = _weekData
-                .GroupBy(x => DateOnly.FromDateTime(x.Schedule.Start))
-                .ToDictionary(g => g.Key, g => g.ToList());
+                .GroupBy(x => x.Date)
+                .ToDictionary(g => g.Key, f => f.SelectMany(x => x.Schedules).ToList());
         }
         else
             _snackbar.Add(res.ErrorDescription ?? "Failed to load week schedule", Severity.Error);
+
         base.IsLoading = false;
     }
 
@@ -126,6 +110,4 @@ public partial class ScheduleWeekView
         return _byDay.TryGetValue(day, out List<WeeklyScheduleDto>? list) ? list : [];
     }
 
-    private static string TimeRange(DateTime start, DateTime end) =>
-        $"{start:HH:mm}–{end:HH:mm}";
 }

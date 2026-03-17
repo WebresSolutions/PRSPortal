@@ -7,10 +7,11 @@ using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Components.ScheduleComponents;
 
-public partial class ViewScheduleIndividualDialog
+public partial class ViewEditSchedule
 {
     [Parameter]
     public required CustomCalendarItem CalendarItem { get; set; }
+
     [CascadingParameter]
     private IMudDialogInstance? MudDialog { get; set; }
 
@@ -30,10 +31,10 @@ public partial class ViewScheduleIndividualDialog
 
         _UpdateScheduleDto = new()
         {
-            Start = CalendarItem.Start,
-            End = CalendarItem.End ?? CalendarItem.Start,
+            Start = TimeOnly.FromDateTime(CalendarItem.Start),
+            End = TimeOnly.FromDateTime(CalendarItem.End ?? CalendarItem.Start),
             ColourId = CalendarItem.ColourId,
-            Description = CalendarItem.Text,
+            Notes = CalendarItem.Text,
             TrackId = CalendarItem.TrackId,
             Id = CalendarItem.ScheduleItemId,
             JobId = CalendarItem.JobId
@@ -70,10 +71,10 @@ public partial class ViewScheduleIndividualDialog
             return;
         }
 
-        DateTime date = _UpdateScheduleDto.Start.Date;
-        _UpdateScheduleDto.Start = new DateTime(date.Year, date.Month, date.Day, _timeFrom.Hours, _timeFrom.Minutes, 0);
-        _UpdateScheduleDto.End = new DateTime(date.Year, date.Month, date.Day, _timeTo.Hours, _timeTo.Minutes, 0);
+        _UpdateScheduleDto.Start = new TimeOnly(_timeFrom.Hours, _timeFrom.Minutes, 0);
+        _UpdateScheduleDto.End = new TimeOnly(_timeTo.Hours, _timeTo.Minutes, 0);
         _UpdateScheduleDto.ColourId = _selectedScheduleColour.ScheduleColourId;
+
         Result<int> res = await _apiService.UpdateSchedule(_UpdateScheduleDto);
         if (res.IsSuccess)
         {
@@ -81,5 +82,11 @@ public partial class ViewScheduleIndividualDialog
         }
         else
             _snackbar.Add("Failed to save schedule", Severity.Error);
+    }
+
+    private void OnJobSelected(ListJobDto? job)
+    {
+        _UpdateScheduleDto.JobId = job?.JobId;
+        _selectedJob = job;
     }
 }

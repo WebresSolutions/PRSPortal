@@ -1,4 +1,6 @@
-﻿namespace Portal.Shared.DTO.Job;
+﻿using Portal.Shared.Helpers;
+
+namespace Portal.Shared.DTO.Job;
 
 /// <summary>
 /// Data transfer object representing a job site visit
@@ -10,14 +12,15 @@ public class JobSiteVisitsDto
     /// Gets or sets the unique identifier for the schedule entry
     /// </summary>
     public int ScheduleId { get; set; }
+    public DateOnly TrackDate { get; set; }
     /// <summary>
     /// Gets or sets the start date and time of the site visit
     /// </summary>
-    public DateTime Start { get; set; }
+    public TimeOnly Start { get; set; }
     /// <summary>
     /// Gets or sets the end date and time of the site visit
     /// </summary>
-    public DateTime End { get; set; }
+    public TimeOnly End { get; set; }
     /// <summary>
     /// Gets or sets the array of assignee names for the site visit
     /// </summary>
@@ -48,4 +51,7 @@ public class JobSiteVisitsDto
     {
         return $"{Start:H:mm} - {End:H:mm}";
     }
+
+    public DateTime StartAsDateTime() => DateTimeBuilder.AsDateTime(this.TrackDate, this.Start);
+    public DateTime EndAsDateTime() => DateTimeBuilder.AsDateTime(this.TrackDate, this.End);
 }

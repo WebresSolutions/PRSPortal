@@ -43,7 +43,7 @@
         <div class="scheduler-container">
             @foreach (ScheduleTrackDtoWithCalendar slot in _scheduleSlots)
             {
-                <ViewScheduleTrack Track="slot" Users="_users" JobTypeId="JobType ?? 0" OnUpdate="LoadSchedule" />
+                <ViewScheduleTrack Track="slot" Users="_users" JobTypeId="JobType ?? 0" OnUpdate="LoadSchedule"/>
             }
         </div>
     }

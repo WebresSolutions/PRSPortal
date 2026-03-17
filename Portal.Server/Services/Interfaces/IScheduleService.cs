@@ -48,6 +48,6 @@ public interface IScheduleService
     /// <param name="jobType">The job type</param>
     /// <param name="weekDay">The weekday to get the schedule for</param>
     /// <returns>An array of schedules for the week</returns>
-    Task<Result<WeeklyScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay);
+    Task<Result<WeeklyGroupedByScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay);
     Task<Result<int>> DeleteTrack(HttpContext context, int id);
 }

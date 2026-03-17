@@ -11,9 +11,9 @@
         <Content>
             <div class="header-left">
                 <div class="header-content">
+                    <h1>Schedule week – @_jobTypeEnum.GetDisplayName()</h1>
                     @if (!base.IsLoading)
                     {
-                        <h1>Schedule week – @_jobTypeEnum.GetDisplayName()</h1>
                         <div class="header-info">
                             <span>@_weekStart.ToString("ddd d MMM") – @_weekEnd.ToString("ddd d MMM yyyy")</span>
                         </div>
@@ -21,16 +21,13 @@
                 </div>
             </div>
             <div class="header-right">
-                @if (!base.IsLoading)
-                {
-                    <StatusBadge statusEnum="_jobTypeEnum" OnClick="@(() => SwapJobType())" />
-                    <div class="header-controls">
-                        <div class="d-flex flex-row gap-2 align-content-center">
-                            <ButtonIcon Icon="bi bi-arrow-left" Title="Previous week" OnClick="PreviousWeek" />
-                            <ButtonIcon Icon="bi bi-arrow-right" Title="Next week" OnClick="NextWeek" />
-                        </div>
+                <StatusBadge statusEnum="_jobTypeEnum" OnClick="@(() => SwapJobType())" />
+                <div class="header-controls">
+                    <div class="d-flex flex-row gap-2 align-content-center">
+                        <ButtonIcon Icon="bi bi-arrow-left" Title="Previous week" OnClick="PreviousWeek" />
+                        <ButtonIcon Icon="bi bi-arrow-right" Title="Next week" OnClick="NextWeek" />
                     </div>
-                }
+                </div>
             </div>
         </Content>
     </PageHeader>
@@ -40,36 +37,11 @@
         <div class="week-grid">
             @for (int i = 0; i < 5; i++)
             {
-                var day = _weekStart.AddDays(i);
-                var items = GetItemsForDay(day);
-                <div class="week-day-column">
-                    <div class="week-day-header"><a title="View Day" class="contact-link" href=@($"/schedule/{day.ToString("yyyy-MM-dd")}/{(int)JobType!}")>@day.ToString("ddd")</a><br /><small>@day.ToString("d MMM")</small></div>
-                    <div class="week-day-items">
-                        @foreach (var entry in items.OrderBy(x => x.Schedule.Start))
-                        {
-                            <div class="week-item" style="border-left: 4px solid @(entry.Schedule.Colour?.ColourHex ?? "#ccc")">
-                                <span class="week-item-time">@TimeRange(entry.Schedule.Start, entry.Schedule.End)</span>
-                                @if (!string.IsNullOrWhiteSpace(entry.Schedule.Description))
-                                {
-                                    <span class="week-item-desc">@entry.Schedule.Description</span>
-                                }
-                                @if (entry.Schedule.Job != null)
-                                {
-                                    <span>
-                                        <b>Job: </b>
-                                        <a href="/jobs/@entry.Schedule.Job.JobId" class="week-item-job">@entry.Schedule.Job.JobNumber</a>
-                                    </span>
-                                }
-                            </div>
-                        }
-                    </div>
-                </div>
+                DateOnly day = _weekStart.AddDays(i);
+                List<WeeklyScheduleDto> items = GetItemsForDay(day);
+                <ScheduleWeekDay Day="day" Items="items" JobType="(JobTypeEnum)_jobTypeEnum"/>
             }
         </div>
-    }
-    else
-    {
-        @* <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" /> *@
     }
 </div>
 
@@ -117,64 +89,6 @@
         gap: 0.5rem;
         margin-top: 1rem;
     }
-
-    .week-day-column {
-        background: var(--color-white);
-        border-radius: var(--border-rad);
-        border: 1px solid var(--color-grey);
-        min-height: 200px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .week-day-header {
-        padding: 0.5rem;
-        font-weight: 600;
-        color: var(--color-primary);
-        border-bottom: 1px solid var(--color-grey);
-        text-align: center;
-    }
-
-        .week-day-header small {
-            font-weight: 400;
-            color: #64748b;
-        }
-
-    .week-day-items {
-        padding: 0.5rem;
-        flex: 1;
-        overflow-y: auto;
-    }
-
-    .week-item {
-        padding: 0.35rem 0.5rem;
-        margin-bottom: 0.35rem;
-        background: var(--color-background);
-        border-radius: 6px;
-        font-size: 0.85rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.15rem;
-    }
-
-    .week-item-time {
-        font-weight: 600;
-        color: var(--color-primary);
-    }
-
-    .week-item-desc {
-        color: #334155;
-    }
-
-    .week-item-job {
-        color: var(--color-secondary);
-        text-decoration: none;
-    }
-
-        .week-item-job:hover {
-            text-decoration: underline;
-        }
-
     @@media (max-width: 900px) {
         .week-grid {
             grid-template-columns: repeat(2, 1fr);

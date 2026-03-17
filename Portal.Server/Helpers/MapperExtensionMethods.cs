@@ -15,10 +15,9 @@ public static class MapperExtensionMethods
         {
             Id = dto.Id,
             JobId = dto.JobId,
-            Notes = dto.Description,
-            // Store as UTC kind so PostgreSQL accepts it, but do not convert - 7am stays 7am for everyone
-            StartTime = DateTime.SpecifyKind(dto.Start, DateTimeKind.Utc),
-            EndTime = DateTime.SpecifyKind(dto.End, DateTimeKind.Utc),
+            Notes = dto.Notes,
+            StartTime = dto.Start,
+            EndTime = dto.End,
             ScheduleTrackId = dto.TrackId,
             ScheduleColourId = dto.ColourId,
             DeletedAt = dto.Delete ? DateTime.UtcNow : null

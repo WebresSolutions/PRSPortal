@@ -51,6 +51,9 @@
     [Parameter]
     public bool ShowBorderBottom { get; set; } = true;
 
+    [Parameter]
+    public bool Center { get; set; } = false;
+
     private TabTypeEnum SelectedTab;
 
     private async Task TabChanged(TabTypeEnum tab)
@@ -78,7 +81,7 @@
 <style>
     .card-header-with-tabs {
         display: flex;
-        justify-content: space-between;
+        justify-content: @(Center ? "center" : "space-between");
         align-items: center;
         width: 100%;
         margin-bottom: @(ShowBorderBottom ? "1rem" : "none");

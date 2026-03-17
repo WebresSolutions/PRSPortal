@@ -114,6 +114,10 @@ ul {
     color: seagreen;
 }
 
+.cursor-pointer {
+    cursor: pointer;
+}
+
 .btn-primary {
     color: #fff;
     background-color: #1b6ec2;

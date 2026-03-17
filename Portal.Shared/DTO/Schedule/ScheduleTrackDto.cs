@@ -24,4 +24,6 @@ public class ScheduleTrackDto
     /// Gets or sets the list of users assigned to this schedule slot
     /// </summary>
     public List<UserDto> AssignedUsers { get; set; } = [];
+
+
 }

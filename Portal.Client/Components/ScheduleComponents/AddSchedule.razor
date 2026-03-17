@@ -1,0 +1,145 @@
+﻿@inherits BaseDataComponent
+
+@using Portal.Shared.DTO.Job
+<MudDialog>
+    <DialogContent>
+        <div class="header-border d-flex flex-row justify-content-between">
+            <h4 class="">Schedule</h4> <ButtonIcon Icon="bi bi-pen" />
+        </div>
+        @if (!base.IsLoading)
+        {
+            <EditForm Model="_UpdateScheduleDto" OnValidSubmit="OnSave">
+                <div class="item-container border-rad">
+                    <div class="time-selectors">
+                        <div>
+                            <label>From:</label>
+                            <MudTimePicker Variant="Variant.Outlined"
+                                           Time="@_timeFrom" TimeChanged="@((x) => _timeFrom = x!.Value)" />
+                        </div>
+                        <div>
+                            <label>To:</label>
+                            <MudTimePicker Variant="Variant.Outlined"
+                                           Time="@_timeTo" TimeChanged="@((x) => _timeTo = x!.Value)" />
+                        </div>
+                    </div>
+
+                    @*                 <div class="item-row">
+                    <span class="item-label">Colour</span>
+                    <span class="item-value">@CalendarItem.Colour</span>
+                </div> *@
+                    <div>
+                        <label>Job: </label>
+                        <MudAutocomplete DebounceInterval="200" Clearable=true T="ListJobDto" Dense="true" SearchFunc="@((x, y) => GetJobsFromSearch(x))" ToStringFunc="@((x) => x.ToString())" Variant="Variant.Outlined" ValueChanged="@OnJobSelected" Value="_selectedJob">
+                            <MoreItemsTemplate>
+                                <div class="d-flex justify-content-center">
+                                    <small>
+                                        Only the first 50 items are shown
+                                    </small>
+                                </div>
+                            </MoreItemsTemplate>
+                        </MudAutocomplete>
+                    </div>
+                    <div>
+                        <label for="description">Description: </label>
+                        <MudTextField name="description" T="string" Variant="Variant.Outlined"  Lines="4" @bind-Value="_UpdateScheduleDto.Notes" />
+                    </div>
+                </div>
+                <div class="d-flex justify-content-center gap-2 flex-row mt-2">
+                    <ButtonIcon Icon="bi bi-save" ButtonType="submit" CssClass="text-green" />
+                    <ButtonIcon Icon="bi bi-x" CssClass="text-red" OnClick="@(() => MudDialog?.Close(DialogResult.Cancel()))" />
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <MudSkeleton Width="350px" Height="350px"/>
+        }
+    </DialogContent>
+</MudDialog>
+
+<style>
+    .item-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        height: 400px;
+        width: 350px;
+        overflow-y: auto;
+        padding: var(--padding);
+        background: var(--color-light-grey);
+    }
+
+    .item-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0.35rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+        .item-row:last-of-type {
+            border-bottom: none;
+            padding-bottom: 0.25rem;
+        }
+
+    .item-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 500;
+        min-width: 100px;
+        flex-shrink: 0;
+    }
+
+    .item-value {
+        font-size: 0.85rem;
+        color: #1e293b;
+        font-weight: 600;
+        text-align: right;
+        flex: 1;
+        word-break: break-word;
+    }
+
+    .view-button {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.7rem !important;
+        min-height: 24px !important;
+        height: 24px !important;
+        min-width: auto !important;
+        width: auto !important;
+        margin: 0 !important;
+    }
+
+    .time-selectors {
+        display: flex;
+        gap: 1rem;
+        margin: 0.5rem 0;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+        .time-selectors .mud-input-control {
+            flex: 1;
+        }
+
+    .calendar-text {
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        max-height: 400px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        border: 1px solid #e2e8f0;
+        min-width: 0;
+    }
+</style>
+
+
+

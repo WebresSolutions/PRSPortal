@@ -41,6 +41,7 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
                         => new ScheduleDto()
                         {
                             ScheduleId = s.Id,
+                            ScheduleTrackDate = st.Date!.Value,
                             Start = s.StartTime,
                             End = s.EndTime,
                             Description = s.Notes ?? "",
@@ -143,10 +144,10 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
                 existing.ModifiedByUserId = userId;
                 existing.ModifiedOn = DateTime.UtcNow;
                 // Store as UTC kind so PostgreSQL accepts it, but do not convert - 7am stays 7am for everyone
-                existing.StartTime = DateTime.SpecifyKind(data.Start, DateTimeKind.Utc);
-                existing.EndTime = DateTime.SpecifyKind(data.End, DateTimeKind.Utc);
+                existing.StartTime = data.Start;
+                existing.EndTime = data.End;
                 existing.DeletedAt = data.Delete ? DateTime.UtcNow : null;
-                existing.Notes = data.Description;
+                existing.Notes = data.Notes;
                 existing.ScheduleColourId = data.ColourId;
                 existing.JobId = data.JobId;
 
@@ -266,9 +267,9 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
     /// <param name="jobType">Filtered by job type </param>
     /// <param name="weekDay">The day of the week requested</param>
     /// <returns>A result containing the weekly schedule as an array</returns>
-    public async Task<Result<WeeklyScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay)
+    public async Task<Result<WeeklyGroupedByScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay)
     {
-        Result<WeeklyScheduleDto[]> result = new();
+        Result<WeeklyGroupedByScheduleDto[]> result = new();
         try
         {
             // If null set the date to now
@@ -276,7 +277,7 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
             DateOnly monday = GetMondayFromDate(weekDay!.Value);
             DateOnly endOfWeek = monday.AddDays(7);
 
-            result.Value = await _prsDbContext.Schedules
+            WeeklyScheduleDto[] schedules = await _prsDbContext.Schedules
                 .AsSplitQuery()
                 .Where(x =>
                     x.DeletedAt == null
@@ -288,7 +289,10 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
                 .Select(s =>
                     new WeeklyScheduleDto()
                     {
-                        AssignedUsers = s.ScheduleTrack.ScheduleUsers.Select(su => new UserDto(su.UserId, su.User.DisplayName)).ToArray(),
+                        TrackDate = s.ScheduleTrack.Date!.Value,
+                        AssignedUsers = s.ScheduleTrack.ScheduleUsers
+                            .Select(su => new UserDto(su.UserId, su.User.DisplayName))
+                            .ToArray(),
                         ScheduleTrackId = s.ScheduleTrackId,
                         Schedule = new ScheduleDto()
                         {
@@ -319,6 +323,18 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
                         }
                     })
                 .ToArrayAsync();
+
+            WeeklyGroupedByScheduleDto[] groupedByDay = [.. schedules
+                .GroupBy(x => x.TrackDate)
+                .Select(y => new WeeklyGroupedByScheduleDto()
+                {
+                    Schedules = [.. y],
+                    Date = y.Key,
+                    DayOfWeek = y.Key.DayOfWeek
+                }
+                ).OrderBy(x => x.Date)];
+
+            result.Value = groupedByDay;
 
             return result;
         }

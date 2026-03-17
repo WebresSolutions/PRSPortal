@@ -13,13 +13,13 @@ public class UpdateScheduleDto
     /// <summary>
     /// Gets or sets the start date and time of the schedule
     /// </summary>
-    public DateTime Start { get; set; }
+    public TimeOnly Start { get; set; }
 
     [Required]
     /// <summary>
     /// Gets or sets the end date and time of the schedule
     /// </summary>
-    public DateTime End { get; set; }
+    public TimeOnly End { get; set; }
 
     [Required]
     /// <summary>
@@ -35,7 +35,7 @@ public class UpdateScheduleDto
     /// <summary>
     /// Gets or sets the description or notes for the schedule
     /// </summary>
-    public string Description { get; set; } = string.Empty;
+    public string Notes { get; set; } = string.Empty;
 
     public bool Delete { get; set; }
 }

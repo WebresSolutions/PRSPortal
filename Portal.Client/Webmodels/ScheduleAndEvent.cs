@@ -21,8 +21,8 @@ public class ScheduleTrackDtoWithCalendar : ScheduleTrackDto
     {
         Events = [.. base.Schedule.Select(s => new CustomCalendarItem
         {
-            Start = s.Start,
-            End = s.End,
+            Start =  s.StartAsDateTime(),
+            End = s.EndAsDateTime(),
             Text = s.Description,
             Colour = s.Colour.ColourHex,
             JobNumber = s.Job?.JobNumber,

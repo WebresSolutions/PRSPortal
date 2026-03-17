@@ -117,12 +117,12 @@ public static class ScheduleEndpoints
             [FromQuery] DateOnly? weekDay
             ) =>
         {
-            Result<WeeklyScheduleDto[]> result = await schService.GetWeeklySchedule(jobType, weekDay);
+            Result<WeeklyGroupedByScheduleDto[]> result = await schService.GetWeeklySchedule(jobType, weekDay);
             return EndpointsHelper.ProcessResult(result, "An error occurred while loading the weekly schedule");
         })
             .WithSummary("Get weekly schedule")
             .WithDescription("Returns all schedule entries for the week containing the given date (or current week if weekDay is omitted), filtered by job type.")
-            .Produces<WeeklyScheduleDto[]>();
+            .Produces<WeeklyGroupedByScheduleDto[]>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

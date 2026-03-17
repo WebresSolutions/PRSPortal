@@ -587,9 +587,9 @@ public class ApiService : IApiService
     /// <summary>
     /// Gets the weekly schedule for the given job type, optionally for the week containing the specified day.
     /// </summary>
-    public async Task<Result<WeeklyScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay = null)
+    public async Task<Result<WeeklyGroupedByScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay = null)
     {
-        Result<WeeklyScheduleDto[]> res = new();
+        Result<WeeklyGroupedByScheduleDto[]> res = new();
         try
         {
             Dictionary<string, string> queryParams = new()
@@ -606,8 +606,8 @@ public class ApiService : IApiService
                 await NavigationToLoginPage();
             if (response.IsSuccessStatusCode)
             {
-                WeeklyScheduleDto[]? data = await response.Content.ReadFromJsonAsync<WeeklyScheduleDto[]>();
-                res.Value = data ?? Array.Empty<WeeklyScheduleDto>();
+                WeeklyGroupedByScheduleDto[]? data = await response.Content.ReadFromJsonAsync<WeeklyGroupedByScheduleDto[]>();
+                res.Value = data ?? [];
             }
             else
             {

@@ -914,8 +914,8 @@ internal class MigrationService(
                     {
                         ScheduleColourId = color.Id,
                         ScheduleTrackId = scheduleTrack.Id,
-                        StartTime = Helpers.GetValidDateWithTimezone(scheduleOld.StartTime),
-                        EndTime = Helpers.GetValidDateWithTimezone(scheduleOld.EndTime),
+                        StartTime = TimeOnly.FromDateTime(scheduleOld.StartTime),
+                        EndTime = TimeOnly.FromDateTime(scheduleOld.EndTime),
                         CreatedByUserId = 95,
                         CreatedOn = Helpers.GetValidDateWithTimezone(scheduleOld.Created),
                         JobId = _jobsCache!.GetValueOrDefault(scheduleOld.JobId)?.Id,

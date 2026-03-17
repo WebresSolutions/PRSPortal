@@ -72,10 +72,10 @@ public sealed class ScheduleEndpointTests
         {
             Id = 0,
             TrackId = 99999,
-            Start = DateTime.UtcNow.Date.AddHours(8),
-            End = DateTime.UtcNow.Date.AddHours(17),
+            Start = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(8)),
+            End = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(17)),
             ColourId = 1,
-            Description = "Test"
+            Notes = "Test"
         };
         HttpResponseMessage response = await _client.PutAsJsonAsync("/api/schedule", dto);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -99,10 +99,10 @@ public sealed class ScheduleEndpointTests
         {
             Id = 0,
             TrackId = slots[0].TrackId,
-            Start = DateTime.UtcNow.Date.AddHours(14),
-            End = DateTime.UtcNow.Date.AddHours(8),
+            Start = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(14)),
+            End = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(8)),
             ColourId = colours[0].ScheduleColourId,
-            Description = "Test"
+            Notes = "Test"
         };
         HttpResponseMessage response = await _client.PutAsJsonAsync("/api/schedule", dto);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -126,10 +126,10 @@ public sealed class ScheduleEndpointTests
         {
             Id = 0,
             TrackId = slots[0].TrackId,
-            Start = DateTime.UtcNow.Date.AddHours(8),
-            End = DateTime.UtcNow.Date.AddHours(21),
+            Start = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(8)),
+            End = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(21)),
             ColourId = colours[0].ScheduleColourId,
-            Description = "Test"
+            Notes = "Test"
         };
         HttpResponseMessage response = await _client.PutAsJsonAsync("/api/schedule", dto);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -155,10 +155,10 @@ public sealed class ScheduleEndpointTests
         {
             Id = 0,
             TrackId = slots[0].TrackId,
-            Start = DateTime.UtcNow.Date.AddHours(8),
-            End = DateTime.UtcNow.Date.AddHours(12),
+            Start = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(8)),
+            End = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(12)),
             ColourId = colours[0].ScheduleColourId,
-            Description = "Integration test schedule"
+            Notes = "Integration test schedule"
         };
         HttpResponseMessage response = await _client.PutAsJsonAsync("/api/schedule", dto);
         Assert.True(response.IsSuccessStatusCode, $"Unexpected status: {response.StatusCode}");
@@ -197,10 +197,10 @@ public sealed class ScheduleEndpointTests
         {
             Id = 0,
             TrackId = trackId,
-            Start = DateTime.UtcNow.Date.AddHours(8),
-            End = DateTime.UtcNow.Date.AddHours(12),
+            Start = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(8)),
+            End = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(12)),
             ColourId = colours[0].ScheduleColourId,
-            Description = "Original description"
+            Notes = "Original description"
         };
         HttpResponseMessage createResponse = await _client.PutAsJsonAsync("/api/schedule", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -209,8 +209,8 @@ public sealed class ScheduleEndpointTests
 
         // Update the schedule
         const string updatedDescription = "Updated by integration test";
-        DateTime updatedStart = DateTime.UtcNow.Date.AddHours(9);
-        DateTime updatedEnd = DateTime.UtcNow.Date.AddHours(14);
+        TimeOnly updatedStart = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(9));
+        TimeOnly updatedEnd = TimeOnly.FromDateTime(DateTime.UtcNow.Date.AddHours(14));
         UpdateScheduleDto updateDto = new()
         {
             Id = scheduleId,
@@ -218,7 +218,7 @@ public sealed class ScheduleEndpointTests
             Start = updatedStart,
             End = updatedEnd,
             ColourId = colourId,
-            Description = updatedDescription
+            Notes = updatedDescription
         };
         HttpResponseMessage updateResponse = await _client.PutAsJsonAsync("/api/schedule", updateDto);
         Assert.True(updateResponse.IsSuccessStatusCode, $"Unexpected status: {updateResponse.StatusCode}");
@@ -292,7 +292,7 @@ public sealed class ScheduleEndpointTests
     public async Task Delete_track_returns_ok_and_soft_deletes()
     {
         // Create a track
-        DateOnly trackDate = new DateOnly(2026, 4, 15);
+        DateOnly trackDate = new(2026, 4, 15);
         UpdateScheduleTrackDto createDto = new()
         {
             ScheduleTrackId = 0,

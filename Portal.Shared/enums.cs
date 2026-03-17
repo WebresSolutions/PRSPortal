@@ -24,6 +24,11 @@ public enum TabTypeEnum
     Active = 8,
     [Display(Name = "To Invoice")]
     ToInvoice = 9,
+    [Display(Name = "Track")]
+    ByTrack = 10,
+    [Display(Name = "Time")]
+    ByDate = 11,
+
 }
 
 

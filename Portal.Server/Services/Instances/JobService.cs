@@ -194,6 +194,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             .Select(s => new JobSiteVisitsDto
             {
                 ScheduleId = s.Id,
+                TrackDate = s.ScheduleTrack.Date!.Value,
                 Assignees = s.ScheduleTrack.ScheduleUsers
                     .Select(su => su.User.DisplayName)
                     .ToArray(),

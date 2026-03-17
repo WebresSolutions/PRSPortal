@@ -1,0 +1,142 @@
+@using Portal.Client.Components.ScheduleComponents
+@using Portal.Shared
+@using Portal.Shared.DTO.Schedule
+@using Portal.Shared.Helpers
+
+<div class="week-day-column">
+    <div class="week-day-header">
+        <a title="View Day" class="contact-link" href=@($"/schedule/{Day.ToString("yyyy-MM-dd")}/{(int)JobType!}")>@Day.ToString("ddd")</a>
+        <br />
+        <small>@Day.ToString("d MMM")</small>
+        <HeaderTabs Tabs="[TabTypeEnum.ByTrack, TabTypeEnum.ByDate]" OnTabSelect="@((x) => _selectedtab = x)" ShowAddButton=false Center="true" ShowBorderBottom="false" />
+    </div>
+    <div class="week-day-items">
+        @if (_selectedtab is TabTypeEnum.ByTrack)
+        {
+            @foreach (KeyValuePair<int, List<WeeklyScheduleDto>> groupByTrackItem in _scheduleGroupedByTrack.OrderBy(x => x.Key))
+            {
+                <div class="week-item-outer border-rad">
+                    @{
+                        string users = string.Join(", ", groupByTrackItem.Value.First().AssignedUsers.Select(u => u.displayName ?? ""));
+                    }
+                    <div>
+                        <b class="contact-link">@users</b>
+                    </div>
+                    @foreach (var entry in groupByTrackItem.Value)
+                    {
+                        <div class="week-item" style="border-left: 4px solid @(entry.Schedule.Colour?.ColourHex ?? "#ccc")">
+                            <b class="contact-link cursor-pointer" @onclick="@(() => OpenDialogAsync(entry))">View</b>
+                            <span class="week-item-time">@DateTimeBuilder.TimeRange(entry.Schedule.Start, entry.Schedule.End)</span>
+                            @if (!string.IsNullOrWhiteSpace(entry.Schedule.Description))
+                            {
+                                <span class="week-item-desc">@entry.Schedule.Description</span>
+                            }
+                            @if (entry.Schedule.Job != null)
+                            {
+                                <span>
+                                    <b>
+                                        Job:
+                                        <a href="/jobs/@entry.Schedule.Job.JobId" class="week-item-job">@entry.Schedule.Job.JobNumber</a>
+                                    </b>
+                                </span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            foreach (WeeklyScheduleDto entry in Items.OrderBy(x => x.Schedule.Start))
+            {
+                <div class="week-item" style="border-left: 4px solid @(entry.Schedule.Colour?.ColourHex ?? "#ccc")">
+                    <b class="contact-link cursor-pointer" @onclick="@(() => OpenDialogAsync(entry))">View</b>
+                    <span class="week-item-time">@DateTimeBuilder.TimeRange(entry.Schedule.Start, entry.Schedule.End)</span>
+                    @if (!string.IsNullOrWhiteSpace(entry.Schedule.Description))
+                    {
+                        <span class="week-item-desc">@entry.Schedule.Description</span>
+                    }
+                    @if (entry.Schedule.Job != null)
+                    {
+                        <span>
+                            <b>
+                                Job:
+                                <a href="/jobs/@entry.Schedule.Job.JobId" class="week-item-job">@entry.Schedule.Job.JobNumber</a>
+                            </b>
+                        </span>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+
+
+
+<style>
+
+    .week-day-column {
+        background: var(--color-white);
+        border-radius: var(--border-rad);
+        border: 1px solid var(--color-grey);
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .week-day-header {
+        padding: 0.5rem;
+        font-weight: 600;
+        color: var(--color-primary);
+        border-bottom: 1px solid var(--color-grey);
+        text-align: center;
+    }
+
+        .week-day-header small {
+            font-weight: 400;
+            color: #64748b;
+        }
+
+    .week-day-items {
+        padding: 0.5rem;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .week-item {
+        padding: 0.35rem 0.5rem;
+        margin-bottom: 0.35rem;
+        background: var(--color-background);
+        border-radius: 6px;
+        font-size: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+
+    .week-item-outer {
+        padding: 10px;
+        margin-top: 10px;
+        background: var(--color-light-grey)
+    }
+
+    .week-item-time {
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .week-item-desc {
+        color: #334155;
+    }
+
+    .week-item-job {
+        color: var(--color-secondary);
+        text-decoration: none;
+    }
+
+        .week-item-job:hover {
+            text-decoration: underline;
+        }
+
+</style>

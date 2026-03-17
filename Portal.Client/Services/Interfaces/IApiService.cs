@@ -147,7 +147,7 @@ public interface IApiService
     /// <param name="jobType">The job type to filter by.</param>
     /// <param name="weekDay">Optional date; if omitted, the current week is used.</param>
     /// <returns>The weekly schedule entries.</returns>
-    Task<Result<WeeklyScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay = null);
+    Task<Result<WeeklyGroupedByScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay = null);
     /// <summary>
     /// Soft deletes a schedule track
     /// </summary>

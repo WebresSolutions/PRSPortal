@@ -36,9 +36,17 @@ public partial class ViewScheduleTrack
     /// </summary>
     /// <param name="trackId">The schedule track identifier</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    private async Task AddNewSchedule(int trackId)
+    private async Task AddNewSchedule()
     {
+        DialogParameters parameter = new DialogParameters<int> { { "TrackId", Track.TrackId } };
+        DialogOptions options = new() { CloseButton = false, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
 
+        IDialogReference res = await _dialog.ShowAsync<AddSchedule>("", parameter, options);
+        int? returnVal = await res.GetReturnValueAsync<int?>();
+        if (returnVal is not null)
+        {
+            await OnUpdate.InvokeAsync();
+        }
     }
 
     private void OnSelectedUsersChanged(IEnumerable<UserDto> values)
@@ -65,9 +73,7 @@ public partial class ViewScheduleTrack
 
     private async Task OpenDialogAsync(CustomCalendarItem cal)
     {
-        Console.WriteLine("Opening dialog for calendar item: " + cal?.Text);
-
-        if (cal == null)
+        if (cal is null)
         {
             Console.WriteLine("Calendar item is null!");
             return;
@@ -76,7 +82,12 @@ public partial class ViewScheduleTrack
         DialogParameters parameter = new DialogParameters<CustomCalendarItem> { { "CalendarItem", cal } };
         DialogOptions options = new() { CloseButton = false, CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large };
 
-        IDialogReference _ = await _dialog.ShowAsync<ViewScheduleIndividualDialog>("", parameter, options);
+        IDialogReference res = await _dialog.ShowAsync<ViewEditSchedule>("", parameter, options);
+        int? returnVal = await res.GetReturnValueAsync<int?>();
+        if (returnVal is not null)
+        {
+            await OnUpdate.InvokeAsync();
+        }
     }
 
     private async Task Delete(int id)

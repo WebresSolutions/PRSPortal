@@ -19,12 +19,12 @@ public partial class Schedule
     /// <summary>
     /// Start time of the schedule
     /// </summary>
-    public DateTime StartTime { get; set; }
+    public TimeOnly StartTime { get; set; }
 
     /// <summary>
     /// End time of the schedule
     /// </summary>
-    public DateTime EndTime { get; set; }
+    public TimeOnly EndTime { get; set; }
 
     public int? JobId { get; set; }
 
