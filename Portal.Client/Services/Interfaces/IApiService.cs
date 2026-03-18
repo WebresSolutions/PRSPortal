@@ -202,6 +202,14 @@ public interface IApiService
     /// <returns>A task that represents the asynchronous operation. The task result contains a <see
     /// cref="Result{CouncilDetailsDto}"/> object with the council details if found; otherwise, contains error information.</returns>
     Task<Result<CouncilDetailsDto>> GetCouncilDetails(int councilId);
+    /// <summary>
+    /// Creates a new council with the provided details.
+    /// </summary>
+    Task<Result<int>> CreateCouncil(CouncilCreationDto data);
+    /// <summary>
+    /// Updates an existing council with the provided details.
+    /// </summary>
+    Task<Result<CouncilDetailsDto>> UpdateCouncil(CouncilUpdateDto data);
     #endregion
 
     #region CONTACTS

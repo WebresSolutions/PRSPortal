@@ -1,13 +1,15 @@
-﻿using Heron.MudCalendar;
-
 namespace Portal.Client.Webmodels;
 
 /// <summary>
-/// Custom calendar item with additional job-related properties
-/// Extends the base calendar item with job number and address information
+/// Calendar item with job-related properties for schedule day view (7am–6pm).
 /// </summary>
-public class CustomCalendarItem : CalendarItem
+public class CustomCalendarItem
 {
+    public DateTime Start { get; set; }
+    public DateTime? End { get; set; }
+    public string Text { get; set; } = string.Empty;
+    public bool AllDay { get; set; }
+
     public int ScheduleItemId { get; set; }
     /// <summary>
     /// Gets or sets the color hex code for the calendar item

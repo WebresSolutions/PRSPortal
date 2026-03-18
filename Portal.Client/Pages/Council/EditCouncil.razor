@@ -1,0 +1,121 @@
+@page "/councils/edit/{CouncilId:int}"
+@inherits BaseDataComponent
+@using Portal.Client.Components.JobComponents
+@using Portal.Shared.DTO.Councils
+@using Portal.Shared.DTO.Address
+
+<PageTitle>Edit Council - PRS Portal</PageTitle>
+
+<div class="container">
+    <PageHeader>
+        <Content>
+            <div style="min-width: 150px">
+                <h2>Edit Council</h2>
+            </div>
+            <ButtonIcon Href="@($"/councils/{CouncilId}")" Icon="bi bi-sign-turn-left" />
+        </Content>
+    </PageHeader>
+    <Card>
+        @if (base.IsLoading)
+        {
+            <MudSkeleton Height="600px;" />
+        }
+        else
+        {
+            @if (_model is not null)
+            {
+                <EditForm Model="@_model" class="create-council-form">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-grid">
+                        <div>
+                            <h3 class="form-section-title border-bottom pb-2">Council Details</h3>
+                            <div class="form-sections border-rad">
+                                <div>
+                                    <label for="council-name">Council Name</label>
+                                    <MudTextField name="council-name" @bind-Value="_model.CouncilName" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.CouncilName)" Required="true" />
+                                </div>
+
+                                <div>
+                                    <label for="phone">Phone</label>
+                                    <MudTextField name="phone" @bind-Value="_model.Phone" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.Phone)" />
+                                </div>
+
+                                <div>
+                                    <label for="fax">Fax</label>
+                                    <MudTextField name="fax" @bind-Value="_model.Fax" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.Fax)" />
+                                </div>
+
+                                <div>
+                                    <label for="email">Email</label>
+                                    <MudTextField name="email" @bind-Value="_model.Email" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.Email)" InputType="InputType.Email" />
+                                </div>
+
+                                <div>
+                                    <label for="website">Website</label>
+                                    <MudTextField name="website" @bind-Value="_model.Website" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.Website)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (_model.Address is not null)
+                        {
+                            <EditAddress Address="_model.Address" />
+                        }
+                    </div>
+                    <div class="form-actions">
+                        <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" OnClick="SubmitAsync" Text="Save" />
+                        <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" Href="/councils" Text="Close" />
+                    </div>
+                </EditForm>
+            }
+            @if (_model is null)
+            {
+                <small>Council not found or could not be loaded.</small>
+            }
+        }
+    </Card>
+</div>
+
+<style>
+    .create-council-form {
+        margin: 0;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: calc(2 * var(--padding));
+        align-items: start;
+    }
+
+    .form-sections {
+        display: flex;
+        flex-direction: column;
+        gap: var(--padding);
+        padding: calc(2 * var(--padding));
+        background-color: var(--color-light-grey);
+    }
+
+    .form-section-title {
+        font-size: 1rem;
+        margin: 1rem 0 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+        justify-content: center;
+    }
+
+    @@media (max-width: 900px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .border-rad {
+        border-radius: 8px;
+    }
+</style>

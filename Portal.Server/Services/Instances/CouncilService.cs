@@ -1,5 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using NetTopologySuite.Geometries;
 using Portal.Data;
+using Portal.Data.Models;
+using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Address;
@@ -63,6 +67,7 @@ public class CouncilService(PrsDbContext _dbContext, ILogger<CouncilService> _lo
                     c.Id,
                     c.Name,
                     c.Phone,
+                    c.Fax,
                     c.Email,
                     c.Website,
                     Address = c.Address != null ?
@@ -82,17 +87,17 @@ public class CouncilService(PrsDbContext _dbContext, ILogger<CouncilService> _lo
             if (councilData is null)
                 return result.SetError(ErrorType.NotFound, $"Council not found with Id: {councilId}");
 
-            // Return council details without jobs (jobs loaded separately)
             result.Value = new CouncilDetailsDto(
                 councilData.Id,
                 councilData.Name,
                 councilData.Phone ?? "",
+                councilData.Fax,
                 councilData.Email ?? "",
                 councilData.Website ?? "",
                 councilData.Address,
                 councilData.jobCount,
                 councilData.contactCount
-                ); // Empty list - jobs loaded via separate endpoint
+                );
 
             return result;
         }
@@ -100,6 +105,124 @@ public class CouncilService(PrsDbContext _dbContext, ILogger<CouncilService> _lo
         {
             _logger.LogError(ex, "Failed to get council: {Exception}", ex.Message);
             return result.SetError(ErrorType.InternalError, "An error occured while getting the councils");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<int>> CreateCouncil(HttpContext httpContext, CouncilCreationDto data)
+    {
+        Result<int> result = new();
+        try
+        {
+            string name = (data.CouncilName ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(name))
+                return result.SetError(ErrorType.BadRequest, "Council name is required");
+
+            Address? address = null;
+            if (data.Address is not null)
+            {
+                address = new Address
+                {
+                    Street = data.Address.Street ?? "",
+                    PostCode = data.Address.PostCode ?? "",
+                    Suburb = data.Address.Suburb ?? "",
+                    StateId = (int?)data.Address.State ?? (int)StateEnum.VIC,
+                    CreatedByUserId = httpContext.UserId(),
+                    Country = "AUS"
+                };
+                if (data.Address.LatLng is not null)
+                    address.Geom = new Point(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
+                await _dbContext.Addresses.AddAsync(address);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            Council council = new()
+            {
+                Name = name,
+                Phone = data.Phone?.Trim(),
+                Fax = data.Fax?.Trim(),
+                Email = data.Email?.Trim(),
+                Website = data.Website?.Trim(),
+                AddressId = address?.Id,
+                CreatedByUserId = httpContext.UserId(),
+                CreatedOn = DateTime.UtcNow
+            };
+            await _dbContext.Councils.AddAsync(council);
+            await _dbContext.SaveChangesAsync();
+            return result.SetValue(council.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create council");
+            return result.SetError(ErrorType.InternalError, "Failed to create council");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<CouncilDetailsDto>> UpdateCouncil(HttpContext httpContext, CouncilUpdateDto data)
+    {
+        Result<CouncilDetailsDto> result = new();
+        try
+        {
+            Council? council = await _dbContext.Councils
+                .Include(c => c.Address)
+                .Where(c => c.Id == data.CouncilId && c.DeletedAt == null)
+                .FirstOrDefaultAsync();
+
+            if (council is null)
+                return result.SetError(ErrorType.NotFound, "Council not found");
+
+            string name = (data.CouncilName ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(name))
+                return result.SetError(ErrorType.BadRequest, "Council name is required");
+
+            council.Name = name;
+            council.Phone = data.Phone?.Trim();
+            council.Fax = data.Fax?.Trim();
+            council.Email = data.Email?.Trim();
+            council.Website = data.Website?.Trim();
+            council.ModifiedByUserId = httpContext.UserId();
+            council.ModifiedOn = DateTime.UtcNow;
+
+            if (council.Address is not null && data.Address is not null)
+            {
+                council.Address.Street = data.Address.Street ?? "";
+                council.Address.PostCode = data.Address.PostCode ?? "";
+                council.Address.Suburb = data.Address.Suburb ?? "";
+                council.Address.StateId = (int?)data.Address.State ?? (int)StateEnum.VIC;
+                council.Address.ModifiedByUserId = httpContext.UserId();
+                council.Address.ModifiedOn = DateTime.UtcNow;
+                if (data.Address.LatLng is not null)
+                    council.Address.Geom = new Point(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
+                else
+                    council.Address.Geom = null;
+            }
+            else if (data.Address is not null)
+            {
+                Address newAddress = new()
+                {
+                    Street = data.Address.Street ?? "",
+                    PostCode = data.Address.PostCode ?? "",
+                    Suburb = data.Address.Suburb ?? "",
+                    StateId = (int?)data.Address.State ?? (int)StateEnum.VIC,
+                    CreatedByUserId = httpContext.UserId(),
+                    Country = "AUS"
+                };
+                if (data.Address.LatLng is not null)
+                    newAddress.Geom = new Point(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
+                await _dbContext.Addresses.AddAsync(newAddress);
+                await _dbContext.SaveChangesAsync();
+                council.AddressId = newAddress.Id;
+                council.Address = newAddress;
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return await GetCouncilDetails(council.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update council");
+            return result.SetError(ErrorType.InternalError, "Failed to update council");
         }
     }
 }

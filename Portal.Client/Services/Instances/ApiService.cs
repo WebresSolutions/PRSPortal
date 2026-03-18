@@ -814,7 +814,66 @@ public class ApiService : IApiService
         catch (Exception ex)
         {
             Console.WriteLine($"Exception: {ex.Message}");
-            // Handle exception
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Creates a new council with the provided details.
+    /// </summary>
+    public async Task<Result<int>> CreateCouncil(CouncilCreationDto data)
+    {
+        Result<int> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/councils", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                int? id = await response.Content.ReadFromJsonAsync<int>();
+                if (id.HasValue)
+                    res.Value = id.Value;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to create council";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Updates an existing council with the provided details.
+    /// </summary>
+    public async Task<Result<CouncilDetailsDto>> UpdateCouncil(CouncilUpdateDto data)
+    {
+        Result<CouncilDetailsDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync("api/councils", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                CouncilDetailsDto? council = await response.Content.ReadFromJsonAsync<CouncilDetailsDto>();
+                if (council is not null)
+                    res.Value = council;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to update council";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
         }
         return res;
     }

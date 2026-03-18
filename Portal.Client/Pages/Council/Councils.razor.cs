@@ -1,4 +1,5 @@
 using MudBlazor;
+using Portal.Shared;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.ResponseModels;
 using Portal.Shared.Web;
@@ -12,6 +13,7 @@ public partial class Councils
     private MudDataGrid<CouncilPartialDto>? _grid;
     private int _currentPage = 0;
     private string _searchString = string.Empty;
+    private bool _showDeleted;
 
     #region Constants
     private const string _CouncilsSessionKey = "CouncilsListSession";
@@ -191,5 +193,15 @@ public partial class Councils
             return _grid!.ReloadServerData();
 
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Handles tab selection (All / Deleted). Reloads grid when tab changes.
+    /// </summary>
+    private async Task ShowDelete(TabTypeEnum tab)
+    {
+        _showDeleted = tab is TabTypeEnum.Deleted;
+        if (_grid is not null)
+            await _grid.ReloadServerData();
     }
 }

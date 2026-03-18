@@ -8,7 +8,7 @@
 
 <PageTitle>Schedule - PRS Portal</PageTitle>
 
-<div class="container">
+<div class="wide-container">
     <!-- Header -->
     <PageHeader>
         <Content>
@@ -21,7 +21,7 @@
                             @_jobTypeEnum.GetDisplayName()
                         </h1>
                         <div class="header-info">
-                            <span><a class="contact-link" title="View Week" href=@($"week/{_dateTime.ToString("yyyy-MM-dd")}")>@_dateTime.ToString("dddd, MMMM d, yyyy")</a></span>
+                            <span><a class="contact-link" title="View Week" href=@($"week/{_dateTime.ToString("yyyy-MM-dd")}/{(int)_jobTypeEnum}")>@_dateTime.ToString("dddd, MMMM d, yyyy")</a></span>
                         </div>
                     }
                 </div>
@@ -183,10 +183,21 @@
     }
 
     .scheduler-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr) );
-        grid-gap: 10px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 10px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 8px;
+        min-height: 0;
     }
+
+        .scheduler-container .track-container {
+            flex: 0 0 auto;
+            min-width: 320px;
+            max-width: 380px;
+        }
 
     .schedule-users {
         height: fit-content;
@@ -214,9 +225,8 @@
     }
 
     @@media (max-width: 800px) {
-        .scheduler-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr) );
+        .scheduler-container .track-container {
+            min-width: 280px;
         }
     }
 </style>

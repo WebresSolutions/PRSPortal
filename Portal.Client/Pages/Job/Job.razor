@@ -74,9 +74,31 @@ else
                         </div>
                     </ChildContent>
                 </Card>
-
                 <!-- Job Info -->
                 <JobInfo Job="@_job" />
+                @if (_job.Address?.LatLng is not null)
+                {
+                    <Card Title="Map">
+                        <ChildContent>
+                            <AdvancedGoogleMap @ref="@_map" Id="map1" Options="@_mapOptions" CssClass="border-rad" Height="300px">
+                                @foreach (MarkerData marker in _markers)
+                                {
+                                    <MarkerComponent @key="marker.Id"
+                                                     Lat="@marker.Lat"
+                                                     Lng="@marker.Lng"
+                                                     Clickable="@marker.Clickable"
+                                                     Draggable="@marker.Draggable"
+                                                     OnClick="@(() => marker.Active = !marker.Active)">
+                                        <div class="custom-marker border-rad">
+                                            <b>@marker.Title</b>
+                                        </div>
+                                    </MarkerComponent>
+                                }
+                            </AdvancedGoogleMap>
+                        </ChildContent>
+                    </Card>
+                }
+                <Portal.Client.Components.Files.ViewFiles JobId="JobId" Files="_job.JobFiles" OnFilesEdited="LoadJobData" />
 
                 <JobTimeSheets TimeSheetsList="_job.TimeSheets" Job="_job" OnSaved="LoadJobData" />
 
@@ -96,80 +118,10 @@ else
 
             <div class="main-content">
                 <!-- Right Sidebar -->
-                <div class="sidebar">
+                <div class="visits-invoices">
                     <!-- Files-->
-                    <Portal.Client.Components.Files.ViewFiles JobId="JobId" Files="_job.JobFiles" OnFilesEdited="LoadJobData"/>
                     <!-- Site Visits -->
                     <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" JobType="@_job.JobType" />
-                    <!-- Notes -->
-                    <JobNotes JobId="JobId" />
-                </div>
-                <!-- Main Content -->
-                <div class="content-area">
-                    @if (_job.Address?.LatLng is not null)
-                    {
-                        <Card Title="Map">
-                            <ChildContent>
-                                <AdvancedGoogleMap @ref="@_map" Id="map1" Options="@_mapOptions" CssClass="border-rad" Height="300px">
-                                    @foreach (MarkerData marker in _markers)
-                                    {
-                                        <MarkerComponent @key="marker.Id"
-                                                         Lat="@marker.Lat"
-                                                         Lng="@marker.Lng"
-                                                         Clickable="@marker.Clickable"
-                                                         Draggable="@marker.Draggable"
-                                                         OnClick="@(() => marker.Active = !marker.Active)">
-                                            <div class="custom-marker border-rad">
-                                                <b>@marker.Title</b>
-                                            </div>
-                                        </MarkerComponent>
-                                    }
-                                </AdvancedGoogleMap>
-                            </ChildContent>
-                        </Card>
-                    }
-                    <!-- Technical Contacts -->
-                    <TechnicalContacts JobId="JobId" />
-
-                    <!-- Tasks -->
-                    <Card HeaderTitle="Tasks" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Active, TabTypeEnum.ToInvoice, TabTypeEnum.Deleted]">
-                        <ChildContent>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Task</th>
-                                        <th>Quoted Price</th>
-                                        <th>Active Date</th>
-                                        <th>Completed Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if (_job.Tasks.Count == 0)
-                                    {
-                                        <tr>
-                                            <td colspan="5" class="empty-state">No records</td>
-                                        </tr>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var task in _job.Tasks)
-                                        {
-                                            <tr>
-                                                <td>@task.InvoiceRequired</td>
-                                                <td>@(task.QuotedPrice is null ? "" : task.QuotedPrice.Value)</td>
-                                                <td>@task.ActiveDate.ToString("dd/MM/yyyy")</td>
-                                                <td>@task.CompletedDate.ToString("dd/MM/yyyy")</td>
-                                                <td>
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
-                                </tbody>
-                            </table>
-                        </ChildContent>
-                    </Card>
-
                     <!-- Invoices -->
                     <Card HeaderTitle="Invoices" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Unsent, TabTypeEnum.Unpaid, TabTypeEnum.Overdue, TabTypeEnum.Deleted]">
                         <ChildContent>
@@ -208,8 +160,71 @@ else
                             </table>
                         </ChildContent>
                     </Card>
+                    <!-- Notes -->
+                </div>
+                <div class="other-content">
+                    <JobNotes JobId="JobId" />
+                    <!-- Technical Contacts -->
+                    <div class="tech-contacts">
+                        <TechnicalContacts JobId="JobId" />
+                        <Card Title="Activity">
+                            <ChildContent>
+                                <div class="activity-list">
+                                    <div class="activity-item">
+                                        <div class="activity-title">Last Modified</div>
+                                        <div class="activity-time">@_job.LastModified</div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-title">Modified By</div>
+                                        <div class="activity-time">@_job.LastModifiedBy</div>
+                                    </div>
+                                </div>
+                            </ChildContent>
+                        </Card>
+                    </div>
+                </div>
+                <!-- Tasks -->
+                @* <Card HeaderTitle="Tasks" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Active, TabTypeEnum.ToInvoice, TabTypeEnum.Deleted]">
+                        <ChildContent>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Task</th>
+                                        <th>Quoted Price</th>
+                                        <th>Active Date</th>
+                                        <th>Completed Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (_job.Tasks.Count == 0)
+                                    {
+                                        <tr>
+                                            <td colspan="5" class="empty-state">No records</td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var task in _job.Tasks)
+                                        {
+                                            <tr>
+                                                <td>@task.InvoiceRequired</td>
+                                                <td>@(task.QuotedPrice is null ? "" : task.QuotedPrice.Value)</td>
+                                                <td>@task.ActiveDate.ToString("dd/MM/yyyy")</td>
+                                                <td>@task.CompletedDate.ToString("dd/MM/yyyy")</td>
+                                                <td>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </ChildContent>
+                    </Card>
+ *@
 
-                    <!-- Checklist -->
+
+                @*  <!-- Checklist -->
                     <Card Title="Checklist">
                         <ChildContent>
                             <table class="table">
@@ -239,24 +254,10 @@ else
                                 </tbody>
                             </table>
                         </ChildContent>
-                    </Card>
+                    </Card> *@
 
-                    <!-- Recent Activity -->
-                    <Card Title="Activity">
-                        <ChildContent>
-                            <div class="activity-list">
-                                <div class="activity-item">
-                                    <div class="activity-title">Last Modified</div>
-                                    <div class="activity-time">@_job.LastModified</div>
-                                </div>
-                                <div class="activity-item">
-                                    <div class="activity-title">Modified By</div>
-                                    <div class="activity-time">@_job.LastModifiedBy</div>
-                                </div>
-                            </div>
-                        </ChildContent>
-                    </Card>
-                </div>
+                <!-- Recent Activity -->
+
             </div>
         </div>
     </div>

@@ -1,4 +1,4 @@
-﻿@page "/councils/{CouncilId:int}"
+@page "/councils/{CouncilId:int}"
 @inherits BaseDataComponent
 @using Portal.Shared
 @using Portal.Shared.DTO.Councils
@@ -33,6 +33,7 @@ else
             </div>
             <div class="header-right">
                 <div class="header-actions">
+                    <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/councils/edit/{CouncilId}")" />
                 </div>
             </div>
         </div>

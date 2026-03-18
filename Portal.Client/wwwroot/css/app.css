@@ -35,6 +35,46 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+.wide-container {
+    max-width: 2500px;
+    width: 100%;
+    min-width: 0;
+    margin: 0 auto;
+    padding: 1rem;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+    /* Override Card component styles for this page */
+.wide-container {
+    max-width: 1800px;
+    width: 100%;
+    min-width: 0;
+    margin: 0 auto;
+    padding: 1rem;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+    /* Override Card component styles for this page */
+    .wide-container .card-container {
+        padding: 1.25rem;
+        margin: 0;
+        width: 100%;
+        overflow: visible;
+    }
+
+    /* Sidebar cards must not overflow their flex container */
+    .wide-container .sidebar ::deep .card-container {
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .wide-container ::deep .card-container .container {
+        padding: 0;
+        margin: 0;
+    }
+
 .container {
     margin-left: auto;
     margin-right: auto;
