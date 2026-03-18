@@ -25,7 +25,7 @@
                         <span class="file-upload-label">@(_selectedFile != null ? _selectedFile.Name : "Click or drop file here")</span>
                     </div>
                     <div>
-                        <label for="file-type">File Type</label>
+                        <label for="file-type">File Category</label>
                         <MudSelect name="file-type" T="int" @bind-Value="_file.FileTypeId" Variant="Variant.Outlined">
                             @foreach (FileTypeDto fType in _fileTypes)
                             {

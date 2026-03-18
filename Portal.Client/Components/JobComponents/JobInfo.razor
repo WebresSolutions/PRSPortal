@@ -1,4 +1,5 @@
 @using Portal.Shared.DTO.Job
+@using System.Globalization
 
 <Card Title="Job Information">
     <ChildContent>
@@ -40,12 +41,12 @@
             @if (!string.IsNullOrEmpty(Job.Details))
             {
                 <div class="info-row">
-                    <span class="info-value">@Job.Details</span>
+                    <span class="info-label">@Job.Details</span>
                 </div>
             }
             <div class="info-row">
                 <span class="info-label">Created</span>
-                <span class="info-value">@Job.DateCreated.ToLocalTime().ToString("dd MM yy tt")</span>
+                <span class="info-value">@Job.DateCreated.ToLocalTime().ToString("g", CultureInfo.CreateSpecificCulture("en-AU"))</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Created By</span>

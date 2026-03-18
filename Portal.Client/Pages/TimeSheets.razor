@@ -165,9 +165,10 @@
     }
 
     .week-strip {
-        display: flex;
-        gap: 0.25rem;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.5rem;
+        width: 100%;
     }
 
     .day-view-container {
@@ -177,21 +178,17 @@
     }
 
     .day-view-item {
-        width: 100%;
+            width: 100% !important;
     }
-    
+
         .day-view-item.calendar {
             min-height: 300px;
         }
 
     .day-cell {
-        flex: 1;
-        min-width: 60px;
         text-align: center;
-        padding: 0.5rem;
         border-radius: 8px;
         background: #edf2f7;
-        font-size: 0.8rem;
         cursor: pointer;
         border: 2px solid transparent;
         transition: background 0.2s, border-color 0.2s;
@@ -212,6 +209,7 @@
 
     .day-cell-d {
         font-weight: 700;
+        font-size: 0.95rem;
     }
 
     .day-cell-date {
@@ -252,8 +250,8 @@
         font-size: 0.9rem;
     }
 
-    .timesheet-actions{
-        display:flex;
+    .timesheet-actions {
+        display: flex;
         gap: 4px;
         justify-content: end;
     }
@@ -263,8 +261,14 @@
             width: 100%;
         }
 
+        .week-strip {
+            grid-template-columns: repeat(7, 1fr);
+        }
+
         .day-cell {
-            min-width: 48px;
+            min-height: 48px;
+            padding: 0.6rem 0.25rem;
+            font-size: 0.85rem;
         }
     }
 </style>

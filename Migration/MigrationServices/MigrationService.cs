@@ -373,6 +373,7 @@ internal class MigrationService(
                     ContactId = contact.Id,
                     Council = council,
                     CouncilId = council?.Id,
+                    CreatedOn = oldJob.Created.HasValue ? oldJob.Created.Value.ToUniversalTime() : DateTime.UtcNow,
                     DeletedAt = oldJob.DeletedDate is null ? null : Helpers.GetValidDateWithTimezone(oldJob.DeletedDate),
                     JobColour = jobColours.FirstOrDefault(jc => jc.Color == (oldJob.Colour is not null && oldJob.Colour.StartsWith('#') && oldJob.Colour.Length == 7 ? oldJob.Colour : "#FFFFFF")),
                 };

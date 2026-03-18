@@ -1,5 +1,5 @@
 @using Portal.Shared
-<section class=@($"card-container shadow {CssClass}")>
+<section class=@($"card-container {CssClass}" + (Shadow ? " shadow" : ""))>
     @if (TitleContent is not null)
     {
         @TitleContent
@@ -138,6 +138,10 @@
 
     [Parameter]
     public string ButtonIcon { get; set; } = "bi bi-plus";
+
+    [Parameter]
+    public bool Shadow { get; set; } = true;
+
     #endregion
 
     private bool IsEventSet => TabButtonClick.HasDelegate;

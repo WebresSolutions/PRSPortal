@@ -111,7 +111,47 @@ else
     public RenderFragment? ChildContent { get; set; }
 
     private string IconClass => Icon?.StartsWith("bi ") == true ? Icon : $"bi {Icon}".Trim();
-    private string CssClassString => string.Join(" ", "btn-icon", Small ? "btn-icon-small" : "", CssClass ?? "").Trim();
+    private string CssClassString => string.Join(" ", "custom-btn-icon", Small ? "custom-btn-icon-small" : "", CssClass ?? "").Trim();
 
     private async Task OnClickHandler(MouseEventArgs args) => await OnClick.InvokeAsync(args);
 }
+
+<style>
+    .custom-btn-icon {
+        min-width: 36px;
+        width: fit-content !important;
+        height: 36px;
+        border: none;
+        background: #f1f5f9;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+
+        .custom-btn-icon:hover {
+            background: #e2e8f0;
+        }
+
+    .custom-btn-icon-small {
+        width: 28px;
+        height: 28px;
+        border: none;
+        background: #f1f5f9;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.25rem;
+        transition: background 0.2s;
+    }
+
+        .custom-btn-icon-small:hover {
+            background: #e2e8f0;
+        }
+</style>

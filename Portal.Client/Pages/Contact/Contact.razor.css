@@ -70,60 +70,6 @@
     gap: 0.5rem;
 }
 
-.btn-icon {
-    width: 36px;
-    height: 36px;
-    border: none;
-    background: #f1f5f9;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-}
-
-    .btn-icon:hover {
-        background: #e2e8f0;
-    }
-
-.btn-icon-small {
-    width: 28px;
-    height: 28px;
-    border: none;
-    background: #f1f5f9;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 0.25rem;
-    transition: background 0.2s;
-}
-
-    .btn-icon-small:hover {
-        background: #e2e8f0;
-    }
-
-.btn-add {
-    background: #10b981;
-    color: white;
-    border: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-    .btn-add:hover {
-        background: #059669;
-    }
-
-
 .main-grid {
     display: grid;
     grid-template-columns: 250px 1fr;

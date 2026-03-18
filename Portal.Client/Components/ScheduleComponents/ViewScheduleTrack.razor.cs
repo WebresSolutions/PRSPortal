@@ -60,7 +60,7 @@ public partial class ViewScheduleTrack
         UpdateScheduleTrackDto updateDto = new()
         {
             Date = Track.Day,
-            AssignedUsers = _selectedUsers.Select(x => x.userId ?? 0).ToList(),
+            AssignedUsers = [.. _selectedUsers.Select(x => x.userId ?? 0).Distinct()],
             JobTypeEnum = (JobTypeEnum)JobTypeId,
             ScheduleTrackId = Track.TrackId
         };
