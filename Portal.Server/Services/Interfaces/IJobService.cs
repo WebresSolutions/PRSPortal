@@ -54,7 +54,7 @@ public interface IJobService
     Task<Result<List<JobNoteDto>>> UpdateNote(HttpContext httpContext, JobNoteDto note);
 
     /// <summary>
-    /// 
+    /// Updates a job.
     /// </summary>
     /// <param name="httpContext"></param>
     /// <param name="updateJobDto"></param>

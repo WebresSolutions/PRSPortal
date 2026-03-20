@@ -19,7 +19,9 @@ public partial class JobType
 
     public DateTime CreatedAt { get; set; }
 
-    public virtual ICollection<Job> Jobs { get; set; } = new List<Job>();
+    public virtual ICollection<QuoteTemplate> QuoteTemplates { get; set; } = new List<QuoteTemplate>();
 
     public virtual ICollection<ScheduleTrack> ScheduleTracks { get; set; } = new List<ScheduleTrack>();
+
+    public virtual ICollection<Job> Jobs { get; set; } = new List<Job>();
 }

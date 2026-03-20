@@ -18,7 +18,7 @@ public class JobDetailsDto
     /// </summary>
     [Required(ErrorMessage = "Job number is required")]
     [Range(1, int.MaxValue, ErrorMessage = "Job number must be at least 1")]
-    public int JobNumber { get; set; }
+    public string? JobNumber { get; set; }
     /// <summary>
     /// Details about the job, such as scope, requirements, or any relevant information that provides context for the job.
     /// </summary>
@@ -28,7 +28,7 @@ public class JobDetailsDto
     /// Gets or sets the type of job to be processed.
     /// </summary>
     [Required(ErrorMessage = "Job type is required")]
-    public JobTypeEnum JobType { get; set; }
+    public JobTypeEnum[] JobType { get; set; } = [];
     /// <summary>
     /// Get or set the job colour ID
     /// </summary>

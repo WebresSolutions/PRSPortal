@@ -21,8 +21,7 @@ public sealed class FileEndpointTests
         // Create a job
         JobCreationDto jobDto = new()
         {
-            JobNumber = 778200,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for get file test",
         };

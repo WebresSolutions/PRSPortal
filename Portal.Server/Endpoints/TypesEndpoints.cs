@@ -5,6 +5,7 @@ using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
+using Portal.Shared.DTO.Setting;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.ResponseModels;
 
@@ -19,6 +20,34 @@ public static class TypesEndpoints
     public static void AddTypesEndpoints(this WebApplication app, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/types");
+
+        appGroup.MapGet("all",
+            async ([FromServices] ITypesService typesService) =>
+            {
+                Result<AllSettingsTypesDto> res = await typesService.GetAllSettingsTypes();
+                return EndpointsHelper.ProcessResult(res, "An error occurred loading settings types");
+            })
+            .WithSummary("Get all settings lookup data")
+            .WithDescription("Returns timesheet, contact, job, file, task, technical contact types, job colours, states, schedule colours, and service types in one response.")
+            .Produces<AllSettingsTypesDto>();
+
+        appGroup.MapGet("service",
+            async ([FromServices] ITypesService typesService) =>
+            {
+                Result<ServiceTypeDto[]> res = await typesService.GetServiceTypes();
+                return EndpointsHelper.ProcessResult(res, "An error occurred getting service types");
+            })
+            .WithSummary("Get service types")
+            .WithDescription("Gets the service catalog used on quotes and invoices.")
+            .Produces<ServiceTypeDto[]>();
+        appGroup.MapPut("service",
+            async ([FromServices] ITypesService typesService, [FromBody] ServiceTypeDto dto) =>
+            {
+                Result<ServiceTypeDto> res = await typesService.SaveServiceType(dto);
+                return EndpointsHelper.ProcessResult(res, "An error occurred saving service type");
+            })
+            .WithSummary("Create or update service type")
+            .Produces<ServiceTypeDto>();
 
         appGroup.MapGet("timesheet",
             async ([FromServices] ITypesService typesService) =>

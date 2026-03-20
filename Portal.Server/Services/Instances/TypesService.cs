@@ -8,6 +8,7 @@ using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
+using Portal.Shared.DTO.Setting;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.ResponseModels;
 
@@ -83,6 +84,72 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         return await GetTypesAsync(
             _dbContext.States.Select(x => new StateDto(x.Id, x.Name, x.Abbreviation)),
             "states");
+    }
+
+    public async Task<Result<ServiceTypeDto[]>> GetServiceTypes()
+    {
+        return await GetTypesAsync(
+            _dbContext.ServiceTypes
+                .OrderBy(x => x.ServiceName)
+                .Select(x => new ServiceTypeDto(x.Id, x.Code, x.ServiceName, x.DefaultRate, x.UnitOfMeasure, x.IsActive, x.Description)),
+            "service types");
+    }
+
+    public async Task<Result<AllSettingsTypesDto>> GetAllSettingsTypes()
+    {
+        Result<AllSettingsTypesDto> res = new();
+        try
+        {
+            // Same DbContext cannot run multiple queries concurrently (see EF Core threading notes).
+            TimeTypeDto[] timesheetTypes = await _dbContext.TimesheetEntryTypes
+                .Select(x => new TimeTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
+            ContactTypeDto[] contactTypes = await _dbContext.ContactTypes
+                .Select(x => new ContactTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
+            JobTypeDto[] jobTypes = await _dbContext.JobTypes
+                .Select(x => new JobTypeDto(x.Id, x.Name, x.Abbreviation)).ToArrayAsync();
+            JobColourDto[] jobColours = await _dbContext.JobColours
+                .Select(x => new JobColourDto(x.Id, x.Color)).ToArrayAsync();
+            FileTypeDto[] fileTypes = await _dbContext.FileTypes
+                .Select(x => new FileTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
+            JobTaskTypeDto[] jobTaskTypes = await _dbContext.JobTaskTypes
+                .Where(x => x.DeletedAt == null)
+                .Select(x => new JobTaskTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
+            TechnicalContactTypeDto[] technicalContactTypes = await _dbContext.TechnicalContactTypes
+                .Select(x => new TechnicalContactTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
+            StateDto[] states = await _dbContext.States
+                .Select(x => new StateDto(x.Id, x.Name, x.Abbreviation)).ToArrayAsync();
+            ScheduleColourDto[] scheduleColours = await _dbContext.ScheduleColours
+                .Select(x => new ScheduleColourDto
+                {
+                    ScheduleColourId = x.Id,
+                    ColourHex = x.Color,
+                    Description = x.Description ?? string.Empty
+                }).ToArrayAsync();
+            ServiceTypeDto[] serviceTypes = await _dbContext.ServiceTypes
+                .OrderBy(x => x.ServiceName)
+                .Select(x => new ServiceTypeDto(x.Id, x.Code, x.ServiceName, x.DefaultRate, x.UnitOfMeasure, x.IsActive, x.Description))
+                .ToArrayAsync();
+
+            res.SetValue(new AllSettingsTypesDto
+            {
+                TimesheetTypes = timesheetTypes,
+                ContactTypes = contactTypes,
+                JobTypes = jobTypes,
+                JobColours = jobColours,
+                FileTypes = fileTypes,
+                JobTaskTypes = jobTaskTypes,
+                TechnicalContactTypes = technicalContactTypes,
+                States = states,
+                ScheduleColours = scheduleColours,
+                ServiceTypes = serviceTypes
+            });
+            return res;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get all settings types");
+            return res.SetError(ErrorType.InternalError, "An internal error occurred while loading settings data");
+        }
     }
 
     public async Task<Result<TimeTypeDto>> SaveTimeSheetType(TimeTypeDto dto)
@@ -328,6 +395,67 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         {
             _logger.LogError(ex, "Failed to save technical contact type");
             return res.SetError(ErrorType.InternalError, "An error occurred while saving technical contact type");
+        }
+    }
+
+    public async Task<Result<ServiceTypeDto>> SaveServiceType(ServiceTypeDto dto)
+    {
+        Result<ServiceTypeDto> res = new();
+        try
+        {
+            string serviceName = StringNormalizer.TrimAndTruncate(dto.ServiceName, 150) ?? "";
+            if (string.IsNullOrWhiteSpace(serviceName))
+                return res.SetError(ErrorType.BadRequest, "Service name is required");
+            string? code = StringNormalizer.TrimAndTruncate(dto.Code, 20);
+            if (string.IsNullOrWhiteSpace(code))
+                code = null;
+            string? uom = StringNormalizer.TrimAndTruncate(dto.UnitOfMeasure, 20);
+            if (string.IsNullOrWhiteSpace(uom))
+                uom = null;
+            string? description = StringNormalizer.TrimAndTruncate(dto.Description, 2000);
+            bool isActive = dto.IsActive != false;
+
+            if (code is not null)
+            {
+                bool duplicate = await _dbContext.ServiceTypes.AnyAsync(x => x.Code == code && x.Id != dto.Id);
+                if (duplicate)
+                    return res.SetError(ErrorType.BadRequest, "Code is already in use");
+            }
+
+            if (dto.Id == 0)
+            {
+                var e = new ServiceType
+                {
+                    Code = code,
+                    ServiceName = serviceName,
+                    DefaultRate = dto.DefaultRate,
+                    UnitOfMeasure = uom,
+                    IsActive = isActive,
+                    Description = description
+                };
+                await _dbContext.ServiceTypes.AddAsync(e);
+                await _dbContext.SaveChangesAsync();
+                res.SetValue(new ServiceTypeDto(e.Id, e.Code, e.ServiceName, e.DefaultRate, e.UnitOfMeasure, e.IsActive, e.Description));
+            }
+            else
+            {
+                var e = await _dbContext.ServiceTypes.FindAsync(dto.Id);
+                if (e is null) return res.SetError(ErrorType.BadRequest, "Service type not found");
+                e.Code = code;
+                e.ServiceName = serviceName;
+                e.DefaultRate = dto.DefaultRate;
+                e.UnitOfMeasure = uom;
+                e.IsActive = isActive;
+                e.Description = description;
+                await _dbContext.SaveChangesAsync();
+                res.SetValue(new ServiceTypeDto(e.Id, e.Code, e.ServiceName, e.DefaultRate, e.UnitOfMeasure, e.IsActive, e.Description));
+            }
+            return res;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save service type");
+            return res.SetError(ErrorType.InternalError, "An error occurred while saving service type");
         }
     }
 

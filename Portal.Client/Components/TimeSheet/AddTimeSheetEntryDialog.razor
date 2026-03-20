@@ -160,7 +160,7 @@
         }
         if (EditEntry is null)
         {
-            TimeSheetDto entry = new TimeSheetDto(0, _typeId, start, end, 0, _selectedJob?.JobId, _description, "", 0);
+            TimeSheetDto entry = new TimeSheetDto(0, _typeId, start, end, 0, _selectedJob?.JobId, _description, "", "");
             Result<TimeSheetDto> result = await _apiService.AddTimeSheetEntry(entry);
             if (result.IsSuccess)
             {
@@ -173,7 +173,7 @@
         }
         else
         {
-            EditEntry = new TimeSheetDto(EditEntry.Id, _typeId, start, end, 0, _selectedJob?.JobId, _description, "", 0);
+            EditEntry = new TimeSheetDto(EditEntry.Id, _typeId, start, end, 0, _selectedJob?.JobId, _description, "", "");
             Result<TimeSheetDto> result = await _apiService.UpdateTimeSheet(EditEntry);
             if (result.IsSuccess)
             {

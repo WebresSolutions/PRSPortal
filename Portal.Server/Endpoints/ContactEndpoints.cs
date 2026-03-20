@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
-using Portal.Shared;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.ResponseModels;
 

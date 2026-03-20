@@ -47,8 +47,7 @@ public sealed class TechnicalContactsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobNumber = 888001,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for technical contact tests",
         };
@@ -81,8 +80,7 @@ public sealed class TechnicalContactsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobNumber = 888002,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for update technical contact tests",
         };
@@ -145,8 +143,7 @@ public sealed class TechnicalContactsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobNumber = 888003,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for invalid contact test",
         };

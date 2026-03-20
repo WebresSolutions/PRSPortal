@@ -1,148 +1,355 @@
-﻿
-
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Portal.Data;
+using Portal.Data.Models;
 using Portal.Server.Options;
 using Portal.Server.Services.Interfaces;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using Xero.NetStandard.OAuth2.Api;
+using Xero.NetStandard.OAuth2.Model.PayrollAu;
 
 namespace Portal.Server.Services.Instances;
 
-public class XeroIntegrationService(PrsDbContext db, IOptions<XeroOptions> options, IHttpClientFactory httpClientFactory) : IXeroIntegrationService
+/// <summary>
+/// Handles Xero OAuth2 connection: one-time admin sign-in, store refresh token, provide valid access tokens for the API.
+/// </summary>
+public class XeroIntegrationService(
+    PrsDbContext db,
+    IOptions<XeroOptions> options,
+    IHttpClientFactory httpClientFactory,
+    IMemoryCache cache,
+    IPayrollAuApi payrollAuApi) : IXeroIntegrationService
 {
     private const string TokenEndpoint = "https://identity.xero.com/connect/token";
     private const string ConnectionsEndpoint = "https://api.xero.com/connections";
-    private static readonly TimeSpan AccessTokenRefreshBuffer = TimeSpan.FromMinutes(2); // Refresh 2 min before expiry
+    private const string AuthorizeEndpoint = "https://login.xero.com/identity/connect/authorize";
+    private const string StateCachePrefix = "Xero:State:";
+    private static readonly TimeSpan StateValidFor = TimeSpan.FromMinutes(10);
+
+    private readonly PrsDbContext _db = db;
     private readonly XeroOptions _options = options.Value;
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+    private readonly IMemoryCache _cache = cache;
+    private readonly IPayrollAuApi _payrollAuApi = payrollAuApi;
 
-    //public async Task<XeroConnectionResult?> GetOrRefreshConnectionAsync(int userId, CancellationToken cancellationToken = default)
-    //{
-    //    // Use static token if configured (dev)
-    //    if (!string.IsNullOrEmpty(_options.AccessToken) && !string.IsNullOrEmpty(_options.TenantId))
-    //        return new XeroConnectionResult(_options.AccessToken, _options.TenantId);
+    /// <summary>
+    /// Gets leave applications
+    /// </summary>
+    /// <returns></returns>
+    public async Task<LeaveApplications> GetLeaveApplications()
+    {
+        try
+        {
+            (string? accessToken, string? tenantId) = await GetValidAccessTokenAsync();
+            LeaveApplications result = await _payrollAuApi.GetLeaveApplicationsV2Async(accessToken, tenantId);
+            return result;
+        }
+        catch (Exception)
+        {
 
-    //    //XeroConnection? conn = await _db.XeroConnections.FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
-    //    XeroConnection? conn = null;
-    //    if (conn == null)
-    //        return null;
+            throw;
+        }
+    }
 
-    //    // Refresh if expired or within buffer (Xero: access token 30 min)
-    //    if (conn.ExpiresAtUtc <= DateTime.UtcNow.Add(AccessTokenRefreshBuffer))
-    //    {
-    //        (string? newAccess, string? newRefresh, int expiresIn) = await RefreshTokensAsync(conn.RefreshToken, cancellationToken);
-    //        if (newAccess == null)
-    //            return null; // Refresh failed; user may need to re-connect
 
-    //        conn.AccessToken = newAccess;
-    //        if (!string.IsNullOrEmpty(newRefresh))
-    //            conn.RefreshToken = newRefresh;
-    //        conn.ExpiresAtUtc = DateTime.UtcNow.AddSeconds(expiresIn);
-    //        conn.ModifiedOn = DateTime.UtcNow;
-    //        await db.SaveChangesAsync(cancellationToken);
-    //    }
+    /// <inheritdoc />
+    public string GetAuthorizationUrl(string? state = null)
+    {
+        state ??= GenerateState();
+        _cache.Set(StateCachePrefix + state, true, StateValidFor);
 
-    //    return new XeroConnectionResult(conn.AccessToken, conn.TenantId);
-    //}
+        Dictionary<string, string> query = new()
+        {
+            ["response_type"] = "code",
+            ["client_id"] = _options.ClientId,
+            ["redirect_uri"] = _options.CallbackUri,
+            ["scope"] = _options.Scope,
+            ["state"] = state
+        };
 
-    //public async Task<bool> HasConnectionAsync(int userId, CancellationToken cancellationToken = default)
-    //{
-    //    if (!string.IsNullOrEmpty(_options.AccessToken))
-    //        return true;
-    //    //return await _db.XeroConnections.AnyAsync(c => c.UserId == userId, cancellationToken);
-    //    return true;
-    //}
+        string queryString = string.Join("&", query.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}"));
+        return $"{AuthorizeEndpoint}?{queryString}";
+    }
 
-    //public async Task<(bool Success, string? Error)> SaveConnectionFromCodeAsync(int userId, string code, CancellationToken cancellationToken = default)
-    //{
-    //    (string? accessToken, string? refreshToken, int expiresIn) = await ExchangeCodeForTokensAsync(code, cancellationToken);
-    //    if (accessToken == null)
-    //        return (false, "Failed to exchange code for tokens.");
+    /// <inheritdoc />
+    public async Task<bool> HandleCallbackAsync(HttpContext context, CancellationToken cancellationToken = default)
+    {
+        string? code = context.Request.Query["code"].FirstOrDefault();
+        string? state = context.Request.Query["state"].FirstOrDefault();
+        string? error = context.Request.Query["error"].FirstOrDefault();
 
-    //    HttpClient client = httpClientFactory.CreateClient();
-    //    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-    //    HttpResponseMessage connResponse = await client.GetAsync(ConnectionsEndpoint, cancellationToken);
-    //    if (!connResponse.IsSuccessStatusCode)
-    //        return (false, "Failed to get Xero connections.");
+        if (!string.IsNullOrEmpty(error))
+        {
+            RedirectToFrontend(context, success: false, error);
+            return false;
+        }
 
-    //    string json = await connResponse.Content.ReadAsStringAsync(cancellationToken);
-    //    List<XeroConnectionDto>? connections = JsonSerializer.Deserialize<List<XeroConnectionDto>>(json);
-    //    XeroConnectionDto? org = connections?.FirstOrDefault(c => c.TenantType == "ORGANISATION");
-    //    if (org == null)
-    //        return (false, "No Xero organisation selected.");
+        if (string.IsNullOrEmpty(code))
+        {
+            RedirectToFrontend(context, success: false, "missing_code");
+            return false;
+        }
 
-    //    XeroConnection? existing = null;
-    //    //XeroConnection? existing = await _db.XeroConnections.FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
-    //    if (existing != null)
-    //    {
-    //        existing.AccessToken = accessToken;
-    //        existing.RefreshToken = refreshToken ?? existing.RefreshToken;
-    //        existing.ExpiresAtUtc = DateTime.UtcNow.AddSeconds(expiresIn);
-    //        existing.TenantId = org.TenantId;
-    //        existing.TenantName = org.TenantName;
-    //        existing.ModifiedOn = DateTime.UtcNow;
-    //    }
-    //    else
-    //    {
-    //        //_db.XeroConnections.Add(new XeroConnection
-    //        //{
-    //        //    UserId = userId,
-    //        //    AccessToken = accessToken,
-    //        //    RefreshToken = refreshToken ?? "",
-    //        //    ExpiresAtUtc = DateTime.UtcNow.AddSeconds(expiresIn),
-    //        //    TenantId = org.TenantId,
-    //        //    TenantName = org.TenantName
-    //        //});
-    //    }
-    //    await db.SaveChangesAsync(cancellationToken);
-    //    return (true, null);
-    //}
+        if (string.IsNullOrEmpty(state) || !_cache.TryGetValue(StateCachePrefix + state, out _))
+        {
+            RedirectToFrontend(context, success: false, "invalid_state");
+            return false;
+        }
+        _cache.Remove(StateCachePrefix + state);
 
-    //public async Task DisconnectAsync(int userId, CancellationToken cancellationToken = default)
-    //{
-    //    XeroConnection? conn = null;
-    //    //XeroConnection? conn = await _db.XeroConnections.FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
-    //    if (conn != null)
-    //    {
-    //        //_db.XeroConnections.Remove(conn);
-    //        await db.SaveChangesAsync(cancellationToken);
-    //    }
-    //}
+        HttpClient httpClient = _httpClientFactory.CreateClient();
+        TokenResponse? tokenResponse = await ExchangeCodeForTokenAsync(httpClient, code, cancellationToken);
+        if (tokenResponse == null)
+        {
+            RedirectToFrontend(context, success: false, "token_exchange_failed");
+            return false;
+        }
 
-    //private async Task<(string? AccessToken, string? RefreshToken, int ExpiresIn)> ExchangeCodeForTokensAsync(string code, CancellationToken cancellationToken)
-    //{
-    //    HttpClient client = httpClientFactory.CreateClient();
-    //    string auth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_options.ClientId}:{_options.ClientSecret}"));
-    //    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", auth);
-    //    Dictionary<string, string> form = new()
-    //    {
-    //        ["grant_type"] = "authorization_code",
-    //        ["code"] = code,
-    //        ["redirect_uri"] = _options.RedirectUri
-    //    };
-    //    FormUrlEncodedContent content = new(form);
-    //    HttpResponseMessage response = await client.PostAsync(TokenEndpoint, content, cancellationToken);
-    //    if (!response.IsSuccessStatusCode)
-    //        return (null, null, 0);
-    //    string json = await response.Content.ReadAsStringAsync(cancellationToken);
-    //    XeroTokenResponse? token = JsonSerializer.Deserialize<XeroTokenResponse>(json);
-    //    return token != null ? (token.AccessToken, token.RefreshToken, token.ExpiresIn) : (null, null, 0);
-    //}
+        string? tenantId = await GetFirstTenantIdAsync(httpClient, tokenResponse.AccessToken, cancellationToken);
+        if (string.IsNullOrEmpty(tenantId))
+            tenantId = _options.TenantId;
 
-    //private async Task<(string? AccessToken, string? RefreshToken, int ExpiresIn)> RefreshTokensAsync(string refreshToken, CancellationToken cancellationToken)
-    //{
-    //    HttpClient client = httpClientFactory.CreateClient();
-    //    string auth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_options.ClientId}:{_options.ClientSecret}"));
-    //    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", auth);
-    //    Dictionary<string, string> form = new()
-    //    {
-    //        ["grant_type"] = "refresh_token",
-    //        ["refresh_token"] = refreshToken
-    //    };
-    //    FormUrlEncodedContent content = new(form);
-    //    HttpResponseMessage response = await client.PostAsync(TokenEndpoint, content, cancellationToken);
-    //    if (!response.IsSuccessStatusCode)
-    //        return (null, null, 0);
-    //    string json = await response.Content.ReadAsStringAsync(cancellationToken);
-    //    XeroTokenResponse? token = JsonSerializer.Deserialize<XeroTokenResponse>(json);
-    //    return token != null ? (token.AccessToken, token.RefreshToken, token.ExpiresIn) : (null, null, 0);
-    //}
+        XeroStoredToken stored = new()
+        {
+            AccessToken = tokenResponse.AccessToken,
+            RefreshToken = tokenResponse.RefreshToken,
+            AccessTokenExpiresAtUtc = tokenResponse.ExpiresAtUtc,
+            TenantId = tenantId
+        };
+        await SaveRefreshTokenAsync(stored, cancellationToken);
+
+        RedirectToFrontend(context, success: true);
+        return true;
+    }
+
+    /// <inheritdoc />
+    public async Task<(string? AccessToken, string? TenantId)> GetValidAccessTokenAsync(CancellationToken cancellationToken = default)
+    {
+        XeroStoredToken? stored = await LoadTokenAsync(cancellationToken);
+        if (stored == null)
+            return (null, null);
+
+        if (DateTime.UtcNow >= stored.AccessTokenExpiresAtUtc.AddMinutes(-2))
+        {
+            HttpClient httpClient = _httpClientFactory.CreateClient();
+            TokenResponse? refreshed = await RefreshTokenAsync(httpClient, stored.RefreshToken, cancellationToken);
+
+            if (refreshed == null)
+                return (null, null);
+
+            stored = new XeroStoredToken
+            {
+                AccessToken = refreshed.AccessToken,
+                RefreshToken = refreshed.RefreshToken ?? stored.RefreshToken,
+                AccessTokenExpiresAtUtc = refreshed.ExpiresAtUtc,
+                TenantId = stored.TenantId
+            };
+
+            await SaveRefreshTokenAsync(stored, cancellationToken);
+        }
+
+        return (stored.AccessToken, stored.TenantId);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> IsConnectedAsync(CancellationToken cancellationToken = default)
+    {
+        XeroStoredToken? stored = await LoadTokenAsync(cancellationToken);
+        return stored != null && !string.IsNullOrEmpty(stored.RefreshToken);
+    }
+
+    /// <inheritdoc />
+    public async Task DisconnectAsync(CancellationToken cancellationToken = default)
+    {
+        XeroAccess? setting = await _db.XeroAccesses.FirstOrDefaultAsync(x => x.Expires > DateTime.UtcNow, cancellationToken);
+        if (setting != null)
+        {
+            _db.XeroAccesses.Remove(setting);
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Generates a random state the the url callback
+    /// </summary>
+    /// <returns></returns>
+    private static string GenerateState()
+    {
+        byte[] bytes = new byte[24];
+        RandomNumberGenerator.Fill(bytes);
+        return Convert.ToBase64String(bytes).Replace("+", "-").Replace("/", "_").TrimEnd('=');
+    }
+
+    private async Task<TokenResponse?> ExchangeCodeForTokenAsync(HttpClient httpClient, string code, CancellationToken cancellationToken)
+    {
+        Dictionary<string, string> body = new()
+        {
+            ["grant_type"] = "authorization_code",
+            ["code"] = code,
+            ["redirect_uri"] = _options.CallbackUri,
+            ["scope"] = _options.Scope
+        };
+        HttpRequestMessage request = new(HttpMethod.Post, TokenEndpoint)
+        {
+            Content = new FormUrlEncodedContent(body)
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Basic",
+            Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
+
+        HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
+        string json = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        using JsonDocument doc = JsonDocument.Parse(json);
+        JsonElement root = doc.RootElement;
+        string? accessToken = root.TryGetProperty("access_token", out JsonElement at) ? at.GetString() : null;
+        string? refreshToken = root.TryGetProperty("refresh_token", out JsonElement rt) ? rt.GetString() : null;
+        int expiresIn = root.TryGetProperty("expires_in", out JsonElement ex) ? ex.GetInt32() : 1800;
+        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+            return null;
+
+        return new TokenResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            ExpiresAtUtc = DateTime.UtcNow.AddSeconds(expiresIn)
+        };
+    }
+
+    private async Task<string?> GetFirstTenantIdAsync(HttpClient httpClient, string accessToken, CancellationToken cancellationToken)
+    {
+        HttpRequestMessage request = new(HttpMethod.Get, ConnectionsEndpoint);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
+        string json = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        using JsonDocument doc = JsonDocument.Parse(json);
+        JsonElement arr = doc.RootElement;
+        if (arr.ValueKind != JsonValueKind.Array || arr.GetArrayLength() == 0)
+            return null;
+        JsonElement first = arr[0];
+        return first.TryGetProperty("tenantId", out JsonElement id) ? id.GetString() : null;
+    }
+
+    private async Task<TokenResponse?> RefreshTokenAsync(HttpClient httpClient, string refreshToken, CancellationToken cancellationToken)
+    {
+        Dictionary<string, string> body = new()
+        {
+            ["grant_type"] = "refresh_token",
+            ["refresh_token"] = refreshToken
+        };
+
+        HttpRequestMessage request = new(HttpMethod.Post, TokenEndpoint)
+        {
+            Content = new FormUrlEncodedContent(body)
+        };
+
+        request.Headers.Authorization = new AuthenticationHeaderValue(
+            "Basic",
+            Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_options.ClientId}:{_options.ClientSecret}")));
+
+        HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
+        string json = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        using JsonDocument doc = JsonDocument.Parse(json);
+        JsonElement root = doc.RootElement;
+        string? accessToken = root.TryGetProperty("access_token", out JsonElement at) ? at.GetString() : null;
+        string? newRefresh = root.TryGetProperty("refresh_token", out JsonElement rt) ? rt.GetString() : null;
+        int expiresIn = root.TryGetProperty("expires_in", out JsonElement ex) ? ex.GetInt32() : 1800;
+        if (string.IsNullOrEmpty(accessToken))
+            return null;
+
+        return new TokenResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = newRefresh ?? refreshToken,
+            ExpiresAtUtc = DateTime.UtcNow.AddSeconds(expiresIn)
+        };
+    }
+
+    /// <summary>
+    /// Redirects the to the front end
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="success"></param>
+    /// <param name="error"></param>
+    private void RedirectToFrontend(HttpContext context, bool success, string? error = null)
+    {
+        string baseUri = _options.FrontendRedirectUri ?? "/";
+        string separator = baseUri.Contains('?') ? "&" : "?";
+        string query = success ? "xero=connected" : (!string.IsNullOrEmpty(error) ? "xero_error=" + Uri.EscapeDataString(error) : "");
+        string redirectUrl = string.IsNullOrEmpty(query) ? baseUri : baseUri + separator + query;
+        context.Response.Redirect(redirectUrl);
+    }
+
+    private async Task<XeroStoredToken?> LoadTokenAsync(CancellationToken cancellationToken)
+    {
+        XeroAccess? setting = await _db.XeroAccesses.FirstOrDefaultAsync(x => x.Expires > DateTime.UtcNow, cancellationToken);
+
+        if (setting == null || string.IsNullOrWhiteSpace(setting.Token))
+            return null;
+
+        try
+        {
+            return JsonSerializer.Deserialize<XeroStoredToken>(setting.Token);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Saves the token to the database.
+    /// </summary>
+    /// <param name="token"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    private async Task SaveRefreshTokenAsync(XeroStoredToken token, CancellationToken cancellationToken)
+    {
+        string json = JsonSerializer.Serialize(token);
+        XeroAccess? setting = await _db.XeroAccesses.FirstOrDefaultAsync(x => x.Expires > DateTime.UtcNow, cancellationToken);
+        DateTime now = DateTime.UtcNow;
+        if (setting == null)
+        {
+            setting = new XeroAccess
+            {
+                Token = json,
+                DateRefreshed = now,
+                Expires = now.AddDays(_options.TokenExpiryDays),
+            };
+            await _db.XeroAccesses.AddAsync(setting, cancellationToken);
+        }
+        else
+        {
+            setting.Token = json;
+            setting.DateRefreshed = now;
+        }
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    private sealed class TokenResponse
+    {
+        public string AccessToken { get; set; } = null!;
+        public string RefreshToken { get; set; } = null!;
+        public DateTime ExpiresAtUtc { get; set; }
+    }
+
+    private sealed class XeroStoredToken
+    {
+        public string AccessToken { get; set; } = null!;
+        public string RefreshToken { get; set; } = null!;
+        public DateTime AccessTokenExpiresAtUtc { get; set; }
+        public string? TenantId { get; set; }
+    }
 }

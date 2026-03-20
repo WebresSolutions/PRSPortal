@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.FileProviders;
 using Portal.Data;
 using Portal.Server.Controllers;
 using Portal.Server.Endpoints;
@@ -83,10 +85,10 @@ public class Program
 
         app.MapRazorPages();
         app.MapControllers();
-        app.MapFallbackToFile("index.html");
 
         bool enableAuth = app.Configuration.GetValue<bool>("ApiSettings:AuthRequired");
-        // Add API endpoints
+
+        app.AddIntegrationEndpoints();
         app.AddJobEndpoints(enableAuth);
         app.AddScheduleEndpoints(enableAuth);
         app.AddSettingEndpoints(enableAuth);
@@ -96,6 +98,29 @@ public class Program
         app.AddTypesEndpoints(enableAuth);
         app.AddUserEndpoints(enableAuth);
         app.AddFileEndpoints(enableAuth);
+
+        // Only serve SPA index.html for non-API paths so /api/* returns JSON from endpoints, not HTML
+        app.MapFallback(async (HttpContext context) =>
+        {
+            if (context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
+            {
+                context.Response.StatusCode = 404;
+                await context.Response.WriteAsync("Not Found");
+                return;
+            }
+            IWebHostEnvironment env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
+            IFileInfo? file = env.WebRootFileProvider.GetFileInfo("index.html");
+            if (file.Exists)
+            {
+                context.Response.ContentType = "text/html";
+                await context.Response.SendFileAsync(file);
+            }
+            else
+            {
+                context.Response.StatusCode = 404;
+                await context.Response.WriteAsync("Not Found");
+            }
+        });
 
         // Seed database with an initial client application and test user
         using (IServiceScope scope = app.Services.CreateScope())

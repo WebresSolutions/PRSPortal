@@ -1,5 +1,4 @@
 @page "/settings"
-@using Portal.Client.Components.Settings
 @using Portal.Shared
 @using Portal.Shared.DTO.Address
 @using Portal.Shared.DTO.Contact
@@ -11,269 +10,416 @@
 @inject HotKeys HotKeys
 @inherits BaseDataComponent
 
-
-
 <PageTitle>Settings - PRS Portal</PageTitle>
 <div class="container">
-
     <Card>
         <ChildContent>
-            <div class="mb-2 d-flex">
-                <h2>Settings</h2>
+            <div class="mb-3 d-flex flex-column gap-2">
+                <h2 class="mb-0">Settings</h2>
+                <p class="settings-intro">Appearance, integrations, and the lists used across jobs, contacts, timesheets, and quotes.</p>
             </div>
-            <div class="settings-container">
-                <Collapseable Title="Theme Settings" Show="false">
-                    <CollapseableContent>
+
+            <div class="settings-page">
+                @* Integration *@
+                <section class="settings-panel settings-panel--accent">
+                    <div class="settings-panel-header">
+                        <div>
+                            <h3>Xero integration</h3>
+                            <p class="settings-panel-sub">Sync invoices and accounting data with Xero.</p>
+                        </div>
+                    </div>
+                    @if (_xeroStatusLoaded)
+                    {
+                        <div class="xero-actions">
+                            <MudChip T="string" Color="@(_xeroConnected ? Color.Success : Color.Default)" Size="Size.Medium" Icon="@Icons.Material.Filled.AccountBalance">
+                                @(_xeroConnected ? "Connected" : "Not connected")
+                            </MudChip>
+                            @if (_xeroConnected)
+                            {
+                                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.LinkOff" OnClick="DisconnectXero" Disabled="@_xeroBusy">Disconnect</MudButton>
+                            }
+                            else
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Link" OnClick="ConnectXero" Disabled="@_xeroBusy">Connect to Xero</MudButton>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="52px" Class="rounded-lg" />
+                    }
+                </section>
+
+                @* Type lists *@
+                <h3 class="settings-section-title">Lists &amp; types</h3>
+                <div class="settings-grid settings-grid--dense">
+                    <section class="settings-panel settings-panel-span-full">
+                        <div class="settings-panel-header">
+                            <div>
+                                <h3>Service types</h3>
+                                <p class="settings-panel-sub">Catalog lines for quotes and invoicing (code, rate, unit).</p>
+                            </div>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Service", "Add service type", null))">Add</MudButton>
+                        </div>
+                        <div class="settings-type-list">
+                            <div class="settings-type-row settings-type-row--head settings-type-row--service">
+                                <span>Code</span>
+                                <span>Service</span>
+                                <span>Rate</span>
+                                <span>Unit</span>
+                                <span>Active</span>
+                                <span class="settings-type-actions"></span>
+                            </div>
+                            @if (_serviceTypes.Count == 0)
+                            {
+                                <p class="settings-empty">No service types yet.</p>
+                            }
+                            else
+                            {
+                                @foreach (var t in _serviceTypes)
+                                {
+                                    <div class="settings-type-row settings-type-row--service">
+                                        <span class="settings-type-secondary">@(t.Code ?? "—")</span>
+                                        <span class="settings-type-primary">@t.ServiceName</span>
+                                        <span class="settings-type-secondary">@(t.DefaultRate is null ? "—" : t.DefaultRate.Value.ToString("N2"))</span>
+                                        <span class="settings-type-secondary">@(t.UnitOfMeasure ?? "—")</span>
+                                        <span class="settings-type-secondary">@(t.IsActive != false ? "Yes" : "No")</span>
+                                        <span class="settings-type-actions">
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Service", "Edit service type", t))" />
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </section>
+                    <section class="settings-panel">
+                        <div class="settings-panel-header">
+                            <h3>Timesheet types</h3>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Timesheet", "Add timesheet type", null))">Add</MudButton>
+                        </div>
+                        <div class="settings-type-list">
+                            <div class="settings-type-row settings-type-row--head">
+                                <span>Name</span>
+                                <span>Description</span>
+                                <span class="settings-type-actions"></span>
+                            </div>
+                            @if (_timesheetTypes.Count == 0)
+                            {
+                                <p class="settings-empty">No timesheet types yet.</p>
+                            }
+                            else
+                            {
+                                @foreach (var t in _timesheetTypes)
+                                {
+                                    <div class="settings-type-row">
+                                        <span class="settings-type-primary">@t.Name</span>
+                                        <span class="settings-type-secondary">@(t.Description ?? "—")</span>
+                                        <span class="settings-type-actions">
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Timesheet", "Edit timesheet type", t))" />
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </section>
+
+                    <section class="settings-panel">
+                        <div class="settings-panel-header">
+                            <h3>Contact types</h3>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Contact", "Add contact type", null))">Add</MudButton>
+                        </div>
+                        <div class="settings-type-list">
+                            <div class="settings-type-row settings-type-row--head">
+                                <span>Name</span>
+                                <span>Description</span>
+                                <span class="settings-type-actions"></span>
+                            </div>
+                            @if (_contactTypes.Count == 0)
+                            {
+                                <p class="settings-empty">No contact types yet.</p>
+                            }
+                            else
+                            {
+                                @foreach (var t in _contactTypes)
+                                {
+                                    <div class="settings-type-row">
+                                        <span class="settings-type-primary">@t.Name</span>
+                                        <span class="settings-type-secondary">@(t.Description ?? "—")</span>
+                                        <span class="settings-type-actions">
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Contact", "Edit contact type", t))" />
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </section>
+
+                    <section class="settings-panel">
+                        <div class="settings-panel-header">
+                            <h3>Job types</h3>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Job", "Add job type", null))">Add</MudButton>
+                        </div>
+                        <div class="settings-type-list">
+                            <div class="settings-type-row settings-type-row--head settings-type-row--job">
+                                <span>Name</span>
+                                <span>Abbr.</span>
+                                <span class="settings-type-actions"></span>
+                            </div>
+                            @if (_jobTypes.Count == 0)
+                            {
+                                <p class="settings-empty">No job types yet.</p>
+                            }
+                            else
+                            {
+                                @foreach (var t in _jobTypes)
+                                {
+                                    <div class="settings-type-row settings-type-row--job">
+                                        <span class="settings-type-primary">@t.Name</span>
+                                        <span class="settings-type-secondary">@t.Abbreviation</span>
+                                        <span class="settings-type-actions">
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Job", "Edit job type", t))" />
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </section>
+
+                    <section class="settings-panel">
+                        <div class="settings-panel-header">
+                            <h3>Job colours</h3>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("JobColour", "Add job colour", null))">Add</MudButton>
+                        </div>
+                        <div class="settings-type-list">
+                            <div class="settings-type-row settings-type-row--head settings-type-row--colour">
+                                <span>Colour</span>
+                                <span class="settings-type-actions"></span>
+                            </div>
+                            @if (_jobColours.Count == 0)
+                            {
+                                <p class="settings-empty">No job colours yet.</p>
+                            }
+                            else
+                            {
+                                @foreach (var t in _jobColours)
+                                {
+                                    <div class="settings-type-row settings-type-row--colour">
+                                        <div class="colour-row-label">
+                                            <span class="colour-swatch" style="background: @t.colour"></span>
+                                            <span class="colour-hex">@t.colour</span>
+                                        </div>
+                                        <span class="settings-type-actions">
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("JobColour", "Edit job colour", t))" />
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </section>
+
+                    <section class="settings-panel">
+                        <div class="settings-panel-header">
+                            <h3>File types</h3>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("File", "Add file type", null))">Add</MudButton>
+                        </div>
+                        <div class="settings-type-list">
+                            <div class="settings-type-row settings-type-row--head">
+                                <span>Name</span>
+                                <span>Description</span>
+                                <span class="settings-type-actions"></span>
+                            </div>
+                            @if (_fileTypes.Count == 0)
+                            {
+                                <p class="settings-empty">No file types yet.</p>
+                            }
+                            else
+                            {
+                                @foreach (var t in _fileTypes)
+                                {
+                                    <div class="settings-type-row">
+                                        <span class="settings-type-primary">@t.Name</span>
+                                        <span class="settings-type-secondary">@(t.Description ?? "—")</span>
+                                        <span class="settings-type-actions">
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("File", "Edit file type", t))" />
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </section>
+
+                    <section class="settings-panel">
+                        <div class="settings-panel-header">
+                            <h3>Job task types</h3>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("JobTask", "Add job task type", null))">Add</MudButton>
+                        </div>
+                        <div class="settings-type-list">
+                            <div class="settings-type-row settings-type-row--head">
+                                <span>Name</span>
+                                <span>Description</span>
+                                <span class="settings-type-actions"></span>
+                            </div>
+                            @if (_jobTaskTypes.Count == 0)
+                            {
+                                <p class="settings-empty">No job task types yet.</p>
+                            }
+                            else
+                            {
+                                @foreach (var t in _jobTaskTypes)
+                                {
+                                    <div class="settings-type-row">
+                                        <span class="settings-type-primary">@t.Name</span>
+                                        <span class="settings-type-secondary">@(t.Description ?? "—")</span>
+                                        <span class="settings-type-actions">
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("JobTask", "Edit job task type", t))" />
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </section>
+
+                    <section class="settings-panel">
+                        <div class="settings-panel-header">
+                            <h3>Technical contact types</h3>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("TechnicalContact", "Add technical contact type", null))">Add</MudButton>
+                        </div>
+                        <div class="settings-type-list">
+                            <div class="settings-type-row settings-type-row--head">
+                                <span>Name</span>
+                                <span>Description</span>
+                                <span class="settings-type-actions"></span>
+                            </div>
+                            @if (_technicalContactTypes.Count == 0)
+                            {
+                                <p class="settings-empty">No technical contact types yet.</p>
+                            }
+                            else
+                            {
+                                @foreach (var t in _technicalContactTypes)
+                                {
+                                    <div class="settings-type-row">
+                                        <span class="settings-type-primary">@t.Name</span>
+                                        <span class="settings-type-secondary">@(t.Description ?? "—")</span>
+                                        <span class="settings-type-actions">
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("TechnicalContact", "Edit technical contact type", t))" />
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </section>
+                </div>
+
+                <div class="settings-grid settings-grid--two">
+                    <section class="settings-panel">
+                        <div class="settings-panel-header">
+                            <div>
+                                <h3>States</h3>
+                                <p class="settings-panel-sub">Reference data (read-only).</p>
+                            </div>
+                        </div>
+                        <div class="settings-type-list">
+                            <div class="settings-type-row settings-type-row--head settings-type-row--states">
+                                <span>Name</span>
+                                <span>Abbr.</span>
+                            </div>
+                            @if (_states.Count == 0)
+                            {
+                                <p class="settings-empty">No states loaded.</p>
+                            }
+                            else
+                            {
+                                @foreach (var s in _states)
+                                {
+                                    <div class="settings-type-row settings-type-row--states">
+                                        <span class="settings-type-primary">@s.Name</span>
+                                        <span class="settings-type-secondary">@s.Abbreviation</span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </section>
+
+                    <section class="settings-panel">
+                        <div class="settings-panel-header">
+                            <h3>Keyboard shortcuts</h3>
+                            <p class="settings-panel-sub">Shortcuts active in the app.</p>
+                        </div>
+                        <ul class="hotkey-list">
+                            @foreach (HotKeyEntry hotKey in _hotKeyEntries)
+                            {
+                                <li>@hotKey.Description</li>
+                            }
+                        </ul>
+                    </section>
+                </div>
+                <div class="settings-grid settings-grid--two">
+                    <section class="settings-panel">
+                        <div class="settings-panel-header">
+                            <h3>Theme</h3>
+                        </div>
                         @if (!base.IsLoading)
                         {
-                            <section class="theme-container">
+                            <div class="theme-container">
                                 <div>
                                     <div class="preview" style="background: @_primaryColour"></div>
                                     <MudColorPicker ShowToolbar="true"
-                                                    Label="Primary Colour"
+                                                    Label="Primary colour"
                                                     Variant="Variant.Outlined"
                                                     ColorPickerView="ColorPickerView.GridCompact"
                                                     ColorPickerMode="ColorPickerMode.HEX"
-                                                    Value=_primaryColour
+                                                    Value="@_primaryColour"
                                                     TextChanged="@((s) => SetColour(s, true))" />
                                 </div>
                                 <div>
                                     <div class="preview" style="background: @_secondaryColour"></div>
                                     <MudColorPicker ShowToolbar="true"
-                                                    Label="Secondary Colour"
+                                                    Label="Secondary colour"
                                                     Variant="Variant.Outlined"
                                                     ColorPickerView="ColorPickerView.GridCompact"
                                                     ColorPickerMode="ColorPickerMode.HEX"
-                                                    Value=_secondaryColour
+                                                    Value="@_secondaryColour"
                                                     TextChanged="@((s) => SetColour(s, false))" />
                                 </div>
-                            </section>
+                            </div>
                         }
                         else
                         {
-                            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="150px" />
+                            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="140px" Class="rounded-lg" />
                         }
-                    </CollapseableContent>
-                </Collapseable>
-                <Collapseable Title="Schedule Colours" Show="false">
-                    <CollapseableContent>
+                    </section>
+
+                    <section class="settings-panel">
+                        <div class="settings-panel-header">
+                            <h3>Schedule colours</h3>
+                            <p class="settings-panel-sub">Colours used on the calendar.</p>
+                        </div>
                         @if (!base.IsLoading)
                         {
-                            <section class="colour-container">
+                            <div class="colour-container">
                                 @foreach (ScheduleColourDto colour in _colours)
                                 {
                                     <div>
                                         <div class="preview" style="background: @colour.ColourHex"></div>
                                         <MudColorPicker ShowToolbar="true"
-                                                        Label="Dialog Picker"
+                                                        Label="Colour"
                                                         Variant="Variant.Outlined"
                                                         ColorPickerView="ColorPickerView.GridCompact"
                                                         ColorPickerMode="ColorPickerMode.HEX"
-                                                        Value=@colour.ColourHex
+                                                        Value="@colour.ColourHex"
                                                         TextChanged="@((s) => SaveColour(colour, s))" />
                                     </div>
                                 }
-                            </section>
+                            </div>
                         }
                         else
                         {
-                            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
+                            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" Class="rounded-lg" />
                         }
-                    </CollapseableContent>
-                </Collapseable>
-                <Collapseable Title="Timesheet Types" Show="false">
-                    <CollapseableContent>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Timesheet", "Add timesheet type", null))" Class="mb-2">Add</MudButton>
-                        <MudTable Items="@_timesheetTypes" Hover="true" Breakpoint="Breakpoint.Sm">
-                            <HeaderContent>
-                                <MudTh>Name</MudTh>
-                                <MudTh>Description</MudTh>
-                                <MudTh Style="width: 100px">Actions</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="Name">@context.Name</MudTd>
-                                <MudTd DataLabel="Description">@(context.Description ?? "")</MudTd>
-                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Timesheet", "Edit timesheet type", context))" /></MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </CollapseableContent>
-                </Collapseable>
-                <Collapseable Title="Contact Types" Show="false">
-                    <CollapseableContent>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Contact", "Add contact type", null))" Class="mb-2">Add</MudButton>
-                        <MudTable Items="@_contactTypes" Hover="true" Breakpoint="Breakpoint.Sm">
-                            <HeaderContent>
-                                <MudTh>Name</MudTh>
-                                <MudTh>Description</MudTh>
-                                <MudTh Style="width: 100px">Actions</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="Name">@context.Name</MudTd>
-                                <MudTd DataLabel="Description">@(context.Description ?? "")</MudTd>
-                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Contact", "Edit contact type", context))" /></MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </CollapseableContent>
-                </Collapseable>
-                <Collapseable Title="Job Types" Show="false">
-                    <CollapseableContent>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Job", "Add job type", null))" Class="mb-2">Add</MudButton>
-                        <MudTable Items="@_jobTypes" Hover="true" Breakpoint="Breakpoint.Sm">
-                            <HeaderContent>
-                                <MudTh>Name</MudTh>
-                                <MudTh>Abbreviation</MudTh>
-                                <MudTh Style="width: 100px">Actions</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="Name">@context.Name</MudTd>
-                                <MudTd DataLabel="Abbreviation">@context.Abbreviation</MudTd>
-                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Job", "Edit job type", context))" /></MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </CollapseableContent>
-                </Collapseable>
-                <Collapseable Title="Job Colours" Show="false">
-                    <CollapseableContent>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("JobColour", "Add job colour", null))" Class="mb-2">Add</MudButton>
-                        <MudTable Items="@_jobColours" Hover="true" Breakpoint="Breakpoint.Sm">
-                            <HeaderContent>
-                                <MudTh>Colour</MudTh>
-                                <MudTh Style="width: 100px">Actions</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="Colour"><div class="preview" style="background: @context.colour; width: 24px; height: 24px; border-radius: 4px;"></div> @context.colour</MudTd>
-                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("JobColour", "Edit job colour", context))" /></MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </CollapseableContent>
-                </Collapseable>
-                <Collapseable Title="File Types" Show="false">
-                    <CollapseableContent>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("File", "Add file type", null))" Class="mb-2">Add</MudButton>
-                        <MudTable Items="@_fileTypes" Hover="true" Breakpoint="Breakpoint.Sm">
-                            <HeaderContent>
-                                <MudTh>Name</MudTh>
-                                <MudTh>Description</MudTh>
-                                <MudTh Style="width: 100px">Actions</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="Name">@context.Name</MudTd>
-                                <MudTd DataLabel="Description">@(context.Description ?? "")</MudTd>
-                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("File", "Edit file type", context))" /></MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </CollapseableContent>
-                </Collapseable>
-                <Collapseable Title="Job Task Types" Show="false">
-                    <CollapseableContent>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("JobTask", "Add job task type", null))" Class="mb-2">Add</MudButton>
-                        <MudTable Items="@_jobTaskTypes" Hover="true" Breakpoint="Breakpoint.Sm">
-                            <HeaderContent>
-                                <MudTh>Name</MudTh>
-                                <MudTh>Description</MudTh>
-                                <MudTh Style="width: 100px">Actions</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="Name">@context.Name</MudTd>
-                                <MudTd DataLabel="Description">@(context.Description ?? "")</MudTd>
-                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("JobTask", "Edit job task type", context))" /></MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </CollapseableContent>
-                </Collapseable>
-                <Collapseable Title="Technical Contact Types" Show="false">
-                    <CollapseableContent>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("TechnicalContact", "Add technical contact type", null))" Class="mb-2">Add</MudButton>
-                        <MudTable Items="@_technicalContactTypes" Hover="true" Breakpoint="Breakpoint.Sm">
-                            <HeaderContent>
-                                <MudTh>Name</MudTh>
-                                <MudTh>Description</MudTh>
-                                <MudTh Style="width: 100px">Actions</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="Name">@context.Name</MudTd>
-                                <MudTd DataLabel="Description">@(context.Description ?? "")</MudTd>
-                                <MudTd><ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("TechnicalContact", "Edit technical contact type", context))" /></MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </CollapseableContent>
-                </Collapseable>
-                <Collapseable Title="States (read-only)" Show="false">
-                    <CollapseableContent>
-                        <MudTable Items="@_states" Hover="true" Breakpoint="Breakpoint.Sm">
-                            <HeaderContent>
-                                <MudTh>Name</MudTh>
-                                <MudTh>Abbreviation</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="Name">@context.Name</MudTd>
-                                <MudTd DataLabel="Abbreviation">@context.Abbreviation</MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </CollapseableContent>
-                </Collapseable>
-                <Collapseable Title="Hot Keys" Show="false">
-                    <CollapseableContent>
-                        <section>
-                            @foreach (HotKeyEntry hotKey in _hotKeyEntries)
-                            {
-                                <div>@hotKey.Description</div>
-                            }
-                        </section>
-                    </CollapseableContent>
-                </Collapseable>
+                    </section>
+                </div>
             </div>
         </ChildContent>
     </Card>
 </div>
-
-<style>
-    .settings-container{
-        display:grid;
-        grid-template-columns: 1fr;
-        gap: var(--padding);
-    }
-
-    .theme-container {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        grid-gap: 10px;
-    }
-
-        .theme-container > div {
-            background: var(--color-background);
-            border-radius: var(--border-rad);
-            padding: 1rem;
-        }
-
-
-    .colour-container {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-gap: 10px;
-    }
-
-        .colour-container > div {
-            background: var(--color-background);
-            border-radius: var(--border-rad);
-            padding: 1rem;
-        }
-
-    @@media (max-width: 1200px) {
-        .colour-container {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    .preview {
-        padding: 8px 16px;
-        border-radius: 25px;
-        font-weight: 600;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        width: 40px;
-        margin-bottom: 0.5rem;
-    }
-</style>

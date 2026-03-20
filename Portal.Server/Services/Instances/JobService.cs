@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 using Portal.Data;
@@ -22,15 +23,7 @@ namespace Portal.Server.Services.Instances;
 /// </summary>
 public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IFileService _fileService) : IJobService
 {
-    /// <summary>
-    /// Retrieves a paged list of jobs with optional filtering and sorting
-    /// </summary>
-    /// <param name="page">The page number to retrieve (1-based)</param>
-    /// <param name="pageSize">The number of items per page</param>
-    /// <param name="order">The sort direction (ascending or descending)</param>
-    /// <param name="searchFilter">Optional search filter for job names, addresses, or job numbers</param>
-    /// <param name="orderby">Optional field name to sort by</param>
-    /// <returns>A result containing a paged response of job DTOs</returns>
+    /// <inheritdoc/>
     public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(JobFilterDto filter)
     {
         Result<PagedResponse<ListJobDto>> result = new();
@@ -56,16 +49,25 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 query = query.Where(x => x.CouncilId == filter.CouncilId.Value);
 
             if (!string.IsNullOrWhiteSpace(filter.AddressSearch))
+            {
+                string pattern = PartialMatch(filter.AddressSearch);
                 query = query.Where(job => job.Address != null &&
-                                           job.Address.SearchVector.Matches(filter.AddressSearch));
+                                           job.Address.SearchVector.Matches(EF.Functions.ToTsQuery(pattern)));
+            }
 
             if (!string.IsNullOrWhiteSpace(filter.ContactSearch))
+            {
+                string pattern = PartialMatch(filter.ContactSearch);
                 query = query.Where(job => job.Contact != null &&
-                                           job.Contact.SearchVector.Matches(filter.ContactSearch));
+                                           job.Contact.SearchVector.Matches(pattern));
+            }
 
             if (!string.IsNullOrWhiteSpace(filter.JobNumberSearch))
-                if (int.TryParse(filter.JobNumberSearch, out int num))
-                    query = query.Where(job => job.JobNumber != null && job.JobNumber.Value == num);
+            {
+                // % is the wildcard for SQL LIKE
+                string pattern = $"{filter.JobNumberSearch.Trim()}%";
+                query = query.Where(job => job.JobNumber != null && EF.Functions.ILike(job.JobNumber, pattern));
+            }
 
             bool isDescending = filter.Order is SortDirectionEnum.Desc;
             query = filter.OrderBy switch
@@ -91,8 +93,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     x.Contact != null ? new ContactDto(x.ContactId, x.Contact.FullName) : null,
                     x.Contact != null && x.Contact.ParentContact != null ? new ContactDto(x.Contact.ParentContactId ?? 0, x.Contact.ParentContact!.FullName) : null,
                     x.JobNumber,
-                    x.JobType.Name,
-                    x.JobTypeId
+                    x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray()
                 ));
             // Materialize the query
             List<ListJobDto> jobsList = await jobs.ToListAsync();
@@ -105,17 +106,11 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             _logger.LogError(ex, "Failed to get all jobs");
             return result.SetError(ErrorType.InternalError, "Failed to get list of jobs");
         }
+
+        static string PartialMatch(string filter) => string.Join(" & ", filter.Split(' ', StringSplitOptions.RemoveEmptyEntries)) + ":*";
     }
 
-    /// <summary>
-    /// Retrieves detailed information for a job specified by its unique identifier.
-    /// </summary>
-    /// <remarks>The returned job details include associated notes and address information. If the specified
-    /// job does not exist or has been deleted, the result will indicate a 'NotFound' error.</remarks>
-    /// <param name="jobId">The unique identifier of the job to retrieve. Must refer to an existing, non-deleted job.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{JobDetailsDto}"/> with job details if found; otherwise, an error indicating that the job was not
-    /// found.</returns>
+    /// <inheritdoc/>
     public async Task<Result<JobDetailsDto>> GetJob(int jobId)
     {
         Result<JobDetailsDto> result = new();
@@ -128,8 +123,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             .Select(x => new JobDetailsDto
             {
                 JobId = x.Id,
-                JobNumber = x.JobNumber ?? 0,
-                JobType = (JobTypeEnum)x.JobTypeId,
+                JobNumber = x.JobNumber,
+                JobType = x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray(),
                 Address = x.Address != null ? new AddressDTO(
                     x.AddressId ?? 1,
                     (StateEnum)x.Address!.StateId!,
@@ -156,7 +151,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     : null,
                 TimeSheets = x.TimesheetEntries
                     .Select(ts
-                        => new TimeSheetDto(ts.Id, ts.TypeId, ts.DateFrom, ts.DateTo, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName, x.JobNumber ?? 0))
+                        => new TimeSheetDto(ts.Id, ts.TypeId, ts.DateFrom, ts.DateTo, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName, x.JobNumber))
                     .ToList(),
                 ContactId = x.ContactId,
                 Council = x.Council != null ? new JobCouncilDto(x.Council.Id, x.Council.Name) : null,
@@ -230,12 +225,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         return result.SetValue(job);
     }
 
-    /// <summary>
-    /// Creates a new job
-    /// </summary>
-    /// <param name="httpContext"></param>
-    /// <param name="data"></param>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public async Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto data)
     {
         Result<int> result = new();
@@ -251,9 +241,13 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             if (data.JobColourId is not null && await _dbContext.JobColours.FirstOrDefaultAsync(x => x.Id == data.JobColourId) is null)
                 return result.SetError(ErrorType.BadRequest, "Invalid job colour id supplied");
 
-            if (_dbContext.Jobs.Any(j => j.JobNumber == data.JobNumber) || data.JobNumber == 0)
-                return result.SetError(ErrorType.BadRequest, "Job number already exists or invalid");
+            JobType? construction = await _dbContext.JobTypes.FindAsync(1);
+            JobType? survey = await _dbContext.JobTypes.FindAsync(2);
 
+            if (construction is null || survey is null)
+                throw new InvalidOperationException("job_type must contain id 1 (Construction) and 2 (Survey) before migrating job_to_type.");
+
+            string jobNumber = await CreateJobNumber();
             Job job = new()
             {
                 ContactId = data.ContactId,
@@ -262,8 +256,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 Details = data.Details,
                 CreatedByUserId = httpContext.UserId(),
                 CreatedOn = DateTime.UtcNow,
-                JobTypeId = (int)data.JobType,
-                JobNumber = data.JobNumber
+                JobNumber = jobNumber
             };
 
             if (data.Address is not null)
@@ -293,6 +286,17 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             await _dbContext.Jobs.AddAsync(job);
             await _dbContext.SaveChangesAsync();
 
+            // Add the job types 
+            foreach (JobTypeEnum typeEnum in data.JobType.Distinct())
+            {
+                JobType type = typeEnum is JobTypeEnum.Construction ? construction : survey;
+                job.JobTypes.Add(type);
+            }
+
+            await _dbContext.SaveChangesAsync();
+
+            // TODO: On job creation this will also need to create the file path in sharepoint
+
             return result.SetValue(job.Id);
         }
         catch (Exception ex)
@@ -302,12 +306,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
-    /// <summary>
-    /// Updates a job 
-    /// </summary>
-    /// <param name="httpContext">The context of the user updating the job</param>
-    /// <param name="updateJobDto"></param>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public async Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobDetailsDto updateJobDto)
     {
         Result<JobDetailsDto> result = new();
@@ -321,7 +320,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             if (job is null)
                 return result.SetError(ErrorType.NotFound, "Invalid job Id");
 
-            job.JobTypeId = (int)updateJobDto.JobType;
+            //job.JobTypeId = (int)updateJobDto.JobType;
             job.JobColourId = updateJobDto.JobColourId;
             job.ModifiedByUserId = httpContext.UserId();
             job.Details = updateJobDto.Details;
@@ -332,7 +331,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 if (_dbContext.Jobs.Any(j => j.JobNumber == updateJobDto.JobNumber && j.DeletedAt == null))
                     return result.SetError(ErrorType.Conflict, "Job number already exists");
 
-                job.JobNumber = updateJobDto.JobNumber;
+                job.JobNumber = updateJobDto.JobNumber ?? await CreateJobNumber();
             }
 
             if (updateJobDto.ContactId != job.ContactId)
@@ -406,12 +405,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
-    /// <summary>
-    /// Sets the deleted flag on a job
-    /// </summary>
-    /// <param name="httpContext"></param>
-    /// <param name="id">The job being deleted</param>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public async Task<Result<bool>> DeleteJob(HttpContext httpContext, int id)
     {
         Result<bool> result = new();
@@ -434,13 +428,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
-    /// <summary>
-    /// Creates a new note associated with a job and returns the updated job details.
-    /// </summary>
-    /// <param name="httpContext">The HTTP context for the current request. Used to access user information and request metadata. Cannot be null.</param>
-    /// <param name="note">The note to add to the job. Must contain valid job and note information. Cannot be null.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with the updated job
-    /// details if the note is created successfully; otherwise, contains error information.</returns>
+    /// <inheritdoc/>
     public async Task<Result<List<JobNoteDto>>> CreateNote(HttpContext httpContext, JobNoteDto note)
     {
         Result<List<JobNoteDto>> result = new();
@@ -479,12 +467,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
-    /// <summary>
-    /// Updates a note, this can be used to update the content, action required, assigned user or deleted status of a note
-    /// </summary>
-    /// <param name="httpContext">The httpcontext</param>
-    /// <param name="note">The note to update</param>
-    /// <returns>The job details</returns>
+    /// <inheritdoc/>
     public async Task<Result<List<JobNoteDto>>> UpdateNote(HttpContext httpContext, JobNoteDto note)
     {
         Result<List<JobNoteDto>> result = new();
@@ -519,16 +502,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
-    /// <summary>
-    /// Gets all users assigend job notes   
-    /// </summary>
-    /// <param name="httpContext">The http context</param>
-    /// <param name="userId">The user ID</param>
-    /// <param name="includeDeleted">If should include deleted. </param>
-    /// <returns>A list of job notes assigned to the specific users </returns>
-    /// <summary>
-    /// Gets the notes for a job by job id.
-    /// </summary>
+    /// <inheritdoc/>
     public async Task<Result<List<JobNoteDto>>> GetJobNotes(int jobId, bool deleted = false, bool? actionRequired = null)
     {
         Result<List<JobNoteDto>> result = new();
@@ -578,16 +552,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
     }
 
 
-    /// <summary>
-    /// Retrieves technical contacts filtered by jobId and/or contactId. 
-    /// Optionally includes deleted contacts if showDeleted is true. 
-    /// At least one of jobId or contactId must be provided.
-    /// </summary>
-    /// <param name="jobId">The ID of the job to filter technical contacts by, or null to ignore.</param>
-    /// <param name="jobId">The ID of the job to filter technical contacts by, or null to ignore.</param>
-    /// <param name="contactId">The ID of the contact to filter by, or null to ignore.</param>
-    /// <param name="showDeleted">Whether to include deleted technical contacts in the result.</param>
-    /// <returns>A result containing an array of technical contact DTOs matching the filter, or an error if invalid parameters are supplied.</returns>
+    /// <inheritdoc/>
     public async Task<Result<TechnicalContactDto[]>> GetTechnicalContacts(int? jobId, int? contactId, bool showDeleted = false)
     {
         Result<TechnicalContactDto[]> result = new();
@@ -605,7 +570,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             TechnicalContactDto[] res = await query
                .Select(x =>
                    new TechnicalContactDto(
-                       x.Id, x.ContactId, x.JobId, x.Job.JobNumber ?? 0, x.TypeId, x.Type.Name, x.Contact.FullName, x.Contact.Email,
+                       x.Id, x.ContactId, x.JobId, x.Job.JobNumber!, x.TypeId, x.Type.Name, x.Contact.FullName, x.Contact.Email,
                        x.Contact.Phone, x.DeletedAt != null)
                    ).ToArrayAsync();
 
@@ -618,11 +583,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
-    /// <summary>
-    /// Creates a new technical contact for a job, this can be used to link a contact to a job with a specific role (contact type)
-    /// </summary>
-    /// <param name="dto">The dto containing data</param>
-    /// <returns>An updated list of technical contacts</returns>
+    /// <inheritdoc/>
     public async Task<Result<TechnicalContactDto[]>> NewTechnicalContact(HttpContext httpContext, SaveTechnicalContactTypeDto dto)
     {
         Result<TechnicalContactDto[]> result = new();
@@ -658,11 +619,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
-    /// <summary>
-    /// Updates technical Contact, this can be used to update the contact, type or job of a technical contact
-    /// </summary>
-    /// <param name="dto">the dto containing data</param>
-    /// <returns>An updated list of technical contacts</returns>
+    /// <inheritdoc/>
     public async Task<Result<TechnicalContactDto[]>> UpdateTechnicalContact(HttpContext httpContext, SaveTechnicalContactTypeDto dto)
     {
         Result<TechnicalContactDto[]> result = new();
@@ -698,13 +655,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
-    /// <summary>
-    /// Saves a file a job. Can either create a new file or update a new one.
-    /// </summary>
-    /// <param name="context">Http Context of the caller</param>
-    /// <param name="jobId">The Job Id</param>
-    /// <param name="file">The file dto. </param>
-    /// <returns>The id of the new file.</returns>
+    /// <inheritdoc/>
     public async Task<Result<int>> SaveJobFile(HttpContext context, int jobId, FileDto file)
     {
         Result<int> res = new();
@@ -743,5 +694,82 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
+    /// <summary>
+    /// Allocates the next job number for the current calendar year (UTC), format <c>{yyyy}{sequence}</c>
+    /// (e.g. <c>2025001</c>, <c>2025123</c>). Only non-deleted jobs whose number starts with that year
+    /// and has a numeric suffix are considered when computing the next sequence. Legacy numbers without
+    /// the year prefix do not affect numbering for the new year.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when a unique number could not be reserved after several attempts.</exception>
+    internal async Task<string> CreateJobNumber()
+    {
+        const int maxAttempts = 20;
+        string year = DateTime.UtcNow.Year.ToString(CultureInfo.InvariantCulture);
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            int nextSequence = await ComputeNextJobSequenceForYearAsync(year);
+            string candidate = string.Concat(year, nextSequence.ToString(CultureInfo.InvariantCulture));
+
+            bool taken = await _dbContext.Jobs
+                .AnyAsync(j => j.DeletedAt == null && j.JobNumber == candidate);
+
+            if (!taken)
+                return candidate;
+
+            _logger.LogWarning(
+                "Job number {Candidate} already exists; recomputing sequence (attempt {Attempt} of {Max}).",
+                candidate,
+                attempt + 1,
+                maxAttempts);
+        }
+
+        throw new InvalidOperationException(
+            $"Could not allocate a unique job number for year {year} after {maxAttempts} attempts.");
+    }
+
+    /// <summary>
+    /// Returns max numeric suffix among active jobs with numbers starting with <paramref name="yearPrefix"/> plus one.
+    /// </summary>
+    private async Task<int> ComputeNextJobSequenceForYearAsync(string yearPrefix)
+    {
+        if (yearPrefix.Length != 4 || !yearPrefix.All(char.IsAsciiDigit))
+            throw new ArgumentException("Year prefix must be exactly four ASCII digits.", nameof(yearPrefix));
+
+        List<string> jobNumbers = await _dbContext.Jobs
+            .AsNoTracking()
+            .Where(j => j.DeletedAt == null && j.JobNumber != null && j.JobNumber.StartsWith(yearPrefix))
+            .Select(j => j.JobNumber!)
+            .ToListAsync();
+
+        int maxSuffix = 0;
+        foreach (string jobNumber in jobNumbers)
+        {
+            if (jobNumber.Length <= yearPrefix.Length)
+                continue;
+
+            ReadOnlySpan<char> suffix = jobNumber.AsSpan(yearPrefix.Length);
+            if (suffix.IsEmpty || !IsAllAsciiDigits(suffix))
+            {
+                _logger.LogDebug("Skipping job number {JobNumber}: missing or non-numeric suffix after year prefix.", jobNumber);
+                continue;
+            }
+
+            if (int.TryParse(suffix, NumberStyles.None, CultureInfo.InvariantCulture, out int seq))
+                maxSuffix = Math.Max(maxSuffix, seq);
+        }
+
+        return maxSuffix + 1;
+    }
+
+    private static bool IsAllAsciiDigits(ReadOnlySpan<char> span)
+    {
+        foreach (char c in span)
+        {
+            if (!char.IsAsciiDigit(c))
+                return false;
+        }
+        return true;
+    }
 
 }

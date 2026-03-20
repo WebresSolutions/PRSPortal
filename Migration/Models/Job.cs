@@ -10,6 +10,8 @@ public partial class Job
 {
     public int Id { get; set; }
 
+    public int? StatusId { get; set; }
+
     public int ContactId { get; set; }
 
     public int? AddressId { get; set; }
@@ -18,8 +20,6 @@ public partial class Job
 
     public int? JobColourId { get; set; }
 
-    public int JobTypeId { get; set; }
-
     public int? LegacyId { get; set; }
 
     public string? InvoiceNumber { get; set; }
@@ -27,7 +27,7 @@ public partial class Job
     /// <summary>
     /// Used in junction with the job type to identify the job. With either be type Construction or Surveying
     /// </summary>
-    public int? JobNumber { get; set; }
+    public string JobNumber { get; set; } = null!;
 
     public string? Details { get; set; }
 
@@ -62,17 +62,21 @@ public partial class Job
 
     public virtual ICollection<JobQuote> JobQuotes { get; set; } = new List<JobQuote>();
 
-    public virtual ICollection<JobTask> JobTasks { get; set; } = new List<JobTask>();
+    public virtual ICollection<JobStatusHistory> JobStatusHistories { get; set; } = new List<JobStatusHistory>();
 
-    public virtual JobType JobType { get; set; } = null!;
+    public virtual ICollection<JobTask> JobTasks { get; set; } = new List<JobTask>();
 
     public virtual AppUser? ModifiedByUser { get; set; }
 
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+
+    public virtual JobStatus? Status { get; set; }
 
     public virtual ICollection<TechnicalContact> TechnicalContacts { get; set; } = new List<TechnicalContact>();
 
     public virtual ICollection<TimesheetEntry> TimesheetEntries { get; set; } = new List<TimesheetEntry>();
 
     public virtual ICollection<UserJob> UserJobs { get; set; } = new List<UserJob>();
+
+    public virtual ICollection<JobType> JobTypes { get; set; } = new List<JobType>();
 }

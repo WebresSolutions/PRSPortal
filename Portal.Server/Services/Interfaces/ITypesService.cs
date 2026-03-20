@@ -3,6 +3,7 @@ using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
+using Portal.Shared.DTO.Setting;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.ResponseModels;
 
@@ -59,6 +60,16 @@ public interface ITypesService
     /// </summary>
     Task<Result<StateDto[]>> GetStates();
 
+    /// <summary>
+    /// Gets service catalog line items (quotes / invoicing).
+    /// </summary>
+    Task<Result<ServiceTypeDto[]>> GetServiceTypes();
+
+    /// <summary>
+    /// All Settings-page type lists and schedule colours in one round trip.
+    /// </summary>
+    Task<Result<AllSettingsTypesDto>> GetAllSettingsTypes();
+
     /// <summary>Creates or updates a timesheet entry type. Use Id 0 for create.</summary>
     Task<Result<TimeTypeDto>> SaveTimeSheetType(TimeTypeDto dto);
     /// <summary>Creates or updates a contact type. Use Id 0 for create.</summary>
@@ -73,4 +84,7 @@ public interface ITypesService
     Task<Result<JobTaskTypeDto>> SaveJobTaskType(HttpContext httpContext, JobTaskTypeDto dto);
     /// <summary>Creates or updates a technical contact type. Use Id 0 for create.</summary>
     Task<Result<TechnicalContactTypeDto>> SaveTechnicalContactType(TechnicalContactTypeDto dto);
+
+    /// <summary>Creates or updates a service type. Use Id 0 for create.</summary>
+    Task<Result<ServiceTypeDto>> SaveServiceType(ServiceTypeDto dto);
 }

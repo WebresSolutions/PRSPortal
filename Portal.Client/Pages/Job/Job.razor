@@ -12,7 +12,7 @@
 @using Portal.Shared.DTO.Address
 @using Portal.Shared.Helpers
 
-<PageTitle>Job @(_job?.JobNumber ?? JobId) - PRS Portal</PageTitle>
+<PageTitle>Job @(_job?.JobNumber) - PRS Portal</PageTitle>
 
 @if (IsLoading)
 {
@@ -38,7 +38,7 @@ else
                         </div>
                     </div>
                     <div class="header-right">
-                        <StatusBadge statusEnum="@_job.JobType" />
+                        <StatusBadge StatusEnums="@_job.JobType" />
                         <div class="header-actions">
                             <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href=@($"/jobs/edit/{JobId}") />
                         </div>
@@ -121,7 +121,7 @@ else
                 <div class="visits-invoices">
                     <!-- Files-->
                     <!-- Site Visits -->
-                    <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" JobType="@_job.JobType" />
+                    <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" JobType="@_job.JobType.First()" />
                     <!-- Invoices -->
                     <Card HeaderTitle="Invoices" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Unsent, TabTypeEnum.Unpaid, TabTypeEnum.Overdue, TabTypeEnum.Deleted]">
                         <ChildContent>

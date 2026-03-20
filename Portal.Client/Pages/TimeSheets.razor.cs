@@ -146,7 +146,7 @@ public partial class TimeSheets
             ["SelectedDate"] = SelectedDate,
             ["OnSaved"] = EventCallback.Factory.Create(this, LoadEntriesAsync),
             ["EditEntry"] = defaultTimeSheet,
-            [nameof(AddTimeSheetEntryDialog.Job)] = defaultTimeSheet is not null ? new JobDetailsDto() { JobId = defaultTimeSheet.JobId ?? 0, JobNumber = defaultTimeSheet.JobNumber ?? 0 } : null
+            [nameof(AddTimeSheetEntryDialog.Job)] = defaultTimeSheet is not null ? new JobDetailsDto() { JobId = defaultTimeSheet.JobId ?? 0, JobNumber = defaultTimeSheet.JobNumber ?? "" } : null
         };
         DialogOptions options = new() { CloseOnEscapeKey = true };
         await _dialog.ShowAsync<AddTimeSheetEntryDialog>("", parameters, options);

@@ -21,6 +21,7 @@ public partial class CreateJob
     /// List of councils
     /// </summary>
     private CouncilPartialDto[] _councils = [];
+    private JobTypeEnum[] _jobtypes = [];
     /// <summary>
     /// On initialized method for loading data on the first page load.
     /// </summary>
@@ -31,8 +32,7 @@ public partial class CreateJob
         await base.OnInitializedAsync();
         _model = new()
         {
-            JobType = JobTypeEnum.Construction,
-            JobNumber = 1,
+            JobType = [JobTypeEnum.Construction],
             Address = new()
             {
                 LatLng = new(-37.8136, 144.9631)
@@ -64,11 +64,6 @@ public partial class CreateJob
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SubmitAsync()
     {
-        if (_model.JobNumber <= 0)
-        {
-            _snackbar?.Add("Job number must be greater than 0.", Severity.Warning);
-            return;
-        }
         try
         {
             Result<int> result = await _apiService.CreateJob(_model);

@@ -4,6 +4,7 @@ using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
+using Portal.Shared.DTO.Setting;
 using Portal.Shared.DTO.TimeSheet;
 
 namespace Portal.IntegrationTests.EndpointTests;
@@ -16,6 +17,18 @@ public sealed class TypesEndpointTests
     public TypesEndpointTests(IntegrationTestFixture fixture)
     {
         _client = fixture.Factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task Get_all_settings_types_returns_ok()
+    {
+        HttpResponseMessage response = await _client.GetAsync("/api/types/all");
+        response.EnsureSuccessStatusCode();
+        AllSettingsTypesDto? bundle = await response.Content.ReadFromJsonAsync<AllSettingsTypesDto>();
+        Assert.NotNull(bundle);
+        Assert.NotNull(bundle.TimesheetTypes);
+        Assert.NotNull(bundle.ScheduleColours);
+        Assert.NotNull(bundle.ServiceTypes);
     }
 
     [Fact]

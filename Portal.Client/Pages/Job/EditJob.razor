@@ -34,15 +34,11 @@
                             <h3 class="form-section-title border-bottom pb-2">Job Details</h3>
                             <div class="form-sections border-rad">
                                 <div>
-                                    <label for="job-number">Job Number</label>
-                                    <MudNumericField name="job-number" T="int" @bind-Value="_model.JobNumber" Variant="Variant.Outlined"
-                                                     Required="true" RequiredError="Job number is required" Class="" For="@(() => _model.JobNumber)" />
-                                    <ValidationMessage For="@(() => _model.JobNumber)" />
-                                </div>
-
-                                <div>
                                     <label for="job-type">Job Type</label>
-                                    <MudSelect name="job-type" T="JobTypeEnum" @bind-Value="_model.JobType" Variant="Variant.Outlined" Class="" For="@(() => _model.JobType)" Required="true">
+                                    <MudSelect name="job-type" T="JobTypeEnum"  
+                                        SelectedValues="_jobtypes"
+                                        Variant="Variant.Outlined" Class="" 
+                                        Required="true" MultiSelection="true">
                                         <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
                                         <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
                                     </MudSelect>

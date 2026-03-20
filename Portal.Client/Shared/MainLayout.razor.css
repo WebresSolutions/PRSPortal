@@ -73,13 +73,13 @@ footer {
     .main {
         margin-right: auto;
         margin-top: 75px;
-        margin-left: 150px;
+        margin-left: auto;
         width: calc(100vw - 150px);
     }
 
         .main.full {
             margin-top: 75px;
-            margin-left: 60px;
+            margin-left: auto;
             width: calc(100vw - 60px);
         }
 }
@@ -87,14 +87,15 @@ footer {
 @media (max-width: 450px) {
     .main {
         margin-top: 75px;
-        margin-right: auto;
-        margin-left: 150px;
-        width: calc(100vw - 150px);
+        margin-right: 1rem;
+        margin-left: 1rem;
+        width: calc(100vw - 1rem);
     }
 
         .main.full {
+            margin-right: 1rem;
             margin-top: 75px;
-            margin-left: 65px;
-            width: calc(100vw - 65px);
+            margin-left: 1rem;
+            width: calc(100vw - 2rem);
         }
 }

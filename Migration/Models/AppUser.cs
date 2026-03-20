@@ -73,6 +73,8 @@ public partial class AppUser
 
     public virtual ICollection<JobQuote> JobQuotes { get; set; } = new List<JobQuote>();
 
+    public virtual ICollection<JobStatusHistory> JobStatusHistories { get; set; } = new List<JobStatusHistory>();
+
     public virtual ICollection<JobTask> JobTaskCreatedByUsers { get; set; } = new List<JobTask>();
 
     public virtual ICollection<JobTask> JobTaskModifiedByUsers { get; set; } = new List<JobTask>();
@@ -90,6 +92,12 @@ public partial class AppUser
     public virtual ICollection<QuoteNote> QuoteNoteCreatedByUsers { get; set; } = new List<QuoteNote>();
 
     public virtual ICollection<QuoteNote> QuoteNoteModifiedByUsers { get; set; } = new List<QuoteNote>();
+
+    public virtual ICollection<QuoteStatusHistory> QuoteStatusHistories { get; set; } = new List<QuoteStatusHistory>();
+
+    public virtual ICollection<QuoteTemplate> QuoteTemplateCreatedByUsers { get; set; } = new List<QuoteTemplate>();
+
+    public virtual ICollection<QuoteTemplate> QuoteTemplateModifiedByUsers { get; set; } = new List<QuoteTemplate>();
 
     public virtual ICollection<Schedule> ScheduleCreatedByUsers { get; set; } = new List<Schedule>();
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Portal.Shared;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
@@ -27,6 +28,7 @@ public partial class EditJob
     /// List of councils
     /// </summary>
     private CouncilPartialDto[] _councils = [];
+    private JobTypeEnum[] _jobtypes = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,12 +75,6 @@ public partial class EditJob
 
     private async Task SubmitAsync()
     {
-        if (_model!.JobNumber <= 0)
-        {
-            _snackbar?.Add("Job number must be greater than 0.", Severity.Warning);
-            return;
-        }
-
         try
         {
             Result<JobDetailsDto> result = await _apiService.UpdateJob(_model);

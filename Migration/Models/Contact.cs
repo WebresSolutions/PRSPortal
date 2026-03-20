@@ -64,6 +64,8 @@ public partial class Contact
 
     public virtual Contact? ParentContact { get; set; }
 
+    public virtual ICollection<Quote> Quotes { get; set; } = new List<Quote>();
+
     public virtual ICollection<TechnicalContact> TechnicalContacts { get; set; } = new List<TechnicalContact>();
 
     public virtual ContactType Type { get; set; } = null!;

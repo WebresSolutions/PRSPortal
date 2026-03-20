@@ -3,6 +3,7 @@ using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.File;
+using Portal.Shared.DTO.Integration;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
@@ -287,6 +288,21 @@ public interface IApiService
     Task<Result<TimeTypeDto[]>> GetTimeSheetTypes();
     #endregion
 
+    #region INTEGRATION
+    /// <summary>
+    /// Gets the Xero OAuth authorization URL; redirect the user to this URL to start OAuth.
+    /// </summary>
+    Task<Result<XeroAuthorizeResponse>> GetXeroAuthorizeUrl();
+    /// <summary>
+    /// Returns whether Xero is connected (has stored refresh token).
+    /// </summary>
+    Task<Result<XeroStatusResponse>> GetXeroStatus();
+    /// <summary>
+    /// Disconnects Xero (removes stored tokens).
+    /// </summary>
+    Task<Result<bool>> DisconnectXero();
+    #endregion
+
     #region TYPES
     /// <summary>Gets the list of contact types.</summary>
     Task<Result<ContactTypeDto[]>> GetContactTypes();
@@ -302,6 +318,8 @@ public interface IApiService
     Task<Result<TechnicalContactTypeDto[]>> GetTechnicalContactTypes();
     /// <summary>Gets the list of states/territories.</summary>
     Task<Result<StateDto[]>> GetStates();
+    /// <summary>All Settings-page lists plus schedule colours in one request.</summary>
+    Task<Result<AllSettingsTypesDto>> GetAllSettingsTypes();
     /// <summary>Creates or updates a timesheet type (Id 0 = create).</summary>
     Task<Result<TimeTypeDto>> SaveTimeSheetType(TimeTypeDto dto);
     /// <summary>Creates or updates a contact type (Id 0 = create).</summary>
@@ -316,5 +334,7 @@ public interface IApiService
     Task<Result<JobTaskTypeDto>> SaveJobTaskType(JobTaskTypeDto dto);
     /// <summary>Creates or updates a technical contact type (Id 0 = create).</summary>
     Task<Result<TechnicalContactTypeDto>> SaveTechnicalContactType(TechnicalContactTypeDto dto);
+    /// <summary>Creates or updates a service catalog line (Id 0 = create).</summary>
+    Task<Result<ServiceTypeDto>> SaveServiceType(ServiceTypeDto dto);
     #endregion
 }

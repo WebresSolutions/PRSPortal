@@ -76,14 +76,14 @@ INSERT INTO job_colour (color)
 INSERT INTO job_colour (color)
     VALUES ('#2ecc71');
 
-INSERT INTO job (contact_id, address_id, council_id, job_colour_id, job_type_id, invoice_number, job_number, details, created_by_user_id)
-    VALUES (1, 1, 1, 1, 1, 'INV-2026-001', 1001, 'Emergency pipe repair at main square', 1);
-INSERT INTO job (contact_id, address_id, council_id, job_colour_id, job_type_id, invoice_number, job_number, details, created_by_user_id)
-    VALUES (2, 2, 2, 2, 1, 'INV-2026-002', 1002, 'Scheduled vegetation clearing near coastal path', 1);
-INSERT INTO job (contact_id, address_id, council_id, job_colour_id, job_type_id, invoice_number, job_number, details, created_by_user_id)
-    VALUES (3, 3, 3, 3, 1, 'INV-2026-003', 1003, 'Graffiti removal from heritage building facade', 1);
-INSERT INTO job (contact_id, address_id, council_id, job_colour_id, job_type_id, invoice_number, job_number, details, created_by_user_id)
-    VALUES (1, 1, 1, 1, 1, 'INV-2026-004', 1004, 'Follow-up inspection for site drainage', 1);
+INSERT INTO job (contact_id, address_id, council_id, job_colour_id, invoice_number, job_number, details, created_by_user_id)
+    VALUES (1, 1, 1, 1, 'INV-2026-001', 1001, 'Emergency pipe repair at main square', 1);
+INSERT INTO job (contact_id, address_id, council_id, job_colour_id, invoice_number, job_number, details, created_by_user_id)
+    VALUES (2, 2, 2, 1, 'INV-2026-002', 1002, 'Scheduled vegetation clearing near coastal path', 1);
+INSERT INTO job (contact_id, address_id, council_id, job_colour_id, invoice_number, job_number, details, created_by_user_id)
+    VALUES (3, 3, 3, 1, 'INV-2026-003', 1003, 'Graffiti removal from heritage building facade', 1);
+INSERT INTO job (contact_id, address_id, council_id, job_colour_id, invoice_number, job_number, details, created_by_user_id)
+    VALUES (1, 1, 1, 1, 'INV-2026-004', 1004, 'Follow-up inspection for site drainage', 1);
 
 INSERT INTO user_job (user_id, job_id, created_by_user_id)
     VALUES (1, 1, 1);

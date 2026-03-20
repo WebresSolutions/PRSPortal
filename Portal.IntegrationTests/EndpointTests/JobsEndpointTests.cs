@@ -34,11 +34,9 @@ public sealed class JobsEndpointTests
     [Fact]
     public async Task List_jobs_filtered_by_contactId_returns_only_jobs_for_that_contact()
     {
-        int testJobNumber = 778001;
         JobCreationDto createDto = new()
         {
-            JobNumber = testJobNumber,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for contact filter test",
         };
@@ -56,17 +54,15 @@ public sealed class JobsEndpointTests
         Assert.NotNull(resValue.Result);
         ListJobDto? createdJob = resValue.Result.FirstOrDefault(j => j.JobId == jobId.Value);
         Assert.NotNull(createdJob);
-        Assert.Equal(testJobNumber, createdJob.JobNumber);
+        Assert.NotNull(createdJob.JobNumber);
     }
 
     [Fact]
     public async Task List_jobs_filtered_by_councilId_returns_only_jobs_for_that_council()
     {
-        int testJobNumber = 778002;
         JobCreationDto createDto = new()
         {
-            JobNumber = testJobNumber,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             CouncilId = 1,
             Details = "Job for council filter test",
@@ -85,17 +81,15 @@ public sealed class JobsEndpointTests
         Assert.NotNull(resValue.Result);
         ListJobDto? createdJob = resValue.Result.FirstOrDefault(j => j.JobId == jobId.Value);
         Assert.NotNull(createdJob);
-        Assert.Equal(testJobNumber, createdJob.JobNumber);
+        Assert.NotNull(createdJob.JobNumber);
     }
 
     [Fact]
     public async Task List_jobs_filtered_by_contactId_and_councilId_returns_matching_jobs()
     {
-        int testJobNumber = 778003;
         JobCreationDto createDto = new()
         {
-            JobNumber = testJobNumber,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             CouncilId = 1,
             Details = "Job for combined filter test",
@@ -113,7 +107,7 @@ public sealed class JobsEndpointTests
         Assert.NotNull(resValue.Result);
         ListJobDto? createdJob = resValue.Result.FirstOrDefault(j => j.JobId == jobId.Value);
         Assert.NotNull(createdJob);
-        Assert.Equal(testJobNumber, createdJob.JobNumber);
+        Assert.NotNull(createdJob.JobNumber);
 
         response = await _client.GetAsync("/api/jobs?page=1&pageSize=50&contactId=1&councilId=99999");
         response.EnsureSuccessStatusCode();
@@ -135,8 +129,7 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto dto = new()
         {
-            JobNumber = 123123,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
         };
@@ -153,17 +146,16 @@ public sealed class JobsEndpointTests
         Assert.NotNull(job);
         Assert.Equal(dto.Details, job.Details);
         Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
-        Assert.Equal(dto.JobNumber, job.JobNumber);
-        Assert.Equal(dto.JobType, job.JobType);
+        Assert.NotNull(job.JobNumber);
+        Assert.True(job.JobType.Contains(Shared.JobTypeEnum.Construction));
     }
     [Fact]
     public async Task Create_job_bad_request()
     {
         JobCreationDto invalidCreatJobRequest = new()
         {
-            JobNumber = 0,
-            JobType = Shared.JobTypeEnum.Construction,
-            ContactId = 1,
+            JobType = [Shared.JobTypeEnum.Construction],
+            ContactId = 0,
             Details = "Test",
         };
 
@@ -189,8 +181,7 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto dto = new()
         {
-            JobNumber = 1231231,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
         };
@@ -207,11 +198,11 @@ public sealed class JobsEndpointTests
         Assert.NotNull(job);
         Assert.Equal(dto.Details, job.Details);
         Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
-        Assert.Equal(dto.JobNumber, job.JobNumber);
-        Assert.Equal(dto.JobType, job.JobType);
+        Assert.NotNull(job.JobNumber);
+        Assert.True(job.JobType.Contains(Shared.JobTypeEnum.Construction));
 
         job.Details = "Updated Job Details";
-        job.JobType = Shared.JobTypeEnum.Surveying;
+        job.JobType = [Shared.JobTypeEnum.Surveying];
         response = await _client.PutAsJsonAsync("/api/jobs", job);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         JobDetailsDto? updateJob = await response.Content.ReadFromJsonAsync<JobDetailsDto?>();
@@ -225,8 +216,7 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto dto = new()
         {
-            JobNumber = 11111,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
         };
@@ -243,11 +233,11 @@ public sealed class JobsEndpointTests
         Assert.NotNull(job);
         Assert.Equal(dto.Details, job.Details);
         Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
-        Assert.Equal(dto.JobNumber, job.JobNumber);
-        Assert.Equal(dto.JobType, job.JobType);
+        Assert.NotNull(job.JobNumber);
+        Assert.True(job.JobType.Contains(Shared.JobTypeEnum.Construction));
 
         job.Details = "Updated Job Details";
-        job.JobType = Shared.JobTypeEnum.Surveying;
+        job.JobType = [Shared.JobTypeEnum.Surveying];
         response = await _client.DeleteAsync($"/api/jobs/{job.JobId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -272,8 +262,7 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobNumber = 999001,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for note tests",
         };
@@ -310,8 +299,7 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobNumber = 999002,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for update note tests",
         };
@@ -388,8 +376,7 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobNumber = 778100,
-            JobType = Shared.JobTypeEnum.Construction,
+            JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for file attachment test",
         };

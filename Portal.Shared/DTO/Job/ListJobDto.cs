@@ -32,11 +32,11 @@ public class ListJobDto
     /// <summary>
     /// Gets or sets the job number
     /// </summary>
-    public int? JobNumber { get; set; }
+    public string? JobNumber { get; set; }
     /// <summary>
     /// Gets or sets the job type as a string
     /// </summary>
-    public string JobType { get; set; } = "";
+    public JobTypeEnum[] JobType { get; set; } = [];
     /// <summary>
     /// Gets or sets the job type as an integer identifier
     /// </summary>
@@ -71,17 +71,15 @@ public class ListJobDto
         AddressDTO address,
         ContactDto? contact1,
         ContactDto? contact2,
-        int? jobNumber,
-        string jobType,
-        int jobTypeInt)
+        string? jobNumber,
+        JobTypeEnum[] jobTypes)
     {
         JobId = jobId;
         Address = address;
         Contact1 = contact1;
         Contact2 = contact2;
         JobNumber = jobNumber;
-        JobType = jobType;
-        JobTypeInt = jobTypeInt;
+        JobType = jobTypes;
     }
 
     /// <summary>

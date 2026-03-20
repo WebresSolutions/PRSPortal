@@ -17,7 +17,7 @@ public sealed class TimesheetEndpointTests
     [Fact]
     public async Task Post_timesheet_entry_returns_ok()
     {
-        TimeSheetDto entry = new(0, 1, DateTime.UtcNow.AddHours(-1), DateTime.UtcNow, 0, 1, "Test entry", "", 0);
+        TimeSheetDto entry = new(0, 1, DateTime.UtcNow.AddHours(-1), DateTime.UtcNow, 0, 1, "Test entry", "", "");
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/timesheet", entry);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         TimeSheetDto? resValue = await response.Content.ReadFromJsonAsync<TimeSheetDto>();
@@ -30,7 +30,7 @@ public sealed class TimesheetEndpointTests
     [Fact]
     public async Task Get_timesheet_returns_ok()
     {
-        TimeSheetDto entry = new(0, 1, DateTime.UtcNow.AddHours(-1), DateTime.UtcNow, 0, 1, "Test entry", "", 0);
+        TimeSheetDto entry = new(0, 1, DateTime.UtcNow.AddHours(-1), DateTime.UtcNow, 0, 1, "Test entry", "", "");
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/timesheet", entry);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -59,7 +59,7 @@ public sealed class TimesheetEndpointTests
     public async Task Update_timesheet_entry_success()
     {
         // Create a timesheet entry with no end time
-        TimeSheetDto entry = new(0, 1, DateTime.UtcNow.AddHours(-1), null, 0, 1, "Test entry", "", 0);
+        TimeSheetDto entry = new(0, 1, DateTime.UtcNow.AddHours(-1), null, 0, 1, "Test entry", "", "");
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/timesheet", entry);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         TimeSheetDto? resValue = await response.Content.ReadFromJsonAsync<TimeSheetDto>();
@@ -82,7 +82,7 @@ public sealed class TimesheetEndpointTests
     [Fact]
     public async Task Delete_timesheet_entry_success()
     {
-        TimeSheetDto entry = new(0, 1, DateTime.UtcNow.AddHours(-1), DateTime.UtcNow, 0, 1, "Test entry", "", 0);
+        TimeSheetDto entry = new(0, 1, DateTime.UtcNow.AddHours(-1), DateTime.UtcNow, 0, 1, "Test entry", "", "");
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/timesheet", entry);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 

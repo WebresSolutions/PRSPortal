@@ -15,6 +15,12 @@ DROP TABLE IF EXISTS job_file;
 DROP TABLE IF EXISTS user_job;
 DROP TABLE IF EXISTS invoice;
 DROP TABLE IF EXISTS technical_contact;
+DROP TABLE IF EXISTS job_status_history;
+DROP TABLE IF EXISTS job_to_type;
+DROP TABLE IF EXISTS quote_status_history;
+DROP TABLE IF EXISTS quote_template_item;
+DROP TABLE IF EXISTS quote_template;
+DROP TABLE IF EXISTS quote_item;
 
 -- Tier 2: Tables with FKs pointing to core entities (Parents/Reference tables)
 DROP TABLE IF EXISTS job;
@@ -23,19 +29,23 @@ DROP TABLE IF EXISTS contact;
 DROP TABLE IF EXISTS app_file;
 DROP TABLE IF EXISTS council;
 DROP TABLE IF EXISTS address;
+DROP TABLE IF EXISTS xero_access;
 
 -- Tier 3: Lookup/Type tables
 DROP TABLE IF EXISTS technical_contact_type;
 DROP TABLE IF EXISTS contact_type;
 DROP TABLE IF EXISTS timesheet_entry_type;
 DROP TABLE IF EXISTS job_type;
+DROP TABLE IF EXISTS job_status;
 DROP TABLE IF EXISTS job_colour;
 DROP TABLE IF EXISTS schedule_colour;
 DROP TABLE IF EXISTS file_type;
 DROP TABLE IF EXISTS job_task_type;
+DROP TABLE IF EXISTS service_type;
 DROP TABLE IF EXISTS states;
 DROP TABLE IF EXISTS app_user;
 DROP TABLE IF EXISTS application_setting;
+DROP TABLE IF EXISTS quote_status;
 
 -- ============================================================================
 -- EXTENSIONS
@@ -312,19 +322,42 @@ INSERT INTO job_type(id, name, abbreviation) VALUES (1, 'Construction', 'CONSTRU
 INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
 
 -- ============================================================================
+-- JOB STATUS TABLE
+-- ============================================================================
+
+CREATE TABLE job_status (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    status_position INT NOT NULL,
+    job_type_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE job_status IS 'The status of a Job';
+INSERT INTO job_status( status_position, job_type_id, name) VALUES (1, 1, 'Quote Requested');
+INSERT INTO job_status(status_position, job_type_id, name) VALUES (2, 1, 'Quote Sent');
+INSERT INTO job_status(status_position, job_type_id, name) VALUES (3, 1, 'First Payment');
+INSERT INTO job_status(status_position, job_type_id, name) VALUES (4, 1, 'Final Payment');
+
+INSERT INTO job_status(status_position, job_type_id, name) VALUES (1, 2, 'Quote Requested');
+INSERT INTO job_status(status_position, job_type_id, name) VALUES (2, 2, 'Quote Sent');
+INSERT INTO job_status(status_position, job_type_id, name) VALUES (3, 2, 'First Payment');
+INSERT INTO job_status(status_position, job_type_id, name) VALUES (4, 2, 'Final Payment');
+
+-- ============================================================================
 -- JOB TABLE
 -- ============================================================================
 
 CREATE TABLE job (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    status_id INT NULL REFERENCES job_status(id),
     contact_id INT NOT NULL REFERENCES contact(id),
     address_id INT REFERENCES address(id),
     council_id INT REFERENCES council(id),
     job_colour_id INT REFERENCES job_colour(id),
-    job_type_id INT NOT NULL REFERENCES job_type(id),
     legacy_id INT,
     invoice_number VARCHAR(255) UNIQUE,
-    job_number INT,
+    job_number VARCHAR(50) NOT NULL, -- Change this
     details TEXT,
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -337,16 +370,49 @@ COMMENT ON TABLE job IS 'Main job/project tracking with invoicing';
 COMMENT ON COLUMN job.deleted_at IS 'Soft delete TIMESTAMPTZ - NULL means active';
 COMMENT ON COLUMN job.job_number IS 'Used in junction with the job type to identify the job. With either be type Construction or Surveying';
 
+CREATE INDEX idx_job_number_text_trgm ON job USING GIN (job_number gin_trgm_ops);
 CREATE INDEX idx_job_number ON job(job_number);
 CREATE INDEX idx_job_invoice_number ON job(invoice_number);
 CREATE INDEX idx_job_contact_id ON job(contact_id);
+CREATE INDEX idx_job_status_id ON job(status_id);
 CREATE INDEX idx_job_address_id ON job(address_id);
 CREATE INDEX idx_job_council_id ON job(council_id);
 CREATE INDEX idx_job_colour_id ON job(job_colour_id);
-CREATE INDEX idx_job_type_id ON job(job_type_id);
 CREATE INDEX idx_job_created_on ON job(created_on);
 CREATE INDEX idx_job_deleted_at ON job(deleted_at);
 CREATE INDEX idx_job_created_by ON job(created_by_user_id);
+
+-- ============================================================================
+-- JOB STATUS HISTORY TABLE
+-- ============================================================================
+
+CREATE TABLE job_status_history (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    job_id INT NOT NULL REFERENCES job(id),
+    status_id_old INT NOT NULL REFERENCES job_status(id),
+    status_id_new INT NOT NULL REFERENCES job_status(id),
+    date_changed TIMESTAMPTZ NOT NULL,
+    modified_by_user_id INT NOT NULL REFERENCES app_user(id)
+);
+
+COMMENT ON TABLE job_status_history IS 'Track the status history of the job.';
+CREATE INDEX idx_job_id ON job_status_history(job_id);
+CREATE INDEX idx_job_status_new ON job_status_history(status_id_new);
+CREATE INDEX idx_job_status_old ON job_status_history(status_id_old);
+CREATE INDEX idx_job_status_modified_by ON job_status_history(modified_by_user_id);
+
+-- ============================================================================
+-- Job Types Table
+-- ============================================================================
+CREATE TABLE job_to_type(
+    job_id INT NOT NULL REFERENCES job(id),
+    job_type_id INT NOT NULL REFERENCES job_type(id),
+    PRIMARY KEY(job_id, job_type_id)
+);
+
+COMMENT ON TABLE job_to_type IS 'Jobs can have multiple types. ';
+CREATE INDEX idx_job_to_type_job ON job_to_type(job_id);
+CREATE INDEX  idx_job_to_type_type ON job_to_type(job_type_id);
 
 -- ============================================================================
 -- Technical Contact Types Table
@@ -496,6 +562,23 @@ CREATE INDEX idx_task_deleted_at ON job_task(deleted_at);
 CREATE INDEX idx_task_created_by ON job_task(created_by_user_id);
 
 -- ============================================================================
+-- SERVICE CATALOG
+-- ============================================================================
+CREATE TABLE service_type (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    code VARCHAR(20) UNIQUE,
+    service_name VARCHAR(150) NOT NULL,
+    default_rate NUMERIC(12, 2),
+    unit_of_measure VARCHAR(20),
+    is_active BOOLEAN DEFAULT TRUE,
+    description TEXT
+);
+CREATE INDEX idx_service_type_code ON service_type(code);
+CREATE INDEX idx_service_type_active ON service_type(is_active);
+CREATE INDEX idx_service_catalog_name ON service_type(service_name);
+
+
+-- ============================================================================
 -- INVOICE TABLE
 -- ============================================================================
 CREATE TABLE invoice(
@@ -518,13 +601,32 @@ CREATE INDEX idx_invoice_modified_by ON invoice(modified_by_user_id);
 CREATE INDEX idx_invoice_deleted_at ON invoice(deleted_at);
 
 -- ============================================================================
+-- QUOTE STATUS HISTORY TABLE
+-- ============================================================================
+--
+CREATE TABLE quote_status (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL
+);
+
+COMMENT ON TABLE quote_status IS 'Holds the status of a quote';
+INSERT INTO quote_status(name) VALUES ('Draft');
+INSERT INTO quote_status(name) VALUES ('Lost');
+INSERT INTO quote_status(name) VALUES ('Rejected');
+INSERT INTO quote_status(name) VALUES ('Sent');
+
+-- ============================================================================
 -- QUOTE TABLE
 -- ============================================================================
-
 CREATE TABLE quote (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     legacy_id INT,
+    status_id INT NOT NULL REFERENCES quote_status(id),
     address_id INT REFERENCES address(id),
+    contact_id INT REFERENCES contact(id),
+    total_price NUMERIC(12, 2),
+    date_accepted TIMESTAMPTZ,
+    description TEXT,
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_by_user_id INT REFERENCES app_user(id),
@@ -534,8 +636,86 @@ CREATE TABLE quote (
 
 COMMENT ON TABLE quote IS 'A quote for a job';
 CREATE INDEX idx_quote_address_id ON quote(address_id);
+CREATE INDEX idx_quote_status_id ON quote(status_id);
+CREATE INDEX idx_quote_contact_id ON quote(contact_id);
 CREATE INDEX idx_quote_created_by ON quote(created_by_user_id);
 CREATE INDEX idx_quote_modified_by ON quote(modified_by_user_id);
+
+-- ============================================================================
+-- QUOTE ORDER ITEMS
+-- ============================================================================
+CREATE TABLE quote_item (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+        quote_id INT NOT NULL REFERENCES quote(id) ON DELETE CASCADE,
+        service_id INT REFERENCES service_type(id),
+        service_name_snapshot VARCHAR(150) NOT NULL,
+        applied_rate NUMERIC(12, 2) NOT NULL,
+        quantity NUMERIC(10, 2) DEFAULT 1.00,
+        subtotal NUMERIC(12, 2) GENERATED ALWAYS AS (applied_rate * quantity) STORED,
+        notes TEXT
+);
+
+CREATE INDEX idx_quote_item_quote_id ON quote_item(quote_id);
+CREATE INDEX idx_quote_item_service_id ON quote_item(service_id);
+
+-- ============================================================================
+-- QUOTE TEMPLATES (reusable default line sets for new quotes)
+-- ============================================================================
+CREATE TABLE quote_template (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    job_type_id INT REFERENCES job_type(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_by_user_id INT NOT NULL REFERENCES app_user(id),
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_by_user_id INT REFERENCES app_user(id),
+    modified_on TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ DEFAULT NULL
+);
+
+COMMENT ON TABLE quote_template IS 'Named reusable templates; applying one copies lines into a new quote as quote_item rows.';
+COMMENT ON COLUMN quote_template.job_type_id IS 'Optional hint e.g. Construction vs Survey when picking a template in the UI.';
+CREATE INDEX idx_quote_template_active ON quote_template(is_active) WHERE deleted_at IS NULL;
+CREATE INDEX idx_quote_template_job_type_id ON quote_template(job_type_id);
+CREATE INDEX idx_quote_template_sort ON quote_template(sort_order);
+CREATE INDEX idx_quote_template_created_by ON quote_template(created_by_user_id);
+CREATE INDEX idx_quote_template_deleted_at ON quote_template(deleted_at);
+
+CREATE TABLE quote_template_item (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    quote_template_id INT NOT NULL REFERENCES quote_template(id) ON DELETE CASCADE,
+    line_order INT NOT NULL DEFAULT 0,
+    service_id INT REFERENCES service_type(id) ON DELETE SET NULL,
+    service_name_snapshot VARCHAR(150) NOT NULL,
+    default_rate NUMERIC(12, 2) NOT NULL,
+    default_quantity NUMERIC(10, 2) NOT NULL DEFAULT 1.00,
+    notes TEXT
+);
+
+COMMENT ON TABLE quote_template_item IS 'Default lines for a quote_template; copy to quote_item when a template is applied.';
+CREATE INDEX idx_quote_template_item_template_id ON quote_template_item(quote_template_id);
+CREATE INDEX idx_quote_template_item_service_id ON quote_template_item(service_id);
+CREATE INDEX idx_quote_template_item_line_order ON quote_template_item(quote_template_id, line_order);
+
+-- ============================================================================
+-- QUOTE STATUS HISTORY TABLE
+-- ============================================================================
+CREATE TABLE quote_status_history (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    quote_id INT NOT NULL REFERENCES quote,
+    status_id_old INT NOT NULL REFERENCES quote_status(id),
+    status_id_new INT NOT NULL REFERENCES quote_status(id),
+    date_changed TIMESTAMPTZ NOT NULL,
+    modified_by_user_id INT NOT NULL REFERENCES app_user(id)
+);
+
+COMMENT ON TABLE quote_status_history IS 'Track the status history of the quote.';
+CREATE INDEX idx_quote_history_id ON quote_status_history(quote_id);
+CREATE INDEX idx_quote_status_new ON quote_status_history(status_id_new);
+CREATE INDEX idx_quote_status_old ON quote_status_history(status_id_old);
+CREATE INDEX idx_quote_status_modified_by ON quote_status_history(modified_by_user_id);
 
 -- ============================================================================
 -- JOB QUOTES TABLE
@@ -757,3 +937,14 @@ CREATE TABLE dashboard_item (
 
 CREATE INDEX idx_dashboard_item_dashboard_id ON dashboard_item(dashboard_id);
 CREATE INDEX idx_dashboard_item_content ON dashboard_item(content_id);
+
+
+CREATE TABLE xero_access (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    token VARCHAR(5000) NOT NULL,
+    date_refreshed TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX idx_xero_access_expires ON xero_access(expires);
+CREATE INDEX idx_xero_access_token ON xero_access(token);

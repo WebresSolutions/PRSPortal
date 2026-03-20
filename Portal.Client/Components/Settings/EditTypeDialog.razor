@@ -1,30 +1,46 @@
 @using Portal.Client.Services.Interfaces
 @using Portal.Shared.DTO.Contact
 @using Portal.Shared.DTO.Job
+@using Portal.Shared.DTO.Setting
 @using Portal.Shared.DTO.TimeSheet
 @namespace Portal.Client.Components.Settings
 
-<MudDialog>
-    <TitleContent>
-        <MudText Typo="Typo.h6">@Title</MudText>
-    </TitleContent>
+<MudDialog >
     <DialogContent>
-        @if (TypeName == "Job")
-        {
-            <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined" Class="mb-2" />
-            <MudTextField @bind-Value="_abbreviation" Label="Abbreviation" Variant="Variant.Outlined" />
-        }
-        else if (TypeName == "JobColour")
-        {
-            <MudColorPicker ShowToolbar="true" Label="Colour" Variant="Variant.Outlined"
-                            ColorPickerView="ColorPickerView.GridCompact" ColorPickerMode="ColorPickerMode.HEX"
-                            Value="@_colourHex" TextChanged="@OnColourChanged" />
-        }
-        else
-        {
-            <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined" Class="mb-2" />
-            <MudTextField @bind-Value="_description" Label="Description" Variant="Variant.Outlined" Lines="2" />
-        }
+        <h4 class="header-border">@Title</h4>
+        <div class="border-rad grey-background p-4">
+            @if (TypeName == "Job")
+            {
+                <div class="d-flex flex-column gap-1">
+                    <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined" Class="mb-2" />
+                    <MudTextField @bind-Value="_abbreviation" Label="Abbreviation" Variant="Variant.Outlined" />
+                </div>
+            }
+            else if (TypeName == "JobColour")
+            {
+                <MudColorPicker ShowToolbar="true" Label="Colour" Variant="Variant.Outlined"
+                                ColorPickerView="ColorPickerView.GridCompact" ColorPickerMode="ColorPickerMode.HEX"
+                                Value="@_colourHex" TextChanged="@OnColourChanged" />
+            }
+            else if (TypeName == "Service")
+            {
+                <div class="d-flex flex-column gap-1">
+                    <MudTextField @bind-Value="_code" Label="Code" Variant="Variant.Outlined" Class="mb-2" HelperText="Optional; must be unique if set" />
+                    <MudTextField @bind-Value="_serviceName" Label="Service name" Variant="Variant.Outlined" Class="mb-2" />
+                    <MudNumericField @bind-Value="_defaultRate" Label="Default rate" Variant="Variant.Outlined" Class="mb-2" Format="N2" />
+                    <MudTextField @bind-Value="_unitOfMeasure" Label="Unit of measure" Variant="Variant.Outlined" Class="mb-2" />
+                    <MudSwitch @bind-Value="_isActive" Label="Active" Color="Color.Primary" Class="mb-2" />
+                    <MudTextField @bind-Value="_description" Label="Description" Variant="Variant.Outlined" Lines="3" />
+                </div>
+            }
+            else
+            {
+                <div class="d-flex flex-column gap-1">
+                    <MudTextField @bind-Value="_name" Label="Name" Variant="Variant.Outlined" Class="mb-2" />
+                    <MudTextField @bind-Value="_description" Label="Description" Variant="Variant.Outlined" Lines="2" />
+                </div>
+            }
+        </div>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -56,6 +72,12 @@
     private string _abbreviation = "";
     private string _colourHex = "#1976d2";
     private int _id;
+
+    private string _code = "";
+    private string _serviceName = "";
+    private decimal? _defaultRate;
+    private string _unitOfMeasure = "";
+    private bool _isActive = true;
 
     private void OnColourChanged(string s)
     {
@@ -93,9 +115,20 @@
         {
             _id = tc.Id; _name = tc.Name; _description = tc.Description ?? "";
         }
+        else if (Item is ServiceTypeDto sv)
+        {
+            _id = sv.Id;
+            _code = sv.Code ?? "";
+            _serviceName = sv.ServiceName;
+            _defaultRate = sv.DefaultRate;
+            _unitOfMeasure = sv.UnitOfMeasure ?? "";
+            _isActive = sv.IsActive != false;
+            _description = sv.Description ?? "";
+        }
         else
         {
             _id = 0; _name = ""; _description = ""; _abbreviation = ""; _colourHex = "#1976d2";
+            _code = ""; _serviceName = ""; _defaultRate = null; _unitOfMeasure = ""; _isActive = true;
         }
     }
 
@@ -134,6 +167,14 @@
             case "TechnicalContact":
                 var r6 = await ApiService.SaveTechnicalContactType(new TechnicalContactTypeDto(_id, _name, _description));
                 if (r6.IsSuccess) saved = r6.Value; else error = r6.ErrorDescription;
+                break;
+            case "Service":
+                string? code = string.IsNullOrWhiteSpace(_code) ? null : _code.Trim();
+                string? uom = string.IsNullOrWhiteSpace(_unitOfMeasure) ? null : _unitOfMeasure.Trim();
+                string? desc = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim();
+                var r7 = await ApiService.SaveServiceType(new ServiceTypeDto(
+                    _id, code, _serviceName.Trim(), _defaultRate, uom, _isActive, desc));
+                if (r7.IsSuccess) saved = r7.Value; else error = r7.ErrorDescription;
                 break;
         }
         if (saved is not null)

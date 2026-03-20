@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Migration.Display;
 using Migration.Models;
 using Migration.SourceDb;
@@ -365,9 +365,8 @@ internal class MigrationService(
 
                 Models.Job newJob = new()
                 {
-                    JobNumber = jobNumber,
+                    JobNumber = jobNumber.ToString() ?? "",
                     CreatedByUserId = 95,
-                    JobTypeId = oldJob.SetoutJobNumber is not null ? 1 : 2,
                     LegacyId = (int)oldJob.Id,
                     Contact = contact,
                     ContactId = contact.Id,
@@ -426,6 +425,79 @@ internal class MigrationService(
 
             existingJobsCount = [.. _destinationContext.Jobs.Include(x => x.Address).AsNoTracking()];
             _jobsCache = existingJobsCount.ToFrozenDictionary(x => x.LegacyId ?? 0, y => y);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Inserts into <c>job_to_type</c> using EF Core many-to-many: add <see cref="JobType"/> to <see cref="Models.Job.JobTypes"/>.
+    /// Legacy mapping: <c>SetoutJobNumber</c> → Construction (id 1), <c>CadastralJobNumber</c> → Survey/CAD (id 2).
+    /// Idempotent: skips types already linked.
+    /// </summary>
+    public void MigrateJobToTypes(Action<MigrationProgress> progressCallback)
+    {
+        try
+        {
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Job Types (job_to_type)",
+                CurrentItem = "Loading source jobs and destination links...",
+                CurrentItemIndex = 0,
+                TotalItems = 0
+            });
+
+            if (_jobsCache is null || _jobsCache.Count == 0)
+                return;
+
+            JobType? construction = _destinationContext.JobTypes.Find(1);
+            JobType? survey = _destinationContext.JobTypes.Find(2);
+            if (construction is null || survey is null)
+                throw new InvalidOperationException("job_type must contain id 1 (Construction) and 2 (Survey) before migrating job_to_type.");
+
+            SourceDb.Job[] sourceJobs = [.. _sourceDBContext.Jobs.AsNoTracking()];
+            List<Models.Job> destJobs = [.. _destinationContext.Jobs
+                .Include(j => j.JobTypes)
+                .Where(j => j.LegacyId != null)];
+
+            Dictionary<int, Models.Job> destByLegacy = destJobs.ToDictionary(j => j.LegacyId!.Value);
+
+            for (int i = 0; i < sourceJobs.Length; i++)
+            {
+                SourceDb.Job oldJob = sourceJobs[i];
+                if (i % 2000 == 0)
+                {
+                    progressCallback.Invoke(new MigrationProgress
+                    {
+                        CurrentStep = "Migrating Job Types (job_to_type)",
+                        CurrentItem = $"Linking job types {i + 1}/{sourceJobs.Length}",
+                        CurrentItemIndex = i + 1,
+                        TotalItems = sourceJobs.Length
+                    });
+                }
+
+                if (!destByLegacy.TryGetValue((int)oldJob.Id, out Models.Job? destJob))
+                    continue;
+
+                if (oldJob.SetoutJobNumber.HasValue && destJob.JobTypes.All(t => t.Id != construction.Id))
+                    destJob.JobTypes.Add(construction);
+
+                if (oldJob.CadastralJobNumber.HasValue && destJob.JobTypes.All(t => t.Id != survey.Id))
+                    destJob.JobTypes.Add(survey);
+            }
+
+            _destinationContext.SaveChanges();
+
+            progressCallback.Invoke(new MigrationProgress
+            {
+                CurrentStep = "Migrating Job Types (job_to_type)",
+                CurrentItem = "Finished saving job_to_type links.",
+                CurrentItemIndex = sourceJobs.Length,
+                TotalItems = sourceJobs.Length
+            });
         }
         catch (Exception ex)
         {

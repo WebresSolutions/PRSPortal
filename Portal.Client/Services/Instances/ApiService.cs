@@ -5,6 +5,7 @@ using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.File;
+using Portal.Shared.DTO.Integration;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
@@ -1203,6 +1204,34 @@ public class ApiService : IApiService
         GetTypesAsync<TechnicalContactTypeDto>("api/types/technicalcontact", "technical contact types");
     public Task<Result<StateDto[]>> GetStates() =>
         GetTypesAsync<StateDto>("api/types/state", "states");
+
+    /// <inheritdoc />
+    public async Task<Result<AllSettingsTypesDto>> GetAllSettingsTypes()
+    {
+        Result<AllSettingsTypesDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync("api/types/all");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                AllSettingsTypesDto? data = await response.Content.ReadFromJsonAsync<AllSettingsTypesDto>();
+                res.SetValue(data ?? new AllSettingsTypesDto());
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to load settings types";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
     private async Task<Result<T[]>> GetTypesAsync<T>(string url, string typeName)
     {
         Result<T[]> res = new();
@@ -1268,6 +1297,95 @@ public class ApiService : IApiService
         PutTypeAsync("api/types/jobtask", dto, "job task type");
     public Task<Result<TechnicalContactTypeDto>> SaveTechnicalContactType(TechnicalContactTypeDto dto) =>
         PutTypeAsync("api/types/technicalcontact", dto, "technical contact type");
+    public Task<Result<ServiceTypeDto>> SaveServiceType(ServiceTypeDto dto) =>
+        PutTypeAsync("api/types/service", dto, "service type");
+
+    #region INTEGRATION
+    /// <summary>
+    /// Gets the Xero OAuth authorization URL; redirect the user to this URL to start OAuth.
+    /// </summary>
+    public async Task<Result<XeroAuthorizeResponse>> GetXeroAuthorizeUrl()
+    {
+        Result<XeroAuthorizeResponse> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync("api/xero/authorize");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                XeroAuthorizeResponse? data = await response.Content.ReadFromJsonAsync<XeroAuthorizeResponse>();
+                if (data is not null)
+                    res.Value = data;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get Xero authorize URL";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Returns whether Xero is connected (has stored refresh token).
+    /// </summary>
+    public async Task<Result<XeroStatusResponse>> GetXeroStatus()
+    {
+        Result<XeroStatusResponse> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync("api/xero/status");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                XeroStatusResponse? data = await response.Content.ReadFromJsonAsync<XeroStatusResponse>();
+                if (data is not null)
+                    res.Value = data;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get Xero status";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Disconnects Xero (removes stored tokens).
+    /// </summary>
+    public async Task<Result<bool>> DisconnectXero()
+    {
+        Result<bool> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PostAsync("api/xero/disconnect", null);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            res.Value = response.IsSuccessStatusCode;
+            if (!response.IsSuccessStatusCode)
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to disconnect Xero";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+    #endregion
 
     /// <summary>
     /// Deletes a timesheet entry for the current user. The entry must have a valid ID corresponding to an existing timesheet entry. 

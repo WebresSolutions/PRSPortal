@@ -170,7 +170,7 @@ else
                                 <Columns>
                                     <TemplateColumn ShowFilterIcon="false" Title="Job Type">
                                         <CellTemplate>
-                                            <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
+                                            <StatusBadge StatusEnums="@(context.Item.JobType)" />
                                         </CellTemplate>
                                     </TemplateColumn>
                                     <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number #" HeaderStyle="max-width: 75px">

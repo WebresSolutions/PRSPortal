@@ -19,5 +19,5 @@ public class ScheduleJobPartialDto
     /// <summary>
     /// Gets or sets the job number
     /// </summary>
-    public int? JobNumber { get; set; }
+    public string? JobNumber { get; set; }
 }

@@ -1,53 +1,150 @@
-﻿@using Portal.Client.Components.UIComponents
+@using Portal.Client.Components.UIComponents
 @using Portal.Shared
 
-@if (Onclick.HasDelegate)
+@{
+    IReadOnlyList<JobTypeEnum> types = ResolvedTypes;
+}
+
+@if (types.Count == 0)
 {
-    <div class="status-badge" style=@($"background-color: {color}") @onclick=@(() => Onclick.InvokeAsync())>
-        @statusEnum.GetDisplayName()
-    </div>
+    @* nothing *@
+}
+else if (types.Count == 1)
+{
+    var only = types[0];
+    @if (OnClick.HasDelegate)
+    {
+        <div class="status-badge status-badge--clickable" style=@($"background-color: {Color(only)}") @onclick="@(() => OnClick.InvokeAsync())">
+            <span class="status-badge__text">@only.GetDisplayName()</span>
+        </div>
+    }
+    else
+    {
+        <div class="status-badge" style=@($"background-color: {Color(only)}")>
+            <span class="status-badge__text">@only.GetDisplayName()</span>
+        </div>
+    }
 }
 else
 {
-    <div class="status-badge" style=@($"background-color: {color}")>
-        @statusEnum.GetDisplayName()
+    <div class="@($"status-badge-split{(OnClick.HasDelegate ? " status-badge-split--clickable" : "")}")"
+         @onclick="HandleClickAsync">
+        @for (var i = 0; i < types.Count; i++)
+        {
+            JobTypeEnum t = types[i];
+            <div @key="@i" class="status-badge-half" style=@($"background-color: {Color(t)}") title="@t.GetDisplayName()">
+                <span class="status-badge-half__text">@t.GetDisplayName()</span>
+            </div>
+        }
     </div>
 }
 
 @code {
-    /// <summary>
-    /// Gets or sets the assessment status enum to display
-    /// </summary>
+    /// <summary>One or more job types (e.g. grid rows).</summary>
     [Parameter]
-    public JobTypeEnum statusEnum { get; set; }
+    public JobTypeEnum[] StatusEnums { get; set; } = [];
+
+    /// <summary>Single job type (e.g. schedule header). Used when <see cref="StatusEnums"/> is empty.</summary>
+    [Parameter]
+    public JobTypeEnum? SingleStatus { get; set; }
 
     [Parameter]
-    public EventCallback Onclick { get; set; }
+    public EventCallback OnClick { get; set; }
 
-    /// <summary>
-    /// The background color for the status badge based on the status enum
-    /// </summary>
-    private string color => Helpers.GetJobColor(statusEnum);
-
-    /// <summary>
-    /// Initializes the component and sets the appropriate color for the status badge
-    /// </summary>
-    protected override void OnInitialized()
+    private IReadOnlyList<JobTypeEnum> ResolvedTypes
     {
-        Console.WriteLine(statusEnum.ToString());
+        get
+        {
+            if (StatusEnums.Length > 0)
+                return StatusEnums;
+            if (SingleStatus.HasValue)
+                return [SingleStatus.Value];
+            return [];
+        }
     }
+
+    private static string Color(JobTypeEnum type) => Helpers.GetJobColor(type);
+
+    private Task HandleClickAsync()
+    {
+        if (OnClick.HasDelegate)
+            return OnClick.InvokeAsync();
+        return Task.CompletedTask;
+    }
+
 }
 
 <style>
+    /* Fixed footprint so the badge looks the same in grids, headers, and detail pages */
     .status-badge {
+        box-sizing: border-box;
+        width: 140px;
+        height: 28px;
+        border-radius: 14px;
         color: var(--color-white);
-        padding: 5px 10px;
-        border-radius: 25px;
         font-weight: 600;
-        font-size: 14px;
-        text-align: center;
-        max-width: 120px;
-        cursor: @(Onclick.HasDelegate ? "pointer" : "default");
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: default;
+        overflow: hidden;
     }
 
+    .status-badge--clickable {
+        cursor: pointer;
+    }
+
+    .status-badge__text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+        padding: 0 8px;
+        text-align: center;
+    }
+
+    .status-badge-split {
+        box-sizing: border-box;
+        width: 140px;
+        height: 28px;
+        display: inline-flex;
+        flex-direction: row;
+        align-items: stretch;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+    }
+
+    .status-badge-split--clickable {
+        cursor: pointer;
+    }
+
+    .status-badge-half {
+        box-sizing: border-box;
+        color: var(--color-white);
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+        font-weight: 600;
+        font-size: 11px;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+    }
+
+    .status-badge-half__text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+        text-align: center;
+    }
+
+    .status-badge-half:not(:last-child) {
+        box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.35);
+    }
 </style>

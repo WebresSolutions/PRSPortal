@@ -2,6 +2,7 @@ using MudBlazor;
 using Portal.Client.Components.Settings;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
+using Portal.Shared.DTO.Integration;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
@@ -31,6 +32,11 @@ public partial class Settings
     private List<JobTaskTypeDto> _jobTaskTypes = [];
     private List<TechnicalContactTypeDto> _technicalContactTypes = [];
     private List<StateDto> _states = [];
+    private List<ServiceTypeDto> _serviceTypes = [];
+
+    private bool _xeroStatusLoaded;
+    private bool _xeroConnected;
+    private bool _xeroBusy;
 
     /// <summary>
     /// Loads theme colours, schedule colours, and all settings type lists on first load.
@@ -42,106 +48,35 @@ public partial class Settings
         await base.OnInitializedAsync();
         _primaryColour = await GetColour("--color-primary");
         _secondaryColour = await GetColour("--color-secondary");
-        await LoadColours();
-        await LoadAllTypes();
+        await LoadSettingsTypesBundle();
+        await LoadXeroStatus();
         base.IsLoading = false;
     }
 
     /// <summary>
-    /// Loads all settings type lists (timesheet, contact, job, file, etc.) in parallel from the API.
+    /// Loads schedule colours and all settings type lists in one API call.
     /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task LoadAllTypes()
+    private async Task LoadSettingsTypesBundle()
     {
-        await Task.WhenAll(
-            LoadTimesheetTypes(),
-            LoadContactTypes(),
-            LoadJobTypes(),
-            LoadJobColours(),
-            LoadFileTypes(),
-            LoadJobTaskTypes(),
-            LoadTechnicalContactTypes(),
-            LoadStates());
+        Result<AllSettingsTypesDto> res = await _apiService.GetAllSettingsTypes();
+        if (res.IsSuccess && res.Value is { } bundle)
+            ApplySettingsTypesBundle(bundle);
+        else
+            _snackbar.Add(res.ErrorDescription ?? "Failed to load settings lists", Severity.Error);
     }
 
-    /// <summary>
-    /// Loads the timesheet type list from the API.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task LoadTimesheetTypes()
+    private void ApplySettingsTypesBundle(AllSettingsTypesDto bundle)
     {
-        Result<TimeTypeDto[]> res = await _apiService.GetTimeSheetTypes();
-        if (res.IsSuccess && res.Value is { } v) _timesheetTypes = v.ToList();
-    }
-
-    /// <summary>
-    /// Loads the contact type list from the API.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task LoadContactTypes()
-    {
-        Result<ContactTypeDto[]> res = await _apiService.GetContactTypes();
-        if (res.IsSuccess && res.Value is { } v) _contactTypes = v.ToList();
-    }
-
-    /// <summary>
-    /// Loads the job type list from the API.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task LoadJobTypes()
-    {
-        Result<JobTypeDto[]> res = await _apiService.GetJobTypes();
-        if (res.IsSuccess && res.Value is { } v) _jobTypes = v.ToList();
-    }
-
-    /// <summary>
-    /// Loads the job colour list from the API.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task LoadJobColours()
-    {
-        Result<JobColourDto[]> res = await _apiService.GetJobColours();
-        if (res.IsSuccess && res.Value is { } v) _jobColours = v.ToList();
-    }
-
-    /// <summary>
-    /// Loads the file type list from the API.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task LoadFileTypes()
-    {
-        Result<FileTypeDto[]> res = await _apiService.GetFileTypes();
-        if (res.IsSuccess && res.Value is { } v) _fileTypes = v.ToList();
-    }
-
-    /// <summary>
-    /// Loads the job task type list from the API.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task LoadJobTaskTypes()
-    {
-        Result<JobTaskTypeDto[]> res = await _apiService.GetJobTaskTypes();
-        if (res.IsSuccess && res.Value is { } v) _jobTaskTypes = v.ToList();
-    }
-
-    /// <summary>
-    /// Loads the technical contact type list from the API.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task LoadTechnicalContactTypes()
-    {
-        Result<TechnicalContactTypeDto[]> res = await _apiService.GetTechnicalContactTypes();
-        if (res.IsSuccess && res.Value is { } v) _technicalContactTypes = v.ToList();
-    }
-
-    /// <summary>
-    /// Loads the state/region list from the API.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task LoadStates()
-    {
-        Result<StateDto[]> res = await _apiService.GetStates();
-        if (res.IsSuccess && res.Value is { } v) _states = v.ToList();
+        _timesheetTypes = bundle.TimesheetTypes.ToList();
+        _contactTypes = bundle.ContactTypes.ToList();
+        _jobTypes = bundle.JobTypes.ToList();
+        _jobColours = bundle.JobColours.ToList();
+        _fileTypes = bundle.FileTypes.ToList();
+        _jobTaskTypes = bundle.JobTaskTypes.ToList();
+        _technicalContactTypes = bundle.TechnicalContactTypes.ToList();
+        _states = bundle.States.ToList();
+        _colours = bundle.ScheduleColours.ToList();
+        _serviceTypes = bundle.ServiceTypes.ToList();
     }
 
     /// <summary>
@@ -153,7 +88,7 @@ public partial class Settings
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task OpenEditTypeDialog(string typeName, string title, object? item)
     {
-        var parameters = new DialogParameters
+        DialogParameters parameters = new()
         {
             [nameof(EditTypeDialog.TypeName)] = typeName,
             [nameof(EditTypeDialog.Title)] = title,
@@ -161,30 +96,11 @@ public partial class Settings
             [nameof(EditTypeDialog.ApiService)] = _apiService,
             [nameof(EditTypeDialog.Snackbar)] = _snackbar
         };
-        var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogOptions options = new() { CloseOnEscapeKey = true, NoHeader = true };
         IDialogReference dialog = await _dialog.ShowAsync<EditTypeDialog>(title, parameters, options);
         DialogResult? result = await dialog.Result;
         if (result is { Canceled: false })
-            await LoadAllTypes();
-    }
-
-    /// <summary>
-    /// Loads the schedule colors from the server
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation</returns>
-    private async Task LoadColours()
-    {
-        base.IsLoading = true;
-        Result<List<ScheduleColourDto>> res = await _apiService.GetScheduleColours();
-        if (res.Error is null && res.Value is not null)
-        {
-            _colours = res.Value;
-        }
-        else
-        {
-            _snackbar.Add(res.ErrorDescription ?? "Error occured while loading the colours", Severity.Error);
-        }
-        base.IsLoading = false;
+            await LoadSettingsTypesBundle();
     }
 
     /// <summary>
@@ -201,14 +117,10 @@ public partial class Settings
         {
             _snackbar.Add("Colour updated successfully", Severity.Success);
             Result<List<ScheduleColourDto>> colours = await _apiService.GetScheduleColours();
-            if (colours.Error is null && colours.Value is not null)
-            {
-                _colours.ElementAt(_colours.FindIndex(c => c.ScheduleColourId == colour.ScheduleColourId)).ColourHex = colourString;
-            }
+            if (colours.IsSuccess && colours.Value is { } list)
+                _colours = list;
             else
-            {
-                _snackbar.Add(res.ErrorDescription ?? "Error occured while loading the colours", Severity.Error);
-            }
+                _snackbar.Add(colours.ErrorDescription ?? "Error occurred while refreshing schedule colours", Severity.Error);
         }
         else
         {
@@ -260,4 +172,63 @@ public partial class Settings
     /// <returns>The current color value of the CSS variable</returns>
     private async Task<string> GetColour(string variableName) => await Helpers.GetColour(_jsRuntime, variableName);
 
+    /// <summary>
+    /// Loads the current Xero connection status from the API.
+    /// </summary>
+    private async Task LoadXeroStatus()
+    {
+        Result<XeroStatusResponse> res = await _apiService.GetXeroStatus();
+        if (res.IsSuccess && res.Value is { } v)
+        {
+            _xeroConnected = v.Connected;
+        }
+        _xeroStatusLoaded = true;
+    }
+
+    /// <summary>
+    /// Gets the Xero OAuth authorize URL and redirects the user to it to connect their Xero account.
+    /// </summary>
+    private async Task ConnectXero()
+    {
+        _xeroBusy = true;
+        try
+        {
+            Result<XeroAuthorizeResponse> res = await _apiService.GetXeroAuthorizeUrl();
+            if (res.IsSuccess && !string.IsNullOrWhiteSpace(res.Value?.Url))
+            {
+                _navigationManager.NavigateTo(res.Value!.Url, forceLoad: true);
+                return;
+            }
+            _snackbar.Add(res.ErrorDescription ?? "Failed to get Xero authorization URL", Severity.Error);
+        }
+        finally
+        {
+            _xeroBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Disconnects the Xero integration (removes stored tokens) and refreshes status.
+    /// </summary>
+    private async Task DisconnectXero()
+    {
+        _xeroBusy = true;
+        try
+        {
+            Result<bool> res = await _apiService.DisconnectXero();
+            if (res.IsSuccess)
+            {
+                _xeroConnected = false;
+                _snackbar.Add("Xero disconnected.", Severity.Success);
+            }
+            else
+            {
+                _snackbar.Add(res.ErrorDescription ?? "Failed to disconnect Xero", Severity.Error);
+            }
+        }
+        finally
+        {
+            _xeroBusy = false;
+        }
+    }
 }

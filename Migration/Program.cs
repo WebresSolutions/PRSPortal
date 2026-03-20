@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Migration;
 using Migration.Display;
@@ -76,6 +76,7 @@ internal class Program
             migration.MigrateContacts(progressCallback);
             migration.MigrateCouncils(progressCallback);
             migration.MigrateJobs(progressCallback);
+            migration.MigrateJobToTypes(progressCallback);
             migration.MigrateTechnicalContacts(progressCallback);
             migration.MigrateSchedule(progressCallback);
             migration.MigrateUserJobs(progressCallback);

@@ -74,6 +74,7 @@ public static class Dependencies
         });
         builder.Services.AddScoped<IFileService, FileService>();
         builder.Services.AddSingleton<IAccountingApi, AccountingApi>();
+        builder.Services.AddSingleton<IPayrollAuApi, PayrollAuApi>();
         builder.Services.AddScoped<IXeroIntegrationService, XeroIntegrationService>();
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IScheduleService, ScheduleService>();

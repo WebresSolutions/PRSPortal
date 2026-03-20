@@ -15,12 +15,12 @@
                     <h2>Jobs</h2>
                 </div>
                 <div class="search-container">
-                    <MudTextField T="string" @bind-Value="_filterState.AddressSearch" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.AddressSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
-                                  AdornmentIcon="@Icons.Material.Filled.OtherHouses" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _filterState.AddressSearch = null)"></MudTextField>
-                    <MudTextField T="string" @bind-Value="_filterState.JobNumberSearch" Placeholder="Search by Job Number" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.JobNumberSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
-                                  AdornmentIcon="@Icons.Material.Filled.Numbers" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _filterState.JobNumberSearch = null)"></MudTextField>
-                    <MudTextField T="string" @bind-Value="_filterState.ContactSearch" Placeholder="Search by Contact" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.ContactSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
-                                  AdornmentIcon="@Icons.Material.Filled.Group" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => _filterState.ContactSearch = null)"></MudTextField>
+                    <MudTextField TextUpdateSuppression="false" T="string" @bind-Value="_filterState.AddressSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.AddressSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.OtherHouses" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => { _filterState.AddressSearch = null; _ = OnSearch(); })"></MudTextField>
+                    <MudTextField TextUpdateSuppression="false" T="string" @bind-Value="_filterState.JobNumberSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Job Number" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.JobNumberSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.Numbers" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => { _filterState.JobNumberSearch = null; _ = OnSearch(); })"></MudTextField>
+                    <MudTextField TextUpdateSuppression="false" T="string" @bind-Value="_filterState.ContactSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Contact" Adornment="Adornment.Start" TextChanged="(async (x) => { _filterState.ContactSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.Group" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => { _filterState.ContactSearch = null; _ = OnSearch(); })"></MudTextField>
                 </div>
             </div>
         </Content>
@@ -45,7 +45,7 @@
                 <Columns>
                     <TemplateColumn ShowFilterIcon="false" Title="Job Type">
                         <CellTemplate>
-                            <StatusBadge statusEnum="@((JobTypeEnum)context.Item.JobTypeInt)" />
+                            <StatusBadge StatusEnums="@(context.Item.JobType)" />
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Sortable="true" Title="Job #" HeaderStyle="max-width: 75px">

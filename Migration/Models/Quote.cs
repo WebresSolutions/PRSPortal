@@ -12,7 +12,17 @@ public partial class Quote
 
     public int? LegacyId { get; set; }
 
+    public int StatusId { get; set; }
+
     public int? AddressId { get; set; }
+
+    public int? ContactId { get; set; }
+
+    public decimal? TotalPrice { get; set; }
+
+    public DateTime? DateAccepted { get; set; }
+
+    public string? Description { get; set; }
 
     public int CreatedByUserId { get; set; }
 
@@ -26,11 +36,19 @@ public partial class Quote
 
     public virtual Address? Address { get; set; }
 
+    public virtual Contact? Contact { get; set; }
+
     public virtual AppUser CreatedByUser { get; set; } = null!;
 
     public virtual ICollection<JobQuote> JobQuotes { get; set; } = new List<JobQuote>();
 
     public virtual AppUser? ModifiedByUser { get; set; }
 
+    public virtual ICollection<QuoteItem> QuoteItems { get; set; } = new List<QuoteItem>();
+
     public virtual ICollection<QuoteNote> QuoteNotes { get; set; } = new List<QuoteNote>();
+
+    public virtual ICollection<QuoteStatusHistory> QuoteStatusHistories { get; set; } = new List<QuoteStatusHistory>();
+
+    public virtual QuoteStatus Status { get; set; } = null!;
 }

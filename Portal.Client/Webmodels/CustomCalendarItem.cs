@@ -18,7 +18,7 @@ public class CustomCalendarItem
     /// <summary>
     /// Gets or sets the job number associated with this calendar item
     /// </summary>
-    public int? JobNumber { get; set; }
+    public string? JobNumber { get; set; }
     /// <summary>
     /// Gets or sets the formatted job address string
     /// </summary>

@@ -6,17 +6,10 @@ namespace Portal.Shared.DTO.Job;
 public class JobCreationDto
 {
     /// <summary>
-    /// The job number.
-    /// </summary>
-    [Required(ErrorMessage = "Job number is required")]
-    [Range(1, int.MaxValue, ErrorMessage = "Job number must be at least 1")]
-    public required int JobNumber { get; set; }
-
-    /// <summary>
     /// The type of the job.
     /// </summary>
     [Required(ErrorMessage = "Job type is required")]
-    public required JobTypeEnum JobType { get; set; }
+    public required List<JobTypeEnum> JobType { get; set; }
 
     /// <summary>
     /// Contact Id (required).
