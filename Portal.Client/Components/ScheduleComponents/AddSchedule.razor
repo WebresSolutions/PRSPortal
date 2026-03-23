@@ -1,4 +1,4 @@
-﻿@inherits BaseDataComponent
+@inherits BaseDataComponent
 
 @using Portal.Shared.DTO.Job
 <MudDialog>
@@ -11,15 +11,23 @@
             <EditForm Model="_UpdateScheduleDto" OnValidSubmit="OnSave">
                 <div class="item-container border-rad">
                     <div class="time-selectors">
-                        <div>
-                            <label>From:</label>
-                            <MudTimePicker Variant="Variant.Outlined"
-                                           Time="@_timeFrom" TimeChanged="@((x) => _timeFrom = x!.Value)" />
+                        <div class="">
+                            <label for="add-schedule-time-from">From:</label>
+                            <input type="time"
+                                   id="add-schedule-time-from"
+                                   class="time-input-native border-rad"
+                                   step="60"
+                                   value="@HtmlTimeInput.Format(_timeFrom)"
+                                   @onchange="@(e => { if (HtmlTimeInput.TryParseTimeOfDay(e.Value?.ToString(), out var t)) _timeFrom = t; })" />
                         </div>
                         <div>
-                            <label>To:</label>
-                            <MudTimePicker Variant="Variant.Outlined"
-                                           Time="@_timeTo" TimeChanged="@((x) => _timeTo = x!.Value)" />
+                            <label for="add-schedule-time-to">To:</label>
+                            <input type="time"
+                                   id="add-schedule-time-to"
+                                   class="time-input-native border-rad"
+                                   step="60"
+                                   value="@HtmlTimeInput.Format(_timeTo)"
+                                   @onchange="@(e => { if (HtmlTimeInput.TryParseTimeOfDay(e.Value?.ToString(), out var t)) _timeTo = t; })" />
                         </div>
                     </div>
 
@@ -123,9 +131,21 @@
         justify-content: space-between;
     }
 
-        .time-selectors .mud-input-control {
+        .time-selectors > div {
             flex: 1;
+            min-width: 0;
         }
+
+    .time-input-native {
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 40px;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #c4c4c4;
+        border-radius: 4px;
+        font: inherit;
+        background: #fff;
+    }
 
     .calendar-text {
         padding: 0.75rem;

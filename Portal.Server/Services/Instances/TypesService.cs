@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Portal.Data;
 using Portal.Data.Models;
@@ -163,14 +162,14 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             string? description = StringNormalizer.TrimAndTruncate(dto.Description, 255);
             if (dto.Id == 0)
             {
-                var e = new TimesheetEntryType { Name = name, Description = description };
+                TimesheetEntryType e = new() { Name = name, Description = description };
                 await _dbContext.TimesheetEntryTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new TimeTypeDto(e.Id, e.Name, e.Description));
             }
             else
             {
-                var e = await _dbContext.TimesheetEntryTypes.FindAsync(dto.Id);
+                TimesheetEntryType? e = await _dbContext.TimesheetEntryTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Timesheet type not found");
                 e.Name = name;
                 e.Description = description;
@@ -197,14 +196,14 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             string? description = StringNormalizer.TrimAndTruncate(dto.Description, 255);
             if (dto.Id == 0)
             {
-                var e = new ContactType { Name = name, Description = description, CreatedOn = DateTime.UtcNow };
+                ContactType e = new() { Name = name, Description = description, CreatedOn = DateTime.UtcNow };
                 await _dbContext.ContactTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new ContactTypeDto(e.Id, e.Name, e.Description));
             }
             else
             {
-                var e = await _dbContext.ContactTypes.FindAsync(dto.Id);
+                ContactType? e = await _dbContext.ContactTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Contact type not found");
                 e.Name = name;
                 e.Description = description;
@@ -234,14 +233,14 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
                 return res.SetError(ErrorType.BadRequest, "Abbreviation is required");
             if (dto.Id == 0)
             {
-                var e = new JobType { Name = name, Abbreviation = abbreviation, CreatedAt = DateTime.UtcNow };
+                JobType e = new() { Name = name, Abbreviation = abbreviation, CreatedAt = DateTime.UtcNow };
                 await _dbContext.JobTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new JobTypeDto(e.Id, e.Name, e.Abbreviation));
             }
             else
             {
-                var e = await _dbContext.JobTypes.FindAsync(dto.Id);
+                JobType? e = await _dbContext.JobTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Job type not found");
                 e.Name = name;
                 e.Abbreviation = abbreviation;
@@ -270,14 +269,14 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             color = StringNormalizer.TrimAndTruncate(color, 20) ?? color;
             if (dto.Id == 0)
             {
-                var e = new JobColour { Color = color, CreatedAt = DateTime.UtcNow };
+                JobColour e = new() { Color = color, CreatedOn = DateTime.UtcNow };
                 await _dbContext.JobColours.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new JobColourDto(e.Id, e.Color));
             }
             else
             {
-                var e = await _dbContext.JobColours.FindAsync(dto.Id);
+                JobColour? e = await _dbContext.JobColours.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Job colour not found");
                 e.Color = color;
                 await _dbContext.SaveChangesAsync();
@@ -303,14 +302,14 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             string? description = StringNormalizer.TrimAndTruncate(dto.Description, 255);
             if (dto.Id == 0)
             {
-                var e = new FileType { Name = name, Description = description, CreatedAt = DateTime.UtcNow };
+                FileType e = new() { Name = name, Description = description, CreatedOn = DateTime.UtcNow };
                 await _dbContext.FileTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new FileTypeDto(e.Id, e.Name, e.Description));
             }
             else
             {
-                var e = await _dbContext.FileTypes.FindAsync(dto.Id);
+                FileType? e = await _dbContext.FileTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "File type not found");
                 e.Name = name;
                 e.Description = description;
@@ -338,19 +337,17 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             int userId = httpContext.UserId();
             if (dto.Id == 0)
             {
-                var e = new JobTaskType { Name = name, Description = description, CreatedByUserId = userId, CreatedOn = DateTime.UtcNow };
+                JobTaskType e = new() { Name = name, Description = description, CreatedOn = DateTime.UtcNow };
                 await _dbContext.JobTaskTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new JobTaskTypeDto(e.Id, e.Name, e.Description));
             }
             else
             {
-                var e = await _dbContext.JobTaskTypes.FindAsync(dto.Id);
+                JobTaskType? e = await _dbContext.JobTaskTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Job task type not found");
                 e.Name = name;
                 e.Description = description;
-                e.ModifiedByUserId = userId;
-                e.ModifiedOn = DateTime.UtcNow;
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new JobTaskTypeDto(e.Id, e.Name, e.Description));
             }
@@ -374,14 +371,14 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             string? description = StringNormalizer.TrimAndTruncate(dto.Description, 255);
             if (dto.Id == 0)
             {
-                var e = new TechnicalContactType { Name = name, Description = description, CreatedOn = DateTime.UtcNow };
+                TechnicalContactType e = new() { Name = name, Description = description, CreatedOn = DateTime.UtcNow };
                 await _dbContext.TechnicalContactTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new TechnicalContactTypeDto(e.Id, e.Name, e.Description));
             }
             else
             {
-                var e = await _dbContext.TechnicalContactTypes.FindAsync(dto.Id);
+                TechnicalContactType? e = await _dbContext.TechnicalContactTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Technical contact type not found");
                 e.Name = name;
                 e.Description = description;
@@ -424,7 +421,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
 
             if (dto.Id == 0)
             {
-                var e = new ServiceType
+                ServiceType e = new()
                 {
                     Code = code,
                     ServiceName = serviceName,
@@ -439,7 +436,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             }
             else
             {
-                var e = await _dbContext.ServiceTypes.FindAsync(dto.Id);
+                ServiceType? e = await _dbContext.ServiceTypes.FindAsync(dto.Id);
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Service type not found");
                 e.Code = code;
                 e.ServiceName = serviceName;

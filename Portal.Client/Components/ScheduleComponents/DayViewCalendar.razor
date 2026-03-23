@@ -33,65 +33,7 @@
     </div>
 </div>
 
-<style>
-    .day-view-calendar {
-        display: flex;
-        flex-direction: row;
-        min-height: 660px;
-        background: #fafafa;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        overflow: hidden;
-    }
 
-    .day-view-column {
-        flex: 1;
-        position: relative;
-        min-width: 0;
-    }
-
-    .day-view-grid {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        display: flex;
-        flex-direction: column;
-        pointer-events: none;
-    }
-
-    .day-view-hour-line {
-        border-bottom: 1px solid #e2e8f0;
-        box-sizing: border-box;
-    }
-
-    .day-view-events {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        pointer-events: none;
-    }
-
-    .day-view-event {
-        position: absolute;
-        left: 4px;
-        right: 4px;
-        padding: 4px 6px;
-        overflow: hidden;
-        pointer-events: auto;
-        cursor: pointer;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        box-sizing: border-box;
-    }
-
-    .day-view-event-notes {
-        display: block;
-        overflow: auto;
-        max-height: 100%;
-    }
-</style>
 
 @code {
     private const int StartHour = 6;
@@ -101,9 +43,12 @@
     private readonly int _totalHeightPx = (EndHour - StartHour) * HourHeightPx;
     private readonly int _hourRows = EndHour - StartHour;
 
-    [Parameter] public DateOnly Day { get; set; }
-    [Parameter] public List<CustomCalendarItem> Events { get; set; } = [];
-    [Parameter] public EventCallback<CustomCalendarItem> OnEventClick { get; set; }
+    [Parameter] 
+    public DateOnly Day { get; set; }
+    [Parameter] 
+    public List<CustomCalendarItem> Events { get; set; } = [];
+    [Parameter] 
+    public EventCallback<CustomCalendarItem> OnEventClick { get; set; }
 
     private List<CustomCalendarItem> _visibleEvents = [];
     private DateTime _dayStartUtc;

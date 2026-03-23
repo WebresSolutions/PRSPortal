@@ -29,6 +29,10 @@ public partial class Job
     /// </summary>
     public string JobNumber { get; set; } = null!;
 
+    public DateTime? TargetDeliveryDate { get; set; }
+
+    public DateTime? LatestClientUpdate { get; set; }
+
     public string? Details { get; set; }
 
     public int CreatedByUserId { get; set; }

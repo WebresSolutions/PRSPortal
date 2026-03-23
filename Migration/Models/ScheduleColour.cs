@@ -14,7 +14,7 @@ public partial class ScheduleColour
 
     public string? Description { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedOn { get; set; }
 
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 }

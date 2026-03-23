@@ -31,7 +31,7 @@ public class SettingService(PrsDbContext _dbContext, ILogger<SettingService> _lo
             {
                 Key = settingsKey,
                 Value = "{}",
-                CreatedAt = DateTime.UtcNow,
+                CreatedOn = DateTime.UtcNow,
                 ModifiedAt = DateTime.UtcNow
             };
 

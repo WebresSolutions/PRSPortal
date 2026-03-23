@@ -80,7 +80,7 @@ internal static class Helpers
 
         if (value.Length > maxLength)
         {
-            Console.WriteLine($"WARNING: Truncating {fieldName} for contact {contactId}: '{value}' (length: {value.Length}) to {maxLength} chars");
+            //Console.WriteLine($"WARNING: Truncating {fieldName} for contact {contactId}: '{value}' (length: {value.Length}) to {maxLength} chars");
             return value[..maxLength];
         }
 

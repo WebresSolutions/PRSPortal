@@ -60,7 +60,7 @@ public class CustomMiddleware(RequestDelegate next) // Remove dbContext from con
                             IdentityId = identityId,
                             Email = email,
                             DisplayName = email.Split('@')[0],
-                            CreatedAt = DateTime.UtcNow,
+                            CreatedOn = DateTime.UtcNow,
                         };
                         dbContext.AppUsers.Add(newUser);
                         await dbContext.SaveChangesAsync();

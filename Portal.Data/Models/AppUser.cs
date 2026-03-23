@@ -16,7 +16,11 @@ public partial class AppUser
 
     public string DisplayName { get; set; } = null!;
 
-    public DateTime? CreatedAt { get; set; }
+    public string? XeroLoginEmail { get; set; }
+
+    public string? XeroEmployeeId { get; set; }
+
+    public DateTime? CreatedOn { get; set; }
 
     public DateTime? LastLogin { get; set; }
 
@@ -79,11 +83,9 @@ public partial class AppUser
 
     public virtual ICollection<JobTask> JobTaskModifiedByUsers { get; set; } = new List<JobTask>();
 
-    public virtual ICollection<JobTaskType> JobTaskTypeCreatedByUsers { get; set; } = new List<JobTaskType>();
-
-    public virtual ICollection<JobTaskType> JobTaskTypeModifiedByUsers { get; set; } = new List<JobTaskType>();
-
     public virtual AppUser? ModifiedByUser { get; set; }
+
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
     public virtual ICollection<Quote> QuoteCreatedByUsers { get; set; } = new List<Quote>();
 

@@ -1,3 +1,5 @@
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Portal.Data.Models;
 
@@ -55,6 +57,10 @@ public partial class PrsDbContext : DbContext
     public virtual DbSet<JobTaskType> JobTaskTypes { get; set; }
 
     public virtual DbSet<JobType> JobTypes { get; set; }
+
+    public virtual DbSet<Notification> Notifications { get; set; }
+
+    public virtual DbSet<NotificationType> NotificationTypes { get; set; }
 
     public virtual DbSet<Quote> Quotes { get; set; }
 
@@ -269,9 +275,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
+                .HasColumnName("created_on");
             entity.Property(e => e.DeactivatedAt)
                 .HasComment("NULL = active user, TIMESTAMPTZ = deactivated user")
                 .HasColumnName("deactivated_at");
@@ -288,6 +294,12 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.LegacyUserId).HasColumnName("legacy_user_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.XeroEmployeeId)
+                .HasMaxLength(255)
+                .HasColumnName("xero_employee_id");
+            entity.Property(e => e.XeroLoginEmail)
+                .HasMaxLength(100)
+                .HasColumnName("xero_login_email");
 
             entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.InverseModifiedByUser)
                 .HasForeignKey(d => d.ModifiedByUserId)
@@ -305,9 +317,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
+                .HasColumnName("created_on");
             entity.Property(e => e.Key)
                 .HasMaxLength(255)
                 .HasColumnName("key");
@@ -627,9 +639,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("id");
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
+                .HasColumnName("created_on");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
@@ -741,10 +753,12 @@ public partial class PrsDbContext : DbContext
                 .HasMaxLength(50)
                 .HasComment("Used in junction with the job type to identify the job. With either be type Construction or Surveying")
                 .HasColumnName("job_number");
+            entity.Property(e => e.LatestClientUpdate).HasColumnName("latest_client_update");
             entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.StatusId).HasColumnName("status_id");
+            entity.Property(e => e.TargetDeliveryDate).HasColumnName("target_delivery_date");
 
             entity.HasOne(d => d.Address).WithMany(p => p.Jobs)
                 .HasForeignKey(d => d.AddressId)
@@ -812,9 +826,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Color)
                 .HasMaxLength(20)
                 .HasColumnName("color");
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
+                .HasColumnName("created_on");
         });
 
         modelBuilder.Entity<JobFile>(entity =>
@@ -1066,31 +1080,27 @@ public partial class PrsDbContext : DbContext
 
             entity.ToTable("job_task_type");
 
-            entity.HasIndex(e => e.CreatedByUserId, "idx_job_task_type_created_by");
+            entity.HasIndex(e => e.JobTypeId, "idx_job_task_type_job_type_id");
 
             entity.HasIndex(e => e.Name, "idx_job_task_type_name");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
             entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
-            entity.Property(e => e.Description).HasColumnName("description");
-            entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
-            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.Description)
+                .HasMaxLength(500)
+                .HasColumnName("description");
+            entity.Property(e => e.JobTypeId).HasColumnName("job_type_id");
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .HasColumnName("name");
 
-            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.JobTaskTypeCreatedByUsers)
-                .HasForeignKey(d => d.CreatedByUserId)
+            entity.HasOne(d => d.JobType).WithMany(p => p.JobTaskTypes)
+                .HasForeignKey(d => d.JobTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("job_task_type_created_by_user_id_fkey");
-
-            entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.JobTaskTypeModifiedByUsers)
-                .HasForeignKey(d => d.ModifiedByUserId)
-                .HasConstraintName("job_task_type_modified_by_user_id_fkey");
+                .HasConstraintName("job_task_type_job_type_id_fkey");
         });
 
         modelBuilder.Entity<JobType>(entity =>
@@ -1111,6 +1121,56 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasComment("Construction = Set out. Survey = CAD.")
+                .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("notification_pkey");
+
+            entity.ToTable("notification");
+
+            entity.HasIndex(e => e.NotificationTypeId, "idx_notification_type_id");
+
+            entity.HasIndex(e => e.UserId, "idx_user_id");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
+            entity.Property(e => e.NotificationTypeId).HasColumnName("notification_type_id");
+            entity.Property(e => e.Payload)
+                .HasColumnType("jsonb")
+                .HasColumnName("payload");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.NotificationType).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.NotificationTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("notification_notification_type_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("notification_user_id_fkey");
+        });
+
+        modelBuilder.Entity<NotificationType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("notification_type_pkey");
+
+            entity.ToTable("notification_type");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.Description)
+                .HasMaxLength(100)
+                .HasColumnName("description");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
                 .HasColumnName("name");
         });
 
@@ -1146,6 +1206,7 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.StatusId).HasColumnName("status_id");
+            entity.Property(e => e.TargetDeliveryDate).HasColumnName("target_delivery_date");
             entity.Property(e => e.TotalPrice)
                 .HasPrecision(12, 2)
                 .HasColumnName("total_price");
@@ -1480,9 +1541,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Color)
                 .HasMaxLength(20)
                 .HasColumnName("color");
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
+                .HasColumnName("created_on");
             entity.Property(e => e.Description)
                 .HasMaxLength(255)
                 .HasColumnName("description");

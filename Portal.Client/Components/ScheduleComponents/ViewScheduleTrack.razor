@@ -3,7 +3,12 @@
 @using Portal.Shared.DTO.User
 
 <div class="track-container border-rad border-grey">
-    <div style="min-height: 60px">
+    <div class="d-flex justify-content-end gap-1 mb-1">
+        <ButtonIcon Icon="bi bi-pen" Title="Edit" CssClass="text-green" OnClick="@(() => IsEditing = !IsEditing)" />
+        <ButtonIcon Icon="bi bi-plus" Title="Add" CssClass="text-green" OnClick="@(() => AddNewSchedule())" />
+        <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => Delete(Track.TrackId))" />
+    </div>
+    <div style="min-height: 60px" class="border-grey border-rad white-background p-2">
         @if (IsEditing)
         {
             <div class="border-rad padding grey-background ">
@@ -36,11 +41,6 @@
                 <div>@user.displayName</div>
             }
         }
-    </div>
-    <div class="d-flex justify-content-end gap-1 mb-1">
-        <ButtonIcon Icon="bi bi-pen" Title="Edit" CssClass="text-green" OnClick="@(() => IsEditing = !IsEditing)" />
-        <ButtonIcon Icon="bi bi-plus" Title="Add" CssClass="text-green" OnClick="@(() => AddNewSchedule())" />
-        <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => Delete(Track.TrackId))" />
     </div>
     <DayViewCalendar Day="Track.Day" Events="Track.Events" OnEventClick="OpenDialogAsync" />
 </div>

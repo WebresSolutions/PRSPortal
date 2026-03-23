@@ -11,7 +11,7 @@ public partial class ApplicationSetting
 
     public string Value { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedOn { get; set; }
 
     public DateTime ModifiedAt { get; set; }
 }

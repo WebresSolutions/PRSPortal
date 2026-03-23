@@ -12,7 +12,7 @@ public partial class JobColour
 
     public string Color { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedOn { get; set; }
 
     public virtual ICollection<Job> Jobs { get; set; } = new List<Job>();
 }

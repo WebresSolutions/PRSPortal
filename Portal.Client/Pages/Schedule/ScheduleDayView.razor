@@ -47,12 +47,14 @@
                 {
                     <div class="scheduler-container">
                         <div class="hours-side border-rad shadow">
-                            @for (int h = 6; h <= 18; h++)
+                            @* One row per hour slot (6am–5pm); bottom of column is 6pm — matches DayViewCalendar 12×60px *@
+                            @for (int h = 6; h < 19; h++)
                             {
-                                <div class="day-view-time-row" style="height: @(60)px;">
+                                <div class="day-view-time-row">
                                     <span class="day-view-time-label">@DateTimeBuilder.FormatHour(h)</span>
                                 </div>
                             }
+                            @* <span class="day-view-time-label hours-6pm-label">@DateTimeBuilder.FormatHour(19)</span> *@
                         </div>
                         @foreach (ScheduleTrackDtoWithCalendar slot in _scheduleSlots)
                         {
@@ -226,8 +228,8 @@
         border: 1px solid var(--color-grey);
     }
 
-    .hours-side{
-        margin-top:  110px;
+    .hours-side {
+        margin-top: 112px;
         flex: 0 0 48px;
         display: flex;
         flex-direction: column;
@@ -236,6 +238,18 @@
         position: sticky;
         left: 5px;
         z-index: 100;
+        align-self: flex-start;
+        height: 780px;
+        box-sizing: border-box;
+    }
+
+    .hours-6pm-label {
+        position: absolute;
+        left: 4px;
+        bottom: 2px;
+        font-size: 0.7rem;
+        color: #64748b;
+        pointer-events: none;
     }
 
     .day-view-time-row {
@@ -244,6 +258,7 @@
         padding-top: 2px;
         box-sizing: border-box;
         border-bottom: 1px solid #e2e8f0;
+        min-height: 60px !important;
     }
 
     .day-view-time-label {

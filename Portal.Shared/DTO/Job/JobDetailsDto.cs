@@ -44,6 +44,10 @@ public class JobDetailsDto
     /// </summary>
     public DateTime DateCreated { get; set; }
     /// <summary>
+    /// Last Modified Date
+    /// </summary>
+    public DateTime? DateModified { get; set; }
+    /// <summary>
     /// Gets or sets the identifier of the user who created the entity.
     /// </summary>
     public string CreatedBy { get; set; } = "";

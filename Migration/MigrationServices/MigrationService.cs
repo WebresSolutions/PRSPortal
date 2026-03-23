@@ -38,7 +38,7 @@ internal class MigrationService(
         {
             Key = settingsKey,
             Value = systemSettings,
-            CreatedAt = DateTime.UtcNow,
+            CreatedOn = DateTime.UtcNow,
             ModifiedAt = DateTime.UtcNow
         };
         _destinationContext.ApplicationSettings.Add(applicationSetting);
@@ -103,7 +103,7 @@ internal class MigrationService(
                     LastName = Helpers.TruncateString(oldContact.Lastname ?? "", 50),
                     Phone = string.IsNullOrEmpty(oldContact.Phone) ? Helpers.TruncateString(oldContact.Mobile, 50) : Helpers.TruncateString(oldContact.Phone, 50),
                     Fax = Helpers.TruncateString(oldContact.Fax, 50),
-                    Email = Helpers.TruncateString(oldContact.Email ?? "", 50),
+                    Email = Helpers.TruncateString(oldContact.Email ?? "", 255),
                     CreatedByUserId = 95,
                     CreatedOn = Helpers.GetValidDateWithTimezone(oldContact.Created),
                     LegacyId = (int)oldContact.Id,
@@ -306,13 +306,11 @@ internal class MigrationService(
 
             List<Models.JobColour> jobColours = [.. existingColours.Select(x => new Models.JobColour
             {
-                Color = x!,
-                CreatedAt = DateTime.UtcNow
+                Color = x!
             })];
             jobColours.Add(new Models.JobColour
             {
-                Color = "#FFFFFF",
-                CreatedAt = DateTime.UtcNow
+                Color = "#FFFFFF"
             });
             _destinationContext.AddRange(jobColours);
             _destinationContext.SaveChanges();
@@ -942,13 +940,11 @@ internal class MigrationService(
 
             List<Models.ScheduleColour> scheduleColours = [.. existingColours.Select(x => new Models.ScheduleColour
             {
-                Color = x!,
-                CreatedAt = DateTime.UtcNow
+                Color = x!
             })];
             scheduleColours.Add(new Models.ScheduleColour
             {
-                Color = "#FFFFFF",
-                CreatedAt = DateTime.UtcNow
+                Color = "#FFFFFF"
             });
             _destinationContext.AddRange(scheduleColours);
             _destinationContext.SaveChanges();
@@ -968,11 +964,6 @@ internal class MigrationService(
                         CurrentItemIndex = index + 1,
                         TotalItems = schedulesOld.Length
                     });
-                }
-
-                if (scheduleOld.ScheduleTrackId == 33385)
-                {
-                    ;
                 }
 
                 // TODO: fix this later 

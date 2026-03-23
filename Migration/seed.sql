@@ -1,4 +1,3 @@
--- PRS Portal reference / lookup seed data.
 -- Run after applying database_schema.sql (or equivalent EF migration).
 
 INSERT INTO states(id, name, abbreviation) VALUES (1, 'New South Wales', 'NSW');
@@ -60,3 +59,5 @@ INSERT INTO job_task_type (job_type_id, name, description) VALUES
     (1, 'Extension Set Out', 'Construction department — extension set out.'),
     (1, 'Medium Density Set Out', 'Construction department — medium density set out.'),
     (1, 'Apartment Set Out', 'Construction department — apartment set out.');
+
+INSERT INTO notification_type (name, description) VALUES ('General', 'A general notification for a user.')

@@ -70,7 +70,7 @@ internal class Users(PrsDbContext destinationContext, SourceDBContext sourceDBCo
                 IdentityId = Guid.NewGuid().ToString(),
                 Email = sourceUser.Id == 149 ? "jordan@ws1.com.au" : Guid.NewGuid().ToString(),
                 DisplayName = $"{sourceUser.Firstname} {sourceUser.Lastname}",
-                CreatedAt = now,
+                CreatedOn = now,
                 LegacyUserId = (int)sourceUser.Id
             };
             destinationUsers.Add(newUser);

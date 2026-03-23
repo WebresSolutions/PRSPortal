@@ -30,22 +30,24 @@ DROP TABLE IF EXISTS app_file;
 DROP TABLE IF EXISTS council;
 DROP TABLE IF EXISTS address;
 DROP TABLE IF EXISTS xero_access;
+DROP TABLE IF EXISTS notification;
 
 -- Tier 3: Lookup/Type tables
 DROP TABLE IF EXISTS technical_contact_type;
 DROP TABLE IF EXISTS contact_type;
 DROP TABLE IF EXISTS timesheet_entry_type;
-DROP TABLE IF EXISTS job_type;
 DROP TABLE IF EXISTS job_status;
 DROP TABLE IF EXISTS job_colour;
 DROP TABLE IF EXISTS schedule_colour;
 DROP TABLE IF EXISTS file_type;
 DROP TABLE IF EXISTS job_task_type;
+DROP TABLE IF EXISTS job_type;
 DROP TABLE IF EXISTS service_type;
 DROP TABLE IF EXISTS states;
 DROP TABLE IF EXISTS app_user;
 DROP TABLE IF EXISTS application_setting;
 DROP TABLE IF EXISTS quote_status;
+DROP TABLE IF EXISTS notification_type;
 
 -- ============================================================================
 -- EXTENSIONS
@@ -64,7 +66,7 @@ CREATE TABLE app_user (
     display_name VARCHAR(100) NOT NULL,
     xero_login_email VARCHAR(100),
     xero_employee_id VARCHAR(255),
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_on TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMPTZ DEFAULT NULL,
     modified_by_user_id INT REFERENCES app_user(id),
     modified_on TIMESTAMPTZ,
@@ -238,7 +240,7 @@ CREATE TABLE file_type(
     id INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 COMMENT ON TABLE file_type IS 'File type and metadata';
@@ -283,7 +285,7 @@ CREATE INDEX idx_file_external_id ON app_file(external_id);
 CREATE TABLE job_colour (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     color VARCHAR(20) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT job_color_format CHECK (color IS NULL OR color LIKE '#%'),
     CONSTRAINT job_color_unique UNIQUE (color)
 );
@@ -331,7 +333,9 @@ CREATE TABLE job (
     job_colour_id INT REFERENCES job_colour(id),
     legacy_id INT,
     invoice_number VARCHAR(255) UNIQUE,
-    job_number VARCHAR(50) NOT NULL, -- Change this
+    job_number VARCHAR(50) NOT NULL,
+    target_delivery_date TIMESTAMPTZ,
+    latest_client_update TIMESTAMPTZ,
     details TEXT,
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -501,7 +505,6 @@ CREATE TABLE job_task_type(
 );
 
 CREATE INDEX idx_job_task_type_name ON job_task_type(name);
-CREATE INDEX idx_job_task_type_created_by ON job_task_type(created_by_user_id);
 CREATE INDEX idx_job_task_type_job_type_id ON job_task_type(job_type_id);
 
 -- ============================================================================
@@ -590,6 +593,7 @@ CREATE TABLE quote (
     contact_id INT REFERENCES contact(id),
     total_price NUMERIC(12, 2),
     date_accepted TIMESTAMPTZ,
+    target_delivery_date TIMESTAMPTZ,
     description TEXT,
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -803,7 +807,7 @@ CREATE TABLE schedule_colour (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     color VARCHAR(20) NOT NULL,
     description VARCHAR(255),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT schedule_colour_format CHECK (color IS NULL OR color LIKE '#%')
 );
 
@@ -848,7 +852,7 @@ CREATE TABLE application_setting(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     key VARCHAR(255) NOT NULL,
     value JSONB NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT application_settings_key_unique UNIQUE (key)
 );
@@ -911,3 +915,26 @@ CREATE TABLE xero_access (
 
 CREATE INDEX idx_xero_access_expires ON xero_access(expires);
 CREATE INDEX idx_xero_access_token ON xero_access(token);
+
+-- ============================================================================
+-- Type Table For Notifications
+-- ============================================================================
+CREATE TABLE notification_type(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(100)
+);
+
+-- ============================================================================
+-- Holds notification informations
+-- ============================================================================
+CREATE TABLE notification(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    notification_type_id INT NOT NULL REFERENCES notification_type(id),
+    user_id INT NOT NULL REFERENCES app_user(id),
+    is_active bool NOT NULL DEFAULT TRUE,
+    payload JSONB NOT NULL
+);
+
+CREATE INDEX idx_notification_type_id ON notification(notification_type_id);
+CREATE INDEX idx_user_id ON notification(user_id);

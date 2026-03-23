@@ -22,6 +22,8 @@ public partial class Quote
 
     public DateTime? DateAccepted { get; set; }
 
+    public DateTime? TargetDeliveryDate { get; set; }
+
     public string? Description { get; set; }
 
     public int CreatedByUserId { get; set; }

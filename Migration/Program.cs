@@ -123,7 +123,7 @@ internal class Program
         {
             string solutionDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory()));
             string sqlPath = Path.Combine(solutionDir, "database_schema.sql");
-            string sqlSeederPath = Path.Combine(solutionDir, "database_schema.sql");
+            string sqlSeederPath = Path.Combine(solutionDir, "seed.sql");
 
             // Verify the file exists and show the path
             if (!File.Exists(sqlPath) || !File.Exists(sqlSeederPath))

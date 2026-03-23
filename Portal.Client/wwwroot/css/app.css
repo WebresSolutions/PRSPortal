@@ -128,6 +128,9 @@ label {
 .grey-background {
     background-color: var(--color-light-grey);
 }
+.white-background {
+    background-color: var(--color-white);
+}
 
 .border-grey{
     border: 1px solid #e2e8f0 !important;

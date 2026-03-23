@@ -1,0 +1,60 @@
+/* 12 hours × 60px — must match DayViewCalendar StartHour/EndHour and HourHeightPx */
+.day-view-calendar {
+        display: flex;
+        flex-direction: row;
+        min-height: 720px;
+        background: #fafafa;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+    }
+
+    .day-view-column {
+        flex: 1;
+        position: relative;
+        min-width: 0;
+        /* Grid/events are position:absolute and do not stretch the column; reserve full day height */
+        min-height: 720px;
+    }
+
+    .day-view-grid {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        display: flex;
+        flex-direction: column;
+        pointer-events: none;
+    }
+
+    .day-view-hour-line {
+        border-bottom: 1px solid #e2e8f0;
+        box-sizing: border-box;
+    }
+
+    .day-view-events {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        pointer-events: none;
+    }
+
+    .day-view-event {
+        position: absolute;
+        left: 4px;
+        right: 4px;
+        padding: 4px 6px;
+        overflow: hidden;
+        pointer-events: auto;
+        cursor: pointer;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        box-sizing: border-box;
+    }
+
+    .day-view-event-notes {
+        display: block;
+        overflow: auto;
+        max-height: 100%;
+    }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Portal.Data.Models;
@@ -18,6 +18,8 @@ public partial class JobType
     public string Abbreviation { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
+
+    public virtual ICollection<JobTaskType> JobTaskTypes { get; set; } = new List<JobTaskType>();
 
     public virtual ICollection<QuoteTemplate> QuoteTemplates { get; set; } = new List<QuoteTemplate>();
 

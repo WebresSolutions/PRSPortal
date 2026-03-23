@@ -88,6 +88,12 @@ public partial class EditJob
             if (_model is null)
                 return;
 
+            if (_model.JobType.Length < 1)
+            {
+                _snackbar.Add("Must Select at least on Job Type");
+                return;
+            }
+
             _model.JobType = [.. _selectedJobtypes];
 
             Result<JobDetailsDto> result = await _apiService.UpdateJob(_model);

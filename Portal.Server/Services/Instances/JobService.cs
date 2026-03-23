@@ -163,6 +163,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 NoteCount = x.JobNotes.Count(x => x.DeletedAt == null),
                 ContactCount = x.TechnicalContacts.Count(),
                 DateCreated = x.CreatedOn,
+                DateModified = x.ModifiedOn,
                 CreatedBy = x.CreatedByUser.DisplayName,
                 JobFiles = x.JobFiles.Select(jf => new FileDto
                 {

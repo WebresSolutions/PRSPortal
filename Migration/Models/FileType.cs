@@ -14,7 +14,7 @@ public partial class FileType
 
     public string? Description { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedOn { get; set; }
 
     public virtual ICollection<AppFile> AppFiles { get; set; } = new List<AppFile>();
 }

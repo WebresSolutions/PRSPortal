@@ -25,18 +25,23 @@
             </div>
             <div>
                 <label for="start-time">Start Time</label>
-                <MudTimePicker T="TimeSpan?"
-                               @bind-Time="_startTime"
-                               name="start-time"
-                               Variant="Variant.Outlined" />
+                <input type="time"
+                       id="start-time"
+                       name="start-time"
+                       class="time-input-native"
+                       step="60"
+                       value="@HtmlTimeInput.FormatNullable(_startTime)"
+                       @onchange="@(e => OnStartTimeInput(e.Value?.ToString()))" />
             </div>
             <div>
                 <label for="end-time">End Time</label>
-                <MudTimePicker T="TimeSpan?"
-                               @bind-Time="_endTime"
-                               name="End time"
-                               Variant="Variant.Outlined"
-                               Clearable="true" />
+                <input type="time"
+                       id="end-time"
+                       name="end-time"
+                       class="time-input-native"
+                       step="60"
+                       value="@HtmlTimeInput.FormatNullable(_endTime)"
+                       @onchange="@(e => OnEndTimeInput(e.Value?.ToString()))" />
             </div>
             <div>
                 <label for="description">Description</label>
@@ -135,6 +140,20 @@
 
     private void Cancel() => MudDialog?.Cancel();
 
+    private void OnStartTimeInput(string? value)
+    {
+        if (HtmlTimeInput.TryParseTimeOfDay(value, out TimeSpan t))
+            _startTime = t;
+    }
+
+    private void OnEndTimeInput(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            _endTime = null;
+        else if (HtmlTimeInput.TryParseTimeOfDay(value, out TimeSpan t))
+            _endTime = t;
+    }
+
     /// <summary>
     ///  Submit the task to the API . If EditEntry is null, a new entry will be created. Otherwise, the existing entry will be updated.
     /// </summary>
@@ -212,5 +231,16 @@
         padding: var(--padding);
         background: var(--color-light-grey);
         min-width: 300px;
+    }
+
+    .time-input-native {
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 40px;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #c4c4c4;
+        border-radius: 4px;
+        font: inherit;
+        background: #fff;
     }
 </style>
