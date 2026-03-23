@@ -62,6 +62,8 @@ CREATE TABLE app_user (
     identity_id VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     display_name VARCHAR(100) NOT NULL,
+    xero_login_email VARCHAR(100),
+    xero_employee_id VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMPTZ DEFAULT NULL,
     modified_by_user_id INT REFERENCES app_user(id),
@@ -86,14 +88,6 @@ CREATE TABLE states (
     name VARCHAR(100) NOT NULL,
     abbreviation VARCHAR(3) NOT NULL UNIQUE
 );
-
-INSERT INTO states(id, name, abbreviation) VALUES (1, 'New South Wales', 'NSW');
-INSERT INTO states(id, name, abbreviation) VALUES (2, 'Queensland', 'QLD');
-INSERT INTO states(id, name, abbreviation) VALUES (3, 'Victoria', 'VIC');
-INSERT INTO states(id, name, abbreviation) VALUES (4, 'South Australia', 'SA');
-INSERT INTO states(id, name, abbreviation) VALUES (5, 'Tasmania', 'TAS');
-INSERT INTO states(id, name, abbreviation) VALUES (6, 'Western Australia', 'WA');
-INSERT INTO states(id, name, abbreviation) VALUES (7, 'Northern Territory', 'NT');
 
 COMMENT ON TABLE states IS 'States or territories for address management';
 
@@ -148,9 +142,6 @@ CREATE TABLE contact_type (
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_on TIMESTAMPTZ
 );
-
-INSERT INTO contact_type (name, description) VALUES ('Company', 'Company Contact');
-INSERT INTO contact_type (name, description) VALUES ('Personal', 'Personal Contact');
 
 -- ============================================================================
 -- CONTACT TABLE
@@ -252,11 +243,6 @@ CREATE TABLE file_type(
 
 COMMENT ON TABLE file_type IS 'File type and metadata';
 
-INSERT INTO file_type(id, name, description) VALUES (1, 'General', 'General Files.');
-INSERT INTO file_type(id, name, description) VALUES (2, 'Job', 'General Job Files.');
-INSERT INTO file_type(id, name, description) VALUES (3, 'Surveying', 'Surveying Files.');
-INSERT INTO file_type(id, name, description) VALUES (4, 'Construction', 'Construction Files.');
-
 -- ============================================================================
 -- FILE TABLE
 -- ============================================================================
@@ -318,9 +304,6 @@ CREATE TABLE job_type (
 COMMENT ON TABLE job_type IS 'Type of job';
 COMMENT ON COLUMN job_type.name IS 'Construction = Set out. Survey = CAD.';
 
-INSERT INTO job_type(id, name, abbreviation) VALUES (1, 'Construction', 'CONSTRUCTION');
-INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
-
 -- ============================================================================
 -- JOB STATUS TABLE
 -- ============================================================================
@@ -334,15 +317,6 @@ CREATE TABLE job_status (
 );
 
 COMMENT ON TABLE job_status IS 'The status of a Job';
-INSERT INTO job_status( status_position, job_type_id, name) VALUES (1, 1, 'Quote Requested');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (2, 1, 'Quote Sent');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (3, 1, 'First Payment');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (4, 1, 'Final Payment');
-
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (1, 2, 'Quote Requested');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (2, 2, 'Quote Sent');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (3, 2, 'First Payment');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (4, 2, 'Final Payment');
 
 -- ============================================================================
 -- JOB TABLE
@@ -425,11 +399,6 @@ CREATE TABLE technical_contact_type (
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_on TIMESTAMPTZ
 );
-
-INSERT INTO technical_contact_type (id, name, description) VALUES (1, 'Architect/Draftsperson', 'Architect Or Draftsperson');
-INSERT INTO technical_contact_type (id, name, description) VALUES (2, 'Builder', 'Builder');
-INSERT INTO technical_contact_type (id, name, description) VALUES (3, 'Previous Client', 'Previous Client');
-INSERT INTO technical_contact_type (id, name, description) VALUES (4, 'Technical Contact', 'Technical Contact');
 
 -- ============================================================================
 -- technical Contact Table
@@ -520,21 +489,20 @@ CREATE INDEX idx_job_file_file_id ON job_file(file_id);
 CREATE INDEX idx_job_file_created_by ON job_file(created_by_user_id);
 
 -- ============================================================================
--- JOB TASK TABLE (Many-to-One)
+-- JOB TASK TYPE TABLE (Many-to-One)
 -- ============================================================================
 CREATE TABLE job_task_type(
     id SERIAL PRIMARY KEY,
+    job_type_id INT NOT NULL REFERENCES job_type(id),
     name VARCHAR(255) NOT NULL,
-    description TEXT,
-    created_by_user_id INT NOT NULL REFERENCES app_user(id),
+    description VARCHAR(500),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_by_user_id INT REFERENCES app_user(id),
-    modified_on TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ DEFAULT NULL
 );
 
 CREATE INDEX idx_job_task_type_name ON job_task_type(name);
 CREATE INDEX idx_job_task_type_created_by ON job_task_type(created_by_user_id);
+CREATE INDEX idx_job_task_type_job_type_id ON job_task_type(job_type_id);
 
 -- ============================================================================
 -- JOB TASK TABLE (Many-to-One)
@@ -610,10 +578,6 @@ CREATE TABLE quote_status (
 );
 
 COMMENT ON TABLE quote_status IS 'Holds the status of a quote';
-INSERT INTO quote_status(name) VALUES ('Draft');
-INSERT INTO quote_status(name) VALUES ('Lost');
-INSERT INTO quote_status(name) VALUES ('Rejected');
-INSERT INTO quote_status(name) VALUES ('Sent');
 
 -- ============================================================================
 -- QUOTE TABLE
@@ -766,9 +730,6 @@ CREATE TABLE timesheet_entry_type(
     name VARCHAR(50) NOT NULL,
     description TEXT
 );
-
-INSERT INTO timesheet_entry_type(name, description) VALUES ('Job', 'Job');
-INSERT INTO timesheet_entry_type(name, description) VALUES ('Regular', 'Regular work hours');
 
 -- ============================================================================
 -- TIMESHEET ENTRY TABLE
@@ -938,7 +899,9 @@ CREATE TABLE dashboard_item (
 CREATE INDEX idx_dashboard_item_dashboard_id ON dashboard_item(dashboard_id);
 CREATE INDEX idx_dashboard_item_content ON dashboard_item(content_id);
 
-
+-- ============================================================================
+-- Holds the xero refresh token
+-- ============================================================================
 CREATE TABLE xero_access (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     token VARCHAR(5000) NOT NULL,

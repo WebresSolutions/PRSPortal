@@ -1,0 +1,133 @@
+.job-status-progress {
+    width: 100%;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    box-sizing: border-box;
+    filter: drop-shadow(0 2px 6px rgba(15, 23, 42, 0.08));
+}
+
+.job-status-track {
+    display: flex;
+    width: 100%;
+    min-height: 2.75rem;
+    align-items: stretch;
+}
+
+.job-status-step-cell {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+}
+
+.job-status-step {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: -0.85rem;
+    padding: 0.5rem 0.35rem 0.5rem 1.1rem;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%);
+    background: var(--step-muted, #e2e8f0);
+    color: rgba(255, 255, 255, 0.92);
+    font-weight: 800;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.job-status-step-cell:first-child .job-status-step {
+    margin-left: 0;
+    padding-left: 0.75rem;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
+    border-radius: 6px 0 0 6px;
+}
+
+.job-status-step-cell:last-child .job-status-step {
+    clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 50%);
+    border-radius: 0 6px 6px 0;
+}
+
+.job-status-step-cell:only-child .job-status-step {
+    margin-left: 0;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    clip-path: none;
+    border-radius: 8px;
+}
+
+.job-status-step-index {
+    font-size: 0.95rem;
+    font-weight: 900;
+    opacity: 0.95;
+}
+
+.job-status-step--completed {
+    background: color-mix(in srgb, var(--step-accent) 88%, #0f172a);
+    color: #fff;
+}
+
+.job-status-step--current {
+    background: var(--step-accent);
+    color: #fff;
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+    z-index: 40 !important;
+}
+
+.job-status-step--upcoming {
+    background: #e2e8f0;
+    color: #64748b;
+    z-index: 0;
+}
+
+.job-status-labels {
+    display: flex;
+    width: 100%;
+    margin-top: 0.5rem;
+    gap: 0;
+}
+
+.job-status-label-cell {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    padding: 0 0.2rem;
+}
+
+.job-status-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.25;
+    color: #94a3b8;
+    word-break: break-word;
+}
+
+.job-status-label--completed {
+    color: color-mix(in srgb, var(--step-accent) 75%, #0f172a);
+}
+
+.job-status-label--current {
+    color: var(--step-accent);
+}
+
+.job-status-label--upcoming {
+    color: #94a3b8;
+}
+
+@media (max-width: 640px) {
+    .job-status-step {
+        padding: 0.4rem 0.2rem 0.4rem 0.85rem;
+        font-size: 0.7rem;
+    }
+
+    .job-status-step-index {
+        font-size: 0.8rem;
+    }
+
+    .job-status-label {
+        font-size: 0.6rem;
+    }
+}

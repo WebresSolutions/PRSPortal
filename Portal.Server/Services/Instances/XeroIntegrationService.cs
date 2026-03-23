@@ -17,7 +17,7 @@ namespace Portal.Server.Services.Instances;
 /// <summary>
 /// Handles Xero OAuth2 connection: one-time admin sign-in, store refresh token, provide valid access tokens for the API.
 /// </summary>
-public class XeroIntegrationService(
+public partial class XeroIntegrationService(
     PrsDbContext db,
     IOptions<XeroOptions> options,
     IHttpClientFactory httpClientFactory,
@@ -36,17 +36,27 @@ public class XeroIntegrationService(
     private readonly IMemoryCache _cache = cache;
     private readonly IPayrollAuApi _payrollAuApi = payrollAuApi;
 
-    /// <summary>
-    /// Gets leave applications
-    /// </summary>
-    /// <returns></returns>
-    public async Task<LeaveApplications> GetLeaveApplications()
+    /// <inheritdoc />
+    public async Task<Dictionary<string, LeaveApplication>> GetLeaveApplications()
     {
         try
         {
             (string? accessToken, string? tenantId) = await GetValidAccessTokenAsync();
-            LeaveApplications result = await _payrollAuApi.GetLeaveApplicationsV2Async(accessToken, tenantId);
-            return result;
+            Employees employees = await _payrollAuApi.GetEmployeesAsync(accessToken, tenantId);
+            LeaveApplications leaves = await _payrollAuApi.GetLeaveApplicationsAsync(accessToken, tenantId);
+            // Match Employee Details to the Users
+            Dictionary<string, LeaveApplication> leaveAndEmployees = [];
+            foreach (LeaveApplication? leave in leaves._LeaveApplications)
+            {
+                Employee? employee = employees._Employees.FirstOrDefault(x => x.EmployeeID == leave.EmployeeID);
+                if (employee is null)
+                    continue;
+
+                leaveAndEmployees.Add(employee.Email, leave);
+            }
+
+
+            return leaveAndEmployees;
         }
         catch (Exception)
         {
@@ -336,20 +346,5 @@ public class XeroIntegrationService(
             setting.DateRefreshed = now;
         }
         await _db.SaveChangesAsync(cancellationToken);
-    }
-
-    private sealed class TokenResponse
-    {
-        public string AccessToken { get; set; } = null!;
-        public string RefreshToken { get; set; } = null!;
-        public DateTime ExpiresAtUtc { get; set; }
-    }
-
-    private sealed class XeroStoredToken
-    {
-        public string AccessToken { get; set; } = null!;
-        public string RefreshToken { get; set; } = null!;
-        public DateTime AccessTokenExpiresAtUtc { get; set; }
-        public string? TenantId { get; set; }
     }
 }

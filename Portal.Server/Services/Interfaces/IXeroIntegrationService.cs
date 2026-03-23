@@ -1,10 +1,14 @@
-using Microsoft.AspNetCore.Http;
 using Xero.NetStandard.OAuth2.Model.PayrollAu;
 
 namespace Portal.Server.Services.Interfaces;
 
 public interface IXeroIntegrationService
 {
+    /// <summary>
+    /// Gets Leave Applications.
+    /// </summary>
+    /// <returns></returns>
+    Task<Dictionary<string, LeaveApplication>> GetLeaveApplications();
     /// <summary>Builds the Xero OAuth authorization URL. Frontend should redirect the user here.</summary>
     /// <param name="state">Optional state for CSRF; if null, a random state is generated and stored.</param>
     string GetAuthorizationUrl(string? state = null);
@@ -21,5 +25,4 @@ public interface IXeroIntegrationService
 
     /// <summary>Disconnects Xero by removing stored tokens.</summary>
     Task DisconnectAsync(CancellationToken cancellationToken = default);
-    Task<LeaveApplications> GetLeaveApplications();
 }

@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 using Portal.Data;
@@ -13,6 +12,7 @@ using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
+using System.Globalization;
 
 
 namespace Portal.Server.Services.Instances;
@@ -123,6 +123,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             .Select(x => new JobDetailsDto
             {
                 JobId = x.Id,
+                JobStatusId = x.StatusId,
+                JobStatusName = x.Status != null ? x.Status.Name : null,
                 JobNumber = x.JobNumber,
                 JobType = x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray(),
                 Address = x.Address != null ? new AddressDTO(
@@ -221,6 +223,10 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
 
         job.SiteVisitCount = job.SiteVisits.Count;
         job.TaskCount = job.Tasks.Count;
+        job.JobTypeStatusDtos = await _dbContext.JobStatuses
+            .Where(x => job.JobType.Select(x => (int)x).Contains(x.JobTypeId))
+            .Select(x => new JobTypeStatusDto(x.Id, x.Name, x.StatusPosition))
+            .ToListAsync();
 
         return result.SetValue(job);
     }
@@ -314,24 +320,33 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         {
             Job? job = await _dbContext.Jobs
                 .Include(j => j.Address)
+                .Include(j => j.JobTypes)
                 .Where(j => j.Id == updateJobDto.JobId && j.DeletedAt == null)
                 .FirstOrDefaultAsync();
 
             if (job is null)
                 return result.SetError(ErrorType.NotFound, "Invalid job Id");
 
+            if (updateJobDto.JobType.Length < 1)
+                return result.SetError(ErrorType.BadRequest, "The job must contain at least one job type");
+
             //job.JobTypeId = (int)updateJobDto.JobType;
             job.JobColourId = updateJobDto.JobColourId;
             job.ModifiedByUserId = httpContext.UserId();
-            job.Details = updateJobDto.Details;
+            if (updateJobDto.Details is not null && updateJobDto.Details.Length > 4000)
+                job.Details = updateJobDto.Details[..4000].Trim();
+            else
+                job.Details = updateJobDto.Details;
 
-            // Enforce uniqueness of job number if it has changed
-            if (job.JobNumber != updateJobDto.JobNumber)
+            job.JobTypes.Clear();
+            int[] desiredTypeIds = [.. updateJobDto.JobType.Select(x => (int)x).Distinct()];
+            foreach (int typeId in desiredTypeIds)
             {
-                if (_dbContext.Jobs.Any(j => j.JobNumber == updateJobDto.JobNumber && j.DeletedAt == null))
-                    return result.SetError(ErrorType.Conflict, "Job number already exists");
+                JobType? jobType = await _dbContext.JobTypes.FindAsync(typeId);
+                if (jobType is null)
+                    return result.SetError(ErrorType.BadRequest, $"Invalid job type id: {typeId}");
 
-                job.JobNumber = updateJobDto.JobNumber ?? await CreateJobNumber();
+                job.JobTypes.Add(jobType);
             }
 
             if (updateJobDto.ContactId != job.ContactId)
@@ -391,6 +406,40 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     await _dbContext.AddAsync(job.Address);
                     await _dbContext.SaveChangesAsync();
                     job.AddressId = job.Address.Id;
+                }
+            }
+
+            if (updateJobDto.JobStatusId != job.StatusId)
+            {
+                if (updateJobDto.JobStatusId is null)
+                {
+                    job.StatusId = null;
+                }
+                else
+                {
+                    int newId = updateJobDto.JobStatusId.Value;
+                    int[] jobTypeIds = [.. job.JobTypes.Select(t => t.Id)];
+                    bool statusAllowed = await _dbContext.JobStatuses
+                        .AsNoTracking()
+                        .AnyAsync(s => s.Id == newId && jobTypeIds.Contains(s.JobTypeId));
+
+                    if (!statusAllowed)
+                        return result.SetError(ErrorType.BadRequest, "Invalid job status for this job's type(s).");
+
+                    int? previousStatusId = job.StatusId;
+                    job.StatusId = newId;
+
+                    if (previousStatusId is not null && previousStatusId.Value != newId)
+                    {
+                        await _dbContext.JobStatusHistories.AddAsync(new JobStatusHistory
+                        {
+                            JobId = job.Id,
+                            StatusIdOld = previousStatusId.Value,
+                            StatusIdNew = newId,
+                            DateChanged = DateTime.UtcNow,
+                            ModifiedByUserId = httpContext.UserId()
+                        });
+                    }
                 }
             }
 

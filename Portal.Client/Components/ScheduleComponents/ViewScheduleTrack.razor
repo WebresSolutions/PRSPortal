@@ -2,11 +2,11 @@
 @using Portal.Shared.DTO.Schedule
 @using Portal.Shared.DTO.User
 
-<div class="track-container border-rad">
+<div class="track-container border-rad border-grey">
     <div style="min-height: 60px">
         @if (IsEditing)
         {
-            <div class="border-rad padding grey-background">
+            <div class="border-rad padding grey-background ">
                 <label>Assigned Users</label>
                 <MudSelect T="UserDto" MultiSelection="true" Variant="Variant.Outlined"
                            ToStringFunc="@((x) => x.displayName)"

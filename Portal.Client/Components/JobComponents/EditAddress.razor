@@ -6,7 +6,7 @@
 
 <div>
     <h3 class="form-section-title border-bottom pb-2">Address</h3>
-    <div class="form-sections border-rad">
+    <div class="form-sections border-rad border-grey">
         <div>
         <label for="street">Street</label>
         <MudTextField name="street" @bind-Value="Address.Street" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.Street)" Required="true" />
@@ -40,7 +40,7 @@
                 <MudNumericField name="lng" T="double" @bind-Value="Address.LatLng.Longitude" Variant="Variant.Outlined" Class="mb-3" For="@(() => Address!.LatLng!.Longitude)" Disabled="true" />
             </div>
         </div>
-        <div class="map-section">
+       @*  <div class="map-section">
             <small class="map-hint">Move the pin on the map to adjust the coordinates</small>
             <AdvancedGoogleMap @ref="_map" Id="map1" Options="@_mapOptions" CssClass="border-rad">
                 @foreach (MarkerData marker in _markers)
@@ -58,6 +58,6 @@
                     </MarkerComponent>
                 }
             </AdvancedGoogleMap>
-        </div>
+        </div> *@
     </div>
 </div>

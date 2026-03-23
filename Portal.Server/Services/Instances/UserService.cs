@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Portal.Data;
 using Portal.Data.Models;
 using Portal.Server.Helpers;
@@ -6,7 +6,6 @@ using Portal.Server.Services.Interfaces;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
-using Xero.NetStandard.OAuth2.Model.PayrollAu;
 
 namespace Portal.Server.Services.Instances;
 
@@ -42,7 +41,6 @@ public class UserService(PrsDbContext _dbContext, IXeroIntegrationService _xeroI
         Result<UserDto[]> res = new();
         try
         {
-            LeaveApplications leaveApplications = await _xeroIntegrationService.GetLeaveApplications();
             res.Value = await _dbContext.AppUsers
                 .Where(x => (activeOnly && x.DeactivatedAt == null) || !activeOnly)
                 .OrderBy(x => x.DisplayName)

@@ -1,0 +1,36 @@
+@using Portal.Shared.DTO.Job
+
+@if (OrderedStatuses.Count > 0)
+{
+    <div class="job-status-progress" role="list" aria-label="Job status pipeline">
+        <div class="job-status-track">
+            @for (var i = 0; i < OrderedStatuses.Count; i++)
+            {
+                int idx = i;
+                JobTypeStatusDto step = OrderedStatuses[idx];
+                string accent = StatusStepAccent(idx);
+                <div class="job-status-step-cell" role="listitem">
+                    <div class="job-status-step job-status-step--@ProgressState(idx)"
+                         style="@($"--step-accent: {accent}; z-index: {idx + 1};")"
+                         title="@step.Name">
+                        <span class="job-status-step-index" aria-hidden="true">@(idx + 1)</span>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="job-status-labels">
+            @for (var i = 0; i < OrderedStatuses.Count; i++)
+            {
+                int idx = i;
+                JobTypeStatusDto step = OrderedStatuses[idx];
+                string accent = StatusStepAccent(idx);
+                <div class="job-status-label-cell">
+                    <span class="job-status-label job-status-label--@ProgressState(idx)"
+                          style="@($"--step-accent: {accent};")">
+                        @step.Name
+                    </span>
+                </div>
+            }
+        </div>
+    </div>
+}

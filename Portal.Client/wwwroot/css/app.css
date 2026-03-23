@@ -45,7 +45,7 @@ body {
     box-sizing: border-box;
 }
 
-    /* Override Card component styles for this page */
+/* Override Card component styles for this page */
 .wide-container {
     max-width: 1800px;
     width: 100%;
@@ -121,17 +121,22 @@ label {
     font-weight: 600;
 }
 
-.colour-secondary{
+.colour-secondary {
     color: var(--color-secondary) !important;
 }
 
-.grey-background{
+.grey-background {
     background-color: var(--color-light-grey);
 }
 
-.padding{
+.border-grey{
+    border: 1px solid #e2e8f0 !important;
+}
+
+.padding {
     padding: var(--padding);
 }
+
 a.btn-link {
     color: #1c1b1d;
     text-decoration: none;
@@ -218,6 +223,7 @@ ul {
 .mud-table {
     box-shadow: none !important;
 }
+
 .mud-table-container {
     overflow-y: hidden !important;
 }

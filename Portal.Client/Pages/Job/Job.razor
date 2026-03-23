@@ -27,6 +27,7 @@ else if (_job is null)
 else
 {
     <div class="job-detail-container">
+        <JobStatusProgress Statuses="@_job.JobTypeStatusDtos" CurrentStatusId="@_job.JobStatusId" />
         <!-- Header -->
         <PageHeader>
             <Content>
@@ -78,7 +79,7 @@ else
                 <JobInfo Job="@_job" />
                 @if (_job.Address?.LatLng is not null)
                 {
-                    <Card Title="Map">
+                    @* <Card Title="Map">
                         <ChildContent>
                             <AdvancedGoogleMap @ref="@_map" Id="map1" Options="@_mapOptions" CssClass="border-rad" Height="300px">
                                 @foreach (MarkerData marker in _markers)
@@ -96,7 +97,7 @@ else
                                 }
                             </AdvancedGoogleMap>
                         </ChildContent>
-                    </Card>
+                    </Card> *@
                 }
                 <Portal.Client.Components.Files.ViewFiles JobId="JobId" Files="_job.JobFiles" OnFilesEdited="LoadJobData" />
 

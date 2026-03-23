@@ -28,7 +28,9 @@ public partial class EditJob
     /// List of councils
     /// </summary>
     private CouncilPartialDto[] _councils = [];
-    private JobTypeEnum[] _jobtypes = [];
+
+    private readonly JobTypeEnum[] _jobtypes = [.. Enum.GetValues<JobTypeEnum>().Cast<int>().Select(x => (JobTypeEnum)x)];
+    private List<JobTypeEnum> _selectedJobtypes = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,6 +50,11 @@ public partial class EditJob
         }
     }
 
+    private void OnSelect(IEnumerable<JobTypeEnum> jobTypes)
+    {
+        _selectedJobtypes = jobTypes?.ToList() ?? [];
+    }
+
     private async Task LoadJobData()
     {
         IsLoading = true;
@@ -57,6 +64,7 @@ public partial class EditJob
             if (result is not null && result.IsSuccess && result.Value is not null)
             {
                 _model = result.Value;
+                _selectedJobtypes = _model.JobType.ToList();
             }
             else
             {
@@ -77,6 +85,11 @@ public partial class EditJob
     {
         try
         {
+            if (_model is null)
+                return;
+
+            _model.JobType = [.. _selectedJobtypes];
+
             Result<JobDetailsDto> result = await _apiService.UpdateJob(_model);
             if (result.IsSuccess && result.Value is not null)
             {
@@ -96,6 +109,17 @@ public partial class EditJob
     {
         _jobContact = value;
         _model!.ContactId = value?.ContactId ?? 0;
+    }
+
+    private void OnJobStatusIdChanged(int? value)
+    {
+        if (_model is null)
+            return;
+        _model.JobStatusId = value;
+        _model.JobStatusName = value is null
+            ? null
+            : _model.JobTypeStatusDtos.FirstOrDefault(s => s.Id == value)?.Name;
+        StateHasChanged();
     }
 
     /// <summary>

@@ -75,7 +75,8 @@ public class CustomMiddleware(RequestDelegate next) // Remove dbContext from con
             }
 
             userId = appUser.Id;
-
+            appUser.LastLogin = DateTime.UtcNow;
+            await dbContext.SaveChangesAsync();
             // Cache only this specific User's ID
             memoryCache.Set(cacheKey, userId, TimeSpan.FromMinutes(60));
         }

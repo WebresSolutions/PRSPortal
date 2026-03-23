@@ -14,6 +14,11 @@ public class JobDetailsDto
     /// </summary>
     public int JobId { get; set; }
     /// <summary>
+    /// The status of the jobs
+    /// </summary>
+    public int? JobStatusId { get; set; }
+    public string? JobStatusName { get; set; }
+    /// <summary>
     /// Gets or sets the job number associated with this instance.
     /// </summary>
     [Required(ErrorMessage = "Job number is required")]
@@ -118,4 +123,6 @@ public class JobDetailsDto
     /// Secondary Job Contacts
     /// </summary>
     public List<TechnicalContactDto> TechnicalContacts { get; set; } = [];
+
+    public List<JobTypeStatusDto> JobTypeStatusDtos { get; set; } = [];
 }

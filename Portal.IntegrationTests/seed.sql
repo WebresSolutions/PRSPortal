@@ -22,6 +22,20 @@ INSERT INTO file_type(id, name, description) VALUES (4, 'Construction', 'Constru
 INSERT INTO job_type(id, name, abbreviation) VALUES (1, 'Construction', 'CONSTRUCTION');
 INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
 
+INSERT INTO job_task_type (job_type_id, name, description) VALUES
+    -- Survey Dept. (job_type.id = 2)
+    (2, 'Subdivision', 'Survey department — subdivision workflow.'),
+    (2, 'Title Re-establishment Survey', 'Survey department — title re-establishment.'),
+    (2, 'Feature & Level Survey', 'Survey department — feature and level survey.'),
+    (2, 'Re-estab + Feature Level Survey', 'Survey department — combined re-establishment and F&L.'),
+    (2, 'Internal Building Survey', 'Survey department — internal building survey.'),
+    (2, 'Application Survey', 'Survey department — application / planning survey.'),
+    -- Construction Dept. (job_type.id = 1)
+    (1, 'House Set Out', 'Construction department — house set out.'),
+    (1, 'Extension Set Out', 'Construction department — extension set out.'),
+    (1, 'Medium Density Set Out', 'Construction department — medium density set out.'),
+    (1, 'Apartment Set Out', 'Construction department — apartment set out.');
+
 INSERT INTO states(id, name, abbreviation) VALUES (1, 'New South Wales', 'NSW');
 INSERT INTO states(id, name, abbreviation) VALUES (2, 'Queensland', 'QLD');
 INSERT INTO states(id, name, abbreviation) VALUES (3, 'Victoria', 'VIC');

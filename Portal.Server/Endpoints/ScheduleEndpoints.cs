@@ -142,6 +142,20 @@ public static class ScheduleEndpoints
             .WithDescription("Returns all schedule entries for the week containing the given date (or current week if weekDay is omitted), filtered by job type.")
             .Produces<WeeklyGroupedByScheduleDto[]>();
 
+        // Get weekly schedule
+        appGroup.MapGet("leave", async (
+            [FromServices] IScheduleService schService,
+            [FromQuery] JobTypeEnum jobType,
+            [FromQuery] DateOnly? weekDay
+            ) =>
+        {
+            Result<WeeklyGroupedByScheduleDto[]> result = await schService.GetWeeklySchedule(jobType, weekDay);
+            return EndpointsHelper.ProcessResult(result, "An error occurred while getting leave.");
+        })
+            .WithSummary("Get leave schedule for today")
+            .WithDescription("Returns all schedule entries for the week containing the given date (or current week if weekDay is omitted), filtered by job type.")
+            .Produces<WeeklyGroupedByScheduleDto[]>();
+
         if (reqAuth)
             appGroup.RequireAuthorization();
         else

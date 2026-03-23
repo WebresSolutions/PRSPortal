@@ -1,14 +1,7 @@
 @using Portal.Client.Webmodels
+@using Portal.Shared.Helpers
 
 <div class="day-view-calendar">
-    <div class="day-view-times">
-        @for (int h = 7; h <= 18; h++)
-        {
-            <div class="day-view-time-row" style="height: @(_hourHeightPx)px;">
-                <span class="day-view-time-label">@FormatHour(h)</span>
-            </div>
-        }
-    </div>
     <div class="day-view-column">
         <div class="day-view-grid" style="height: @(_totalHeightPx)px;">
             @for (int i = 0; i < _hourRows; i++)
@@ -49,27 +42,6 @@
         border-radius: 8px;
         border: 1px solid #e2e8f0;
         overflow: hidden;
-    }
-
-    .day-view-times {
-        flex: 0 0 48px;
-        display: flex;
-        flex-direction: column;
-        border-right: 1px solid #e2e8f0;
-        background: #f8fafc;
-    }
-
-    .day-view-time-row {
-        display: flex;
-        align-items: flex-start;
-        padding-top: 2px;
-        box-sizing: border-box;
-    }
-
-    .day-view-time-label {
-        font-size: 0.7rem;
-        color: #64748b;
-        padding-left: 4px;
     }
 
     .day-view-column {
@@ -122,7 +94,7 @@
 </style>
 
 @code {
-    private const int StartHour = 7;
+    private const int StartHour = 6;
     private const int EndHour = 18;
     private const int HourHeightPx = 60;
     private readonly int _hourHeightPx = HourHeightPx;
@@ -169,10 +141,5 @@
         return (topPx, heightPx);
     }
 
-    private static string FormatHour(int h)
-    {
-        if (h == 12) return "12pm";
-        if (h < 12) return $"{h}am";
-        return $"{h - 12}pm";
-    }
+    
 }

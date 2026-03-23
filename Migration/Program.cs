@@ -123,15 +123,19 @@ internal class Program
         {
             string solutionDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory()));
             string sqlPath = Path.Combine(solutionDir, "database_schema.sql");
+            string sqlSeederPath = Path.Combine(solutionDir, "database_schema.sql");
 
             // Verify the file exists and show the path
-            if (!File.Exists(sqlPath))
+            if (!File.Exists(sqlPath) || !File.Exists(sqlSeederPath))
             {
                 throw new FileNotFoundException($"SQL file not found at: {sqlPath}");
             }
 
             string resetQuery = File.ReadAllText(sqlPath);
             _destinationContext.Database.ExecuteSqlRaw(resetQuery);
+
+            string seedQuery = File.ReadAllText(sqlSeederPath);
+            _destinationContext.Database.ExecuteSqlRaw(seedQuery);
         }
 
         // Testing connection 

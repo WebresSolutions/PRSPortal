@@ -4,6 +4,7 @@
 @using Portal.Shared
 @using Portal.Shared.DTO.Schedule
 @using Portal.Shared.DTO.User
+@using Portal.Shared.Helpers
 @inherits BaseDataComponent;
 
 <PageTitle>Schedule - PRS Portal</PageTitle>
@@ -45,6 +46,14 @@
                 @if (!base.IsLoading)
                 {
                     <div class="scheduler-container">
+                        <div class="hours-side border-rad shadow">
+                            @for (int h = 6; h <= 18; h++)
+                            {
+                                <div class="day-view-time-row" style="height: @(60)px;">
+                                    <span class="day-view-time-label">@DateTimeBuilder.FormatHour(h)</span>
+                                </div>
+                            }
+                        </div>
                         @foreach (ScheduleTrackDtoWithCalendar slot in _scheduleSlots)
                         {
                             <ViewScheduleTrack Track="slot" Users="_users" JobTypeId="JobType ?? 0" OnUpdate="LoadSchedule" />
@@ -217,6 +226,31 @@
         border: 1px solid var(--color-grey);
     }
 
+    .hours-side{
+        margin-top:  110px;
+        flex: 0 0 48px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        position: sticky;
+        left: 5px;
+        z-index: 100;
+    }
+
+    .day-view-time-row {
+        display: flex;
+        align-items: flex-start;
+        padding-top: 2px;
+        box-sizing: border-box;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .day-view-time-label {
+        font-size: 0.7rem;
+        color: #64748b;
+        padding-left: 4px;
+    }
     @@media (max-width: 1200px) {
 
     }

@@ -17,6 +17,10 @@
             <ButtonIcon Href=@($"/jobs/{JobId}") Icon="bi bi-sign-turn-left" />
         </Content>
     </PageHeader>
+    @if (_model is not null && !base.IsLoading)
+    {
+        <JobStatusProgress Statuses="@_model.JobTypeStatusDtos" CurrentStatusId="@_model.JobStatusId" />
+    }
     <Card>
         @if (base.IsLoading)
         {
@@ -32,17 +36,41 @@
                     <div class="form-grid">
                         <div>
                             <h3 class="form-section-title border-bottom pb-2">Job Details</h3>
-                            <div class="form-sections border-rad">
+                            <div class="form-sections border-rad border-grey">
                                 <div>
                                     <label for="job-type">Job Type</label>
-                                    <MudSelect name="job-type" T="JobTypeEnum"  
-                                        SelectedValues="_jobtypes"
-                                        Variant="Variant.Outlined" Class="" 
-                                        Required="true" MultiSelection="true">
-                                        <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
-                                        <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
+                                    <MudSelect name="job-type" T="JobTypeEnum"
+                                               SelectedValues="_selectedJobtypes"
+                                               SelectedValuesChanged="OnSelect"
+                                               Variant="Variant.Outlined" Class=""
+                                               Required="true" MultiSelection="true">
+                                        @foreach (JobTypeEnum jobType in _jobtypes)
+                                        {
+                                            <MudSelectItem T="JobTypeEnum" Value="jobType">@jobType.GetDisplayName()</MudSelectItem>
+                                        }
                                     </MudSelect>
                                     <ValidationMessage For="@(() => _model.JobType)" />
+                                </div>
+
+                                <div>
+                                    <label for="job-status">Job status</label>
+                                    <MudSelect id="job-status" name="job-status" T="int?"
+                                               Value="_model.JobStatusId"
+                                               ValueChanged="OnJobStatusIdChanged"
+                                               Variant="Variant.Outlined"
+                                               Clearable="true"
+                                               Placeholder="Select status"
+                                               For="@(() => _model.JobStatusId)"
+                                               Disabled="@(_model.JobTypeStatusDtos.Count == 0)">
+                                        @foreach (var s in _model.JobTypeStatusDtos.OrderBy(x => x.order))
+                                        {
+                                            <MudSelectItem T="int?" Value="@s.Id">@s.Name</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                    @if (_model.JobTypeStatusDtos.Count == 0)
+                                    {
+                                        <small class="text-muted d-block mt-1">No statuses are configured for this job's type(s).</small>
+                                    }
                                 </div>
 
                                 <div>
