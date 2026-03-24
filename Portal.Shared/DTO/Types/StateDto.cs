@@ -1,4 +1,4 @@
-namespace Portal.Shared.DTO.Address;
+namespace Portal.Shared.DTO.Types;
 
 /// <summary>
 /// Data transfer object for state/territory lookup.

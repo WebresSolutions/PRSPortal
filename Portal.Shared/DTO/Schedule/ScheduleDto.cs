@@ -1,4 +1,5 @@
-﻿using Portal.Shared.Helpers;
+﻿using Portal.Shared.DTO.Types;
+using Portal.Shared.Helpers;
 
 namespace Portal.Shared.DTO.Schedule;
 

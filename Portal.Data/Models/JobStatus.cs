@@ -16,6 +16,8 @@ public partial class JobStatus
 
     public string Name { get; set; } = null!;
 
+    public string Colour { get; set; } = null!;
+
     public DateTime CreatedAt { get; set; }
 
     public virtual ICollection<JobStatusHistory> JobStatusHistoryStatusIdNewNavigations { get; set; } = new List<JobStatusHistory>();

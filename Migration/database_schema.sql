@@ -315,6 +315,7 @@ CREATE TABLE job_status (
     status_position INT NOT NULL,
     job_type_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
+    colour VARCHAR(12) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

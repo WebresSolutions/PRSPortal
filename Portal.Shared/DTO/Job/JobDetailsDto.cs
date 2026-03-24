@@ -2,6 +2,7 @@ using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.TimeSheet;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.DTO.User;
 using System.ComponentModel.DataAnnotations;
 

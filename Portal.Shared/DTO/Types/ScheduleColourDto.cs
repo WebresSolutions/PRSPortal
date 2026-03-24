@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Portal.Shared.DTO.Schedule;
+namespace Portal.Shared.DTO.Types;
 
 /// <summary>
 /// Data transfer object representing a schedule color

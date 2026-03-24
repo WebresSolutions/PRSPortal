@@ -1,5 +1,6 @@
 using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Services.Interfaces;

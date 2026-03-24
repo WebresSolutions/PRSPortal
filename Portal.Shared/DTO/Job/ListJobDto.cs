@@ -94,7 +94,7 @@ public class ListJobDto
     {
         string res = "#" + JobNumber?.ToString() ?? "";
         res += Address is not null ? $" {Address.ToDisplayString()}" : "";
-        res += $"- {JobType}";
+        res += $"- {string.Join(',', JobType)}";
         return res;
     }
 }

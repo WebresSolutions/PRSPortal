@@ -1,6 +1,7 @@
 using MudBlazor;
 using Nextended.Core.Extensions;
 using Portal.Shared.DTO.Contact;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
 using System.ComponentModel.DataAnnotations;
 

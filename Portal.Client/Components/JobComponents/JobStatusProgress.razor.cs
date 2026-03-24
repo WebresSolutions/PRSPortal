@@ -1,15 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using Portal.Shared.DTO.Job;
+using Portal.Shared.DTO.Types;
 
 namespace Portal.Client.Components.JobComponents;
 
 public partial class JobStatusProgress
 {
-    private static readonly string[] StatusStepAccentColors =
-    [
-        "#1e3a5f", "#0ea5e9", "#0d9488", "#ea580c", "#dc2626", "#7c3aed", "#b45309"
-    ];
-
     /// <summary>
     /// Status definitions for the pipeline (typically from <see cref="JobDetailsDto.JobTypeStatusDtos"/>).
     /// </summary>
@@ -41,9 +37,6 @@ public partial class JobStatusProgress
             return -1;
         }
     }
-
-    private static string StatusStepAccent(int index) =>
-        StatusStepAccentColors[index % StatusStepAccentColors.Length];
 
     private string ProgressState(int stepIndex)
     {

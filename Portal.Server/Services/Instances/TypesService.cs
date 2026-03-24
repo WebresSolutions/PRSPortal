@@ -3,12 +3,9 @@ using Portal.Data;
 using Portal.Data.Models;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
-using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
-using Portal.Shared.DTO.Schedule;
-using Portal.Shared.DTO.Setting;
-using Portal.Shared.DTO.TimeSheet;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Services.Instances;

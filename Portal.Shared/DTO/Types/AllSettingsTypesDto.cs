@@ -1,10 +1,7 @@
-using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
-using Portal.Shared.DTO.Schedule;
-using Portal.Shared.DTO.TimeSheet;
 
-namespace Portal.Shared.DTO.Setting;
+namespace Portal.Shared.DTO.Types;
 
 /// <summary>All lookup lists used by the Settings page in one response.</summary>
 public sealed class AllSettingsTypesDto

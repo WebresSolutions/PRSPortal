@@ -8,7 +8,7 @@
         <ButtonIcon Icon="bi bi-plus" Title="Add" CssClass="text-green" OnClick="@(() => AddNewSchedule())" />
         <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => Delete(Track.TrackId))" />
     </div>
-    <div style="min-height: 60px" class="border-grey border-rad white-background p-2">
+    <div style="min-height: 60px" class="border-grey border-rad white-background p-2 mb-2">
         @if (IsEditing)
         {
             <div class="border-rad padding grey-background ">

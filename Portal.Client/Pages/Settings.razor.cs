@@ -1,12 +1,10 @@
 using MudBlazor;
 using Portal.Client.Components.Settings;
-using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Integration;
 using Portal.Shared.DTO.Job;
-using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
-using Portal.Shared.DTO.TimeSheet;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
 using System.Text.Json;
 using Toolbelt.Blazor.HotKeys2;

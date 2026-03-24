@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Portal.Data;
 using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
+using Portal.Shared.DTO.Types;
 using System.Net;
 using System.Net.Http.Json;
 

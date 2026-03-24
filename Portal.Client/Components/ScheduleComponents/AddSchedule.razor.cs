@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Schedule;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Components.ScheduleComponents;

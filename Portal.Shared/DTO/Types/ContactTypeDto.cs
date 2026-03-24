@@ -1,4 +1,4 @@
-namespace Portal.Shared.DTO.Contact;
+namespace Portal.Shared.DTO.Types;
 
 /// <summary>
 /// Data transfer object for contact type lookup.

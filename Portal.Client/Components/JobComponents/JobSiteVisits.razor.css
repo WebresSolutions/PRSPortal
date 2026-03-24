@@ -7,6 +7,7 @@
     max-height: 400px;
     overflow-y: auto;
     padding-right: 0.5rem;
+    min-height: 300px
 }
 
 .site-visit-entry {

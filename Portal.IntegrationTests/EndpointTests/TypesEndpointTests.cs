@@ -1,11 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
-using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
-using Portal.Shared.DTO.Schedule;
-using Portal.Shared.DTO.Setting;
-using Portal.Shared.DTO.TimeSheet;
+using Portal.Shared.DTO.Types;
 
 namespace Portal.IntegrationTests.EndpointTests;
 

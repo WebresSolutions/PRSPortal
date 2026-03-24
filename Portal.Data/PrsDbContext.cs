@@ -966,6 +966,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
+            entity.Property(e => e.Colour)
+                .HasMaxLength(12)
+                .HasColumnName("colour");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Pages.Contact;

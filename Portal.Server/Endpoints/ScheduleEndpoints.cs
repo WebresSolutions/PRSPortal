@@ -3,6 +3,7 @@ using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
 using Portal.Shared.DTO.Schedule;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
 using Quartz.Util;
 

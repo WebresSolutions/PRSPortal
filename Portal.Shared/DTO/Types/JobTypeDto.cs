@@ -1,4 +1,4 @@
-namespace Portal.Shared.DTO.Job;
+namespace Portal.Shared.DTO.Types;
 
 /// <summary>
 /// Data transfer object for job type lookup.

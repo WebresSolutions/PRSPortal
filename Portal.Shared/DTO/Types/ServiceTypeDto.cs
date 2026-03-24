@@ -1,4 +1,4 @@
-namespace Portal.Shared.DTO.Setting;
+namespace Portal.Shared.DTO.Types;
 
 /// <summary>Catalog service line (quotes / invoicing).</summary>
 public record ServiceTypeDto(

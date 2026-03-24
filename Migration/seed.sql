@@ -19,19 +19,19 @@ INSERT INTO file_type(id, name, description) VALUES (4, 'Construction', 'Constru
 INSERT INTO job_type(id, name, abbreviation) VALUES (1, 'Construction', 'CONSTRUCTION');
 INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
 
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (1, 1, 'Quote');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (2, 1, 'Booked');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (3, 1, 'Scheduled');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (4, 1, 'Field Complete');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (5, 1, 'In Review');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (6, 1, 'Completed');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (1, 1, 'Quote', '#1e3a5f');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (2, 1, 'Booked', '#0ea5e9');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (3, 1, 'Scheduled', '#0d9488');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (4, 1, 'Field Complete', '#ea580c');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (5, 1, 'In Review', '#7c3aed');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (6, 1, 'Completed', '#b45309');
 
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (1, 2, 'Quote');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (2, 2, 'Booked');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (3, 2, 'Scheduled');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (4, 2, 'Field Complete');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (5, 2, 'In Review');
-INSERT INTO job_status(status_position, job_type_id, name) VALUES (6, 2, 'Completed');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (1, 2, 'Quote', '#1e3a5f');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (2, 2, 'Booked', '#0ea5e9');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (3, 2, 'Scheduled', '#0d9488');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (4, 2, 'Field Complete', '#ea580c');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (5, 2, 'In Review', '#7c3aed');
+INSERT INTO job_status(status_position, job_type_id, name, colour) VALUES (6, 2, 'Completed', '#b45309');
 
 INSERT INTO technical_contact_type (id, name, description) VALUES (1, 'Architect/Draftsperson', 'Architect Or Draftsperson');
 INSERT INTO technical_contact_type (id, name, description) VALUES (2, 'Builder', 'Builder');

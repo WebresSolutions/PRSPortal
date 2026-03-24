@@ -10,6 +10,7 @@ using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.TimeSheet;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 using System.Globalization;
@@ -226,7 +227,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         job.TaskCount = job.Tasks.Count;
         job.JobTypeStatusDtos = await _dbContext.JobStatuses
             .Where(x => job.JobType.Select(x => (int)x).Contains(x.JobTypeId))
-            .Select(x => new JobTypeStatusDto(x.Id, x.Name, x.StatusPosition))
+            .Select(x => new JobTypeStatusDto(x.Id, x.Name, x.StatusPosition, x.Colour))
             .ToListAsync();
 
         return result.SetValue(job);
@@ -240,19 +241,22 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         {
             // Validation 
             if (await _dbContext.Contacts.FirstOrDefaultAsync(x => x.Id == data.ContactId) is null)
-                return result.SetError(ErrorType.BadRequest, "Invalid contact id supplied");
+                return result.SetError(ErrorType.BadRequest, "Invalid contact id supplied.");
 
             if (data.CouncilId is not null && await _dbContext.Councils.FirstOrDefaultAsync(x => x.Id == data.CouncilId) is null)
-                return result.SetError(ErrorType.BadRequest, "Invalid council id supplied");
+                return result.SetError(ErrorType.BadRequest, "Invalid council id supplied.");
 
             if (data.JobColourId is not null && await _dbContext.JobColours.FirstOrDefaultAsync(x => x.Id == data.JobColourId) is null)
-                return result.SetError(ErrorType.BadRequest, "Invalid job colour id supplied");
+                return result.SetError(ErrorType.BadRequest, "Invalid job colour id supplied.");
 
             JobType? construction = await _dbContext.JobTypes.FindAsync(1);
             JobType? survey = await _dbContext.JobTypes.FindAsync(2);
 
             if (construction is null || survey is null)
-                throw new InvalidOperationException("job_type must contain id 1 (Construction) and 2 (Survey) before migrating job_to_type.");
+                throw new InvalidOperationException("job_type must contain id 1 (Construction) or 2 (Survey) before job_to_type.");
+
+            if (await _dbContext.JobStatuses.FindAsync(data.StatusId) is not JobStatus status)
+                return result.SetError(ErrorType.BadRequest, "Invalid job status.");
 
             string jobNumber = await CreateJobNumber();
             Job job = new()
@@ -263,30 +267,44 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 Details = data.Details,
                 CreatedByUserId = httpContext.UserId(),
                 CreatedOn = DateTime.UtcNow,
-                JobNumber = jobNumber
+                JobNumber = jobNumber,
+                StatusId = data.StatusId,
+                Status = status,
             };
 
             if (data.Address is not null)
             {
-                Address address = new()
+                if (data.Address.AddressId is not 0)
                 {
-                    Street = data.Address.Street,
-                    PostCode = data.Address.PostCode,
-                    Suburb = data.Address.Suburb,
-                    StateId = (int?)data.Address.State ?? (int)StateEnum.VIC,
-                    CreatedByUserId = httpContext.UserId(),
-                    Country = "AUS"
-                };
+                    if (await _dbContext.Addresses.FindAsync(data.Address.AddressId) is not Address address)
+                        return result.SetError(ErrorType.BadRequest, $"Could not find the address {data.Address.AddressId} associated with the new Job.");
 
-                if (data.Address.LatLng is not null)
-                {
-                    Point latlng = new(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
-                    address.Geom = latlng;
+                    job.Address = address;
+                    job.AddressId = address.Id;
                 }
-                await _dbContext.Addresses.AddAsync(address);
-                await _dbContext.SaveChangesAsync();
+                else
+                {
 
-                job.Address = address;
+                    Address address = new()
+                    {
+                        Street = data.Address.Street,
+                        PostCode = data.Address.PostCode,
+                        Suburb = data.Address.Suburb,
+                        StateId = (int?)data.Address.State ?? (int)StateEnum.VIC,
+                        CreatedByUserId = httpContext.UserId(),
+                        Country = "AUS"
+                    };
+
+                    if (data.Address.LatLng is not null)
+                    {
+                        Point latlng = new(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
+                        address.Geom = latlng;
+                    }
+                    await _dbContext.Addresses.AddAsync(address);
+                    await _dbContext.SaveChangesAsync();
+
+                    job.Address = address;
+                }
             }
             // Create the other objects first
 

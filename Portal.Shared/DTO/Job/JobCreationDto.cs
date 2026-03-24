@@ -39,4 +39,7 @@ public class JobCreationDto
     /// </summary>
     [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
     public string? Details { get; set; }
+
+    [Range(1, int.MaxValue, ErrorMessage = "Job status ID must be at least 1 when provided")]
+    public int StatusId { get; set; }
 }
