@@ -7,6 +7,7 @@ using Portal.Server.Options;
 using Portal.Server.Services.Instances;
 using Portal.Server.Services.Interfaces;
 using Portal.Server.Services.Mocks;
+using Quartz;
 using Xero.NetStandard.OAuth2.Api;
 
 namespace Portal.Server;
@@ -59,6 +60,12 @@ public static class Dependencies
         string tenantId = builder.Configuration.GetValue<string>("AzureAd:TenantId") ?? "";
         string clientId = builder.Configuration.GetValue<string>("AzureAd:ClientId") ?? "";
 
+        builder.Services.AddQuartz();
+        // Add Quartz.NET as a hosted service
+        builder.Services.AddQuartzHostedService(options =>
+        {
+            options.WaitForJobsToComplete = true;
+        });
         // Register the graph service.
         builder.Services.AddSingleton<IGraphService>(sp => new GraphService(clientId, tenantId));
         // Injects in memory cache
@@ -74,6 +81,7 @@ public static class Dependencies
             else
                 return new SharePointService(options, logger);
         });
+
         builder.Services.AddScoped<IFileService, FileService>();
         builder.Services.AddSingleton<IAccountingApi, AccountingApi>();
         builder.Services.AddSingleton<IPayrollAuApi, PayrollAuApi>();
@@ -88,8 +96,7 @@ public static class Dependencies
         builder.Services.AddScoped<ITypesService, TypesService>();
 
         // Add Swagger/OpenAPI services for API debugging
-        bool enableSwagger = builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger");
-        if (enableSwagger)
+        if (builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger"))
         {
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddOpenApi();

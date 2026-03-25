@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Portal.Data;
 using Portal.Data.Models;
+using Portal.Server.BackgroundTasks;
+using Quartz;
 using System.Security.Cryptography;
 
 namespace Portal.Server.Helpers;
@@ -79,5 +81,26 @@ public static class FileHelper
             ?? throw new Exception("Could not find the provided Job");
 
         return $"Jobs/{job.JobNumber.Take(4)}/{job.JobNumber}/{fileType.JobType.Name}/{fileType.Name}";
+    }
+
+    public static async Task CreateJobSharepointStructure(ISchedulerFactory schedulerFactory, int jobId)
+    {
+        IScheduler scheduler = await schedulerFactory.GetScheduler();
+        JobDataMap jobData = new()
+        {
+            {BackgroundTasks.SchedulerConstants.JobId, jobId }
+        };
+
+        IJobDetail job = JobBuilder.Create<SharepointJob>()
+           .WithIdentity($"reminder-{Guid.NewGuid()}", "sharepoint-datastructure")
+           .SetJobData(jobData)
+           .Build();
+
+        ITrigger trigger = TriggerBuilder.Create()
+            .WithIdentity($"trigger-{Guid.NewGuid()}", "sharepoint-datastructure")
+            .StartNow()
+            .Build();
+
+        await scheduler.ScheduleJob(job, trigger);
     }
 }
