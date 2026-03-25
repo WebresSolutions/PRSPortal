@@ -13,6 +13,7 @@ using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.DTO.Types;
 using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
+using Quartz;
 using System.Globalization;
 
 
@@ -22,7 +23,7 @@ namespace Portal.Server.Services.Instances;
 /// Service implementation for job-related business logic
 /// Handles job retrieval, filtering, and data transformation
 /// </summary>
-public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IFileService _fileService) : IJobService
+public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IFileService _fileService, ISchedulerFactory _schedulerFactory) : IJobService
 {
     /// <inheritdoc/>
     public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(JobFilterDto filter)
@@ -320,8 +321,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
 
             await _dbContext.SaveChangesAsync();
 
-            // TODO: On job creation this will also need to create the file path in sharepoint
-            await _fileService.CreateSharePointFileStructure(job.Id);
+            // Create the sharepoint data structure in a background task
+            await FileHelper.CreateJobSharepointStructure(_schedulerFactory, job.Id);
 
             return result.SetValue(job.Id);
         }
@@ -830,6 +831,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
 
         return maxSuffix + 1;
     }
+
+
 
     private static bool IsAllAsciiDigits(ReadOnlySpan<char> span)
     {
