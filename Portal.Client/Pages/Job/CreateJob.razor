@@ -56,7 +56,6 @@
                                     </MudSelect>
                                     <ValidationMessage For="@(() => _model.JobType)" />
                                 </div>
-
                                 <div>
                                     <label for="job-contact">Contact</label>
                                     <MudAutocomplete name="job-contact" T="ListContactDto" Value="_jobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"

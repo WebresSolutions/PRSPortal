@@ -11,5 +11,7 @@ public partial class TimesheetEntryType
 
     public string? Description { get; set; }
 
+    public bool? IsActive { get; set; }
+
     public virtual ICollection<TimesheetEntry> TimesheetEntries { get; set; } = new List<TimesheetEntry>();
 }

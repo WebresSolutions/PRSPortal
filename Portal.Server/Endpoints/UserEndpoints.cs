@@ -9,9 +9,9 @@ namespace Portal.Server.Controllers;
 
 public static class UserEndpoints
 {
-    public static void AddUserEndpoints(this WebApplication app, bool reqAuth = true)
+    public static void AddUserEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
-        RouteGroupBuilder userEndpointGroup = app.MapGroup("/api/users");
+        RouteGroupBuilder userEndpointGroup = app.MapGroup("/api/users").WithTags(tags);
 
         userEndpointGroup.MapGet(
             "", async (
@@ -46,5 +46,9 @@ public static class UserEndpoints
         .WithDescription("Returns notes for all jobs assigned to the specified user. Use includeDeleted query parameter to include soft-deleted notes.")
         .Produces<List<JobNoteDto>>();
 
+        if (reqAuth)
+            userEndpointGroup.RequireAuthorization();
+        else
+            userEndpointGroup.AllowAnonymous();
     }
 }

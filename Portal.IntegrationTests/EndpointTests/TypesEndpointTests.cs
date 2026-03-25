@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Linq;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Types;
@@ -129,5 +130,57 @@ public sealed class TypesEndpointTests
         StateDto[]? result = await response.Content.ReadFromJsonAsync<StateDto[]>();
         Assert.NotNull(result);
         Assert.True(result.Length >= 7, "Seed data includes 7 Australian states/territories.");
+    }
+
+    [Fact]
+    public async Task Get_job_statuses_returns_ok()
+    {
+        HttpResponseMessage response = await _client.GetAsync("/api/types/jobstatus");
+        response.EnsureSuccessStatusCode();
+        JobTypeStatusDto[]? result = await response.Content.ReadFromJsonAsync<JobTypeStatusDto[]>();
+        Assert.NotNull(result);
+        Assert.True(result.Length >= 12, "Seed data includes 6 statuses per job type (Construction + Survey).");
+        foreach (JobTypeStatusDto dto in result)
+        {
+            Assert.True(dto.Id > 0);
+            Assert.True(dto.JobTypeId is 1 or 2);
+            Assert.False(string.IsNullOrWhiteSpace(dto.Name));
+            Assert.False(string.IsNullOrWhiteSpace(dto.Colour));
+        }
+    }
+
+    [Fact]
+    public async Task Put_job_statuses_round_trip_matches_get()
+    {
+        JobTypeStatusDto[]? before = await _client.GetFromJsonAsync<JobTypeStatusDto[]>("/api/types/jobstatus");
+        Assert.NotNull(before);
+
+        HttpResponseMessage putResponse = await _client.PutAsJsonAsync("/api/types/jobstatus", before);
+        putResponse.EnsureSuccessStatusCode();
+        JobTypeStatusDto[]? putBody = await putResponse.Content.ReadFromJsonAsync<JobTypeStatusDto[]>();
+        Assert.NotNull(putBody);
+
+        JobTypeStatusDto[]? afterGet = await _client.GetFromJsonAsync<JobTypeStatusDto[]>("/api/types/jobstatus");
+        Assert.NotNull(afterGet);
+
+        JobTypeStatusDto[] expected = [.. before.OrderBy(x => x.JobTypeId).ThenBy(x => x.Sequence).ThenBy(x => x.Id)];
+        JobTypeStatusDto[] fromPut = [.. putBody.OrderBy(x => x.JobTypeId).ThenBy(x => x.Sequence).ThenBy(x => x.Id)];
+        JobTypeStatusDto[] fromGet = [.. afterGet.OrderBy(x => x.JobTypeId).ThenBy(x => x.Sequence).ThenBy(x => x.Id)];
+
+        Assert.Equal(expected.Length, fromPut.Length);
+        Assert.Equal(expected.Length, fromGet.Length);
+        for (int i = 0; i < expected.Length; i++)
+        {
+            Assert.Equal(expected[i], fromPut[i]);
+            Assert.Equal(expected[i], fromGet[i]);
+        }
+    }
+
+    [Fact]
+    public async Task Put_job_statuses_with_unknown_job_type_returns_bad_request()
+    {
+        JobTypeStatusDto[] payload = [new JobTypeStatusDto(0, 999, "Invalid", 1, "#000000", true)];
+        HttpResponseMessage response = await _client.PutAsJsonAsync("/api/types/jobstatus", payload);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

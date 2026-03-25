@@ -226,8 +226,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         job.SiteVisitCount = job.SiteVisits.Count;
         job.TaskCount = job.Tasks.Count;
         job.JobTypeStatusDtos = await _dbContext.JobStatuses
-            .Where(x => job.JobType.Select(x => (int)x).Contains(x.JobTypeId))
-            .Select(x => new JobTypeStatusDto(x.Id, x.Name, x.StatusPosition, x.Colour))
+            .Where(x => job.JobType.Select(x => (int)x).Contains(x.JobTypeId) && x.IsActive)
+            .Select(x => new JobTypeStatusDto(x.Id, x.JobTypeId, x.Name, x.Sequence, x.Colour, x.IsActive))
             .ToListAsync();
 
         return result.SetValue(job);
@@ -321,6 +321,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             await _dbContext.SaveChangesAsync();
 
             // TODO: On job creation this will also need to create the file path in sharepoint
+            await _fileService.CreateSharePointFileStructure(job.Id);
 
             return result.SetValue(job.Id);
         }
@@ -806,7 +807,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
 
         List<string> jobNumbers = await _dbContext.Jobs
             .AsNoTracking()
-            .Where(j => j.DeletedAt == null && j.JobNumber != null && j.JobNumber.StartsWith(yearPrefix))
+            .Where(j => j.JobNumber != null && j.JobNumber.StartsWith(yearPrefix))
             .Select(j => j.JobNumber!)
             .ToListAsync();
 

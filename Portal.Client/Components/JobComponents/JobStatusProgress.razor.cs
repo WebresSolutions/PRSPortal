@@ -19,7 +19,7 @@ public partial class JobStatusProgress
     public int? CurrentStatusId { get; set; }
 
     private IReadOnlyList<JobTypeStatusDto> OrderedStatuses =>
-        Statuses?.OrderBy(s => s.order).ToList() ?? [];
+        Statuses?.OrderBy(s => s.Sequence).ToList() ?? [];
 
     private int CurrentStatusIndex
     {

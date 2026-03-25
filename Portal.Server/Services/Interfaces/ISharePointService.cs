@@ -1,4 +1,5 @@
 ﻿using Microsoft.Graph;
+using Microsoft.Graph.Models;
 namespace Portal.Server.Services.Interfaces;
 
 /// <summary>
@@ -65,4 +66,10 @@ public interface ISharePointService
     /// <returns>The sharepoint link web url</returns>
     Task<string> GetLinkToFile(string fileItemId, int? daysUntilExpiry, List<string>? recipientEmails = null, bool? blocksDownload = false);
 
+    /// <summary>
+    /// Create the directory structure in sharepoint
+    /// </summary>
+    /// <param name="directory">The file directory to create</param>
+    /// <returns>The drive item id</returns>
+    Task<DriveItem?> CreateDirectoryStructure(string directory);
 }

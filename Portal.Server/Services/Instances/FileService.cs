@@ -20,12 +20,7 @@ public class FileService : IFileService
     private readonly PrsDbContext _dbContext;
     private readonly ILogger<FileService> _logger;
 
-    /// <summary>
-    /// Uploads a file to the sharepoint service and creates/updates an AppFile record in the database. If the file already exists and the content has not changed (determined by comparing file hashes), it will return the existing file without re-uploading.
-    /// </summary>
-    /// <param name="file">The file being uploaded</param>
-    /// <param name="modifiedByUserId"></param>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public async Task<Result<AppFile>> SaveFile(FileDto file, int modifiedByUserId)
     {
         Result<AppFile> result = new();
@@ -64,7 +59,6 @@ public class FileService : IFileService
                     return result.SetValue(existingFile);
 
                 string externalId;
-
                 // Only re-upload the file if the content has changed (determined by comparing file hashes) or if the filename has changed.
                 // This prevents unnecessary uploads to the sharepoint service when only the filename is updated.
                 if (existingFile.FileHash != fileHash || existingFile.FileName != file.FileName)
@@ -137,6 +131,7 @@ public class FileService : IFileService
         }
     }
 
+    /// <inheritdoc/>
     public async Task<Result<bool>> DeleteFile(int fileId, int modifiedByUserId)
     {
         Result<bool> result = new();
@@ -162,11 +157,7 @@ public class FileService : IFileService
         }
     }
 
-    /// <summary>
-    /// Gets files data
-    /// </summary>
-    /// <param name="fileId"></param>
-    /// <returns>File Dto Result</returns>
+    /// <inheritdoc/>
     public async Task<Result<FileDto>> GetFileData(int fileId)
     {
         Result<FileDto> result = new();
@@ -192,6 +183,14 @@ public class FileService : IFileService
             _logger.LogError(ex, "Failed to get the file from sharepoint.");
             throw;
         }
+    }
+
+    /// <inheritdoc/>
+    public async Task CreateSharePointFileStructure(int jobId)
+    {
+        List<string> fileStructures = await FileHelper.GenerateJobFileStructure(_dbContext, jobId);
+        foreach (string directory in fileStructures)
+            await _sharepointService.CreateDirectoryStructure(directory);
     }
 
     private (bool, string?) ValidateFile(FileDto file)

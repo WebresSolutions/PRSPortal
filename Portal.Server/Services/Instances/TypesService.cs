@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Portal.Data;
 using Portal.Data.Models;
 using Portal.Server.Helpers;
@@ -10,39 +11,40 @@ using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Services.Instances;
 
+/// <summary>
+/// Used for getting and updating types
+/// </summary>
+/// <param name="_dbContext">Database context</param>
+/// <param name="_logger">Logger interface</param>
 public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger) : ITypesService
 {
+    /// <inheritdoc/>
     public async Task<Result<TimeTypeDto[]>> GetTimeSheetTypes()
-    {
-        return await GetTypesAsync(
-            _dbContext.TimesheetEntryTypes.Select(x => new TimeTypeDto(x.Id, x.Name, x.Description)),
+        => await GetTypesAsync(
+            _dbContext.TimesheetEntryTypes.Where(x => x.IsActive).Select(x => new TimeTypeDto(x.Id, x.Name, x.Description)),
             "timesheet types");
-    }
 
+    /// <inheritdoc/>
     public async Task<Result<ContactTypeDto[]>> GetContactTypes()
-    {
-        return await GetTypesAsync(
-            _dbContext.ContactTypes.Select(x => new ContactTypeDto(x.Id, x.Name, x.Description)),
+        => await GetTypesAsync(
+            _dbContext.ContactTypes.Where(x => x.IsActive).Select(x => new ContactTypeDto(x.Id, x.Name, x.Description)),
             "contact types");
-    }
 
+    /// <inheritdoc/>
     public async Task<Result<JobTypeDto[]>> GetJobTypes()
-    {
-        return await GetTypesAsync(
+        => await GetTypesAsync(
             _dbContext.JobTypes.Select(x => new JobTypeDto(x.Id, x.Name, x.Abbreviation)),
             "job types");
-    }
 
+    /// <inheritdoc/>
     public async Task<Result<JobColourDto[]>> GetJobColours()
-    {
-        return await GetTypesAsync(
-            _dbContext.JobColours.Select(x => new JobColourDto(x.Id, x.Color)),
+        => await GetTypesAsync(
+            _dbContext.JobColours.Where(x => x.IsActive).Select(x => new JobColourDto(x.Id, x.Color)),
             "job colours");
-    }
 
+    /// <inheritdoc/>
     public async Task<Result<ScheduleColourDto[]>> GetScheduleColours()
-    {
-        return await GetTypesAsync(
+        => await GetTypesAsync(
             _dbContext.ScheduleColours.Select(x => new ScheduleColourDto
             {
                 ScheduleColourId = x.Id,
@@ -50,47 +52,51 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
                 Description = x.Description ?? string.Empty
             }),
             "schedule colours");
-    }
 
+    /// <inheritdoc/>
     public async Task<Result<FileTypeDto[]>> GetFileTypes()
-    {
-        return await GetTypesAsync(
-            _dbContext.FileTypes.Select(x => new FileTypeDto(x.Id, x.Name, x.Description)),
+        => await GetTypesAsync(
+            _dbContext.FileTypes.Where(x => x.IsActive).Select(x => new FileTypeDto(x.Id, x.Name, x.Description)),
             "file types");
-    }
 
+    /// <inheritdoc/>
     public async Task<Result<JobTaskTypeDto[]>> GetJobTaskTypes()
-    {
-        return await GetTypesAsync(
+        => await GetTypesAsync(
             _dbContext.JobTaskTypes
-                .Where(x => x.DeletedAt == null)
+                .Where(x => x.IsActive)
                 .Select(x => new JobTaskTypeDto(x.Id, x.Name, x.Description)),
             "job task types");
-    }
 
+    /// <inheritdoc/>
     public async Task<Result<TechnicalContactTypeDto[]>> GetTechnicalContactTypes()
-    {
-        return await GetTypesAsync(
-            _dbContext.TechnicalContactTypes.Select(x => new TechnicalContactTypeDto(x.Id, x.Name, x.Description)),
+        => await GetTypesAsync(
+            _dbContext.TechnicalContactTypes.Where(x => x.IsActive).Select(x => new TechnicalContactTypeDto(x.Id, x.Name, x.Description)),
             "technical contact types");
-    }
 
+    /// <inheritdoc/>
     public async Task<Result<StateDto[]>> GetStates()
-    {
-        return await GetTypesAsync(
+        => await GetTypesAsync(
             _dbContext.States.Select(x => new StateDto(x.Id, x.Name, x.Abbreviation)),
             "states");
-    }
 
+    /// <inheritdoc/>
     public async Task<Result<ServiceTypeDto[]>> GetServiceTypes()
-    {
-        return await GetTypesAsync(
-            _dbContext.ServiceTypes
+        => await GetTypesAsync(
+            _dbContext.ServiceTypes.Where(x => x.IsActive)
                 .OrderBy(x => x.ServiceName)
                 .Select(x => new ServiceTypeDto(x.Id, x.Code, x.ServiceName, x.DefaultRate, x.UnitOfMeasure, x.IsActive, x.Description)),
             "service types");
-    }
 
+    /// <inheritdoc/>
+    public async Task<Result<JobTypeStatusDto[]>> GetJobStatuses()
+        => await GetTypesAsync(
+            _dbContext.JobStatuses
+                .OrderBy(x => x.JobTypeId)
+                .ThenBy(x => x.Sequence)
+                .Select(x => new JobTypeStatusDto(x.Id, x.JobTypeId, x.Name, x.Sequence, x.Colour, x.IsActive)),
+            "job statuses");
+
+    /// <inheritdoc/>
     public async Task<Result<AllSettingsTypesDto>> GetAllSettingsTypes()
     {
         Result<AllSettingsTypesDto> res = new();
@@ -98,19 +104,24 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         {
             // Same DbContext cannot run multiple queries concurrently (see EF Core threading notes).
             TimeTypeDto[] timesheetTypes = await _dbContext.TimesheetEntryTypes
+                .Where(x => x.IsActive)
                 .Select(x => new TimeTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
             ContactTypeDto[] contactTypes = await _dbContext.ContactTypes
+                .Where(x => x.IsActive)
                 .Select(x => new ContactTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
             JobTypeDto[] jobTypes = await _dbContext.JobTypes
                 .Select(x => new JobTypeDto(x.Id, x.Name, x.Abbreviation)).ToArrayAsync();
             JobColourDto[] jobColours = await _dbContext.JobColours
+                .Where(x => x.IsActive)
                 .Select(x => new JobColourDto(x.Id, x.Color)).ToArrayAsync();
             FileTypeDto[] fileTypes = await _dbContext.FileTypes
+                .Where(x => x.IsActive)
                 .Select(x => new FileTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
             JobTaskTypeDto[] jobTaskTypes = await _dbContext.JobTaskTypes
-                .Where(x => x.DeletedAt == null)
+                .Where(x => x.IsActive)
                 .Select(x => new JobTaskTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
             TechnicalContactTypeDto[] technicalContactTypes = await _dbContext.TechnicalContactTypes
+                .Where(x => x.IsActive)
                 .Select(x => new TechnicalContactTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
             StateDto[] states = await _dbContext.States
                 .Select(x => new StateDto(x.Id, x.Name, x.Abbreviation)).ToArrayAsync();
@@ -122,8 +133,14 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
                     Description = x.Description ?? string.Empty
                 }).ToArrayAsync();
             ServiceTypeDto[] serviceTypes = await _dbContext.ServiceTypes
+                .Where(x => x.IsActive)
                 .OrderBy(x => x.ServiceName)
                 .Select(x => new ServiceTypeDto(x.Id, x.Code, x.ServiceName, x.DefaultRate, x.UnitOfMeasure, x.IsActive, x.Description))
+                .ToArrayAsync();
+            JobTypeStatusDto[] jobStatuses = await _dbContext.JobStatuses
+                .OrderBy(x => x.JobTypeId)
+                .ThenBy(x => x.Sequence)
+                .Select(x => new JobTypeStatusDto(x.Id, x.JobTypeId, x.Name, x.Sequence, x.Colour, x.IsActive))
                 .ToArrayAsync();
 
             res.SetValue(new AllSettingsTypesDto
@@ -137,7 +154,8 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
                 TechnicalContactTypes = technicalContactTypes,
                 States = states,
                 ScheduleColours = scheduleColours,
-                ServiceTypes = serviceTypes
+                ServiceTypes = serviceTypes,
+                JobStatuses = jobStatuses,
             });
             return res;
         }
@@ -148,6 +166,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         }
     }
 
+    /// <inheritdoc/>
     public async Task<Result<TimeTypeDto>> SaveTimeSheetType(TimeTypeDto dto)
     {
         Result<TimeTypeDto> res = new();
@@ -182,6 +201,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         }
     }
 
+    /// <inheritdoc/>
     public async Task<Result<ContactTypeDto>> SaveContactType(ContactTypeDto dto)
     {
         Result<ContactTypeDto> res = new();
@@ -217,6 +237,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         }
     }
 
+    /// <inheritdoc/>
     public async Task<Result<JobTypeDto>> SaveJobType(JobTypeDto dto)
     {
         Result<JobTypeDto> res = new();
@@ -253,6 +274,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         }
     }
 
+    /// <inheritdoc/>
     public async Task<Result<JobColourDto>> SaveJobColour(JobColourDto dto)
     {
         Result<JobColourDto> res = new();
@@ -288,6 +310,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         }
     }
 
+    /// <inheritdoc/>
     public async Task<Result<FileTypeDto>> SaveFileType(FileTypeDto dto)
     {
         Result<FileTypeDto> res = new();
@@ -322,6 +345,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         }
     }
 
+    /// <inheritdoc/>
     public async Task<Result<JobTaskTypeDto>> SaveJobTaskType(HttpContext httpContext, JobTaskTypeDto dto)
     {
         Result<JobTaskTypeDto> res = new();
@@ -357,6 +381,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         }
     }
 
+    /// <inheritdoc/>
     public async Task<Result<TechnicalContactTypeDto>> SaveTechnicalContactType(TechnicalContactTypeDto dto)
     {
         Result<TechnicalContactTypeDto> res = new();
@@ -392,6 +417,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         }
     }
 
+    /// <inheritdoc/>
     public async Task<Result<ServiceTypeDto>> SaveServiceType(ServiceTypeDto dto)
     {
         Result<ServiceTypeDto> res = new();
@@ -450,6 +476,88 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         {
             _logger.LogError(ex, "Failed to save service type");
             return res.SetError(ErrorType.InternalError, "An error occurred while saving service type");
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<Result<JobTypeStatusDto[]>> SaveJobTypeStatuses(IEnumerable<JobTypeStatusDto> dto)
+    {
+        Result<JobTypeStatusDto[]> res = new();
+        if (!dto.Any())
+            return res.SetError(ErrorType.BadRequest, "Job Statuses not provided");
+
+        await using IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            // Check that the job type is valid for all of the items.
+            int[] providedJobTypes = [.. dto.Select(x => x.JobTypeId).Distinct()];
+
+            if (!await _dbContext.JobTypes.AllAsync(x => providedJobTypes.Contains(x.Id)))
+                return res.SetError(ErrorType.BadRequest, "Invalid Job Type Provided");
+
+            List<JobTypeStatusDto> distinctBySequenceAndJobtype = [.. dto.GroupBy(x => new { x.JobTypeId, x.Sequence }).Select(x => x.First())];
+            if (distinctBySequenceAndJobtype.Count != dto.Count())
+                return res.SetError(ErrorType.BadRequest, "The sequence is not unique");
+
+            foreach (JobTypeStatusDto status in dto)
+            {
+                string statusName = StringNormalizer.TrimAndTruncate(status.Name, 100) ?? "";
+                string? colour = StringNormalizer.TrimAndTruncate(status.Colour, 12);
+
+                if (string.IsNullOrWhiteSpace(statusName))
+                {
+                    await transaction.RollbackAsync();
+                    return res.SetError(ErrorType.BadRequest, "Status name is required");
+                }
+                if (string.IsNullOrWhiteSpace(colour))
+                {
+                    await transaction.RollbackAsync();
+                    return res.SetError(ErrorType.BadRequest, "Colour is required");
+                }
+
+                // Deal with the ordering 
+                if (status.Id == 0)
+                {
+                    JobStatus e = new()
+                    {
+                        Name = statusName,
+                        Colour = colour,
+                        CreatedAt = DateTime.UtcNow,
+                        Sequence = status.Sequence,
+                        JobTypeId = status.JobTypeId,
+                        IsActive = status.IsActive
+                    };
+                    await _dbContext.JobStatuses.AddAsync(e);
+                    await _dbContext.SaveChangesAsync();
+                }
+                else
+                {
+                    JobStatus? e = await _dbContext.JobStatuses.FindAsync(status.Id);
+
+                    if (e is null)
+                    {
+                        await transaction.RollbackAsync();
+                        return res.SetError(ErrorType.BadRequest, "Service type not found");
+                    }
+                    e.IsActive = status.IsActive;
+                    e.Sequence = status.Sequence;
+                    e.JobTypeId = status.JobTypeId;
+                    e.Name = statusName;
+                    e.Colour = colour;
+
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+
+            await transaction.CommitAsync();
+            Result<JobTypeStatusDto[]> savedResult = await GetJobStatuses();
+            return savedResult;
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Failed to save job status types");
+            return res.SetError(ErrorType.InternalError, "An error occurred while saving the status type");
         }
     }
 

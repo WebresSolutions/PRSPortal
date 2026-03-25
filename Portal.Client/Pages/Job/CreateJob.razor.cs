@@ -3,6 +3,7 @@ using Portal.Shared;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Pages.Job;
@@ -22,6 +23,7 @@ public partial class CreateJob
     /// </summary>
     private CouncilPartialDto[] _councils = [];
     private JobTypeEnum[] _jobtypes = [];
+    private JobTypeStatusDto[] _statuses = [];
     /// <summary>
     /// On initialized method for loading data on the first page load.
     /// </summary>
@@ -30,19 +32,24 @@ public partial class CreateJob
     {
         IsLoading = true;
         await base.OnInitializedAsync();
+
+        Result<JobTypeStatusDto[]> statusesResult = await _apiService.GetJobStatuses();
+        if (statusesResult.IsSuccess)
+            _statuses = statusesResult.Value!;
+
         _model = new()
         {
             JobType = [JobTypeEnum.Construction],
             Address = new()
             {
                 LatLng = new(-37.8136, 144.9631)
-            }
+            },
+            StatusId = _statuses.OrderBy(x => x.Sequence).First().Id
         };
 
         Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
         if (councilResult?.IsSuccess == true && councilResult.Value is not null)
             _councils = councilResult.Value;
-
 
         IsLoading = false;
 
@@ -66,6 +73,8 @@ public partial class CreateJob
     {
         try
         {
+            base.IsLoading = true;
+            _model.StatusId = _statuses.Where(x => x.JobTypeId == (int)_model.JobType.First()).OrderBy(x => x.Sequence).First().Id;
             Result<int> result = await _apiService.CreateJob(_model);
             if (result.IsSuccess && result.Value > 0)
             {
@@ -74,6 +83,8 @@ public partial class CreateJob
             }
             else
                 _snackbar?.Add(result.ErrorDescription ?? "Failed to create job.", Severity.Error);
+
+            base.IsLoading = false;
         }
         finally
         {
@@ -96,4 +107,12 @@ public partial class CreateJob
         else
             return [];
     }
+    private void OnJobStatusIdChanged(int value)
+    {
+        if (_model is null)
+            return;
+        _model.StatusId = value;
+        StateHasChanged();
+    }
+
 }

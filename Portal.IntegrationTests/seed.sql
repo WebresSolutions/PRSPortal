@@ -14,13 +14,45 @@ VALUES (
 INSERT INTO timesheet_entry_type(name, description) VALUES ('Job', 'Job');
 INSERT INTO timesheet_entry_type(name, description) VALUES ('Regular', 'Regular work hours');
 
-INSERT INTO file_type(id, name, description) VALUES (1, 'General', 'General Files.');
-INSERT INTO file_type(id, name, description) VALUES (2, 'Job', 'General Job Files.');
-INSERT INTO file_type(id, name, description) VALUES (3, 'Surveying', 'Surveying Files.');
-INSERT INTO file_type(id, name, description) VALUES (4, 'Construction', 'Construction Files.');
-
 INSERT INTO job_type(id, name, abbreviation) VALUES (1, 'Construction', 'CONSTRUCTION');
 INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
+
+INSERT INTO file_type(job_type_id, name, description) VALUES
+    -- Construction job SharePoint folders (job_type.id = 1)
+    (1, '01 COMPS FILES', 'Construction job folder: comps files.'),
+    (1, '02 FIELDWORK', 'Construction job folder: field work.'),
+    (1, '03 RECEIVED', 'Construction job folder: received.'),
+    (1, '04 SENT', 'Construction job folder: sent.'),
+    (1, '05 OHS', 'Construction job folder: OHS.'),
+    (1, '06 INVOICES & POs', 'Construction job folder: invoices and purchase orders.'),
+    (1, '07 QA', 'Construction job folder: QA.'),
+    (1, '08. Survey Info', 'Construction job folder: survey info.'),
+    (1, '09. Title', 'Construction job folder: title.'),
+    -- Survey job SharePoint folders (job_type.id = 2)
+    (2, '01. Survey Files', 'Survey job folder: survey files.'),
+    (2, '02. Field Work', 'Survey job folder: field work.'),
+    (2, '03. Received', 'Survey job folder: received.'),
+    (2, '04. Sent', 'Survey job folder: sent.'),
+    (2, '05. OHS', 'Survey job folder: OHS.'),
+    (2, '06. Invoices & PO''s', 'Survey job folder: invoices and purchase orders.'),
+    (2, '07. QA', 'Survey job folder: QA.'),
+    (2, '08. Survey Info', 'Survey job folder: survey info.'),
+    (2, '09. Title', 'Survey job folder: title.'),
+    (2, '10. Subdivision', 'Survey job folder: subdivision.');
+
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (1, 1, 'Quote', '#1e3a5f');
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (2, 1, 'Booked', '#0ea5e9');
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (3, 1, 'Scheduled', '#0d9488');
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (4, 1, 'Field Complete', '#ea580c');
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (5, 1, 'In Review', '#7c3aed');
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (6, 1, 'Completed', '#b45309');
+
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (1, 2, 'Quote', '#1e3a5f');
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (2, 2, 'Booked', '#0ea5e9');
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (3, 2, 'Scheduled', '#0d9488');
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (4, 2, 'Field Complete', '#ea580c');
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (5, 2, 'In Review', '#7c3aed');
+INSERT INTO job_status(sequence, job_type_id, name, colour) VALUES (6, 2, 'Completed', '#b45309');
 
 INSERT INTO job_task_type (job_type_id, name, description) VALUES
     -- Survey Dept. (job_type.id = 2)
@@ -116,4 +148,3 @@ INSERT INTO job_note (job_id, note, action_required, created_by_user_id)
     VALUES (3, 'Graffiti removal started. High-pressure cleaner in use.', FALSE, 1);
 INSERT INTO job_note (job_id, note, action_required, created_by_user_id)
     VALUES (4, 'Graffiti removal started. High-pressure cleaner in use.', TRUE, 1);
-

@@ -1300,6 +1300,62 @@ public class ApiService : IApiService
     public Task<Result<ServiceTypeDto>> SaveServiceType(ServiceTypeDto dto) =>
         PutTypeAsync("api/types/service", dto, "service type");
 
+    /// <inheritdoc />
+    public async Task<Result<JobTypeStatusDto[]>> GetJobStatuses()
+    {
+        Result<JobTypeStatusDto[]> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync("api/types/jobstatus");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                JobTypeStatusDto[]? data = await response.Content.ReadFromJsonAsync<JobTypeStatusDto[]>();
+                res.SetValue(data ?? []);
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get job statuses";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<JobTypeStatusDto[]>> SaveJobTypeStatuses(IEnumerable<JobTypeStatusDto> dtos)
+    {
+        Result<JobTypeStatusDto[]> res = new();
+        try
+        {
+            JobTypeStatusDto[] body = dtos is JobTypeStatusDto[] arr ? arr : dtos.ToArray();
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync("api/types/jobstatus", body);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                JobTypeStatusDto[]? data = await response.Content.ReadFromJsonAsync<JobTypeStatusDto[]>();
+                if (data is not null)
+                    res.SetValue(data);
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to save job statuses";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
     #region INTEGRATION
     /// <summary>
     /// Gets the Xero OAuth authorization URL; redirect the user to this URL to start OAuth.

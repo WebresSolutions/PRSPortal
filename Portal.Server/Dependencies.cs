@@ -66,11 +66,13 @@ public static class Dependencies
         // This is the acconting api from xero
         builder.Services.AddTransient<ISharePointService>(provider =>
         {
+            ILogger<SharePointService> logger = provider.GetService<ILogger<SharePointService>>()
+            ?? throw new Exception("Failed to find the logger");
             SharePointOptions options = provider.GetRequiredService<IOptions<SharePointOptions>>().Value;
             if (options.UseMock)
-                return new SharePointServiceMock(options);
+                return new SharePointServiceMock(options, logger);
             else
-                return new SharePointService(options);
+                return new SharePointService(options, logger);
         });
         builder.Services.AddScoped<IFileService, FileService>();
         builder.Services.AddSingleton<IAccountingApi, AccountingApi>();

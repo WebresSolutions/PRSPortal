@@ -26,4 +26,10 @@ public interface IFileService
     /// <param name="fileId">The file Id</param>
     /// <returns>A file dto</returns>
     Task<Result<FileDto>> GetFileData(int fileId);
+    /// <summary>
+    /// Create the file structure for a job. Generally called when the job is first created.
+    /// </summary>
+    /// <param name="jobId">The job Id</param>
+    /// <returns></returns>
+    Task CreateSharePointFileStructure(int jobId);
 }

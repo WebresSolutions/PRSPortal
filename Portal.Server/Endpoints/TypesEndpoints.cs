@@ -14,9 +14,9 @@ namespace Portal.Server.Controllers;
 /// </summary>
 public static class TypesEndpoints
 {
-    public static void AddTypesEndpoints(this WebApplication app, bool reqAuth = true)
+    public static void AddTypesEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
-        RouteGroupBuilder appGroup = app.MapGroup("/api/types");
+        RouteGroupBuilder appGroup = app.MapGroup("/api/types").WithTags(tags);
 
         appGroup.MapGet("all",
             async ([FromServices] ITypesService typesService) =>
@@ -191,6 +191,26 @@ public static class TypesEndpoints
             .WithSummary("Get states")
             .WithDescription("Gets a list of states/territories (e.g. NSW, VIC).")
             .Produces<StateDto[]>();
+
+        appGroup.MapGet("jobstatus",
+            async ([FromServices] ITypesService typesService) =>
+            {
+                Result<JobTypeStatusDto[]> res = await typesService.GetJobStatuses();
+                return EndpointsHelper.ProcessResult(res, "An error occurred getting job type statuses.");
+            })
+            .WithSummary("Get job statuses")
+            .WithDescription("Gets pipeline statuses for all job types (including inactive).")
+            .Produces<JobTypeStatusDto[]>();
+
+        appGroup.MapPut("jobstatus",
+            async ([FromServices] ITypesService typesService, [FromBody] IEnumerable<JobTypeStatusDto> dto) =>
+            {
+                Result<JobTypeStatusDto[]> res = await typesService.SaveJobTypeStatuses(dto);
+                return EndpointsHelper.ProcessResult(res, "An error occurred updating job type statuses");
+            })
+            .WithSummary("Save job statuses")
+            .WithDescription("Bulk create/update job pipeline statuses; payload must cover every job type with unique sequence per type.")
+            .Produces<JobTypeStatusDto[]>();
 
         if (reqAuth)
             appGroup.RequireAuthorization();

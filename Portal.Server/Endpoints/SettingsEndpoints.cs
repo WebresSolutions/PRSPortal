@@ -16,9 +16,9 @@ public static class SettingsEndpoints
     /// Registers settings-related API endpoints with the application
     /// </summary>
     /// <param name="app">The web application to register endpoints with</param>
-    public static void AddSettingEndpoints(this WebApplication app, bool reqAuth = true)
+    public static void AddSettingEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
-        RouteGroupBuilder appGroup = app.MapGroup("/api/settings");
+        RouteGroupBuilder appGroup = app.MapGroup("/api/settings").WithTags(tags);
 
         // Gets all jobs with pagination and optional filtering/sorting
         appGroup.MapGet("systemsettings", async (

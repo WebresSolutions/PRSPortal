@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
 using Portal.Data;
 using Portal.Server.Controllers;
@@ -88,16 +87,16 @@ public class Program
 
         bool enableAuth = app.Configuration.GetValue<bool>("ApiSettings:AuthRequired");
 
-        app.AddIntegrationEndpoints();
-        app.AddJobEndpoints(enableAuth);
-        app.AddScheduleEndpoints(enableAuth);
-        app.AddSettingEndpoints(enableAuth);
-        app.AddCouncilEndpoints(enableAuth);
-        app.AddContactEndpoints(enableAuth);
-        app.AddTimeSheetendpoints(enableAuth);
-        app.AddTypesEndpoints(enableAuth);
-        app.AddUserEndpoints(enableAuth);
-        app.AddFileEndpoints(enableAuth);
+        app.AddIntegrationEndpoints("Xero");
+        app.AddJobEndpoints("Jobs", enableAuth);
+        app.AddScheduleEndpoints("Scheduling", enableAuth);
+        app.AddSettingEndpoints("Settings", enableAuth);
+        app.AddCouncilEndpoints("Councils", enableAuth);
+        app.AddContactEndpoints("Contacts", enableAuth);
+        app.AddTimeSheetendpoints("TimeSheets", enableAuth);
+        app.AddTypesEndpoints("Types", enableAuth);
+        app.AddUserEndpoints("Users", enableAuth);
+        app.AddFileEndpoints("Files", enableAuth);
 
         // Only serve SPA index.html for non-API paths so /api/* returns JSON from endpoints, not HTML
         app.MapFallback(async (HttpContext context) =>

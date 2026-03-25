@@ -12,6 +12,8 @@ public partial class QuoteStatus
 
     public string Name { get; set; } = null!;
 
+    public bool? IsActive { get; set; }
+
     public virtual ICollection<QuoteStatusHistory> QuoteStatusHistoryStatusIdNewNavigations { get; set; } = new List<QuoteStatusHistory>();
 
     public virtual ICollection<QuoteStatusHistory> QuoteStatusHistoryStatusIdOldNavigations { get; set; } = new List<QuoteStatusHistory>();

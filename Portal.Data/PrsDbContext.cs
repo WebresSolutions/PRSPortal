@@ -441,6 +441,9 @@ public partial class PrsDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
             entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
@@ -636,16 +639,27 @@ public partial class PrsDbContext : DbContext
 
             entity.ToTable("file_type", tb => tb.HasComment("File type and metadata"));
 
+            entity.HasIndex(e => e.JobTypeId, "idx_file_type_job_type_id");
+
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
             entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
+            entity.Property(e => e.JobTypeId).HasColumnName("job_type_id");
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
                 .HasColumnName("name");
+
+            entity.HasOne(d => d.JobType).WithMany(p => p.FileTypes)
+                .HasForeignKey(d => d.JobTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("file_type_job_type_id_fkey");
         });
 
         modelBuilder.Entity<Invoice>(entity =>
@@ -829,6 +843,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
         });
 
         modelBuilder.Entity<JobFile>(entity =>
@@ -972,11 +989,14 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
             entity.Property(e => e.JobTypeId).HasColumnName("job_type_id");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
-            entity.Property(e => e.StatusPosition).HasColumnName("status_position");
+            entity.Property(e => e.Sequence).HasColumnName("sequence");
         });
 
         modelBuilder.Entity<JobStatusHistory>(entity =>
@@ -1091,10 +1111,12 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
-            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
             entity.Property(e => e.Description)
                 .HasMaxLength(500)
                 .HasColumnName("description");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
             entity.Property(e => e.JobTypeId).HasColumnName("job_type_id");
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
@@ -1172,6 +1194,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Description)
                 .HasMaxLength(100)
                 .HasColumnName("description");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
@@ -1326,6 +1351,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
@@ -1747,6 +1775,9 @@ public partial class PrsDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
             entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
@@ -1823,6 +1854,9 @@ public partial class PrsDbContext : DbContext
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
             entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");

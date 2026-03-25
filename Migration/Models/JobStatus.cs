@@ -10,7 +10,7 @@ public partial class JobStatus
 {
     public int Id { get; set; }
 
-    public int StatusPosition { get; set; }
+    public int Sequence { get; set; }
 
     public int JobTypeId { get; set; }
 
@@ -19,6 +19,8 @@ public partial class JobStatus
     public string Colour { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
+
+    public bool? IsActive { get; set; }
 
     public virtual ICollection<JobStatusHistory> JobStatusHistoryStatusIdNewNavigations { get; set; } = new List<JobStatusHistory>();
 

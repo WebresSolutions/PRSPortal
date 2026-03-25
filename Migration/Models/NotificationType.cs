@@ -11,5 +11,7 @@ public partial class NotificationType
 
     public string? Description { get; set; }
 
+    public bool? IsActive { get; set; }
+
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

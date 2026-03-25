@@ -1,4 +1,5 @@
 ﻿using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using Moq;
 using Portal.Server.Options;
 using Portal.Server.Services.Instances;
@@ -9,7 +10,7 @@ namespace Portal.Server.Services.Mocks;
 /// A mock service for the sharepoint serivce.
 /// </summary>
 /// <param name="config"></param>
-public class SharePointServiceMock(SharePointOptions config) : SharePointService(config)
+public class SharePointServiceMock(SharePointOptions config, ILogger logger) : SharePointService(config, logger)
 {
     /// <summary>
     /// Override for GetGraphclient
@@ -89,4 +90,6 @@ public class SharePointServiceMock(SharePointOptions config) : SharePointService
         byte[] result = await File.ReadAllBytesAsync(path);
         return (dummyFile, "png", result);
     }
+
+    public override async Task<DriveItem?> CreateDirectoryStructure(string directory) => null;
 }

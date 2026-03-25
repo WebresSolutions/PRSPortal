@@ -15,5 +15,7 @@ public partial class TechnicalContactType
 
     public DateTime? ModifiedOn { get; set; }
 
+    public bool? IsActive { get; set; }
+
     public virtual ICollection<TechnicalContact> TechnicalContacts { get; set; } = new List<TechnicalContact>();
 }
