@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Types;
@@ -84,4 +83,15 @@ public interface ITypesService
 
     /// <summary>Creates or updates a service type. Use Id 0 for create.</summary>
     Task<Result<ServiceTypeDto>> SaveServiceType(ServiceTypeDto dto);
+    /// <summary>
+    /// Gets Job Type Statuses
+    /// </summary>
+    /// <param name="dto">Saves Job Type Statuses</param>
+    /// <returns>A collection of job type statuses.</returns>
+    Task<Result<JobTypeStatusDto[]>> SaveJobTypeStatuses(IEnumerable<JobTypeStatusDto> dto);
+    /// <summary>
+    /// Gets a collection of job statuses
+    /// </summary>
+    /// <returns>An array of job type statuses</returns>
+    Task<Result<JobTypeStatusDto[]>> GetJobStatuses();
 }

@@ -186,6 +186,57 @@
                         </div>
                     </section>
 
+                    <section class="settings-panel settings-panel-span-full">
+                        <div class="settings-panel-header">
+                            <div>
+                                <h3>Job statuses</h3>
+                                <p class="settings-panel-sub">Pipeline steps per job type (order, name, colour). Shown on jobs and the schedule.</p>
+                            </div>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit" OnClick="OpenEditJobStatusesDialog" Disabled="@(_jobTypes.Count == 0)">Edit statuses</MudButton>
+                        </div>
+                        @if (_jobTypes.Count == 0)
+                        {
+                            <p class="settings-empty">Load job types first.</p>
+                        }
+                        else
+                        {
+                            @foreach (var jt in _jobTypes.OrderBy(x => x.Id))
+                            {
+                                <h4 class="settings-job-status-type-title">@jt.Name</h4>
+                                <div class="settings-type-list mb-3">
+                                    <div class="settings-type-row settings-type-row--head settings-type-row--jobstatus">
+                                        <span>Seq</span>
+                                        <span>Name</span>
+                                        <span>Colour</span>
+                                        <span>Active</span>
+                                    </div>
+                                    @{
+                                        var rows = _jobStatuses.Where(s => s.JobTypeId == jt.Id).OrderBy(s => s.Sequence).ToList();
+                                    }
+                                    @if (rows.Count == 0)
+                                    {
+                                        <p class="settings-empty">No statuses for this type.</p>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var s in rows)
+                                        {
+                                            <div class="settings-type-row settings-type-row--jobstatus">
+                                                <span class="settings-type-secondary">@s.Sequence</span>
+                                                <span class="settings-type-primary">@s.Name</span>
+                                                <div class="colour-row-label">
+                                                    <span class="colour-swatch" style="background: @s.Colour"></span>
+                                                    <span class="colour-hex settings-type-secondary">@s.Colour</span>
+                                                </div>
+                                                <span class="settings-type-secondary">@(s.IsActive ? "Yes" : "No")</span>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            }
+                        }
+                    </section>
+
                     <section class="settings-panel">
                         <div class="settings-panel-header">
                             <h3>Job colours</h3>

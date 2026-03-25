@@ -8,9 +8,9 @@ namespace Portal.Server.Endpoints;
 
 public static class FileEndpoint
 {
-    public static void AddFileEndpoints(this WebApplication app, bool reqAuth = true)
+    public static void AddFileEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
-        RouteGroupBuilder appGroup = app.MapGroup("/api/files");
+        RouteGroupBuilder appGroup = app.MapGroup("/api/files").WithTags(tags);
 
         appGroup.MapGet("{fileId}", async (
            [FromServices] IFileService fileService,

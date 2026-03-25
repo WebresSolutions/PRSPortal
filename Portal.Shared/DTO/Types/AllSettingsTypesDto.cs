@@ -16,4 +16,5 @@ public sealed class AllSettingsTypesDto
     public StateDto[] States { get; set; } = [];
     public ScheduleColourDto[] ScheduleColours { get; set; } = [];
     public ServiceTypeDto[] ServiceTypes { get; set; } = [];
+    public JobTypeStatusDto[] JobStatuses { get; set; } = [];
 }

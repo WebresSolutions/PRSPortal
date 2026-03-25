@@ -62,7 +62,7 @@
                                                Placeholder="Select status"
                                                For="@(() => _model.JobStatusId)"
                                                Disabled="@(_model.JobTypeStatusDtos.Count == 0)">
-                                        @foreach (var s in _model.JobTypeStatusDtos.OrderBy(x => x.order))
+                                        @foreach (var s in _model.JobTypeStatusDtos.OrderBy(x => x.Sequence))
                                         {
                                             <MudSelectItem T="int?" Value="@s.Id">@s.Name</MudSelectItem>
                                         }

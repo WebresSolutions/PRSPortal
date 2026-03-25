@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -24,6 +24,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 	<ItemGroup>
+		<None Update="appsettings.test.json">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="seed.sql">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

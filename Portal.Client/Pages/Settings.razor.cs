@@ -31,6 +31,7 @@ public partial class Settings
     private List<TechnicalContactTypeDto> _technicalContactTypes = [];
     private List<StateDto> _states = [];
     private List<ServiceTypeDto> _serviceTypes = [];
+    private List<JobTypeStatusDto> _jobStatuses = [];
 
     private bool _xeroStatusLoaded;
     private bool _xeroConnected;
@@ -75,6 +76,7 @@ public partial class Settings
         _states = bundle.States.ToList();
         _colours = bundle.ScheduleColours.ToList();
         _serviceTypes = bundle.ServiceTypes.ToList();
+        _jobStatuses = (bundle.JobStatuses ?? []).ToList();
     }
 
     /// <summary>
@@ -96,6 +98,25 @@ public partial class Settings
         };
         DialogOptions options = new() { CloseOnEscapeKey = true, NoHeader = true };
         IDialogReference dialog = await _dialog.ShowAsync<EditTypeDialog>(title, parameters, options);
+        DialogResult? result = await dialog.Result;
+        if (result is { Canceled: false })
+            await LoadSettingsTypesBundle();
+    }
+
+    /// <summary>
+    /// Opens the dialog to edit job pipeline statuses (bulk save for all job types).
+    /// </summary>
+    private async Task OpenEditJobStatusesDialog()
+    {
+        DialogParameters parameters = new()
+        {
+            [nameof(EditJobStatusesDialog.JobTypes)] = _jobTypes.ToList(),
+            [nameof(EditJobStatusesDialog.Statuses)] = _jobStatuses.ToList(),
+            [nameof(EditJobStatusesDialog.ApiService)] = _apiService,
+            [nameof(EditJobStatusesDialog.Snackbar)] = _snackbar
+        };
+        DialogOptions options = new() { CloseOnEscapeKey = true, NoHeader = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+        IDialogReference dialog = await _dialog.ShowAsync<EditJobStatusesDialog>("Job statuses", parameters, options);
         DialogResult? result = await dialog.Result;
         if (result is { Canceled: false })
             await LoadSettingsTypesBundle();

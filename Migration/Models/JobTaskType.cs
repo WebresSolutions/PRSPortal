@@ -15,7 +15,7 @@ public partial class JobTaskType
 
     public DateTime CreatedOn { get; set; }
 
-    public DateTime? DeletedAt { get; set; }
+    public bool? IsActive { get; set; }
 
     public virtual JobType JobType { get; set; } = null!;
 }

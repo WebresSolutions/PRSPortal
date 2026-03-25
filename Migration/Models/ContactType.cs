@@ -15,5 +15,7 @@ public partial class ContactType
 
     public DateTime? ModifiedOn { get; set; }
 
+    public bool? IsActive { get; set; }
+
     public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();
 }

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
-using Portal.Shared;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.ResponseModels;
 
@@ -13,9 +12,9 @@ public static class CouncilEnpoints
     /// Registers council-related API endpoints with the application.
     /// </summary>
     /// <param name="app">The web application to register endpoints with</param>
-    public static void AddCouncilEndpoints(this WebApplication app, bool reqAuth = true)
+    public static void AddCouncilEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
-        RouteGroupBuilder appGroup = app.MapGroup("/api/councils").RequireAuthorization();
+        RouteGroupBuilder appGroup = app.MapGroup("/api/councils").WithTags(tags); ;
 
         appGroup.MapGet("", async (
             [FromServices] ICouncilService councilService

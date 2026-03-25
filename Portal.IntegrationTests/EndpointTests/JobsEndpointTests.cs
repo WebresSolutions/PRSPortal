@@ -39,6 +39,7 @@ public sealed class JobsEndpointTests
             JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for contact filter test",
+            StatusId = 1
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -66,6 +67,7 @@ public sealed class JobsEndpointTests
             ContactId = 1,
             CouncilId = 1,
             Details = "Job for council filter test",
+            StatusId = 1
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -93,6 +95,7 @@ public sealed class JobsEndpointTests
             ContactId = 1,
             CouncilId = 1,
             Details = "Job for combined filter test",
+            StatusId = 1
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -132,6 +135,7 @@ public sealed class JobsEndpointTests
             JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
+            StatusId = 1
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
@@ -157,6 +161,7 @@ public sealed class JobsEndpointTests
             JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 0,
             Details = "Test",
+            StatusId = 1
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", invalidCreatJobRequest);
@@ -184,6 +189,7 @@ public sealed class JobsEndpointTests
             JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
+            StatusId = 1
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
@@ -219,6 +225,7 @@ public sealed class JobsEndpointTests
             JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
+            StatusId = 1
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
@@ -265,6 +272,7 @@ public sealed class JobsEndpointTests
             JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for note tests",
+            StatusId = 1
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -302,6 +310,7 @@ public sealed class JobsEndpointTests
             JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for update note tests",
+            StatusId = 1
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -351,13 +360,26 @@ public sealed class JobsEndpointTests
     [Fact]
     public async Task Save_job_file_returns_ok_and_file_id()
     {
-        int jobId = 1; // Seed has job with id 1
+        JobCreationDto jobDto = new()
+        {
+            JobType = [Shared.JobTypeEnum.Construction],
+            ContactId = 1,
+            Details = "Job for update note tests",
+            StatusId = 1
+        };
+
+        HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
+        createJobResponse.EnsureSuccessStatusCode();
+        int? jobId = await createJobResponse.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(jobId);
+        Assert.True(jobId > 0);
+
         FileDto fileDto = new()
         {
-            JobId = jobId,
+            JobId = jobId ?? 0,
             FileId = 0,
             ContentType = "application/pdf",
-            Content = [0x25, 0x50, 0x44, 0x46], // PDF magic bytes
+            Content = [0x25, 0x50, 0x44, 0x46],
             FileName = "test-document.pdf",
             FileTypeId = 1,
             DateCreated = DateTime.UtcNow,
@@ -379,6 +401,7 @@ public sealed class JobsEndpointTests
             JobType = [Shared.JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for file attachment test",
+            StatusId = 1
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);

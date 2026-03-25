@@ -18,9 +18,9 @@ public static class JobEndpoints
     /// Registers job-related API endpoints with the application
     /// </summary>
     /// <param name="app">The web application to register endpoints with</param>
-    public static void AddJobEndpoints(this WebApplication app, bool reqAuth = true)
+    public static void AddJobEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
-        RouteGroupBuilder appGroup = app.MapGroup("/api/jobs");
+        RouteGroupBuilder appGroup = app.MapGroup("/api/jobs").WithTags(tags);
 
         // Gets all jobs with pagination and optional filtering/sorting
         appGroup.MapGet("", async (

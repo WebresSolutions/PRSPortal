@@ -8,7 +8,7 @@ namespace Portal.Server.Services.Instances;
 
 public class GraphService : IGraphService
 {
-    private readonly GraphServiceClient graphClient;
+    private readonly GraphServiceClient _graphClient;
 
     public GraphService(string clientId, string tenantId)
     {
@@ -31,14 +31,16 @@ public class GraphService : IGraphService
         };
 
         DeviceCodeCredential deviceCodeCredential = new(options);
-        graphClient = new(deviceCodeCredential, scopes);
+        _graphClient = new(deviceCodeCredential, scopes);
     }
 
     public async Task<Dictionary<string, string>> GetUsers()
     {
         try
         {
-            UserCollectionResponse? result = await graphClient.Users.GetAsync();
+            SiteCollectionResponse? site = await _graphClient.Sites.GetAsync();
+
+            UserCollectionResponse? result = await _graphClient.Users.GetAsync();
             if (result?.Value is not null)
                 return result.Value.ToDictionary(
                     user => user.Mail!,

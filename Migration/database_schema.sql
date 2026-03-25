@@ -142,7 +142,8 @@ CREATE TABLE contact_type (
     name VARCHAR(50) NOT NULL,
     description TEXT,
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_on TIMESTAMPTZ
+    modified_on TIMESTAMPTZ,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- ============================================================================
@@ -233,17 +234,50 @@ create index idx_council_contact_contact_id on contact(id);
 create index idx_council_contact_address_id on address(id);
 
 -- ============================================================================
+-- JOB COLOUR TABLE
+-- ============================================================================
+
+CREATE TABLE job_colour (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    color VARCHAR(20) NOT NULL,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT job_color_format CHECK (color IS NULL OR color LIKE '#%'),
+    CONSTRAINT job_color_unique UNIQUE (color),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+COMMENT ON TABLE job_colour IS 'Colour of job';
+
+-- ============================================================================
+-- JOB TYPE TABLE
+-- ============================================================================
+
+CREATE TABLE job_type (
+    id INT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    abbreviation VARCHAR(15) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE job_type IS 'Type of job';
+COMMENT ON COLUMN job_type.name IS 'Construction = Set out. Survey = CAD.';
+
+
+-- ============================================================================
 -- FILE TYPE TABLE
 -- ============================================================================
 
 CREATE TABLE file_type(
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    job_type_id INT NOT NULL REFERENCES job_type(id),
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 COMMENT ON TABLE file_type IS 'File type and metadata';
+CREATE index idx_file_type_job_type_id on file_type(job_type_id);
 
 -- ============================================================================
 -- FILE TABLE
@@ -279,44 +313,17 @@ CREATE INDEX idx_file_deleted_at ON app_file(deleted_at);
 CREATE INDEX idx_file_external_id ON app_file(external_id);
 
 -- ============================================================================
--- JOB COLOUR TABLE
--- ============================================================================
-
-CREATE TABLE job_colour (
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    color VARCHAR(20) NOT NULL,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT job_color_format CHECK (color IS NULL OR color LIKE '#%'),
-    CONSTRAINT job_color_unique UNIQUE (color)
-);
-
-COMMENT ON TABLE job_colour IS 'Colour of job';
-
--- ============================================================================
--- JOB TYPE TABLE
--- ============================================================================
-
-CREATE TABLE job_type (
-    id INT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    abbreviation VARCHAR(15) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-COMMENT ON TABLE job_type IS 'Type of job';
-COMMENT ON COLUMN job_type.name IS 'Construction = Set out. Survey = CAD.';
-
--- ============================================================================
 -- JOB STATUS TABLE
 -- ============================================================================
 
 CREATE TABLE job_status (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    status_position INT NOT NULL,
+    sequence INT NOT NULL,
     job_type_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
     colour VARCHAR(12) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 COMMENT ON TABLE job_status IS 'The status of a Job';
@@ -402,7 +409,8 @@ CREATE TABLE technical_contact_type (
     name VARCHAR(50) NOT NULL,
     description TEXT,
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_on TIMESTAMPTZ
+    modified_on TIMESTAMPTZ,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- ============================================================================
@@ -502,7 +510,7 @@ CREATE TABLE job_task_type(
     name VARCHAR(255) NOT NULL,
     description VARCHAR(500),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMPTZ DEFAULT NULL
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE INDEX idx_job_task_type_name ON job_task_type(name);
@@ -542,7 +550,7 @@ CREATE TABLE service_type (
     service_name VARCHAR(150) NOT NULL,
     default_rate NUMERIC(12, 2),
     unit_of_measure VARCHAR(20),
-    is_active BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     description TEXT
 );
 CREATE INDEX idx_service_type_code ON service_type(code);
@@ -578,7 +586,8 @@ CREATE INDEX idx_invoice_deleted_at ON invoice(deleted_at);
 --
 CREATE TABLE quote_status (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name VARCHAR(100) NOT NULL
+    name VARCHAR(100) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 COMMENT ON TABLE quote_status IS 'Holds the status of a quote';
@@ -733,7 +742,8 @@ CREATE INDEX idx_quote_note_deleted_at ON quote_note(deleted_at);
 CREATE TABLE timesheet_entry_type(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name VARCHAR(50) NOT NULL,
-    description TEXT
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- ============================================================================
@@ -923,7 +933,8 @@ CREATE INDEX idx_xero_access_token ON xero_access(token);
 CREATE TABLE notification_type(
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name VARCHAR(100) NOT NULL,
-    description VARCHAR(100)
+    description VARCHAR(100),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 -- ============================================================================

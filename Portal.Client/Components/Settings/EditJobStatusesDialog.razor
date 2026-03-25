@@ -1,0 +1,194 @@
+@using Portal.Client.Services.Interfaces
+@using Portal.Shared.DTO.Types
+@namespace Portal.Client.Components.Settings
+
+<MudDialog>
+    <DialogContent>
+        <h4 class="header-border">Edit job statuses</h4>
+        <p class="mud-typography-body2 mud-text-secondary mb-3">
+            Pipeline steps per job type: sequence order, display name, colour, and whether the status is active.
+            Sequence must be unique within each job type. Saving sends all rows for every job type.
+        </p>
+        @foreach (JobTypeDto jt in JobTypes.OrderBy(x => x.Id))
+        {
+            <div class="border-rad grey-background p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                    <h5 class="mb-0">@jt.Name</h5>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => AddRow(jt.Id))">Add status</MudButton>
+                </div>
+                <div class="d-flex flex-column gap-2">
+                    @foreach (StatusRow row in RowsForJobType(jt.Id))
+                    {
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <MudNumericField T="int" @bind-Value="row.Sequence" Label="Seq" Variant="Variant.Outlined" Style="width:88px" Min="0" />
+                            <MudTextField @bind-Value="row.Name" Label="Name" Variant="Variant.Outlined" Class="flex-grow-1" Style="min-width:160px" />
+                            <MudTextField @bind-Value="row.Colour" Label="Colour" Variant="Variant.Outlined" Style="width:120px" />
+                            <span class="colour-swatch" style="background:@NormalizeHex(row.Colour)"></span>
+                            <MudSwitch @bind-Value="row.IsActive" Label="Active" Color="Color.Primary" />
+                            @if (row.Id == 0)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveRow(row))" />
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public List<JobTypeDto> JobTypes { get; set; } = [];
+
+    [Parameter]
+    public List<JobTypeStatusDto> Statuses { get; set; } = [];
+
+    [Parameter]
+    public IApiService ApiService { get; set; } = null!;
+
+    [Parameter]
+    public ISnackbar Snackbar { get; set; } = null!;
+
+    private readonly List<StatusRow> _rows = [];
+    private bool _seeded;
+
+    private sealed class StatusRow
+    {
+        public int Id { get; set; }
+        public int JobTypeId { get; set; }
+        public string Name { get; set; } = "";
+        public int Sequence { get; set; }
+        public string Colour { get; set; } = "#1976d2";
+        public bool IsActive { get; set; } = true;
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_seeded)
+            return;
+        foreach (JobTypeStatusDto s in Statuses)
+        {
+            _rows.Add(new StatusRow
+            {
+                Id = s.Id,
+                JobTypeId = s.JobTypeId,
+                Name = s.Name,
+                Sequence = s.Sequence,
+                Colour = string.IsNullOrWhiteSpace(s.Colour) ? "#1976d2" : s.Colour,
+                IsActive = s.IsActive
+            });
+        }
+
+        foreach (JobTypeDto jt in JobTypes)
+        {
+            if (_rows.TrueForAll(r => r.JobTypeId != jt.Id))
+            {
+                _rows.Add(new StatusRow
+                {
+                    Id = 0,
+                    JobTypeId = jt.Id,
+                    Name = "New status",
+                    Sequence = NextSequence(jt.Id),
+                    Colour = "#1976d2",
+                    IsActive = true
+                });
+            }
+        }
+
+        _seeded = true;
+    }
+
+    private IEnumerable<StatusRow> RowsForJobType(int jobTypeId) =>
+        _rows.Where(r => r.JobTypeId == jobTypeId).OrderBy(r => r.Sequence).ThenBy(r => r.Id);
+
+    private int NextSequence(int jobTypeId)
+    {
+        int max = _rows.Where(r => r.JobTypeId == jobTypeId).Select(r => r.Sequence).DefaultIfEmpty(0).Max();
+        return max + 1;
+    }
+
+    private void AddRow(int jobTypeId)
+    {
+        _rows.Add(new StatusRow
+        {
+            Id = 0,
+            JobTypeId = jobTypeId,
+            Name = "New status",
+            Sequence = NextSequence(jobTypeId),
+            Colour = "#1976d2",
+            IsActive = true
+        });
+    }
+
+    private void RemoveRow(StatusRow row) => _rows.Remove(row);
+
+    private static string NormalizeHex(string colour)
+    {
+        string c = (colour ?? "").Trim();
+        if (string.IsNullOrEmpty(c))
+            return "#cccccc";
+        return c.StartsWith("#") ? c : "#" + c;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Save()
+    {
+        foreach (JobTypeDto jt in JobTypes)
+        {
+            if (!_rows.Any(r => r.JobTypeId == jt.Id))
+            {
+                Snackbar.Add($"Add at least one status for job type \"{jt.Name}\".", Severity.Warning);
+                return;
+            }
+        }
+
+        bool dupSequence = _rows
+            .GroupBy(r => new { r.JobTypeId, r.Sequence })
+            .Any(g => g.Count() > 1);
+        if (dupSequence)
+        {
+            Snackbar.Add("Duplicate sequence for the same job type. Use unique sequence numbers within each type.", Severity.Error);
+            return;
+        }
+
+        foreach (StatusRow row in _rows)
+        {
+            if (string.IsNullOrWhiteSpace(row.Name))
+            {
+                Snackbar.Add("Every status must have a name.", Severity.Error);
+                return;
+            }
+
+            string hex = NormalizeHex(row.Colour);
+            if (hex.Length < 4)
+            {
+                Snackbar.Add("Enter a valid hex colour (e.g. #1e3a5f).", Severity.Error);
+                return;
+            }
+        }
+
+        JobTypeStatusDto[] payload = [.. _rows
+            .OrderBy(r => r.JobTypeId)
+            .ThenBy(r => r.Sequence)
+            .ThenBy(r => r.Id)
+            .Select(r => new JobTypeStatusDto(r.Id, r.JobTypeId, r.Name.Trim(), r.Sequence, NormalizeHex(r.Colour), r.IsActive))];
+
+        Result<JobTypeStatusDto[]> res = await ApiService.SaveJobTypeStatuses(payload);
+        if (res.IsSuccess && res.Value is not null)
+        {
+            Snackbar.Add("Job statuses saved.", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+            Snackbar.Add(res.ErrorDescription ?? "Failed to save job statuses", Severity.Error);
+    }
+}

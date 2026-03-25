@@ -336,5 +336,9 @@ public interface IApiService
     Task<Result<TechnicalContactTypeDto>> SaveTechnicalContactType(TechnicalContactTypeDto dto);
     /// <summary>Creates or updates a service catalog line (Id 0 = create).</summary>
     Task<Result<ServiceTypeDto>> SaveServiceType(ServiceTypeDto dto);
+    /// <summary>Gets job pipeline statuses for all job types (including inactive).</summary>
+    Task<Result<JobTypeStatusDto[]>> GetJobStatuses();
+    /// <summary>Saves job statuses in bulk (must include every job type; sequence unique per job type).</summary>
+    Task<Result<JobTypeStatusDto[]>> SaveJobTypeStatuses(IEnumerable<JobTypeStatusDto> dtos);
     #endregion
 }
