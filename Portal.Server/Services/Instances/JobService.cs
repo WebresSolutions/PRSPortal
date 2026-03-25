@@ -807,7 +807,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
 
         List<string> jobNumbers = await _dbContext.Jobs
             .AsNoTracking()
-            .Where(j => j.DeletedAt == null && j.JobNumber != null && j.JobNumber.StartsWith(yearPrefix))
+            .Where(j => j.JobNumber != null && j.JobNumber.StartsWith(yearPrefix))
             .Select(j => j.JobNumber!)
             .ToListAsync();
 
