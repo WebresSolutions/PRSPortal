@@ -84,6 +84,9 @@ public partial class EditJobNote
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SaveNote()
     {
+        if (_assignedUser is null)
+            Note.ActionRequired = false;
+
         Note.Content = _saveContent;
         if (_assignedUser != Note.AssignedUser?.userId)
             Note.AssignedUser = _assignedUser is null ? null : new UserDto(_assignedUser, Users.FirstOrDefault(u => u.userId == _assignedUser)?.displayName);

@@ -31,7 +31,7 @@ else
                 @if (_contact.ParentContact is not null)
                 {
                     <h1>
-                        <a href=@($"contacts/{_contact.ParentContact.contactId}") @onclick="@(() => _navigationManager.NavigateTo($"contacts/{_contact.ParentContact.contactId}"))">
+                        <a class="contact-link" href=@($"contacts/{_contact.ParentContact.contactId}") @onclick="@(() => _navigationManager.NavigateTo($"contacts/{_contact.ParentContact.contactId}"))">
                             @_contact.ParentContact.fullName
                         </a> / @_contact.FullName
                     </h1>

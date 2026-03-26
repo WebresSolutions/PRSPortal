@@ -32,28 +32,31 @@
                     <div class="form-grid">
                         <div>
                             <h3 class="form-section-title border-bottom pb-2">Contact Details</h3>
-                            <div class="form-sections border-rad">
+                            <div class="form-sections border-rad border-grey">
                                 <div>
                                     <label for="contact-type">Contact Type</label>
-                                    <MudSelect name="contact-type" T="int" @bind-Value="_model.TypeId" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.TypeId)" Required="true">
+                                    <MudSelect name="contact-type" T="int" @bind-Value="_model.TypeId" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.TypeId)" Required="true" InputClass="mb-2">
                                         @foreach (var t in _contactTypes)
                                         {
-                                            <MudSelectItem T="int" Value="@t.Id">@t.Name</MudSelectItem>
+                                            <MudSelectItem T="int" Value="@t.Id" Class="text-center"><ContactTypeBadge ContactType="@((ContactTypeEnum)t.Id)" /></MudSelectItem>
                                         }
                                     </MudSelect>
                                 </div>
 
-                                <div>
-                                    <label for="parent-contact">Parent Contact</label>
-                                    <MudAutocomplete name="parent-contact" T="ListContactDto" Value="_parentContact" ValueChanged="OnParentContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
-                                                     SearchFunc="@SearchContacts" ToStringFunc="@(e => e.ToString())" MaxItems="50">
-                                        <MoreItemsTemplate>
-                                            <div class="d-flex justify-content-center">
-                                                <small>Only the first 50 items are shown</small>
-                                            </div>
-                                        </MoreItemsTemplate>
-                                    </MudAutocomplete>
-                                </div>
+                                @if ((ContactTypeEnum)_model.TypeId is ContactTypeEnum.Individual)
+                                {
+                                    <div>
+                                        <label for="parent-contact">Parent Contact</label>
+                                        <MudAutocomplete name="parent-contact" T="ListContactDto" Value="_parentContact" ValueChanged="OnParentContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
+                                                         SearchFunc="@SearchContacts" ToStringFunc="@(e => e.ToString())" MaxItems="50">
+                                            <MoreItemsTemplate>
+                                                <div class="d-flex justify-content-center">
+                                                    <small>Only the first 50 items are shown</small>
+                                                </div>
+                                            </MoreItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                }
 
                                 <div>
                                     <label for="first-name">First Name</label>
@@ -89,7 +92,7 @@
                         }
                     </div>
                     <div class="form-actions">
-                        <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green"  Text="Save" ButtonType="submit"/>
+                        <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" Text="Save" ButtonType="submit" />
                         <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" Href="/contacts" Text="Close" />
                     </div>
                 </EditForm>

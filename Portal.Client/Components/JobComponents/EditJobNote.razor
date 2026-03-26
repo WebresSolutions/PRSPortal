@@ -16,7 +16,10 @@
                         }
                     </MudSelect>
                 </div>
-                <MudCheckBox Label="Action Required" @bind-value="Note.ActionRequired" />
+                @if (_assignedUser is not null)
+                {
+                    <MudCheckBox Label="Action Required" @bind-value="Note.ActionRequired" />
+                }
             </div>
 
             <MudExRichTextEdit @ref="_editor"
@@ -33,7 +36,7 @@
                 <small class="text-center">Last Modified: @Note.DateModified.Value.ToLocalTime().ToString("dddd d-MMM-yyyy h:mmtt")</small>
                 <small class="text-center">Modified By: @Note.Modifiedby</small>
             }
-            <div class="action-buttons"> 
+            <div class="action-buttons">
                 <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" OnClick="SaveNote" Text="Save" />
                 <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" OnClick="@(() => MudDialog?.Close(DialogResult.Ok(true)))" Text="Close" />
             </div>
