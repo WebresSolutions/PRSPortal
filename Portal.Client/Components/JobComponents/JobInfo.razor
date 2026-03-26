@@ -1,5 +1,3 @@
-@using Portal.Shared.DTO.Job
-@using System.Globalization
 
 <Card Title="Job Information">
     <ChildContent>
@@ -46,7 +44,7 @@
             }
             <div class="info-row">
                 <span class="info-label">Created</span>
-                <span class="info-value">@Job.DateCreated.ToLocalTime().ToString("g", CultureInfo.CreateSpecificCulture("en-AU"))</span>
+                <span class="info-value">@(Job.DateCreated.ToLocalDateTimeString())</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Created By</span>

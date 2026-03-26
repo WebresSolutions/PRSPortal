@@ -33,7 +33,7 @@
                                 }
                             </div>
                             <div class="note-meta">
-                                <div class="note-date">Created: @GetNoteDate(note)</div>
+                                <div class="note-date">Created: @note.DateCreated.ToLocalDateTimeString()</div>
                                 <div class="note-author"> By: @(note.CreatedBy ?? "")</div>
                                 @if (note.AssignedUser is not null)
                                 {

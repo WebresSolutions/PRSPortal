@@ -9,7 +9,7 @@
         @if (!base.IsLoading)
         {
             <EditForm Model="_UpdateScheduleDto" OnValidSubmit="OnSave">
-                <div class="item-container border-rad">
+                <div class="item-container border-rad border-grey">
                     <div class="time-selectors">
                         <div class="">
                             <label for="add-schedule-time-from">From:</label>
@@ -37,7 +37,7 @@
                 </div> *@
                     <div>
                         <label>Job: </label>
-                        <MudAutocomplete DebounceInterval="200" Clearable=true T="ListJobDto" Dense="true" SearchFunc="@((x, y) => GetJobsFromSearch(x))" ToStringFunc="@((x) => x.ToString())" Variant="Variant.Outlined" ValueChanged="@OnJobSelected" Value="_selectedJob">
+                        <MudAutocomplete MaxItems="50" DebounceInterval="200" Clearable=true T="ListJobDto" Dense="true" SearchFunc="@((x, y) => GetJobsFromSearch(x))" ToStringFunc="@((x) => x.ToString())" Variant="Variant.Outlined" ValueChanged="@OnJobSelected" Value="_selectedJob">
                             <MoreItemsTemplate>
                                 <div class="d-flex justify-content-center">
                                     <small>

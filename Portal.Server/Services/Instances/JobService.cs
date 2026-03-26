@@ -354,6 +354,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             //job.JobTypeId = (int)updateJobDto.JobType;
             job.JobColourId = updateJobDto.JobColourId;
             job.ModifiedByUserId = httpContext.UserId();
+            job.ModifiedOn = DateTime.UtcNow;
             if (updateJobDto.Details is not null && updateJobDto.Details.Length > 4000)
                 job.Details = updateJobDto.Details[..4000].Trim();
             else

@@ -83,14 +83,6 @@ public partial class JobNotes
     }
 
     /// <summary>
-    /// Formats the note's creation date for display (e.g. "Monday 3-Mar-2025 2:30PM").
-    /// </summary>
-    /// <param name="note">The job note.</param>
-    /// <returns>A formatted date/time string.</returns>
-    private static string GetNoteDate(JobNoteDto note) =>
-        note.DateCreated.ToLocalTime().ToString("dddd d-MMM-yyyy h:mmtt");
-
-    /// <summary>
     /// Opens the dialog for editing a note.
     /// </summary>
     private async Task OpenDialogAsync(JobNoteDto note)

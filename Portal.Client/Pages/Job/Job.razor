@@ -1,16 +1,5 @@
 @page "/jobs/{JobId:int}"
 @inherits BaseDataComponent
-@using GoogleMapsComponents
-@using GoogleMapsComponents.Maps
-@using Portal.Client.Components.Contact
-@using Portal.Client.Components.JobComponents
-@using Portal.Client.Components.TimeSheet
-@using Portal.Client.Webmodels
-@using Portal.Shared
-@using Portal.Shared.DTO.Contact
-@using Portal.Shared.DTO.Job
-@using Portal.Shared.DTO.Address
-@using Portal.Shared.Helpers
 
 <PageTitle>Job @(_job?.JobNumber) - PRS Portal</PageTitle>
 
@@ -171,11 +160,11 @@ else
                         <Card Title="Activity">
                             <ChildContent>
                                 <div class="activity-list">
-                                    <div class="activity-item">
+                                    <div class="activity-item border-grey">
                                         <div class="activity-title">Last Modified</div>
-                                        <div class="activity-time">@_job.LastModified</div>
+                                        <div class="activity-time">@_job.LastModified?.ModifiedOn.ToLocalDateTimeString()</div>
                                     </div>
-                                    <div class="activity-item">
+                                    <div class="activity-item border-grey">
                                         <div class="activity-title">Modified By</div>
                                         <div class="activity-time">@_job.LastModifiedBy</div>
                                     </div>
@@ -263,4 +252,3 @@ else
         </div>
     </div>
 }
-

@@ -86,7 +86,6 @@ public partial class ViewEditSchedule
 
     private async Task<IEnumerable<ListJobDto>> GetJobsFromSearch(string search)
     {
-
         JobFilterDto filter;
         if (int.TryParse(search, out int searchInt))
             filter = new() { JobNumberSearch = search, Page = 1, PageSize = 50 };

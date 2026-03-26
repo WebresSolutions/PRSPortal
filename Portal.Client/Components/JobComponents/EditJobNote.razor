@@ -33,7 +33,7 @@
 
             @if (Note.DateModified is not null && Note.Modifiedby is not null)
             {
-                <small class="text-center">Last Modified: @Note.DateModified.Value.ToLocalTime().ToString("dddd d-MMM-yyyy h:mmtt")</small>
+                <small class="text-center">Last Modified: @Note.DateModified.Value.ToLocalDateTimeString()</small>
                 <small class="text-center">Modified By: @Note.Modifiedby</small>
             }
             <div class="action-buttons">

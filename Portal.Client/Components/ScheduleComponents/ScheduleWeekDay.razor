@@ -15,7 +15,7 @@
         {
             @foreach (KeyValuePair<int, List<WeeklyScheduleDto>> groupByTrackItem in _scheduleGroupedByTrack.OrderBy(x => x.Key))
             {
-                <div class="week-item-outer border-rad">
+                <div class="week-item-outer border-rad border-grey">
                     @{
                         string users = string.Join(", ", groupByTrackItem.Value.First().AssignedUsers.Select(u => u.displayName ?? ""));
                     }

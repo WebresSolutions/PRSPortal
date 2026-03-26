@@ -49,7 +49,11 @@ public partial class AddSchedule
 
     private async Task<IEnumerable<ListJobDto>> GetJobsFromSearch(string search)
     {
-        JobFilterDto filter = new() { AddressSearch = search, Page = 1, PageSize = 50 };
+        JobFilterDto filter;
+        if (int.TryParse(search, out int searchInt))
+            filter = new() { JobNumberSearch = search, Page = 1, PageSize = 50 };
+        else
+            filter = new() { AddressSearch = search, Page = 1, PageSize = 50 };
 
         Result<PagedResponse<ListJobDto>> jobs = await _apiService.GetAllJobs(filter);
         if (jobs.IsSuccess && jobs.Value is not null)

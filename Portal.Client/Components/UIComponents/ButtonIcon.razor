@@ -2,7 +2,7 @@
 
 @if (Href is { Length: > 0 })
 {
-    <a class="@CssClassString @(Text is not null ? " custom-button" : "")" href="@Href" title="@Title" target="@(OpenInNewTab ? "_blank" : null)" rel="@(OpenInNewTab ? "noopener noreferrer" : null)">
+    <a class="@CssClassString @(Text is not null ? " custom-button " : "")" href="@Href" title="@Title" target="@(OpenInNewTab ? "_blank" : null)" rel="@(OpenInNewTab ? "noopener noreferrer" : null)">
         @if (ChildContent is not null)
         {
             @ChildContent
@@ -21,7 +21,7 @@
 }
 else
 {
-    <button type="@ButtonType" class="@CssClassString @(Text is not null ? " custom-button" : "")" title="@Title" @onclick="OnClickHandler" disabled="@Disabled">
+    <button type="@ButtonType" class="@CssClassString @(Text is not null ? " custom-button " : "")" title="@Title" @onclick="OnClickHandler" disabled="@Disabled">
         @if (ChildContent is not null)
         {
             @ChildContent
@@ -130,6 +130,7 @@ else
         align-items: center;
         justify-content: center;
         transition: background 0.2s;
+        border: 1px solid #e2e8f0 !important;
     }
 
         .custom-btn-icon:hover {
@@ -149,6 +150,7 @@ else
         justify-content: center;
         margin-right: 0.25rem;
         transition: background 0.2s;
+        border: 1px solid #e2e8f0 !important;
     }
 
         .custom-btn-icon-small:hover {

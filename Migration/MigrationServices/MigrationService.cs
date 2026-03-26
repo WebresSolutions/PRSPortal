@@ -577,9 +577,9 @@ internal class MigrationService(
                 {
                     Note = note.Note1,
                     CreatedByUserId = _Users.GetValueOrDefault(note.CreatedUser ?? 0, 95),
-                    CreatedOn = Helpers.GetValidDateWithTimezone(note.Created),
+                    CreatedOn = note.Created.HasValue ? note.Created.Value.ToUniversalTime() : DateTime.UtcNow,
                     ModifiedByUserId = note.ModifiedUser is not null ? _Users.GetValueOrDefault(note.ModifiedUser ?? 0, 95) : null,
-                    ModifiedOn = Helpers.GetValidDateWithTimezone(note.Modified),
+                    ModifiedOn = note.Modified.HasValue ? note.Modified.Value.ToUniversalTime() : DateTime.UtcNow,
                     DeletedAt = Helpers.GetValidDateWithTimezoneNull(note.DeletedDate),
                     JobId = _jobsCache!.GetValueOrDefault(note.JobId)?.Id ?? throw new Exception($"Job with LegacyId {note.JobId} not found for Note LegacyId {note.Id}"),
                     AssignedUserId = assignedUserId,
