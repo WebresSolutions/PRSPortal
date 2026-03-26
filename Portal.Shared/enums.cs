@@ -28,7 +28,14 @@ public enum TabTypeEnum
     ByTrack = 10,
     [Display(Name = "Time")]
     ByDate = 11,
-
+    [Display(Name = "Company")]
+    Company = 12,
+    [Display(Name = "Individual")]
+    Individual = 13,
+    [Display(Name = "Survey")]
+    Survey = 14,
+    [Display(Name = "Construction")]
+    Construction = 15
 }
 
 
@@ -113,6 +120,23 @@ public enum JobTypeEnum
     /// </summary>
     [Display(Name = "Surveying")]
     Surveying = 2,
+}
+
+/// <summary>
+/// Enumeration representing job type categories
+/// </summary>
+public enum ContactTypeEnum
+{
+    /// <summary>
+    /// Construction job type
+    /// </summary>
+    [Display(Name = "Company")]
+    Company = 1,
+    /// <summary>
+    /// Surveying job type
+    /// </summary>
+    [Display(Name = "Individual")]
+    Individual = 2,
 }
 
 /// <summary>

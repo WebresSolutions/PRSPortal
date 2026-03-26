@@ -103,19 +103,19 @@ public partial class Jobs : IDisposable
         Dictionary<string, string?> queryParams = [];
 
         if (_filterState.Page > 0)
-            queryParams["page"] = _filterState.Page.ToString();
+            queryParams["page"] = Page.ToString();
 
         if (_filterState.PageSize != 25)
-            queryParams["pageSize"] = _filterState.PageSize.ToString();
+            queryParams["pageSize"] = PageSize.ToString();
 
         if (!string.IsNullOrWhiteSpace(_filterState.AddressSearch))
-            queryParams["address"] = _filterState.AddressSearch;
+            queryParams["address"] = AddressSearch;
 
         if (!string.IsNullOrWhiteSpace(_filterState.ContactSearch))
-            queryParams["contact"] = _filterState.ContactSearch;
+            queryParams["contact"] = ContactSearch;
 
         if (!string.IsNullOrWhiteSpace(_filterState.JobNumberSearch))
-            queryParams["jobNumber"] = _filterState.JobNumberSearch;
+            queryParams["jobNumber"] = JobNumberSearch;
 
         if (_filterState.Order != SortDirectionEnum.Asc)
             queryParams["order"] = _filterState.Order.ToString();

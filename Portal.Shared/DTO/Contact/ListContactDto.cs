@@ -39,6 +39,11 @@ public class ListContactDto
     public ContactDto? ParentContact { get; set; }
 
     /// <summary>
+    /// The contact type of the contact
+    /// </summary>
+    public ContactTypeEnum ContactType { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the ListContactDto class
     /// </summary>
     /// <param name="contactId">The unique identifier for the contact</param>
@@ -53,7 +58,8 @@ public class ListContactDto
         string email,
         string? phone,
         AddressDTO? address,
-        ContactDto? parentContact)
+        ContactDto? parentContact,
+        ContactTypeEnum contactType)
     {
         ContactId = contactId;
         FullName = fullName;
@@ -61,6 +67,7 @@ public class ListContactDto
         Phone = phone;
         Address = address;
         ParentContact = parentContact;
+        ContactType = contactType;
     }
 
     /// <summary>

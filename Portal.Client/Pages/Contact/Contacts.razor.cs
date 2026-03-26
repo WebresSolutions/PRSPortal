@@ -16,10 +16,11 @@ public partial class Contacts
     /// Session data for the contacts page
     /// </summary>
     private SessionSearchData _sessionData = new();
+    private bool _showDeleted = false;
+    private ContactTypeEnum? _contactType = null;
 
     #region Constants
     private const string _ContactsSessionKey = "ContactsListSession";
-    private bool _showDeleted = false;
     #endregion
 
     #region Query Parameters
@@ -220,7 +221,9 @@ public partial class Contacts
                 Deleted: _showDeleted,
                 AddressSearch: _sessionData.AddressSearch,
                 NameEmailPhoneSearch: _sessionData.NameSearch,
-                SearchFilter: null);
+                SearchFilter: null,
+                contactType: _contactType
+                );
             Result<PagedResponse<ListContactDto>>? apiResult = await _apiService.GetAllContacts(filter);
 
             if (apiResult is not null && apiResult.IsSuccess && apiResult.Value is not null)
@@ -281,7 +284,24 @@ public partial class Contacts
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task ShowDelete(TabTypeEnum tab)
     {
-        _showDeleted = tab is TabTypeEnum.Deleted;
+        _showDeleted = false;
+        _contactType = null;
+        switch (tab)
+        {
+            case TabTypeEnum.All:
+                break;
+            case TabTypeEnum.Deleted:
+                _showDeleted = true;
+                break;
+            case TabTypeEnum.Company:
+                _contactType = ContactTypeEnum.Company;
+                break;
+            case TabTypeEnum.Individual:
+                _contactType = ContactTypeEnum.Individual;
+                break;
+            default:
+                break;
+        }
         _grid?.ReloadServerData();
     }
 

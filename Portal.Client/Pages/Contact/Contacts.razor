@@ -24,7 +24,7 @@
     </PageHeader>
     <Card>
         <TitleContent>
-            <HeaderTabs OnTabSelect="ShowDelete" Href="/contacts/create" />
+            <HeaderTabs OnTabSelect="ShowDelete" Href="/contacts/create"  Tabs="[TabTypeEnum.All, TabTypeEnum.Company, TabTypeEnum.Individual, TabTypeEnum.Deleted]"/>
         </TitleContent>
         <ChildContent>
             <MudDataGrid T="ListContactDto"
@@ -40,6 +40,11 @@
                          @ref="_grid"
                          Striped="true">
                 <Columns>
+                    <TemplateColumn ShowFilterIcon="false" Title="Contact Type">
+                        <CellTemplate>
+                            <ContactTypeBadge ContactType="@(context.Item.ContactType)" />
+                        </CellTemplate>
+                    </TemplateColumn>
                     <TemplateColumn Property="x => x.FullName" ShowFilterIcon="false" Title="Name">
                         <CellTemplate>
                             <a class="contact-link" href=@($"/contacts/{context.Item.ContactId}")>@context.Item.FullName</a>

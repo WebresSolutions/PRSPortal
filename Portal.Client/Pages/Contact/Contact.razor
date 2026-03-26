@@ -45,6 +45,7 @@ else
                 </div>
             </div>
             <div class="header-right">
+                <ContactTypeBadge ContactType="@((ContactTypeEnum)_contact.ContactType)" />
                 <div class="header-actions">
                     <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/contacts/edit/{ContactId}")" />
                 </div>
@@ -127,7 +128,7 @@ else
                             }
                             <div class="info-row">
                                 <span class="info-label">Created</span>
-                                <span class="info-value">@_contact.CreatedOn.ToString("dddd d-MMM-yyyy h:mmtt")</span>
+                                <span class="info-value">@_contact.CreatedOn.ToLocalTime().ToString("dddd d-MMM-yyyy h:mmtt")</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Created By</span>
@@ -198,10 +199,13 @@ else
                     <TechnicalContacts ContactId="@ContactId" />
                 </div>
 
-                <!-- Right Sidebar -->
-                <div class="sidebar">
-                    <SubContacts SubContact="@_contact.SubContacts" />
-                </div>
+                @if ((ContactTypeEnum)_contact.ContactType is ContactTypeEnum.Company)
+                {
+                    <!-- Right Sidebar -->
+                    <div class="sidebar">
+                        <SubContacts SubContact="@_contact.SubContacts" />
+                    </div>
+                }
             </div>
         </div>
     </div>
