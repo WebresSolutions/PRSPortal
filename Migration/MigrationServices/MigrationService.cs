@@ -85,6 +85,9 @@ internal class MigrationService(
             List<Models.Contact> contactToAdd = [];
             int index = 0;
 
+            int companyContact = _destinationContext.ContactTypes.First(x => x.Name == "Company").Id;
+            int individualContact = _destinationContext.ContactTypes.First(x => x.Name == "Individual").Id;
+
             foreach (SourceDb.Contact oldContact in oldContacts)
             {
                 if (index % 100 == 0)
@@ -97,6 +100,14 @@ internal class MigrationService(
                         TotalItems = oldContacts.Length
                     });
                 }
+
+                int contactTypeId;
+                // They have a parent contact meaning they are individual
+                if (oldContact.ContactId is not 0)
+                    contactTypeId = individualContact;
+                else
+                    contactTypeId = companyContact;
+
                 Models.Contact newContact = new()
                 {
                     FirstName = Helpers.TruncateString(oldContact.Firstname, 50),
@@ -108,7 +119,7 @@ internal class MigrationService(
                     CreatedOn = Helpers.GetValidDateWithTimezone(oldContact.Created),
                     LegacyId = (int)oldContact.Id,
                     ParentContactId = oldContact.ContactId is 0 ? null : oldContact.ContactId,
-                    TypeId = 2
+                    TypeId = contactTypeId,
                 };
 
                 Models.Address address = Helpers.CreateAddress(_destinationContext, oldContact.State, oldContact.Address ?? "", oldContact.Suburb ?? "", oldContact.Postcode);

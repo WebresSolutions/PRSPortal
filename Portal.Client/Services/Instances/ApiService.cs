@@ -907,6 +907,8 @@ public class ApiService : IApiService
                 queryParameters.Add("nameEmailPhoneSearch", filter.NameEmailPhoneSearch);
             if (!string.IsNullOrWhiteSpace(filter.AddressSearch))
                 queryParameters.Add("addressSearch", filter.AddressSearch);
+            if (filter.contactType is not null)
+                queryParameters.Add("contactType", ((int)filter.contactType).ToString());
 
             FormUrlEncodedContent dictFormUrlEncoded = new(queryParameters);
             string queryString = await dictFormUrlEncoded.ReadAsStringAsync();

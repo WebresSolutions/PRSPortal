@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using Portal.Shared;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Types;
@@ -53,7 +54,7 @@ public partial class EditContact
                         : null
                 };
                 if (d.ParentContact is not null)
-                    _parentContact = new ListContactDto(d.ParentContact.contactId, d.ParentContact.fullName, "", null, null, null);
+                    _parentContact = new ListContactDto(d.ParentContact.contactId, d.ParentContact.fullName, "", null, null, null, (ContactTypeEnum)d.ContactType);
             }
             else
             {
@@ -73,8 +74,7 @@ public partial class EditContact
     private void OnParentContactChanged(ListContactDto? value)
     {
         _parentContact = value;
-        if (_model is not null)
-            _model.ParentContactId = value?.ContactId;
+        _model?.ParentContactId = value?.ContactId;
     }
 
     private async Task SubmitAsync()

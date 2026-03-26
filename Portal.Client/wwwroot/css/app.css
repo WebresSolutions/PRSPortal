@@ -16,6 +16,8 @@
     --padding: 10px;
     --colour-survey: #7DCE82;
     --colour-construction: #FF8360;
+    --colour-company: #F0544F;
+    --colour-individual: #C6D8D3;
     --mud-ripple-color: var(--color-primary) !important;
     --mud-palette-primary: var(--color-primary) !important;
     --mud-palette-secondary: var(--color-secondary) !important;

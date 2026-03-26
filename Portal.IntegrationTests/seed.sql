@@ -76,8 +76,8 @@ INSERT INTO states(id, name, abbreviation) VALUES (5, 'Tasmania', 'TAS');
 INSERT INTO states(id, name, abbreviation) VALUES (6, 'Western Australia', 'WA');
 INSERT INTO states(id, name, abbreviation) VALUES (7, 'Northern Territory', 'NT');
 
-INSERT INTO contact_type (name, description) VALUES ('Company', 'Company Contact');
-INSERT INTO contact_type (name, description) VALUES ('Personal', 'Personal Contact');
+INSERT INTO contact_type (id, name, description) VALUES (1, 'Company', 'Company Contact');
+INSERT INTO contact_type (id, name, description) VALUES (2, 'Individual', 'Individual Contact');
 
 INSERT INTO technical_contact_type (id, name, description) VALUES (1, 'Architect/Draftsperson', 'Architect Or Draftsperson');
 INSERT INTO technical_contact_type (id, name, description) VALUES (2, 'Builder', 'Builder');

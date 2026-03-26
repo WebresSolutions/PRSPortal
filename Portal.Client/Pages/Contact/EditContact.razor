@@ -1,6 +1,7 @@
 @page "/contacts/edit/{ContactId:int}"
 @inherits BaseDataComponent
 @using Portal.Client.Components.JobComponents
+@using Portal.Shared
 @using Portal.Shared.DTO.Contact
 @using Portal.Shared.DTO.Address
 
@@ -33,7 +34,7 @@
                             <div class="form-sections border-rad border-grey">
                                 <div>
                                     <label for="contact-type">Contact Type</label>
-                                    <MudSelect name="contact-type" T="int" @bind-Value="_model.TypeId" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.TypeId)" Required="true">
+                                    <MudSelect name="contact-type" T="int" @bind-Value="_model.TypeId" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.TypeId)" Required="true" SelectedValuesChanged="@(() => _model.ParentContactId = null)">
                                         @foreach (var t in _contactTypes)
                                         {
                                             <MudSelectItem T="int" Value="@t.Id">@t.Name</MudSelectItem>
@@ -41,17 +42,20 @@
                                     </MudSelect>
                                 </div>
 
-                                <div>
-                                    <label for="parent-contact">Parent Contact</label>
-                                    <MudAutocomplete name="parent-contact" T="ListContactDto" Value="_parentContact" ValueChanged="OnParentContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
-                                                     SearchFunc="@SearchContacts" ToStringFunc="@(e => e.ToString())" MaxItems="50">
-                                        <MoreItemsTemplate>
-                                            <div class="d-flex justify-content-center">
-                                                <small>Only the first 50 items are shown</small>
-                                            </div>
-                                        </MoreItemsTemplate>
-                                    </MudAutocomplete>
-                                </div>
+                                @if ((ContactTypeEnum)_model.TypeId is ContactTypeEnum.Individual)
+                                {
+                                    <div>
+                                        <label for="parent-contact">Parent Contact</label>
+                                        <MudAutocomplete name="parent-contact" T="ListContactDto" Value="_parentContact" ValueChanged="OnParentContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
+                                                         SearchFunc="@SearchContacts" ToStringFunc="@(e => e.ToString())" MaxItems="50">
+                                            <MoreItemsTemplate>
+                                                <div class="d-flex justify-content-center">
+                                                    <small>Only the first 50 items are shown</small>
+                                                </div>
+                                            </MoreItemsTemplate>
+                                        </MudAutocomplete>
+                                    </div>
+                                }
 
                                 <div>
                                     <label for="first-name">First Name</label>

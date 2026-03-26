@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 using Portal.Data;
@@ -42,25 +41,34 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                 if (!filter.NameEmailPhoneSearch.IsNullOrWhiteSpace())
                 {
                     string nameEmailSearch = filter.NameEmailPhoneSearch!.Trim();
+                    string pattern = PartialMatch(nameEmailSearch);
+
                     contactQuery = contactQuery.Where(contact =>
-                        contact.SearchVector.Matches(nameEmailSearch));
+                        contact.SearchVector.Matches(EF.Functions.ToTsQuery(pattern)));
                 }
                 if (!filter.AddressSearch.IsNullOrWhiteSpace())
                 {
                     string addressSearch = filter.AddressSearch!.Trim();
+                    string pattern = PartialMatch(addressSearch);
+
                     contactQuery = contactQuery.Where(contact =>
-                        contact.Address != null && contact.Address.SearchVector != null && contact.Address.SearchVector.Matches(addressSearch));
+                        contact.Address != null && contact.Address.SearchVector != null && contact.Address.SearchVector.Matches(EF.Functions.ToTsQuery(pattern)));
                 }
             }
             else if (!filter.SearchFilter.IsNullOrWhiteSpace())
             {
                 string searchFilter = filter.SearchFilter!.Trim();
                 bool isNumeric = int.TryParse(searchFilter, out int numericValue);
+                string pattern = PartialMatch(searchFilter);
+
                 contactQuery = contactQuery.Where(contact =>
                             (isNumeric && contact.Id == numericValue)
-                            || (contact.SearchVector != null && contact.SearchVector.Matches(searchFilter))
-                            || (contact.Address != null && contact.Address.SearchVector != null && contact.Address.SearchVector.Matches(searchFilter)));
+                            || (contact.SearchVector != null && contact.SearchVector.Matches(EF.Functions.ToTsQuery(pattern)))
+                            || (contact.Address != null && contact.Address.SearchVector != null && contact.Address.SearchVector.Matches(EF.Functions.ToTsQuery(pattern))));
             }
+
+            if (filter.contactType is not null)
+                contactQuery = contactQuery.Where(contact => contact.TypeId == (int)filter.contactType);
 
             bool isDescending = filter.Order is SortDirectionEnum.Asc;
             contactQuery = filter.OrderBy switch
@@ -74,6 +82,9 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                 nameof(ListContactDto.Email) => isDescending
                     ? contactQuery.OrderByDescending(x => x.Email)
                     : contactQuery.OrderBy(x => x.Email),
+                nameof(ListContactDto.ContactType) => isDescending
+                    ? contactQuery.OrderByDescending(x => x.TypeId)
+                    : contactQuery.OrderBy(x => x.TypeId),
                 nameof(ListContactDto.Phone) => isDescending
                     ? contactQuery.OrderByDescending(x => x.Phone)
                     : contactQuery.OrderBy(x => x.Phone),
@@ -106,7 +117,8 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                                 x.Address.Suburb,
                                 x.Address.Street,
                                 x.Address.PostCode) : null,
-                            x.ParentContact != null ? new ContactDto(x.ParentContact.Id, x.ParentContact.FullName) : null
+                            x.ParentContact != null ? new ContactDto(x.ParentContact.Id, x.ParentContact.FullName) : null,
+                            (ContactTypeEnum)x.TypeId
                             ))
                         .ToListAsync();
             int total = await contactQuery.CountAsync();
@@ -114,6 +126,8 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
             PagedResponse<ListContactDto> pagedResponse = new(contacts, filter.PageSize, filter.Page, total);
             result.Value = pagedResponse;
             return result;
+
+            static string PartialMatch(string filter) => string.Join(" & ", filter.Split(' ', StringSplitOptions.RemoveEmptyEntries)) + ":*";
         }
         catch (Exception ex)
         {

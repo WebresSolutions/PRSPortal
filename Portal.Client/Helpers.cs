@@ -18,6 +18,14 @@ public static class Helpers
         => type == JobTypeEnum.Construction ? "var(--colour-construction)" : "var(--colour-survey)";
 
     /// <summary>
+    /// Gets the CSS color variable for a job type
+    /// </summary>
+    /// <param name="type">The job type enum value</param>
+    /// <returns>A CSS variable name for the job type color</returns>
+    public static string GetContactColour(ContactTypeEnum type)
+        => type == ContactTypeEnum.Company ? "var(--colour-company)" : "var(--colour-individual)";
+
+    /// <summary>
     /// Sets a CSS color variable using JavaScript interop
     /// Updates either the primary or secondary color variable in the document
     /// </summary>

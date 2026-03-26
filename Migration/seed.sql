@@ -8,21 +8,21 @@ INSERT INTO states(id, name, abbreviation) VALUES (5, 'Tasmania', 'TAS');
 INSERT INTO states(id, name, abbreviation) VALUES (6, 'Western Australia', 'WA');
 INSERT INTO states(id, name, abbreviation) VALUES (7, 'Northern Territory', 'NT');
 
-INSERT INTO contact_type (name, description) VALUES ('Company', 'Company Contact');
-INSERT INTO contact_type (name, description) VALUES ('Personal', 'Personal Contact');
+INSERT INTO contact_type (id, name, description) VALUES (1, 'Company', 'Company Contact');
+INSERT INTO contact_type (id, name, description) VALUES (2, 'Individual', 'Individual Contact');
 
 INSERT INTO job_type(id, name, abbreviation) VALUES (1, 'Construction', 'CONSTRUCTION');
 INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
 
 INSERT INTO file_type(job_type_id, name, description) VALUES
     -- Construction job SharePoint folders (job_type.id = 1)
-    (1, '01 COMPS FILES', 'Construction job folder: comps files.'),
-    (1, '02 FIELDWORK', 'Construction job folder: field work.'),
-    (1, '03 RECEIVED', 'Construction job folder: received.'),
-    (1, '04 SENT', 'Construction job folder: sent.'),
-    (1, '05 OHS', 'Construction job folder: OHS.'),
-    (1, '06 INVOICES & POs', 'Construction job folder: invoices and purchase orders.'),
-    (1, '07 QA', 'Construction job folder: QA.'),
+    (1, '01. Comps Files', 'Construction job folder: comps files.'),
+    (1, '02. Field Work', 'Construction job folder: field work.'),
+    (1, '03. Received', 'Construction job folder: received.'),
+    (1, '04. Sent', 'Construction job folder: sent.'),
+    (1, '05. OHS', 'Construction job folder: OHS.'),
+    (1, '06. Invoices & POs', 'Construction job folder: invoices and purchase orders.'),
+    (1, '07. QA', 'Construction job folder: QA.'),
     (1, '08. Survey Info', 'Construction job folder: survey info.'),
     (1, '09. Title', 'Construction job folder: title.'),
     -- Survey job SharePoint folders (job_type.id = 2)

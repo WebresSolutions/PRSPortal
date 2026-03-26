@@ -12,5 +12,6 @@ public record ContactFilterDto(
     bool Deleted = false,
     string? NameEmailPhoneSearch = null,
     string? AddressSearch = null,
-    string? SearchFilter = null
+    string? SearchFilter = null,
+    ContactTypeEnum? contactType = null
 );

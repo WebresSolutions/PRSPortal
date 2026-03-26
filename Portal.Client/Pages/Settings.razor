@@ -127,7 +127,7 @@
                     <section class="settings-panel">
                         <div class="settings-panel-header">
                             <h3>Contact types</h3>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Contact", "Add contact type", null))">Add</MudButton>
+                            <MudButton Disabled=true Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Contact", "Add contact type", null))">Add</MudButton>
                         </div>
                         <div class="settings-type-list">
                             <div class="settings-type-row settings-type-row--head">
@@ -147,7 +147,7 @@
                                         <span class="settings-type-primary">@t.Name</span>
                                         <span class="settings-type-secondary">@(t.Description ?? "—")</span>
                                         <span class="settings-type-actions">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Contact", "Edit contact type", t))" />
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Contact", "Edit contact type", t))" Disabled=true />
                                         </span>
                                     </div>
                                 }
@@ -158,7 +158,7 @@
                     <section class="settings-panel">
                         <div class="settings-panel-header">
                             <h3>Job types</h3>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Job", "Add job type", null))">Add</MudButton>
+                            <MudButton Disabled=true Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenEditTypeDialog("Job", "Add job type", null))">Add</MudButton>
                         </div>
                         <div class="settings-type-list">
                             <div class="settings-type-row settings-type-row--head settings-type-row--job">
@@ -178,7 +178,7 @@
                                         <span class="settings-type-primary">@t.Name</span>
                                         <span class="settings-type-secondary">@t.Abbreviation</span>
                                         <span class="settings-type-actions">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Job", "Edit job type", t))" />
+                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Job", "Edit job type", t))" Disabled=true />
                                         </span>
                                     </div>
                                 }
