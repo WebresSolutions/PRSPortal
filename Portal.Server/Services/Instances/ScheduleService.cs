@@ -4,6 +4,7 @@ using Portal.Data.Models;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Types;

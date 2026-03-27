@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Portal.Shared.DataEnums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Portal.Shared.DTO.Schedule;
 

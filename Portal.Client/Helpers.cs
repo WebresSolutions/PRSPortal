@@ -1,5 +1,6 @@
 ﻿using Microsoft.JSInterop;
-using Portal.Shared;
+using Portal.Shared.DataEnums;
+using Portal.Shared.DTO;
 
 namespace Portal.Client;
 

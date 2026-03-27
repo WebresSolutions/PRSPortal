@@ -1,4 +1,5 @@
-﻿using Portal.Shared.DTO.Address;
+﻿using Portal.Shared.DataEnums;
+using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 
 namespace Portal.Shared.DTO.Job;

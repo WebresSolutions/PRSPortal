@@ -40,6 +40,8 @@ public partial class PrsDbContext : DbContext
 
     public virtual DbSet<Job> Jobs { get; set; }
 
+    public virtual DbSet<JobAssignmentType> JobAssignmentTypes { get; set; }
+
     public virtual DbSet<JobColour> JobColours { get; set; }
 
     public virtual DbSet<JobFile> JobFiles { get; set; }
@@ -57,6 +59,8 @@ public partial class PrsDbContext : DbContext
     public virtual DbSet<JobTaskType> JobTaskTypes { get; set; }
 
     public virtual DbSet<JobType> JobTypes { get; set; }
+
+    public virtual DbSet<JobUser> JobUsers { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
 
@@ -95,8 +99,6 @@ public partial class PrsDbContext : DbContext
     public virtual DbSet<TimesheetEntry> TimesheetEntries { get; set; }
 
     public virtual DbSet<TimesheetEntryType> TimesheetEntryTypes { get; set; }
-
-    public virtual DbSet<UserJob> UserJobs { get; set; }
 
     public virtual DbSet<XeroAccess> XeroAccesses { get; set; }
 
@@ -828,6 +830,24 @@ public partial class PrsDbContext : DbContext
                     });
         });
 
+        modelBuilder.Entity<JobAssignmentType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("job_assignment_type_pkey");
+
+            entity.ToTable("job_assignment_type");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Description)
+                .HasMaxLength(255)
+                .HasColumnName("description");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+        });
+
         modelBuilder.Entity<JobColour>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("job_colour_pkey");
@@ -1140,9 +1160,7 @@ public partial class PrsDbContext : DbContext
 
             entity.ToTable("job_type", tb => tb.HasComment("Type of job"));
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Abbreviation)
                 .HasMaxLength(15)
                 .HasColumnName("abbreviation");
@@ -1153,6 +1171,58 @@ public partial class PrsDbContext : DbContext
                 .HasMaxLength(50)
                 .HasComment("Construction = Set out. Survey = CAD.")
                 .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<JobUser>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.JobId }).HasName("job_user_pkey");
+
+            entity.ToTable("job_user", tb => tb.HasComment("Many-to-many relationship between users and jobs"));
+
+            entity.HasIndex(e => e.AssignmentTypeId, "idx_job_user_assignment_type_id");
+
+            entity.HasIndex(e => e.DeletedAt, "idx_job_user_deleted_at");
+
+            entity.HasIndex(e => e.JobId, "idx_job_user_job_id");
+
+            entity.HasIndex(e => e.UserId, "idx_job_user_user_id");
+
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.JobId).HasColumnName("job_id");
+            entity.Property(e => e.AssignmentTypeId).HasColumnName("assignment_type_id");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.CreatedOn)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_on");
+            entity.Property(e => e.DeletedAt)
+                .HasComment("Soft delete TIMESTAMPTZ - NULL means active assignment")
+                .HasColumnName("deleted_at");
+            entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
+            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+
+            entity.HasOne(d => d.AssignmentType).WithMany(p => p.JobUsers)
+                .HasForeignKey(d => d.AssignmentTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("job_user_assignment_type_id_fkey");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.JobUserCreatedByUsers)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("job_user_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.Job).WithMany(p => p.JobUsers)
+                .HasForeignKey(d => d.JobId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("job_user_job_id_fkey");
+
+            entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.JobUserModifiedByUsers)
+                .HasForeignKey(d => d.ModifiedByUserId)
+                .HasConstraintName("job_user_modified_by_user_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.JobUserUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("job_user_user_id_fkey");
         });
 
         modelBuilder.Entity<Notification>(entity =>
@@ -1870,51 +1940,6 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");
-        });
-
-        modelBuilder.Entity<UserJob>(entity =>
-        {
-            entity.HasKey(e => new { e.UserId, e.JobId }).HasName("user_job_pkey");
-
-            entity.ToTable("user_job", tb => tb.HasComment("Many-to-many relationship between users and jobs"));
-
-            entity.HasIndex(e => e.DeletedAt, "idx_user_job_deleted_at");
-
-            entity.HasIndex(e => e.JobId, "idx_user_job_job_id");
-
-            entity.HasIndex(e => e.UserId, "idx_user_job_user_id");
-
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.JobId).HasColumnName("job_id");
-            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
-            entity.Property(e => e.CreatedOn)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_on");
-            entity.Property(e => e.DeletedAt)
-                .HasComment("Soft delete TIMESTAMPTZ - NULL means active assignment")
-                .HasColumnName("deleted_at");
-            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
-            entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
-            entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
-
-            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.UserJobCreatedByUsers)
-                .HasForeignKey(d => d.CreatedByUserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("user_job_created_by_user_id_fkey");
-
-            entity.HasOne(d => d.Job).WithMany(p => p.UserJobs)
-                .HasForeignKey(d => d.JobId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("user_job_job_id_fkey");
-
-            entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.UserJobModifiedByUsers)
-                .HasForeignKey(d => d.ModifiedByUserId)
-                .HasConstraintName("user_job_modified_by_user_id_fkey");
-
-            entity.HasOne(d => d.User).WithMany(p => p.UserJobUsers)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("user_job_user_id_fkey");
         });
 
         modelBuilder.Entity<XeroAccess>(entity =>

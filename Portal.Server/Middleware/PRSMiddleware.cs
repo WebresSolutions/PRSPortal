@@ -7,7 +7,7 @@ using Portal.Server.Helpers;
 
 namespace Portal.Server.Middleware;
 
-public class CustomMiddleware(RequestDelegate next) // Remove dbContext from constructor
+public class PRSMiddleware(RequestDelegate next) // Remove dbContext from constructor
 {
     private readonly RequestDelegate _next = next;
 

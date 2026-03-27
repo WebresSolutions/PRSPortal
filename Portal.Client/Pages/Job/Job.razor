@@ -16,7 +16,7 @@ else if (_job is null)
 else
 {
     <div class="job-detail-container">
-        <JobStatusProgress Statuses="@_job.JobTypeStatusDtos" CurrentStatusId="@_job.JobStatusId" />
+        <JobStatusProgress Statuses="@_job.JobTypeStatuses" CurrentStatusId="@_job.JobStatusId" />
         <!-- Header -->
         <PageHeader>
             <Content>
@@ -28,7 +28,7 @@ else
                         </div>
                     </div>
                     <div class="header-right">
-                        <StatusBadge StatusEnums="@_job.JobType" />
+                        <StatusBadge StatusEnums="@_job.JobTypes" />
                         <div class="header-actions">
                             <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href=@($"/jobs/edit/{JobId}") />
                         </div>
@@ -111,7 +111,7 @@ else
                 <div class="visits-invoices">
                     <!-- Files-->
                     <!-- Site Visits -->
-                    <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" JobType="@_job.JobType.First()" />
+                    <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" JobType="@_job.JobTypes.First()" />
                     <!-- Invoices -->
                     <Card HeaderTitle="Invoices" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Unsent, TabTypeEnum.Unpaid, TabTypeEnum.Overdue, TabTypeEnum.Deleted]">
                         <ChildContent>

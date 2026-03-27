@@ -1,3 +1,4 @@
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using System.Net;
@@ -47,7 +48,7 @@ public sealed class TechnicalContactsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for technical contact tests",
             StatusId = 1
@@ -81,7 +82,7 @@ public sealed class TechnicalContactsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for update technical contact tests",
             StatusId = 1
@@ -145,7 +146,7 @@ public sealed class TechnicalContactsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for invalid contact test",
             StatusId = 1

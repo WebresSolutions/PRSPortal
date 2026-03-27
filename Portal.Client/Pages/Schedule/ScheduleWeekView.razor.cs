@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.ResponseModels;
 

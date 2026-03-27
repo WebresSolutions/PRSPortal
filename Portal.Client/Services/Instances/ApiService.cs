@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Portal.Client.Services.Interfaces;
-using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.File;
@@ -207,7 +207,7 @@ public class ApiService : IApiService
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public async Task<Result<JobDetailsDto>> UpdateJob(JobDetailsDto data)
+    public async Task<Result<JobDetailsDto>> UpdateJob(JobUpdateDto data)
     {
         Result<JobDetailsDto> res = new();
         try

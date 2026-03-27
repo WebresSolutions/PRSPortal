@@ -56,7 +56,7 @@ public static class JobEndpoints
         // Update a job with the provided details
         appGroup.MapPut("", async (
             [FromServices] IJobService jobService,
-            [FromBody] JobDetailsDto data,
+            [FromBody] JobUpdateDto data,
             HttpContext httpContext
             ) =>
         {

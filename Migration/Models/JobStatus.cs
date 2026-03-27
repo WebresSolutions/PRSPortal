@@ -20,7 +20,7 @@ public partial class JobStatus
 
     public DateTime CreatedAt { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual ICollection<JobStatusHistory> JobStatusHistoryStatusIdNewNavigations { get; set; } = new List<JobStatusHistory>();
 

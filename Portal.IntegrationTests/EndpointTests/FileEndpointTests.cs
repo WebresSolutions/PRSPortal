@@ -1,3 +1,4 @@
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Job;
 using System.Net;
@@ -21,7 +22,7 @@ public sealed class FileEndpointTests
         // Create a job
         JobCreationDto jobDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for get file test",
             StatusId = 1

@@ -5,6 +5,7 @@ using Portal.Data.Models;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.File;
@@ -128,7 +129,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 JobStatusId = x.StatusId,
                 JobStatusName = x.Status != null ? x.Status.Name : null,
                 JobNumber = x.JobNumber,
-                JobType = x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray(),
+                JobTypes = x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray(),
                 Address = x.Address != null ? new AddressDTO(
                     x.AddressId ?? 1,
                     (StateEnum)x.Address!.StateId!,
@@ -156,7 +157,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 TimeSheets = x.TimesheetEntries
                     .Select(ts
                         => new TimeSheetDto(ts.Id, ts.TypeId, ts.DateFrom, ts.DateTo, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName, x.JobNumber))
-                    .ToList(),
+                    .ToArray(),
                 ContactId = x.ContactId,
                 Council = x.Council != null ? new JobCouncilDto(x.Council.Id, x.Council.Name) : null,
                 CouncilId = x.CouncilId,
@@ -179,7 +180,17 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     FileTypeId = jf.File.FileTypeId,
                     Description = jf.File.Description,
                     Title = jf.File.Title ?? ""
-                }).ToList()
+                }).ToArray(),
+                AssignedUsers = x.JobUsers
+                    .Select(ju => new UserAssignmentDto(ju.UserId, jobId, (JobAssignementTypeEnum)ju.AssignmentTypeId))
+                    .ToArray(),
+                JobHistoryDtos = x.JobStatusHistories
+                    .Select(jh => new JobHistoryDto(
+                        jobId,
+                        new JobTypeStatusDto(jh.StatusIdNew, jh.JobId, jh.StatusIdNewNavigation.Name, 0, jh.StatusIdNewNavigation.Colour, true),
+                        jh.DateChanged,
+                        jh.ModifiedByUser.DisplayName))
+                    .ToArray()
             })
             .FirstOrDefaultAsync();
 
@@ -204,7 +215,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 Notes = s.Notes ?? string.Empty
             })
             .OrderByDescending(x => x.Start);
-        job.SiteVisits = await query.ToListAsync();
+        job.SiteVisits = await query.ToArrayAsync();
 
         job.Tasks = await _dbContext.JobTasks
             .AsNoTracking()
@@ -222,14 +233,14 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 CreatedByUser = t.CreatedByUser.DisplayName ?? "",
                 QuotedPrice = t.QuotedPrice
             })
-            .ToListAsync();
+            .ToArrayAsync();
 
-        job.SiteVisitCount = job.SiteVisits.Count;
-        job.TaskCount = job.Tasks.Count;
-        job.JobTypeStatusDtos = await _dbContext.JobStatuses
-            .Where(x => job.JobType.Select(x => (int)x).Contains(x.JobTypeId) && x.IsActive)
+        job.SiteVisitCount = job.SiteVisits.Length;
+        job.TaskCount = job.Tasks.Length;
+        job.JobTypeStatuses = await _dbContext.JobStatuses
+            .Where(x => job.JobTypes.Select(x => (int)x).Contains(x.JobTypeId) && x.IsActive)
             .Select(x => new JobTypeStatusDto(x.Id, x.JobTypeId, x.Name, x.Sequence, x.Colour, x.IsActive))
-            .ToListAsync();
+            .ToArrayAsync();
 
         return result.SetValue(job);
     }
@@ -334,7 +345,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
     }
 
     /// <inheritdoc/>
-    public async Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobDetailsDto updateJobDto)
+    public async Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobUpdateDto updateJobDto)
     {
         Result<JobDetailsDto> result = new();
         try
@@ -348,7 +359,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             if (job is null)
                 return result.SetError(ErrorType.NotFound, "Invalid job Id");
 
-            if (updateJobDto.JobType.Length < 1)
+            if (updateJobDto.JobTypes.Length < 1)
                 return result.SetError(ErrorType.BadRequest, "The job must contain at least one job type");
 
             //job.JobTypeId = (int)updateJobDto.JobType;
@@ -361,7 +372,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 job.Details = updateJobDto.Details;
 
             job.JobTypes.Clear();
-            int[] desiredTypeIds = [.. updateJobDto.JobType.Select(x => (int)x).Distinct()];
+            int[] desiredTypeIds = [.. updateJobDto.JobTypes.Select(x => (int)x).Distinct()];
             foreach (int typeId in desiredTypeIds)
             {
                 JobType? jobType = await _dbContext.JobTypes.FindAsync(typeId);

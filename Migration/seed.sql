@@ -14,6 +14,9 @@ INSERT INTO contact_type (id, name, description) VALUES (2, 'Individual', 'Indiv
 INSERT INTO job_type(id, name, abbreviation) VALUES (1, 'Construction', 'CONSTRUCTION');
 INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
 
+INSERT INTO job_assignment_type(id, name, description) VALUES(1, 'Current Owner', 'The current owner of the job.');
+INSERT INTO job_assignment_type(id, name, description) VALUES(2, 'Responsible Team Member', 'Whom the job is currently assigned to.');
+
 INSERT INTO file_type(job_type_id, name, description) VALUES
     -- Construction job SharePoint folders (job_type.id = 1)
     (1, '01. Comps Files', 'Construction job folder: comps files.'),

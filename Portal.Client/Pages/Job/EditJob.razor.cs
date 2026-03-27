@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Pages.Job;
@@ -18,16 +19,17 @@ public partial class EditJob
     /// <summary>
     /// The model
     /// </summary>
-    private JobDetailsDto? _model;
+    private JobUpdateDto? _model;
     /// <summary>
     /// The List of job contacts
     /// </summary>
     private ListContactDto? _jobContact;
-
     /// <summary>
     /// List of councils
     /// </summary>
     private CouncilPartialDto[] _councils = [];
+
+    private JobTypeStatusDto[] _JobTypeStatusDtos = [];
 
     private readonly JobTypeEnum[] _jobtypes = [.. Enum.GetValues<JobTypeEnum>().Cast<int>().Select(x => (JobTypeEnum)x)];
     private List<JobTypeEnum> _selectedJobtypes = [];
@@ -39,13 +41,13 @@ public partial class EditJob
         Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
         if (councilResult?.IsSuccess == true && councilResult.Value is not null)
             _councils = councilResult.Value;
-        if (_model is { PrimaryContact: not null })
+        if (_model is { Contact: not null })
         {
             _jobContact = new()
             {
                 ContactId = _model.ContactId,
-                FullName = _model.PrimaryContact.ContactName,
-                Phone = _model.PrimaryContact.Phone
+                FullName = _model.Contact.ContactName,
+                Phone = _model.Contact.Phone
             };
         }
     }
@@ -63,8 +65,20 @@ public partial class EditJob
             Result<JobDetailsDto>? result = await _apiService.Job(JobId);
             if (result is not null && result.IsSuccess && result.Value is not null)
             {
-                _model = result.Value;
-                _selectedJobtypes = _model.JobType.ToList();
+                _model = new()
+                {
+                    JobId = result.Value.JobId,
+                    Address = result.Value.Address,
+                    AssignedUsers = result.Value.AssignedUsers.ToList(),
+                    ContactId = result.Value.ContactId,
+                    CouncilId = result.Value.CouncilId,
+                    Details = result.Value.Details,
+                    JobColourId = result.Value.JobColourId,
+                    JobStatusId = result.Value.JobStatusId,
+                    JobTypes = result.Value.JobTypes,
+                };
+                _selectedJobtypes = [.. _model.JobTypes];
+                _JobTypeStatusDtos = result.Value.JobTypeStatuses;
             }
             else
             {
@@ -88,13 +102,13 @@ public partial class EditJob
             if (_model is null)
                 return;
 
-            if (_model.JobType.Length < 1)
+            if (_model.JobTypes.Length < 1)
             {
                 _snackbar.Add("Must Select at least on Job Type");
                 return;
             }
 
-            _model.JobType = [.. _selectedJobtypes];
+            _model.JobTypes = [.. _selectedJobtypes];
 
             Result<JobDetailsDto> result = await _apiService.UpdateJob(_model);
             if (result.IsSuccess && result.Value is not null)
@@ -122,9 +136,6 @@ public partial class EditJob
         if (_model is null)
             return;
         _model.JobStatusId = value;
-        _model.JobStatusName = value is null
-            ? null
-            : _model.JobTypeStatusDtos.FirstOrDefault(s => s.Id == value)?.Name;
         StateHasChanged();
     }
 

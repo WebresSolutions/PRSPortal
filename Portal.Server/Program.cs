@@ -80,7 +80,7 @@ public class Program
         if (app.Environment.IsEnvironment("Testing"))
             app.UseMiddleware<TestUserContextMiddleware>();
         else
-            app.UseMiddleware<CustomMiddleware>();
+            app.UseMiddleware<PRSMiddleware>();
 
         app.MapRazorPages();
         app.MapControllers();

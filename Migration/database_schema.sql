@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS job_note;
 DROP TABLE IF EXISTS job_task;
 DROP TABLE IF EXISTS job_file;
 DROP TABLE IF EXISTS user_job;
+DROP TABLE IF EXISTS job_user;
 DROP TABLE IF EXISTS invoice;
 DROP TABLE IF EXISTS technical_contact;
 DROP TABLE IF EXISTS job_status_history;
@@ -33,6 +34,7 @@ DROP TABLE IF EXISTS xero_access;
 DROP TABLE IF EXISTS notification;
 
 -- Tier 3: Lookup/Type tables
+DROP TABLE IF EXISTS job_assignment_type;
 DROP TABLE IF EXISTS technical_contact_type;
 DROP TABLE IF EXISTS contact_type;
 DROP TABLE IF EXISTS timesheet_entry_type;
@@ -253,7 +255,7 @@ COMMENT ON TABLE job_colour IS 'Colour of job';
 -- ============================================================================
 
 CREATE TABLE job_type (
-    id INT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     abbreviation VARCHAR(15) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -319,7 +321,7 @@ CREATE INDEX idx_file_external_id ON app_file(external_id);
 CREATE TABLE job_status (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     sequence INT NOT NULL,
-    job_type_id INT NOT NULL,
+    job_type_id INT NOT NULL REFERENCES job_type(id),
     name VARCHAR(100) NOT NULL,
     colour VARCHAR(12) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -327,6 +329,8 @@ CREATE TABLE job_status (
 );
 
 COMMENT ON TABLE job_status IS 'The status of a Job';
+CREATE INDEX idx_job_status_type_id ON job_status(job_type_id);
+
 
 -- ============================================================================
 -- JOB TABLE
@@ -436,27 +440,39 @@ CREATE INDEX technical_contacts_created_by_user_id_idx ON technical_contact(crea
 CREATE INDEX technical_contacts_modified_by_user_id_idx ON technical_contact(modified_by_user_id);
 
 -- ============================================================================
+-- USER JOB ASSIGNMENT TYPE
+-- ============================================================================
+
+CREATE TABLE job_assignment_type(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    is_active BOOL NOT NULL DEFAULT true
+);
+
+-- ============================================================================
 -- USER JOB TABLE (Many-to-Many)
 -- ============================================================================
 
-CREATE TABLE user_job (
+CREATE TABLE job_user (
     user_id INT NOT NULL REFERENCES app_user(id),
     job_id INT NOT NULL REFERENCES job(id),
-    legacy_id INT,
+    assignment_type_id INT NOT NULL REFERENCES job_assignment_type(id),
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_by_user_id INT REFERENCES app_user(id),
     modified_on TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ DEFAULT NULL,
-    PRIMARY KEY (user_id, job_id)
+    PRIMARY KEY (user_id, job_id, assignment_type_id)
 );
 
-COMMENT ON TABLE user_job IS 'Many-to-many relationship between users and jobs';
-COMMENT ON COLUMN user_job.deleted_at IS 'Soft delete TIMESTAMPTZ - NULL means active assignment';
+COMMENT ON TABLE job_user IS 'Many-to-many relationship between users and jobs';
+COMMENT ON COLUMN job_user.deleted_at IS 'Soft delete TIMESTAMPTZ - NULL means active assignment';
 
-CREATE INDEX idx_user_job_user_id ON user_job(user_id);
-CREATE INDEX idx_user_job_job_id ON user_job(job_id);
-CREATE INDEX idx_user_job_deleted_at ON user_job(deleted_at);
+CREATE INDEX idx_job_user_user_id ON job_user(user_id);
+CREATE INDEX idx_job_user_job_id ON job_user(job_id);
+CREATE INDEX idx_job_user_assignment_type_Id ON job_user(assignment_type_id);
+CREATE INDEX idx_job_user_deleted_at ON job_user(deleted_at);
 
 -- ============================================================================
 -- USER JOB NOTES (One-to-Many)

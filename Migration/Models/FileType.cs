@@ -18,7 +18,7 @@ public partial class FileType
 
     public DateTime CreatedOn { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual ICollection<AppFile> AppFiles { get; set; } = new List<AppFile>();
 

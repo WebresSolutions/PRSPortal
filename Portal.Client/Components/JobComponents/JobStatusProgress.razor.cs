@@ -7,7 +7,7 @@ namespace Portal.Client.Components.JobComponents;
 public partial class JobStatusProgress
 {
     /// <summary>
-    /// Status definitions for the pipeline (typically from <see cref="JobDetailsDto.JobTypeStatusDtos"/>).
+    /// Status definitions for the pipeline (typically from <see cref="JobDetailsDto.JobTypeStatuses"/>).
     /// </summary>
     [Parameter]
     public IReadOnlyList<JobTypeStatusDto>? Statuses { get; set; }

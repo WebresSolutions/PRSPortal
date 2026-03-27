@@ -83,6 +83,12 @@ public partial class AppUser
 
     public virtual ICollection<JobTask> JobTaskModifiedByUsers { get; set; } = new List<JobTask>();
 
+    public virtual ICollection<JobUser> JobUserCreatedByUsers { get; set; } = new List<JobUser>();
+
+    public virtual ICollection<JobUser> JobUserModifiedByUsers { get; set; } = new List<JobUser>();
+
+    public virtual ICollection<JobUser> JobUserUsers { get; set; } = new List<JobUser>();
+
     public virtual AppUser? ModifiedByUser { get; set; }
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
@@ -122,10 +128,4 @@ public partial class AppUser
     public virtual ICollection<TimesheetEntry> TimesheetEntryModifiedByUsers { get; set; } = new List<TimesheetEntry>();
 
     public virtual ICollection<TimesheetEntry> TimesheetEntryUsers { get; set; } = new List<TimesheetEntry>();
-
-    public virtual ICollection<UserJob> UserJobCreatedByUsers { get; set; } = new List<UserJob>();
-
-    public virtual ICollection<UserJob> UserJobModifiedByUsers { get; set; } = new List<UserJob>();
-
-    public virtual ICollection<UserJob> UserJobUsers { get; set; } = new List<UserJob>();
 }
