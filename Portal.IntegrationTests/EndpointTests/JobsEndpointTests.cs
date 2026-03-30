@@ -41,7 +41,15 @@ public sealed class JobsEndpointTests
             ContactId = 1,
             Details = "Job for contact filter test",
             StatusId = 1,
-            ResponsibleTeamMember = 2
+            ResponsibleTeamMember = 2,
+            Address = new()
+            {
+                Street = "123",
+                State = Shared.StateEnum.NSW,
+                LatLng = new() { Latitude = 123, Longitude = 123 },
+                PostCode = "1234",
+                Suburb = "Coburg",
+            }
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -70,7 +78,15 @@ public sealed class JobsEndpointTests
             CouncilId = 1,
             Details = "Job for council filter test",
             StatusId = 1,
-            ResponsibleTeamMember = 2
+            ResponsibleTeamMember = 2,
+            Address = new()
+            {
+                Street = "123",
+                State = Shared.StateEnum.NSW,
+                LatLng = new() { Latitude = 123, Longitude = 123 },
+                PostCode = "1234",
+                Suburb = "Coburg",
+            }
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -99,7 +115,15 @@ public sealed class JobsEndpointTests
             CouncilId = 1,
             Details = "Job for combined filter test",
             StatusId = 1,
-            ResponsibleTeamMember = 2
+            ResponsibleTeamMember = 2,
+            Address = new()
+            {
+                Street = "123",
+                State = Shared.StateEnum.NSW,
+                LatLng = new() { Latitude = 123, Longitude = 123 },
+                PostCode = "1234",
+                Suburb = "Coburg",
+            }
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -140,7 +164,15 @@ public sealed class JobsEndpointTests
             ContactId = 1,
             Details = "Test",
             StatusId = 1,
-            ResponsibleTeamMember = 2
+            ResponsibleTeamMember = 2,
+            Address = new()
+            {
+                Street = "123",
+                State = Shared.StateEnum.NSW,
+                LatLng = new() { Latitude = 123, Longitude = 123 },
+                PostCode = "1234",
+                Suburb = "Coburg",
+            }
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
@@ -157,6 +189,8 @@ public sealed class JobsEndpointTests
         Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
         Assert.NotNull(job.JobNumber);
         Assert.True(job.JobTypes.Contains(JobTypeEnum.Construction));
+        Assert.NotNull(job.Address);
+        TestHelpers.AssertAddressAreSame(dto.Address, job.Address);
     }
     [Fact]
     public async Task Create_job_bad_request()
@@ -232,6 +266,15 @@ public sealed class JobsEndpointTests
         Assert.NotNull(updateJob);
         Assert.Equal("Updated Job Details", updateDto.Details);
         Assert.Equal([JobTypeEnum.Surveying], updateDto.JobTypes);
+
+        // Set the council Id to null
+        updateDto.CouncilId = null;
+        response = await _client.PutAsJsonAsync("/api/jobs", updateDto);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        updateJob = await response.Content.ReadFromJsonAsync<JobDetailsDto?>();
+        Assert.NotNull(updateJob);
+        Assert.Null(updateJob.CouncilId);
+        Assert.Null(updateJob.Council);
     }
 
     [Fact]
@@ -501,4 +544,5 @@ public sealed class JobsEndpointTests
         HttpResponseMessage response = await _client.PutAsJsonAsync($"/api/jobs/{nonexistentJobId}/files", fileDto);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
 }

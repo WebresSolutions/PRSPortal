@@ -451,14 +451,21 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
 
             if (data.CouncilId != job.CouncilId)
             {
-                Council? council = await _dbContext.Councils.FirstOrDefaultAsync(c => c.Id == data.CouncilId);
-                if (council is null)
-                    return result.SetError(ErrorType.BadRequest, "Invalid Contact Id");
+                if (data.CouncilId is null)
+                {
+                    job.Council = null;
+                    job.CouncilId = null;
+                }
+                else
+                {
+                    Council? council = await _dbContext.Councils.FirstOrDefaultAsync(c => c.Id == data.CouncilId);
+                    if (council is null)
+                        return result.SetError(ErrorType.BadRequest, "Invalid Contact Id");
 
-                job.CouncilId = data.CouncilId;
-                job.Council = council;
+                    job.CouncilId = data.CouncilId;
+                    job.Council = council;
+                }
             }
-
 
             if (job.Address is not null && data.Address is not null)
             {
