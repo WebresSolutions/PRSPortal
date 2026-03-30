@@ -113,6 +113,7 @@
     display: grid;
     grid-template-columns: 4fr 3fr;
     gap: 1rem;
+    max-height: 400px;
 }
 
 .other-content {
