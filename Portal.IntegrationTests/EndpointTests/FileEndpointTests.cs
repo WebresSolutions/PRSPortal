@@ -25,7 +25,8 @@ public sealed class FileEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for get file test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);

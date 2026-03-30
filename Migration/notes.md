@@ -18,3 +18,7 @@
 
 	docker pull mysql
 	docker run --name mysqldev -e MYSQL_ROOT_PASSWORD=145269 -p 3307:3306 -v mysqldev-data:/var/lib/mysql -d mysql
+	
+
+  docker pull mcr.microsoft.com/mssql/server:2022-latest
+  docker run --name mssqldev -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=abc145269!" -p 1444:1443 -v mssql-data:/var/opt/mssql -d mcr.microsoft.com/mssql/server:2022-latest

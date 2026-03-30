@@ -51,7 +51,8 @@ public sealed class TechnicalContactsEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for technical contact tests",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -85,7 +86,8 @@ public sealed class TechnicalContactsEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for update technical contact tests",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -149,7 +151,8 @@ public sealed class TechnicalContactsEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for invalid contact test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);

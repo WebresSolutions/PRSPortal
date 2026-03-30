@@ -6,6 +6,7 @@
 @using Portal.Shared.DTO.Contact
 @using Portal.Shared.DTO.Councils
 @using Portal.Shared.DTO.Job
+@using Portal.Shared.DTO.User
 @using Portal.Shared.DataEnums
 <PageTitle>Edit Job - PRS Portal</PageTitle>
 
@@ -73,7 +74,16 @@
                                         <small class="text-muted d-block mt-1">No statuses are configured for this job's type(s).</small>
                                     }
                                 </div>
-
+                                <div>
+                                    <label for="responsible-user">Responsible Team Member</label>
+                                    <MudSelect T="int?" MultiSelection="false" Variant="Variant.Outlined" Clearable="true"  
+                                               Value="_model.ResponsibleTeamMember" ValueChanged="@((x) => _model.ResponsibleTeamMember = x)" Placeholder="Select Responsible Team Member">
+                                        @foreach (UserDto user in _users)
+                                        {
+                                            <MudSelectItem T="int?" Value="@user.userId">@user.displayName</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                </div>
                                 <div>
                                     <label for="job-contact">Contact</label>
                                     <MudAutocomplete name="job-contact" T="ListContactDto" Value="_jobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"

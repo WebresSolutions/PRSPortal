@@ -7,6 +7,7 @@
 @using Portal.Shared.DTO.Address
 @using Portal.Shared.DTO.Contact
 @using Portal.Shared.DTO.Job
+@using Portal.Shared.DTO.User
 @using Portal.Shared.DataEnums
 @using Portal.Shared.Helpers
 
@@ -39,13 +40,7 @@
                         <div>
                             <h3 class="form-section-title border-bottom pb-2">Job Details</h3>
                             <div class="form-sections border-rad">
-                                <div>
-                                    <label for="job-details">Details</label>
-                                    <MudTextField name="job-details" @bind-Value="_model.Details" Variant="Variant.Outlined" Class="mb-3"
-                                                  For="@(() => _model.Details)" Counter="2000" Lines="3" />
-                                    <ValidationMessage For="@(() => _model.Details)" />
-                                </div>
-
+                               
                                 <div>
                                     <label for="job-type">Job Type</label>
                                     <MudSelect name="job-type" T="JobTypeEnum"
@@ -56,6 +51,16 @@
                                         <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
                                     </MudSelect>
                                     <ValidationMessage For="@(() => _model.JobType)" />
+                                </div>
+                                <div>
+                                    <label for="responsible-user">Responsible Team Member</label>
+                                    <MudSelect T="int?" MultiSelection="false" Variant="Variant.Outlined" Clearable="true"
+                                               @bind-Value="_model.ResponsibleTeamMember">
+                                        @foreach (UserDto user in _users)
+                                        {
+                                            <MudSelectItem T="int?" Value="@user.userId">@user.displayName</MudSelectItem>
+                                        }
+                                    </MudSelect>
                                 </div>
                                 <div>
                                     <label for="job-contact">Contact</label>
@@ -87,6 +92,12 @@
                                     <label for="job-colour">Colour</label>
                                     <MudNumericField name="job-colour" T="int?" @bind-Value="_model.JobColourId" Variant="Variant.Outlined" Min="1" Class="mb-3" Clearable="true" For="@(() => _model.JobColourId)" />
                                     <ValidationMessage For="@(() => _model.JobColourId)" />
+                                </div>
+                                <div>
+                                    <label for="job-details">Details</label>
+                                    <MudTextField name="job-details" @bind-Value="_model.Details" Variant="Variant.Outlined"
+                                                  For="@(() => _model.Details)" Counter="2000" Lines="3" />
+                                    <ValidationMessage For="@(() => _model.Details)" />
                                 </div>
 
                             </div>

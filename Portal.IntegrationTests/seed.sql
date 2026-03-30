@@ -11,11 +11,27 @@ VALUES (
     0
 );
 
+INSERT INTO app_user (
+    identity_id,
+    email,
+    display_name,
+    legacy_user_id
+)
+VALUES (
+    '550e8400-e29b-41d4-a716-446655440001',
+    'testuser2@example.com',
+    'Test User 2',
+    1
+);
+
 INSERT INTO timesheet_entry_type(name, description) VALUES ('Job', 'Job');
 INSERT INTO timesheet_entry_type(name, description) VALUES ('Regular', 'Regular work hours');
 
 INSERT INTO job_type(id, name, abbreviation) VALUES (1, 'Construction', 'CONSTRUCTION');
 INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
+
+INSERT INTO job_assignment_type(id, name, description) VALUES (1, 'Current Owner', 'The current owner of the job.');
+INSERT INTO job_assignment_type(id, name, description) VALUES (2, 'Responsible Team Member', 'Whom the job is currently assigned to.');
 
 INSERT INTO file_type(job_type_id, name, description) VALUES
     -- Construction job SharePoint folders (job_type.id = 1)
@@ -130,15 +146,6 @@ INSERT INTO job (contact_id, address_id, council_id, job_colour_id, invoice_numb
     VALUES (3, 3, 3, 1, 'INV-2026-003', 1003, 'Graffiti removal from heritage building facade', 1);
 INSERT INTO job (contact_id, address_id, council_id, job_colour_id, invoice_number, job_number, details, created_by_user_id)
     VALUES (1, 1, 1, 1, 'INV-2026-004', 1004, 'Follow-up inspection for site drainage', 1);
-
-INSERT INTO user_job (user_id, job_id, created_by_user_id)
-    VALUES (1, 1, 1);
-INSERT INTO user_job (user_id, job_id, created_by_user_id)
-    VALUES (1, 2, 1);
-INSERT INTO user_job (user_id, job_id, created_by_user_id)
-    VALUES (1, 3, 1);
-INSERT INTO user_job (user_id, job_id, created_by_user_id)
-    VALUES (1, 4, 1);
 
 INSERT INTO job_note (job_id, note, action_required, created_by_user_id)
     VALUES (1, 'Initial site inspection complete. Waiting on parts.', FALSE, 1);

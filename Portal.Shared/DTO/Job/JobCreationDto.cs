@@ -46,4 +46,7 @@ public class JobCreationDto
     /// </summary>
     [Range(1, int.MaxValue, ErrorMessage = "Job status ID must be at least 1")]
     public int StatusId { get; set; }
+
+
+    public int? ResponsibleTeamMember { get; set; }
 }

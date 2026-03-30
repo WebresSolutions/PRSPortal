@@ -5,6 +5,7 @@ using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Types;
+using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Pages.Job;
@@ -33,7 +34,7 @@ public partial class EditJob
 
     private readonly JobTypeEnum[] _jobtypes = [.. Enum.GetValues<JobTypeEnum>().Cast<int>().Select(x => (JobTypeEnum)x)];
     private List<JobTypeEnum> _selectedJobtypes = [];
-
+    private UserDto[] _users = [];
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -41,15 +42,13 @@ public partial class EditJob
         Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
         if (councilResult?.IsSuccess == true && councilResult.Value is not null)
             _councils = councilResult.Value;
-        if (_model is { Contact: not null })
-        {
-            _jobContact = new()
-            {
-                ContactId = _model.ContactId,
-                FullName = _model.Contact.ContactName,
-                Phone = _model.Contact.Phone
-            };
-        }
+
+        Result<UserDto[]> users = await _apiService.GetUsersList();
+        if (users.IsSuccess && users.Value is not null)
+            _users = users.Value;
+        else
+            _snackbar.Add(users.ErrorDescription ?? "Error occured while loading the users", Severity.Error);
+
     }
 
     private void OnSelect(IEnumerable<JobTypeEnum> jobTypes)
@@ -69,16 +68,32 @@ public partial class EditJob
                 {
                     JobId = result.Value.JobId,
                     Address = result.Value.Address,
-                    AssignedUsers = result.Value.AssignedUsers.ToList(),
                     ContactId = result.Value.ContactId,
                     CouncilId = result.Value.CouncilId,
                     Details = result.Value.Details,
                     JobColourId = result.Value.JobColourId,
                     JobStatusId = result.Value.JobStatusId,
                     JobTypes = result.Value.JobTypes,
+                    ResponsibleTeamMember = result.Value.AssignedUsers?.FirstOrDefault()?.UserId,
+                    Contact = result.Value.PrimaryContact is not null ? new()
+                    {
+                        ContactId = result.Value.PrimaryContact.ContactId,
+                        ContactName = result.Value.PrimaryContact.ContactName,
+                        Phone = result.Value.PrimaryContact.Phone ?? "",
+                        Email = result.Value.PrimaryContact.Email,
+                    } : new()
                 };
                 _selectedJobtypes = [.. _model.JobTypes];
                 _JobTypeStatusDtos = result.Value.JobTypeStatuses;
+                if (_model is { Contact: not null })
+                {
+                    _jobContact = new()
+                    {
+                        ContactId = _model.ContactId,
+                        FullName = _model.Contact.ContactName,
+                        Phone = _model.Contact.Phone
+                    };
+                }
             }
             else
             {

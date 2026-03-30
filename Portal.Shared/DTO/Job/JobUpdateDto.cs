@@ -1,6 +1,5 @@
 ﻿using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Address;
-using Portal.Shared.DTO.User;
 using System.ComponentModel.DataAnnotations;
 
 namespace Portal.Shared.DTO.Job;
@@ -43,13 +42,9 @@ public class JobUpdateDto
     [Range(1, int.MaxValue, ErrorMessage = "Council ID must be positive when provided")]
     public int? CouncilId { get; set; }
     /// <summary>
-    /// Holds the list of assigned users and their assignement type. 
-    /// Responsible or Current Owner 
-    /// </summary>
-    [MinLength(1)]
-    public List<UserAssignmentDto> AssignedUsers { get; set; } = [];
-    /// <summary>
     /// Gets the details of a contact just to not reget them from the api
     /// </summary>
     public JobContactDto Contact { get; set; } = null!;
+
+    public int? ResponsibleTeamMember { get; set; }
 }

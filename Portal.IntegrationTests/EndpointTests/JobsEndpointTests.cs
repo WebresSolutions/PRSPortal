@@ -40,7 +40,8 @@ public sealed class JobsEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for contact filter test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -68,7 +69,8 @@ public sealed class JobsEndpointTests
             ContactId = 1,
             CouncilId = 1,
             Details = "Job for council filter test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -96,7 +98,8 @@ public sealed class JobsEndpointTests
             ContactId = 1,
             CouncilId = 1,
             Details = "Job for combined filter test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -136,7 +139,8 @@ public sealed class JobsEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
@@ -190,7 +194,9 @@ public sealed class JobsEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2,
+            Address = new() { AddressId = 1 }
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
@@ -208,14 +214,24 @@ public sealed class JobsEndpointTests
         Assert.NotNull(job.JobNumber);
         Assert.True(job.JobTypes.Contains(JobTypeEnum.Construction));
 
-        job.Details = "Updated Job Details";
-        job.JobTypes = [JobTypeEnum.Surveying];
-        response = await _client.PutAsJsonAsync("/api/jobs", job);
+        JobUpdateDto updateDto = new()
+        {
+            JobId = job.JobId,
+            Address = job.Address,
+            ContactId = job.ContactId,
+            JobTypes = [JobTypeEnum.Surveying],
+            JobColourId = job.JobColourId,
+            JobStatusId = job.JobStatusId,
+            Details = "Updated Job Details",
+            CouncilId = job.CouncilId,
+            ResponsibleTeamMember = 1
+        };
+        response = await _client.PutAsJsonAsync("/api/jobs", updateDto);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         JobDetailsDto? updateJob = await response.Content.ReadFromJsonAsync<JobDetailsDto?>();
         Assert.NotNull(updateJob);
-        Assert.Equal(job.Details, updateJob.Details);
-        Assert.Equal(job.JobTypes, updateJob.JobTypes);
+        Assert.Equal("Updated Job Details", updateDto.Details);
+        Assert.Equal([JobTypeEnum.Surveying], updateDto.JobTypes);
     }
 
     [Fact]
@@ -226,7 +242,8 @@ public sealed class JobsEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
@@ -273,7 +290,8 @@ public sealed class JobsEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for note tests",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -311,7 +329,8 @@ public sealed class JobsEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for update note tests",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -366,7 +385,8 @@ public sealed class JobsEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for update note tests",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -402,7 +422,8 @@ public sealed class JobsEndpointTests
             JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for file attachment test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);

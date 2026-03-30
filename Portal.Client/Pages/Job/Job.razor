@@ -126,26 +126,7 @@ else
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if (_dummyData.Invoices.Count == 0)
-                                    {
-                                        <tr>
-                                            <td colspan="5" class="empty-state">No records</td>
-                                        </tr>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var invoice in _dummyData.Invoices)
-                                        {
-                                            <tr>
-                                                <td>@invoice.Number</td>
-                                                <td>@invoice.Contact</td>
-                                                <td>@invoice.TotalPrice</td>
-                                                <td>@invoice.CreatedDate</td>
-                                                <td>
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
+
                                 </tbody>
                             </table>
                         </ChildContent>
@@ -174,77 +155,7 @@ else
                     </div>
                 </div>
                 <!-- Tasks -->
-                @* <Card HeaderTitle="Tasks" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Active, TabTypeEnum.ToInvoice, TabTypeEnum.Deleted]">
-                        <ChildContent>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Task</th>
-                                        <th>Quoted Price</th>
-                                        <th>Active Date</th>
-                                        <th>Completed Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if (_job.Tasks.Count == 0)
-                                    {
-                                        <tr>
-                                            <td colspan="5" class="empty-state">No records</td>
-                                        </tr>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var task in _job.Tasks)
-                                        {
-                                            <tr>
-                                                <td>@task.InvoiceRequired</td>
-                                                <td>@(task.QuotedPrice is null ? "" : task.QuotedPrice.Value)</td>
-                                                <td>@task.ActiveDate.ToString("dd/MM/yyyy")</td>
-                                                <td>@task.CompletedDate.ToString("dd/MM/yyyy")</td>
-                                                <td>
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
-                                </tbody>
-                            </table>
-                        </ChildContent>
-                    </Card>
- *@
 
-
-                @*  <!-- Checklist -->
-                    <Card Title="Checklist">
-                        <ChildContent>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Item</th>
-                                        <th>Site Work</th>
-                                        <th>Checked</th>
-                                        <th>Sent</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in _dummyData.ChecklistItems)
-                                    {
-                                        <tr>
-                                            <td>@item.Name</td>
-                                            <td>
-                                                <select class="select-small">
-                                                    <option>Not Completed</option>
-                                                    <option>Completed</option>
-                                                </select>
-                                            </td>
-                                            <td><input type="checkbox" checked="@item.Checked" /></td>
-                                            <td><input type="checkbox" checked="@item.Sent" /></td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </ChildContent>
-                    </Card> *@
 
                 <!-- Recent Activity -->
 
