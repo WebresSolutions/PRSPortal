@@ -41,7 +41,7 @@
                             <div class="form-sections border-rad border-grey">
                                 <div>
                                     <label for="job-type">Job Type</label>
-                                    <MudSelect name="job-type" T="JobTypeEnum" 
+                                    <MudSelect name="job-type" T="JobTypeEnum"
                                                SelectedValues="_selectedJobtypes"
                                                SelectedValuesChanged="OnSelect"
                                                Variant="Variant.Outlined" Class=""
@@ -76,7 +76,7 @@
                                 </div>
                                 <div>
                                     <label for="responsible-user">Responsible Team Member</label>
-                                    <MudSelect T="int?" MultiSelection="false" Variant="Variant.Outlined" Clearable="true"  
+                                    <MudSelect T="int?" MultiSelection="false" Variant="Variant.Outlined" Clearable="true"
                                                Value="_model.ResponsibleTeamMember" ValueChanged="@((x) => _model.ResponsibleTeamMember = x)" Placeholder="Select Responsible Team Member">
                                         @foreach (UserDto user in _users)
                                         {
@@ -98,7 +98,6 @@
                                     </MudAutocomplete>
                                     <ValidationMessage For="@(() => _model.ContactId)" />
                                 </div>
-
                                 <div>
                                     <label for="job-council">Council</label>
                                     <MudSelect name="job-council" T="int?" @bind-Value="_model.CouncilId" Variant="Variant.Outlined" Clearable="true" Class="" For="@(() => _model.CouncilId)">
@@ -114,7 +113,27 @@
                                     <MudNumericField name="job-colour-id" T="int?" @bind-Value="_model.JobColourId" Variant="Variant.Outlined" Min="1" Class="" Clearable="true" For="@(() => _model.JobColourId)" />
                                     <ValidationMessage For="@(() => _model.JobColourId)" />
                                 </div>
-
+                                <div>
+                                    <label for="target-delivery-date">Target Delivery Date</label>
+                                    <MudDatePicker
+                                                   Editable="true"
+                                                   @bind-Date="_model.TargetDeliveryDate"
+                                                   Placeholder="Select Date"
+                                                   DateFormat="dd/MM/yyyy"
+                                                   Clearable="true"
+                                                   Variant="Variant.Outlined" />
+                                </div>
+                                <div>
+                                    <label for="latest-client-update">Latest Client Update</label>
+                                    <MudDatePicker
+                                                   Editable="true"
+                                                   @bind-Date="_model.LatestClientUpdate"
+                                                   Placeholder="Select Date"
+                                                   DateFormat="dd/MM/yyyy"
+                                                   Clearable="true"
+                                                   Variant="Variant.Outlined" />
+                                    <ValidationMessage For="@(() => _model.LatestClientUpdate)" />
+                                </div>
                                 <div>
                                     <label for="details">Details</label>
                                     <MudTextField name="details" @bind-Value="_model.Details" Variant="Variant.Outlined" Class=""

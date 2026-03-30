@@ -147,7 +147,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     ? new JobColourDto(x.JobColourId!.Value, x.JobColour.Color)
                     : null,
                 JobColourId = x.JobColourId,
-                Details = x.Details,
+                Description = x.Details,
                 PrimaryContact = x.Contact != null
                     ? new JobContactDto(
                         x.ContactId,
@@ -170,6 +170,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 DateCreated = x.CreatedOn,
                 DateModified = x.ModifiedOn,
                 CreatedBy = x.CreatedByUser.DisplayName,
+                TargetDeliveryDate = x.TargetDeliveryDate,
+                LatestClientUpdate = x.LatestClientUpdate,
                 JobFiles = x.JobFiles.Select(jf => new FileDto
                 {
                     JobId = x.Id,
@@ -188,6 +190,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     .Select(ju => new UserAssignmentDto(ju.User.DisplayName, ju.UserId, jobId, (JobAssignementTypeEnum)ju.AssignmentTypeId))
                     .ToArray(),
                 JobHistoryDtos = x.JobStatusHistories
+                    .OrderByDescending(x => x.DateChanged)
                     .Select(jh => new JobHistoryDto(
                         jobId,
                         new JobTypeStatusDto(jh.StatusIdNew, jh.JobId, jh.StatusIdNewNavigation.Name, 0, jh.StatusIdNewNavigation.Colour, true),
@@ -204,6 +207,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         IQueryable<JobSiteVisitsDto> query = _dbContext.Schedules
             .AsNoTracking()
             .AsSplitQuery()
+            .OrderByDescending(x => x.StartTime)
             .Where(s => s.JobId == jobId)
             .Select(s => new JobSiteVisitsDto
             {
@@ -216,8 +220,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 End = s.EndTime,
                 Category = s.ScheduleTrack.JobType.Name,
                 Notes = s.Notes ?? string.Empty
-            })
-            .OrderByDescending(x => x.Start);
+            });
         job.SiteVisits = await query.ToArrayAsync();
 
         job.Tasks = await _dbContext.JobTasks
@@ -255,7 +258,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         Result<int> result = new();
         try
         {
-            // Validation 
+            // Validation
             if (await _dbContext.Contacts.FirstOrDefaultAsync(x => x.Id == data.ContactId) is null)
                 return result.SetError(ErrorType.BadRequest, "Invalid contact id supplied.");
 
@@ -271,6 +274,13 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             if (!await JobAssignmentLookupIsCompleteAsync())
                 return result.SetError(ErrorType.BadRequest, "Job assignment types are missing. Seed job_assignment_type with ids 1 (Current Owner) and 2 (Responsible Team Member).");
 
+            DateTime now = DateTime.UtcNow;
+            DateTime? targetDeliveryDate = data.TargetDeliveryDate is not null ? DateTime.SpecifyKind(data.TargetDeliveryDate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
+            DateTime? latestClientUpdate = data.LatestClientUpdate is not null ? DateTime.SpecifyKind(data.LatestClientUpdate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
+
+            if (targetDeliveryDate is not null && targetDeliveryDate < now)
+                return result.SetError(ErrorType.BadRequest, "Target delivery date cannot be in the past.");
+
             JobType? construction = await _dbContext.JobTypes.FindAsync(1);
             JobType? survey = await _dbContext.JobTypes.FindAsync(2);
 
@@ -280,7 +290,6 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             if (await _dbContext.JobStatuses.FindAsync(data.StatusId) is not JobStatus status)
                 return result.SetError(ErrorType.BadRequest, "Invalid job status.");
 
-            DateTime now = DateTime.UtcNow;
 
             string jobNumber = await CreateJobNumber();
             Job job = new()
@@ -294,6 +303,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 JobNumber = jobNumber,
                 StatusId = data.StatusId,
                 Status = status,
+                TargetDeliveryDate = targetDeliveryDate,
+                LatestClientUpdate = latestClientUpdate
             };
 
             if (data.Address is not null)
@@ -336,14 +347,14 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             await _dbContext.Jobs.AddAsync(job);
             await _dbContext.SaveChangesAsync();
 
-            // Add the job types 
+            // Add the job types
             foreach (JobTypeEnum typeEnum in data.JobType.Distinct())
             {
                 JobType type = typeEnum is JobTypeEnum.Construction ? construction : survey;
                 job.JobTypes.Add(type);
             }
 
-            // Add the Job Users 
+            // Add the Job Users
             if (data.ResponsibleTeamMember is not null)
             {
                 JobUser[] jobUsers = [
@@ -392,16 +403,26 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             if (data.JobTypes.Length < 1)
                 return result.SetError(ErrorType.BadRequest, "The job must contain at least one job type");
 
-            if (!await _dbContext.AppUsers.AnyAsync(a => a.Id == data.ResponsibleTeamMember))
+            if (data.ResponsibleTeamMember is not null && !await _dbContext.AppUsers.AnyAsync(a => a.Id == data.ResponsibleTeamMember))
                 return result.SetError(ErrorType.BadRequest, "Invalid user Id provided");
 
             if (!await JobAssignmentLookupIsCompleteAsync())
                 return result.SetError(ErrorType.BadRequest, "Job assignment types are missing. Seed job_assignment_type with ids 1 (Current Owner) and 2 (Responsible Team Member).");
 
             DateTime now = DateTime.UtcNow;
+
+            DateTime? targetDeliveryDate = data.TargetDeliveryDate is not null ? DateTime.SpecifyKind(data.TargetDeliveryDate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
+            DateTime? latestClientUpdate = data.LatestClientUpdate is not null ? DateTime.SpecifyKind(data.LatestClientUpdate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
+
+            if (targetDeliveryDate is not null && targetDeliveryDate < now)
+                return result.SetError(ErrorType.BadRequest, "Target delivery date cannot be in the past.");
+
+            job.LatestClientUpdate = latestClientUpdate;
+            job.TargetDeliveryDate = targetDeliveryDate;
             job.JobColourId = data.JobColourId;
             job.ModifiedByUserId = httpContext.UserId();
             job.ModifiedOn = now;
+
             if (data.Details is not null && data.Details.Length > 4000)
                 job.Details = data.Details[..4000].Trim();
             else
@@ -683,7 +704,6 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
-
     /// <inheritdoc/>
     public async Task<Result<TechnicalContactDto[]>> GetTechnicalContacts(int? jobId, int? contactId, bool showDeleted = false)
     {
@@ -826,6 +846,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
+    #region Private Methods
     /// <summary>
     /// Allocates the next job number for the current calendar year (UTC), format <c>{yyyy}{sequence}</c>
     /// (e.g. <c>2025001</c>, <c>2025123</c>). Only non-deleted jobs whose number starts with that year
@@ -909,5 +930,5 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
         return true;
     }
-
+    #endregion
 }

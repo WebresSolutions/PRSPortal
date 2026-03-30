@@ -1,6 +1,7 @@
 ﻿using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Address;
 using System.ComponentModel.DataAnnotations;
+using static Portal.Shared.ValidationAttributes;
 
 namespace Portal.Shared.DTO.Job;
 
@@ -46,5 +47,19 @@ public class JobUpdateDto
     /// </summary>
     public JobContactDto Contact { get; set; } = null!;
 
+    /// <summary>
+    /// The userId currently responsible for the job
+    /// </summary>
     public int? ResponsibleTeamMember { get; set; }
+
+    /// <summary>
+    /// The target delivery date
+    /// </summary>
+    [DateGreaterThanOrEqualToToday]
+    public DateTime? TargetDeliveryDate { get; set; }
+
+    /// <summary>
+    /// When the client was last udpated
+    /// </summary>
+    public DateTime? LatestClientUpdate { get; set; }
 }

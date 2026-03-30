@@ -1,6 +1,7 @@
 using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Address;
 using System.ComponentModel.DataAnnotations;
+using static Portal.Shared.ValidationAttributes;
 
 namespace Portal.Shared.DTO.Job;
 
@@ -22,6 +23,17 @@ public class JobCreationDto
     /// The address details for the job. This is optional and can be null if not provided.
     /// </summary>
     public AddressDTO? Address { get; set; }
+
+    /// <summary>
+    /// The target delivery date
+    /// </summary>
+    [DateGreaterThanOrEqualToToday]
+    public DateTime? TargetDeliveryDate { get; set; }
+
+    /// <summary>
+    /// When the client was last udpated
+    /// </summary>
+    public DateTime? LatestClientUpdate { get; set; }
 
     /// <summary>
     /// The Council Id

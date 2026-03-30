@@ -17,24 +17,23 @@ public partial class EditJob
     /// </summary>
     [Parameter]
     public int JobId { get; set; }
-    /// <summary>
-    /// The model
-    /// </summary>
+
+    #region  Private Fields
     private JobUpdateDto? _model;
-    /// <summary>
-    /// The List of job contacts
-    /// </summary>
     private ListContactDto? _jobContact;
-    /// <summary>
-    /// List of councils
-    /// </summary>
     private CouncilPartialDto[] _councils = [];
-
     private JobTypeStatusDto[] _JobTypeStatusDtos = [];
-
     private readonly JobTypeEnum[] _jobtypes = [.. Enum.GetValues<JobTypeEnum>().Cast<int>().Select(x => (JobTypeEnum)x)];
     private List<JobTypeEnum> _selectedJobtypes = [];
     private UserDto[] _users = [];
+    #endregion
+
+    /// <summary>
+    /// OnInitializedAsync is called when the component is initialized. 
+    /// It loads the job data and related data such as councils and users. 
+    /// It also handles any errors that occur during loading and displays appropriate messages to the user.
+    /// </summary>
+    /// <returns></returns>
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -51,11 +50,17 @@ public partial class EditJob
 
     }
 
-    private void OnSelect(IEnumerable<JobTypeEnum> jobTypes)
-    {
-        _selectedJobtypes = jobTypes?.ToList() ?? [];
-    }
+    /// <summary>
+    /// Sets the selected job types when the user selects them from the multi select component. 
+    /// This is used to update the model before submitting the form
+    /// </summary>
+    /// <param name="jobTypes"></param>
+    private void OnSelect(IEnumerable<JobTypeEnum> jobTypes) => _selectedJobtypes = jobTypes?.ToList() ?? [];
 
+    /// <summary>
+    /// Loads the job data for the given JobId and populates the model and related properties. Displays error messages if loading fails
+    /// </summary>
+    /// <returns></returns>
     private async Task LoadJobData()
     {
         IsLoading = true;
@@ -70,7 +75,7 @@ public partial class EditJob
                     Address = result.Value.Address,
                     ContactId = result.Value.ContactId,
                     CouncilId = result.Value.CouncilId,
-                    Details = result.Value.Details,
+                    Details = result.Value.Description,
                     JobColourId = result.Value.JobColourId,
                     JobStatusId = result.Value.JobStatusId,
                     JobTypes = result.Value.JobTypes,
@@ -81,7 +86,9 @@ public partial class EditJob
                         ContactName = result.Value.PrimaryContact.ContactName,
                         Phone = result.Value.PrimaryContact.Phone ?? "",
                         Email = result.Value.PrimaryContact.Email,
-                    } : new()
+                    } : new(),
+                    LatestClientUpdate = result.Value.LatestClientUpdate,
+                    TargetDeliveryDate = result.Value.TargetDeliveryDate,
                 };
                 _selectedJobtypes = [.. _model.JobTypes];
                 _JobTypeStatusDtos = result.Value.JobTypeStatuses;
@@ -110,6 +117,12 @@ public partial class EditJob
         }
     }
 
+    /// <summary>
+    /// Submits the form to update the job. 
+    /// It validates the form data, updates the model with selected job types, and calls the API to update the job.
+    ///  Displays success or error messages based on the result of the API call.
+    /// </summary>
+    /// <returns></returns>
     private async Task SubmitAsync()
     {
         try
@@ -120,6 +133,12 @@ public partial class EditJob
             if (_model.JobTypes.Length < 1)
             {
                 _snackbar.Add("Must Select at least on Job Type");
+                return;
+            }
+
+            if (_model.TargetDeliveryDate is not null && _model.TargetDeliveryDate < DateTime.Today)
+            {
+                _snackbar.Add("Target Delivery Date cannot be in the past", Severity.Error);
                 return;
             }
 

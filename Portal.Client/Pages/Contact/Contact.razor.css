@@ -88,7 +88,7 @@
 
 @media (max-width: 1650px) {
     .main-grid {
-        grid-template-columns: 250px 1fr;
+        grid-template-columns: 3000px 1fr;
     }
 
         .main-grid > *:nth-child(2),
@@ -158,13 +158,14 @@
 
 .info-row {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
     padding: 0.5rem 0;
     border-bottom: 1px solid #f1f5f9;
 }
 
 .info-label {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     color: #64748b;
 }
 
@@ -172,7 +173,7 @@
     font-size: 0.85rem;
     color: #1e293b;
     font-weight: 600;
-    text-align: right;
+    text-align: left;
 }
 
     .info-value a {

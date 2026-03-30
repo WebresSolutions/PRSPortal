@@ -29,7 +29,7 @@ public class JobDetailsDto
     /// Details about the job, such as scope, requirements, or any relevant information that provides context for the job.
     /// </summary>
     [MaxLength(2000, ErrorMessage = "Details cannot exceed 2000 characters")]
-    public string? Details { get; set; }
+    public string? Description { get; set; }
     /// <summary>
     /// Gets or sets the type of job to be processed.
     /// </summary>
@@ -44,6 +44,15 @@ public class JobDetailsDto
     /// Gets or sets the date and time when the entity was created.
     /// </summary>
     public DateTime DateCreated { get; set; }
+    /// <summary>
+    /// The target delivery date
+    /// </summary>
+    public DateTime? TargetDeliveryDate { get; set; }
+
+    /// <summary>
+    /// When the client was last udpated
+    /// </summary>
+    public DateTime? LatestClientUpdate { get; set; }
     /// <summary>
     /// Last Modified Date
     /// </summary>

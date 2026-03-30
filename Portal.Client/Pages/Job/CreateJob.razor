@@ -94,6 +94,16 @@
                                     <ValidationMessage For="@(() => _model.JobColourId)" />
                                 </div>
                                 <div>
+                                    <label for="target-delivery-date">Target Delivery Date</label>
+                                    <MudDatePicker name="target-delivery-date" Clearable=true @bind-Value="_model.TargetDeliveryDate" Variant="Variant.Outlined" Class="" For="@(() => _model.TargetDeliveryDate)" />
+                                    <ValidationMessage For="@(() => _model.TargetDeliveryDate)" />
+                                </div>    
+                                <div>
+                                    <label for="latest-client-update">Latest Client Update</label>
+                                    <MudDatePicker name="latest-client-update" Clearable=true @bind-Value="_model.LatestClientUpdate" Variant="Variant.Outlined" Class="" For="@(() => _model.LatestClientUpdate)" />
+                                    <ValidationMessage For="@(() => _model.LatestClientUpdate)" />
+                                </div>
+                                <div>
                                     <label for="job-details">Details</label>
                                     <MudTextField name="job-details" @bind-Value="_model.Details" Variant="Variant.Outlined"
                                                   For="@(() => _model.Details)" Counter="2000" Lines="3" />

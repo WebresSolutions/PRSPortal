@@ -153,7 +153,7 @@ public sealed class JobsEndpointTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
         Assert.NotNull(job);
-        Assert.Equal(dto.Details, job.Details);
+        Assert.Equal(dto.Details, job.Description);
         Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
         Assert.NotNull(job.JobNumber);
         Assert.True(job.JobTypes.Contains(JobTypeEnum.Construction));
@@ -209,7 +209,7 @@ public sealed class JobsEndpointTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
         Assert.NotNull(job);
-        Assert.Equal(dto.Details, job.Details);
+        Assert.Equal(dto.Details, job.Description);
         Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
         Assert.NotNull(job.JobNumber);
         Assert.True(job.JobTypes.Contains(JobTypeEnum.Construction));
@@ -256,12 +256,12 @@ public sealed class JobsEndpointTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
         Assert.NotNull(job);
-        Assert.Equal(dto.Details, job.Details);
+        Assert.Equal(dto.Details, job.Description);
         Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
         Assert.NotNull(job.JobNumber);
         Assert.True(job.JobTypes.Contains(JobTypeEnum.Construction));
 
-        job.Details = "Updated Job Details";
+        job.Description = "Updated Job Details";
         job.JobTypes = [JobTypeEnum.Surveying];
         response = await _client.DeleteAsync($"/api/jobs/{job.JobId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

@@ -104,6 +104,22 @@ else
                         </div>
                     </ChildContent>
                 </Card>
+                <Card Title="History">
+                    <ChildContent>
+                        <div class="activity-list" style="max-height: 500px; overflow: scroll;">
+                            @foreach (JobHistoryDto history in _job.JobHistoryDtos)
+                            {
+                                <div class="activity-item border-grey d-flex flex-row justify-content-between">
+                                    <div>
+                                        <div class="activity-title">@history.DateChanged.ToLocalDateTimeString()</div>
+                                        <div class="activity-time">@history.ModifiedByUserName</div>
+                                    </div>
+                                    <div class="p-2 border-rad text-center" style="background-color: @history.Status.Colour; color: white;">@history.Status.Name</div>
+                                </div>
+                            }
+                        </div>
+                    </ChildContent>
+                </Card>
             </div>
 
             <div class="main-content">
@@ -126,7 +142,6 @@ else
                                     </tr>
                                 </thead>
                                 <tbody>
-
                                 </tbody>
                             </table>
                         </ChildContent>
@@ -142,6 +157,14 @@ else
                             <ChildContent>
                                 <div class="activity-list">
                                     <div class="activity-item border-grey">
+                                        <div class="activity-title">Created On</div>
+                                        <div class="activity-time">@_job.DateCreated.ToLocalDateTimeString()</div>
+                                    </div>
+                                    <div class="activity-item border-grey">
+                                        <div class="activity-title">Created By</div>
+                                        <div class="activity-time">@_job.CreatedBy</div>
+                                    </div>
+                                    <div class="activity-item border-grey">
                                         <div class="activity-title">Last Modified</div>
                                         <div class="activity-time">@_job.LastModified?.ModifiedOn.ToLocalDateTimeString()</div>
                                     </div>
@@ -155,8 +178,6 @@ else
                     </div>
                 </div>
                 <!-- Tasks -->
-
-
                 <!-- Recent Activity -->
 
             </div>
