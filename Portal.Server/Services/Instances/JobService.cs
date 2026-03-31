@@ -86,7 +86,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 _ => query.OrderByDescending(x => x.Id)
             };
 
-            int total = await query.CountAsync(); // Note: Count the union-ed set
+            int total = await query.CountAsync();
             int skipValue = (filter.Page - 1) * filter.PageSize;
 
             IQueryable<ListJobDto> jobs = query
@@ -94,11 +94,12 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 .Take(filter.PageSize)
                 .Select(x => new ListJobDto(
                     x.Id,
-                    new AddressDTO(x.AddressId ?? 1, (StateEnum)x.Address!.StateId!, x.Address.StateId ?? 3, x.Address.Suburb, x.Address.Street, x.Address.PostCode),
+                    new AddressDto(x.AddressId ?? 1, (StateEnum)x.Address!.StateId!, x.Address.StateId ?? 3, x.Address.Suburb, x.Address.Street, x.Address.PostCode),
                     x.Contact != null ? new ContactDto(x.ContactId, x.Contact.FullName) : null,
                     x.Contact != null && x.Contact.ParentContact != null ? new ContactDto(x.Contact.ParentContactId ?? 0, x.Contact.ParentContact!.FullName) : null,
                     x.JobNumber,
-                    x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray()
+                    x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray(),
+                    x.Status != null ? new JobTypeStatusDto(x.Status.Id, x.Status.JobTypeId, x.Status.Name, x.Status.Sequence, x.Status.Colour, x.Status.IsActive) : null
                 ));
             // Materialize the query
             List<ListJobDto> jobsList = await jobs.ToListAsync();
@@ -132,7 +133,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 JobStatusName = x.Status != null ? x.Status.Name : null,
                 JobNumber = x.JobNumber,
                 JobTypes = x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray(),
-                Address = x.Address != null ? new AddressDTO(
+                Address = x.Address != null ? new AddressDto(
                     x.AddressId ?? 1,
                     (StateEnum)x.Address!.StateId!,
                     x.Address.StateId ?? 3,
@@ -527,17 +528,14 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     int? previousStatusId = job.StatusId;
                     job.StatusId = newId;
 
-                    if (previousStatusId is not null && previousStatusId.Value != newId)
+                    await _dbContext.JobStatusHistories.AddAsync(new JobStatusHistory
                     {
-                        await _dbContext.JobStatusHistories.AddAsync(new JobStatusHistory
-                        {
-                            JobId = job.Id,
-                            StatusIdOld = previousStatusId.Value,
-                            StatusIdNew = newId,
-                            DateChanged = now,
-                            ModifiedByUserId = httpContext.UserId()
-                        });
-                    }
+                        JobId = job.Id,
+                        StatusIdOld = previousStatusId is null ? newId : previousStatusId.Value,
+                        StatusIdNew = newId,
+                        DateChanged = now,
+                        ModifiedByUserId = httpContext.UserId()
+                    });
                 }
             }
 

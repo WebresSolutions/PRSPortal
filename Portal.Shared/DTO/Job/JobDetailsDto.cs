@@ -102,7 +102,7 @@ public class JobDetailsDto
     /// <summary>
     /// The address dto
     /// </summary>
-    public AddressDTO? Address { get; set; }
+    public AddressDto? Address { get; set; }
     /// <summary>
     /// Gets or sets the colour information associated with the job.
     /// </summary>

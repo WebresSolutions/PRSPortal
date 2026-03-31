@@ -15,9 +15,9 @@ public static class DateTimeBuilder
         return $"{h - 12}pm";
     }
 
-    public static string ToLocalDateTimeString(this DateTime dateTime) 
+    public static string ToLocalDateTimeString(this DateTime dateTime)
         => dateTime.ToLocalTime().ToString("g", CultureInfo.CreateSpecificCulture("en-AU"));
 
-    public static string ToLocalDateOnlyString(this DateTime dateTime) 
-        => dateTime.ToLocalTime().ToString("dd MM yyyy");
+    public static string ToLocalDateOnlyString(this DateTime dateTime)
+        => dateTime.ToLocalTime().ToString("dd/MM/yyyy");
 }

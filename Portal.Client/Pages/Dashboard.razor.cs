@@ -6,6 +6,9 @@ namespace Portal.Client.Pages;
 
 public partial class Dashboard
 {
+    private static int _colspan = 4;
+    private static int _rowspan = 4;
+
     private readonly Dictionary<string, GridItem> Components = new()
     {
         {
@@ -15,8 +18,8 @@ public partial class Dashboard
                 ItemId = "UserDetails",
                 X = 5,
                 Y = 4,
-                ColSpan = 5,
-                RowSpan = 5,
+                ColSpan = _colspan,
+                RowSpan = _rowspan,
                 Content = builder =>
                 {
                     builder.OpenComponent<UserDetailsComponent>(0);
@@ -30,8 +33,8 @@ public partial class Dashboard
             {
                 X = 5,
                 Y = 0,
-                RowSpan  = 4,
-                ColSpan = 5,
+                RowSpan  = _colspan,
+                ColSpan = _rowspan,
                 ItemId = "SystemSettings",
                 Content = builder =>
                 {
@@ -47,8 +50,8 @@ public partial class Dashboard
                 ItemId = "UserNotes",
                 Y = 0,
                 X= 0,
-                ColSpan = 5,
-                RowSpan = 6,
+                ColSpan = _colspan,
+                RowSpan = _rowspan,
                 Content = builder =>
                 {
                     builder.OpenComponent<UserNotes>(0);

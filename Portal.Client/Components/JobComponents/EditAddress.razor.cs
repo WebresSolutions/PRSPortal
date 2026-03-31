@@ -9,7 +9,7 @@ namespace Portal.Client.Components.JobComponents;
 public partial class EditAddress : IDisposable
 {
     [Parameter]
-    public required AddressDTO Address { get; set; }
+    public required AddressDto Address { get; set; }
 
     /// <summary>
     /// the list of active markers on the map

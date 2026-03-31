@@ -5,7 +5,7 @@ using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 
-namespace Portal.Server.Controllers;
+namespace Portal.Server.Endpoints;
 
 public static class UserEndpoints
 {
@@ -45,6 +45,19 @@ public static class UserEndpoints
         .WithSummary("Get notes for user's assigned jobs")
         .WithDescription("Returns notes for all jobs assigned to the specified user. Use includeDeleted query parameter to include soft-deleted notes.")
         .Produces<List<JobNoteDto>>();
+
+        userEndpointGroup.MapGet("jobs/{userId}", async (
+            [FromServices] IUserService userService,
+            [FromRoute] int userId,
+            HttpContext httpContext
+            ) =>
+        {
+            Result<UserJobsListDto> res = await userService.GetUserJobs(userId, httpContext);
+            return EndpointsHelper.ProcessResult(res, "An error occured getting the user jobs.");
+        })
+        .WithSummary("Gets all jobs to which the user is assigned.")
+        .WithDescription("Gets all jobs to which the user is assigned.")
+        .Produces<UserJobsListDto>();
 
         if (reqAuth)
             userEndpointGroup.RequireAuthorization();

@@ -9,6 +9,6 @@ public record CouncilDetailsDto(
     string? Fax,
     string Email,
     string Website,
-    AddressDTO? Address,
+    AddressDto? Address,
     int JobCount,
     int ContactCount);

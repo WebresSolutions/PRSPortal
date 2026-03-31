@@ -1067,6 +1067,36 @@ public class ApiService : IApiService
         return res;
     }
     /// <summary>
+    /// Gets all jobs assigned to the specified user.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    public async Task<Result<UserJobsListDto>> GetUserJobs(int userId)
+    {
+        Result<UserJobsListDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/users/jobs/{userId}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                UserJobsListDto? dto = await response.Content.ReadFromJsonAsync<UserJobsListDto>();
+                if (dto is not null)
+                    res.Value = dto;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get user jobs";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+    /// <summary>
     /// Gets a list of users
     /// </summary>
     /// <returns>An array of users</returns>

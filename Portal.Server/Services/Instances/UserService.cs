@@ -3,7 +3,11 @@ using Portal.Data;
 using Portal.Data.Models;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
+using Portal.Shared;
+using Portal.Shared.DataEnums;
+using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Job;
+using Portal.Shared.DTO.Types;
 using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 
@@ -11,11 +15,7 @@ namespace Portal.Server.Services.Instances;
 
 public class UserService(PrsDbContext _dbContext, IXeroIntegrationService _xeroIntegrationService, ILogger<UserService> _logger) : IUserService
 {
-    /// <summary>
-    /// Gets all users
-    /// </summary>
-    /// <param name="activeOnly">Flag if only getting the active users</param>
-    /// <returns>A collection of User DTOs</returns>
+    /// <inheritdoc/>
     public async Task<Result<UserDto[]>> GetUsersWithLeave(bool activeOnly = true)
     {
         Result<UserDto[]> res = new();
@@ -36,6 +36,7 @@ public class UserService(PrsDbContext _dbContext, IXeroIntegrationService _xeroI
         }
     }
 
+    /// <inheritdoc/>
     public async Task<Result<UserDto[]>> GetUsers(bool activeOnly = true)
     {
         Result<UserDto[]> res = new();
@@ -56,17 +57,7 @@ public class UserService(PrsDbContext _dbContext, IXeroIntegrationService _xeroI
         }
     }
 
-    /// <summary>
-    /// Retrieves the list of job notes assigned to a specified user.
-    /// </summary>
-    /// <param name="httpContext">The HTTP context containing user information. Used to determine the user if <paramref name="userId"/> is 0.</param>
-    /// <param name="userId">The identifier of the user whose assigned job notes are to be retrieved. If 0, the user ID is obtained from the
-    /// HTTP context.</param>
-    /// <param name="includeDeleted">A value indicating whether to include deleted job notes in the result. If <see langword="true"/>, deleted notes
-    /// are included; otherwise, only active notes are returned.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="Result{T}"/> with a
-    /// list of <see cref="JobNoteDto"/> objects assigned to the specified user. If no notes are found, the list is
-    /// empty.</returns>
+    /// <inheritdoc/>
     public async Task<Result<List<JobNoteDto>>> GetUserAssignedJobsNotes(HttpContext httpContext, int userId, bool deleted = false, bool? actionRequired = null)
     {
         Result<List<JobNoteDto>> result = new();
@@ -109,6 +100,39 @@ public class UserService(PrsDbContext _dbContext, IXeroIntegrationService _xeroI
         {
             _logger.LogError(ex, "Failed to get user assigned job notes");
             return result.SetError(ErrorType.InternalError, "Failed to get user assigned job notes");
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<Result<UserJobsListDto>> GetUserJobs(int userId, HttpContext httpContext)
+    {
+        Result<UserJobsListDto> result = new();
+        try
+        {
+            if (userId is 0)
+                userId = httpContext.UserId();
+            UserJobsListDto val = new()
+            {
+                UserId = userId,
+                UserJobs = await _dbContext.JobUsers
+                .Where(x => x.UserId == userId)
+                .Select(x => new UserJobDto(x.UserId, x.JobId, new ListJobDto()
+                {
+                    JobId = x.JobId,
+                    Address = new AddressDto(x.Job.AddressId ?? 1, (StateEnum)x.Job.Address!.StateId!, x.Job.Address.StateId ?? 3, x.Job.Address.Suburb, x.Job.Address.Street, x.Job.Address.PostCode),
+                    JobNumber = x.Job.JobNumber,
+                    JobType = x.Job.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray(),
+                    JobTypeStatus = x.Job.Status != null ? new JobTypeStatusDto(x.Job.Status.Id, x.Job.Status.JobTypeId, x.Job.Status.Name, x.Job.Status.Sequence, x.Job.Status.Colour, x.Job.Status.IsActive) : null,
+                }))
+                .ToArrayAsync()
+            };
+
+            return result.SetValue(val);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get user assigned jobs");
+            return result.SetError(ErrorType.InternalError, "Failed to get user assigned jobs");
         }
     }
 }

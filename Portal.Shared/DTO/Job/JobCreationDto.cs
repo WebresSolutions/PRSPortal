@@ -22,7 +22,7 @@ public class JobCreationDto
     /// <summary>
     /// The address details for the job. This is optional and can be null if not provided.
     /// </summary>
-    public AddressDTO? Address { get; set; }
+    public AddressDto? Address { get; set; }
 
     /// <summary>
     /// The target delivery date

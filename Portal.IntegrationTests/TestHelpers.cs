@@ -4,7 +4,7 @@ namespace Portal.IntegrationTests;
 
 internal static class TestHelpers
 {
-    public static void AssertAddressAreSame(AddressDTO addressDTO, AddressDTO otherAddressDTO)
+    public static void AssertAddressAreSame(AddressDto addressDTO, AddressDto otherAddressDTO)
     {
         Assert.NotNull(addressDTO);
         Assert.NotNull(otherAddressDTO);

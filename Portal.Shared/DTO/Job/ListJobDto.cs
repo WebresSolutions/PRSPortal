@@ -1,6 +1,7 @@
 ﻿using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
+using Portal.Shared.DTO.Types;
 
 namespace Portal.Shared.DTO.Job;
 
@@ -17,7 +18,7 @@ public class ListJobDto
     /// <summary>
     /// Gets or sets the address information for the job
     /// </summary>
-    public AddressDTO Address { get; set; }
+    public AddressDto Address { get; set; }
     /// <summary>
     /// Gets or sets the address identifier
     /// </summary>
@@ -42,6 +43,11 @@ public class ListJobDto
     /// Gets or sets the job type as an integer identifier
     /// </summary>
     public int JobTypeInt { get; set; }
+    /// <summary>
+    /// Job Type Statuses
+    /// </summary>
+    public JobTypeStatusDto? JobTypeStatus { get; set; }
+
     /// <summary>
     /// Gets a formatted string representation of the job address
     /// </summary>
@@ -69,11 +75,12 @@ public class ListJobDto
     /// <param name="jobTypeInt">The job type as an integer identifier</param>
     public ListJobDto(
         int jobId,
-        AddressDTO address,
+        AddressDto address,
         ContactDto? contact1,
         ContactDto? contact2,
         string? jobNumber,
-        JobTypeEnum[] jobTypes)
+        JobTypeEnum[] jobTypes,
+        JobTypeStatusDto? status)
     {
         JobId = jobId;
         Address = address;
@@ -81,6 +88,7 @@ public class ListJobDto
         Contact2 = contact2;
         JobNumber = jobNumber;
         JobType = jobTypes;
+        JobTypeStatus = status;
     }
 
     /// <summary>
@@ -93,7 +101,7 @@ public class ListJobDto
 
     public override string ToString()
     {
-        string res = "#" + JobNumber?.ToString() ?? "";
+        string res = ("#" + JobNumber?.ToString()) ?? "";
         res += Address is not null ? $" {Address.ToDisplayString()}" : "";
         res += $"- {string.Join(',', JobType)}";
         return res;

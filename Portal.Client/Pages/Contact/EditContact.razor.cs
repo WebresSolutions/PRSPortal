@@ -47,7 +47,7 @@ public partial class EditContact
                     Phone = d.Phone,
                     Fax = d.Fax,
                     Address = d.Address != null
-                        ? new AddressDTO(d.Address.AddressId, d.Address.State, d.Address.StateId, d.Address.Suburb ?? "", d.Address.Street ?? "", d.Address.PostCode ?? "")
+                        ? new AddressDto(d.Address.AddressId, d.Address.State, d.Address.StateId, d.Address.Suburb ?? "", d.Address.Street ?? "", d.Address.PostCode ?? "")
                         {
                             LatLng = d.Address.LatLng ?? new LatLngDto(-37.8136, 144.9631)
                         }

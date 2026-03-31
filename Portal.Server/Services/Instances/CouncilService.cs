@@ -71,7 +71,7 @@ public class CouncilService(PrsDbContext _dbContext, ILogger<CouncilService> _lo
                     c.Email,
                     c.Website,
                     Address = c.Address != null ?
-                        new AddressDTO(
+                        new AddressDto(
                             c.Address.Id,
                             (StateEnum)c.Address!.StateId!,
                             c.Address!.StateId.Value,

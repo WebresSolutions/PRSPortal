@@ -16,7 +16,7 @@ public class JobUpdateDto
     /// </summary>
     public int? JobStatusId { get; set; }
     [Required]
-    public AddressDTO? Address { get; set; }
+    public AddressDto? Address { get; set; }
     /// <summary>
     /// Details about the job, such as scope, requirements, or any relevant information that provides context for the job.
     /// </summary>

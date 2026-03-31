@@ -1,0 +1,28 @@
+﻿@using Portal.Shared.DTO.User
+<Card Title="Assigned Jobs">
+    <ChildContent>
+        <div class="user-jobs-container">
+            @foreach (var job in _jobList.UserJobs)
+            {
+                <div class="border-grey border-rad light grey-background d-flex flex-column gap-1">
+                    <a href=@($"jobs/{job.JobId}") class="contact-link">@job.JobDetails.JobNumber</a>
+                    <div>@job.JobDetails.AddressAsString</div>
+                    @if (job.JobDetails.JobTypeStatus is not null)
+                    {
+                        <div style="background-color: @job.JobDetails.JobTypeStatus.Colour">@job.JobDetails.JobTypeStatus.Name</div>
+                    }
+                </div>
+            }
+        </div>
+    </ChildContent>
+</Card>
+
+<style>
+    .user-jobs-container {
+        display: grid;
+        grid: repeat(3, 1fr);
+    }
+
+</style>
+
+

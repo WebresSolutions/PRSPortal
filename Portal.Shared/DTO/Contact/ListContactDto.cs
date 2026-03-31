@@ -31,7 +31,7 @@ public class ListContactDto
     /// <summary>
     /// Gets or sets the address information for the contact
     /// </summary>
-    public AddressDTO? Address { get; set; }
+    public AddressDto? Address { get; set; }
 
     /// <summary>
     /// Gets or sets the parent contact information if this is a child contact
@@ -57,7 +57,7 @@ public class ListContactDto
         string fullName,
         string email,
         string? phone,
-        AddressDTO? address,
+        AddressDto? address,
         ContactDto? parentContact,
         ContactTypeEnum contactType)
     {

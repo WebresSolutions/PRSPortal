@@ -75,7 +75,7 @@ public partial class ViewEditSchedule
             {
                 JobId = _schedule.Job.JobId,
                 JobNumber = _schedule.Job.JobNumber,
-                Address = _schedule.Job.Address ?? new AddressDTO()
+                Address = _schedule.Job.Address ?? new AddressDto()
             };
         }
 

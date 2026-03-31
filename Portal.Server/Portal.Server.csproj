@@ -5,6 +5,12 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 	<ItemGroup>
+	  <Compile Remove="Enums\**" />
+	  <Content Remove="Enums\**" />
+	  <EmbeddedResource Remove="Enums\**" />
+	  <None Remove="Enums\**" />
+	</ItemGroup>
+	<ItemGroup>
 		<ProjectReference Include="..\Portal.Client\Portal.Client.csproj" />
 		<ProjectReference Include="..\Portal.Data\Portal.Data.csproj" />
 		<ProjectReference Include="..\Portal.Shared\Portal.Shared.csproj" />
@@ -50,8 +56,5 @@
 	  <None Update="TestFiles\Screenshot 2025-10-31 094058.png">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Enums\" />
 	</ItemGroup>
 </Project>

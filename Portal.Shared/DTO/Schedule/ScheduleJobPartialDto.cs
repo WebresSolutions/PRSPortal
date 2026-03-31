@@ -15,7 +15,7 @@ public class ScheduleJobPartialDto
     /// <summary>
     /// Gets or sets the address information for the job
     /// </summary>
-    public AddressDTO? Address { get; set; }
+    public AddressDto? Address { get; set; }
     /// <summary>
     /// Gets or sets the job number
     /// </summary>

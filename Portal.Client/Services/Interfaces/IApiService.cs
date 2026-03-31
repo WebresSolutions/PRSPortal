@@ -257,6 +257,11 @@ public interface IApiService
     /// </summary>
     /// <returns>An array of users</returns>
     Task<Result<UserDto[]>> GetUsersList();
+    /// <summary>
+    /// Gets all jobs assigned to the specified user.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    Task<Result<UserJobsListDto>> GetUserJobs(int userId);
     #endregion
 
     #region TIMESHEETS 
