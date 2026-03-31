@@ -1,5 +1,5 @@
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Address;
-using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.DTO.Types;
@@ -29,12 +29,12 @@ public class JobDetailsDto
     /// Details about the job, such as scope, requirements, or any relevant information that provides context for the job.
     /// </summary>
     [MaxLength(2000, ErrorMessage = "Details cannot exceed 2000 characters")]
-    public string? Details { get; set; }
+    public string? Description { get; set; }
     /// <summary>
     /// Gets or sets the type of job to be processed.
     /// </summary>
     [Required(ErrorMessage = "Job type is required")]
-    public JobTypeEnum[] JobType { get; set; } = [];
+    public JobTypeEnum[] JobTypes { get; set; } = [];
     /// <summary>
     /// Get or set the job colour ID
     /// </summary>
@@ -44,6 +44,15 @@ public class JobDetailsDto
     /// Gets or sets the date and time when the entity was created.
     /// </summary>
     public DateTime DateCreated { get; set; }
+    /// <summary>
+    /// The target delivery date
+    /// </summary>
+    public DateTime? TargetDeliveryDate { get; set; }
+
+    /// <summary>
+    /// When the client was last udpated
+    /// </summary>
+    public DateTime? LatestClientUpdate { get; set; }
     /// <summary>
     /// Last Modified Date
     /// </summary>
@@ -78,7 +87,6 @@ public class JobDetailsDto
     /// Count of notes for the job
     /// </summary>
     public int NoteCount { get; set; }
-
     /// <summary>
     /// The Task Count
     /// </summary>
@@ -94,7 +102,7 @@ public class JobDetailsDto
     /// <summary>
     /// The address dto
     /// </summary>
-    public AddressDTO? Address { get; set; }
+    public AddressDto? Address { get; set; }
     /// <summary>
     /// Gets or sets the colour information associated with the job.
     /// </summary>
@@ -106,28 +114,30 @@ public class JobDetailsDto
     /// <summary>
     /// List of jobs files. Will not included the file content, just metadata such as file name, size, type, etc.
     /// </summary>
-    public List<FileDto> JobFiles { get; set; } = [];
-    /// <summary>
-    /// Gets or sets the collection of notes associated with the job.
-    /// </summary>
-    public List<JobNoteDto> Notes { get; set; } = [];
+    public FileDto[] JobFiles { get; set; } = [];
     /// <summary>
     /// Gets or sets the collection of site visits associated with the job.
     /// </summary>
-    public List<JobSiteVisitsDto> SiteVisits { get; set; } = [];
+    public JobSiteVisitsDto[] SiteVisits { get; set; } = [];
     /// <summary>
     /// List of tasks
     /// </summary>
-    public List<JobTaskDto> Tasks { get; set; } = [];
-
+    public JobTaskDto[] Tasks { get; set; } = [];
     /// <summary>
     /// List of timesheets
     /// </summary>
-    public List<TimeSheetDto> TimeSheets { get; set; } = [];
+    public TimeSheetDto[] TimeSheets { get; set; } = [];
     /// <summary>
-    /// Secondary Job Contacts
+    /// Holds the type of job. A job can be both types 
     /// </summary>
-    public List<TechnicalContactDto> TechnicalContacts { get; set; } = [];
-
-    public List<JobTypeStatusDto> JobTypeStatusDtos { get; set; } = [];
+    public JobTypeStatusDto[] JobTypeStatuses { get; set; } = [];
+    /// <summary>
+    /// Holds the list of assigned users and their assignement type. 
+    /// Responsible or Current Owner 
+    /// </summary>
+    public UserAssignmentDto[] AssignedUsers { get; set; } = [];
+    /// <summary>
+    /// Holds list of job histories. Signifying whenever the job has changed.
+    /// </summary>
+    public JobHistoryDto[] JobHistoryDtos { get; set; } = [];
 }

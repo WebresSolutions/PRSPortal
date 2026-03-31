@@ -66,8 +66,6 @@ public static class Dependencies
         {
             options.WaitForJobsToComplete = true;
         });
-        // Register the graph service.
-        builder.Services.AddSingleton<IGraphService>(sp => new GraphService(clientId, tenantId));
         // Injects in memory cache
         builder.Services.AddMemoryCache();
         // This is the acconting api from xero

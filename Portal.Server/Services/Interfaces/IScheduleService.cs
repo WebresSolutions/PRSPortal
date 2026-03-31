@@ -1,4 +1,4 @@
-using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;

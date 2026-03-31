@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Portal.Shared;
+using Portal.Shared.DTO;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.ResponseModels;
 using Portal.Shared.Web;

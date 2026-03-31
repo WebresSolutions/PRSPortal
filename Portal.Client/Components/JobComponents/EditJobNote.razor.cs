@@ -89,7 +89,7 @@ public partial class EditJobNote
 
         Note.Content = _saveContent;
         if (_assignedUser != Note.AssignedUser?.userId)
-            Note.AssignedUser = _assignedUser is null ? null : new UserDto(_assignedUser, Users.FirstOrDefault(u => u.userId == _assignedUser)?.displayName);
+            Note.AssignedUser = _assignedUser is null ? null : new UserDto(_assignedUser.Value, Users.FirstOrDefault(u => u.userId == _assignedUser)?.displayName);
 
         Result<List<JobNoteDto>> result = await _apiService.SaveJobNote(Note);
         if (result.IsSuccess && result.Value is not null)

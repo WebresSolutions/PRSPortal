@@ -5,6 +5,7 @@ using Portal.Data.Models;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
+using Portal.Shared.DTO;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.ResponseModels;
@@ -89,13 +90,13 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                     ? contactQuery.OrderByDescending(x => x.Phone)
                     : contactQuery.OrderBy(x => x.Phone),
                 // Address sub-properties - EF Core can handle null navigation properties
-                $"{nameof(ListContactDto.Address)}.{nameof(AddressDTO.Suburb)}" => isDescending
+                $"{nameof(ListContactDto.Address)}.{nameof(AddressDto.Suburb)}" => isDescending
                     ? contactQuery.OrderByDescending(x => x.Address!.Suburb)
                     : contactQuery.OrderBy(x => x.Address!.Suburb),
-                $"{nameof(ListContactDto.Address)}.{nameof(AddressDTO.Street)}" => isDescending
+                $"{nameof(ListContactDto.Address)}.{nameof(AddressDto.Street)}" => isDescending
                     ? contactQuery.OrderByDescending(x => x.Address!.Street)
                     : contactQuery.OrderBy(x => x.Address!.Street),
-                $"{nameof(ListContactDto.Address)}.{nameof(AddressDTO.PostCode)}" => isDescending
+                $"{nameof(ListContactDto.Address)}.{nameof(AddressDto.PostCode)}" => isDescending
                     ? contactQuery.OrderByDescending(x => x.Address!.PostCode)
                     : contactQuery.OrderBy(x => x.Address!.PostCode),
                 _ => contactQuery.OrderByDescending(x => x.Id) // Default ordering by ContactId
@@ -110,7 +111,7 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                             x.FullName,
                             x.Email,
                             x.Phone,
-                            x.Address != null ? new AddressDTO(
+                            x.Address != null ? new AddressDto(
                                 x.AddressId ?? 1,
                                 (StateEnum)x.Address.StateId!,
                                 x.Address.StateId ?? 3,
@@ -166,7 +167,7 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                     c.Phone,
                     c.Fax,
                     Address = c.Address != null ?
-                        new AddressDTO(
+                        new AddressDto(
                             c.Address.Id,
                             (StateEnum)c.Address.StateId!,
                             c.Address.StateId ?? 3,

@@ -4,6 +4,7 @@ using Portal.Data.Models;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Types;
@@ -58,7 +59,7 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
                                 JobId = s.Job.Id,
                                 JobNumber = s.Job.JobNumber,
                                 Address = s.Job.AddressId != null ?
-                                    new AddressDTO(s.Job.AddressId.Value,
+                                    new AddressDto(s.Job.AddressId.Value,
                                                    (StateEnum)s.Job.Address!.StateId!,
                                                    s.Job.Address.StateId ?? 0,
                                                    s.Job.Address.Suburb,
@@ -142,7 +143,7 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
                         JobId = schedule.Job.Id,
                         JobNumber = schedule.Job.JobNumber,
                         Address = schedule.Job.AddressId != null && schedule.Job.Address != null
-                            ? new AddressDTO(
+                            ? new AddressDto(
                                 schedule.Job.AddressId.Value,
                                 (StateEnum)(schedule.Job.Address.StateId ?? 0),
                                 schedule.Job.Address.StateId ?? 0,
@@ -376,7 +377,7 @@ public class ScheduleService(PrsDbContext _prsDbContext, ILogger<ScheduleService
                                 JobId = s.Job.Id,
                                 JobNumber = s.Job.JobNumber,
                                 Address = s.Job.AddressId != null ?
-                                            new AddressDTO(s.Job.AddressId.Value,
+                                            new AddressDto(s.Job.AddressId.Value,
                                                            (StateEnum)s.Job.Address!.StateId!,
                                                            s.Job.Address.StateId ?? 0,
                                                            s.Job.Address.Suburb,

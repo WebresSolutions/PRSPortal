@@ -70,6 +70,8 @@ public partial class Job
 
     public virtual ICollection<JobTask> JobTasks { get; set; } = new List<JobTask>();
 
+    public virtual ICollection<JobUser> JobUsers { get; set; } = new List<JobUser>();
+
     public virtual AppUser? ModifiedByUser { get; set; }
 
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
@@ -79,8 +81,6 @@ public partial class Job
     public virtual ICollection<TechnicalContact> TechnicalContacts { get; set; } = new List<TechnicalContact>();
 
     public virtual ICollection<TimesheetEntry> TimesheetEntries { get; set; } = new List<TimesheetEntry>();
-
-    public virtual ICollection<UserJob> UserJobs { get; set; } = new List<UserJob>();
 
     public virtual ICollection<JobType> JobTypes { get; set; } = new List<JobType>();
 }

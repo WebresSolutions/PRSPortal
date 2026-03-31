@@ -57,5 +57,5 @@ public class ContactCreationDto
     /// <summary>
     /// Optional address for the contact.
     /// </summary>
-    public AddressDTO? Address { get; set; }
+    public AddressDto? Address { get; set; }
 }

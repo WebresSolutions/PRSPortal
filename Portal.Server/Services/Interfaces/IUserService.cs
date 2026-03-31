@@ -20,4 +20,12 @@ public interface IUserService
     /// list of <see cref="JobNoteDto"/> objects assigned to the specified user. If no notes are found, the list is
     /// empty.</returns>
     Task<Result<List<JobNoteDto>>> GetUserAssignedJobsNotes(HttpContext httpContext, int userId, bool deleted = false, bool? actionRequired = null);
+
+    /// <summary>
+    /// Gets the user jobs for a user
+    /// </summary>
+    /// <param name="userId">The user id. If set to 0 will use the Id of the user calling the endpoind</param>
+    /// <param name="httpContext">The http context of the user calling the endpoint</param>
+    /// <returns>A result containing the collection of jobs assigned for the user</returns>
+    Task<Result<UserJobsListDto>> GetUserJobs(int userId, HttpContext httpContext);
 }

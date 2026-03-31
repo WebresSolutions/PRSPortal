@@ -1,4 +1,4 @@
-using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.File;
@@ -56,7 +56,7 @@ public interface IApiService
     /// </summary>
     /// <param name="data">The job being updated</param>
     /// <returns></returns>
-    Task<Result<JobDetailsDto>> UpdateJob(JobDetailsDto data);
+    Task<Result<JobDetailsDto>> UpdateJob(JobUpdateDto data);
     /// <summary>
     /// Gets the notes for a job.
     /// </summary>
@@ -257,6 +257,11 @@ public interface IApiService
     /// </summary>
     /// <returns>An array of users</returns>
     Task<Result<UserDto[]>> GetUsersList();
+    /// <summary>
+    /// Gets all jobs assigned to the specified user.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    Task<Result<UserJobsListDto>> GetUserJobs(int userId);
     #endregion
 
     #region TIMESHEETS 

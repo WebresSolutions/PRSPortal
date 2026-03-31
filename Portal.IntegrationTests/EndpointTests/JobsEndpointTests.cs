@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.User;
@@ -36,10 +37,19 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto createDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for contact filter test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2,
+            Address = new()
+            {
+                Street = "123",
+                State = Shared.StateEnum.NSW,
+                LatLng = new() { Latitude = 123, Longitude = 123 },
+                PostCode = "1234",
+                Suburb = "Coburg",
+            }
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -63,11 +73,20 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto createDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             CouncilId = 1,
             Details = "Job for council filter test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2,
+            Address = new()
+            {
+                Street = "123",
+                State = Shared.StateEnum.NSW,
+                LatLng = new() { Latitude = 123, Longitude = 123 },
+                PostCode = "1234",
+                Suburb = "Coburg",
+            }
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -91,11 +110,20 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto createDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             CouncilId = 1,
             Details = "Job for combined filter test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2,
+            Address = new()
+            {
+                Street = "123",
+                State = Shared.StateEnum.NSW,
+                LatLng = new() { Latitude = 123, Longitude = 123 },
+                PostCode = "1234",
+                Suburb = "Coburg",
+            }
         };
         HttpResponseMessage createResponse = await _client.PostAsJsonAsync("/api/jobs", createDto);
         createResponse.EnsureSuccessStatusCode();
@@ -132,10 +160,19 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto dto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2,
+            Address = new()
+            {
+                Street = "123",
+                State = Shared.StateEnum.NSW,
+                LatLng = new() { Latitude = 123, Longitude = 123 },
+                PostCode = "1234",
+                Suburb = "Coburg",
+            }
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
@@ -148,17 +185,19 @@ public sealed class JobsEndpointTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
         Assert.NotNull(job);
-        Assert.Equal(dto.Details, job.Details);
+        Assert.Equal(dto.Details, job.Description);
         Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
         Assert.NotNull(job.JobNumber);
-        Assert.True(job.JobType.Contains(Shared.JobTypeEnum.Construction));
+        Assert.True(job.JobTypes.Contains(JobTypeEnum.Construction));
+        Assert.NotNull(job.Address);
+        TestHelpers.AssertAddressAreSame(dto.Address, job.Address);
     }
     [Fact]
     public async Task Create_job_bad_request()
     {
         JobCreationDto invalidCreatJobRequest = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 0,
             Details = "Test",
             StatusId = 1
@@ -186,10 +225,12 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto dto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2,
+            Address = new() { AddressId = 1 }
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
@@ -202,19 +243,38 @@ public sealed class JobsEndpointTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
         Assert.NotNull(job);
-        Assert.Equal(dto.Details, job.Details);
+        Assert.Equal(dto.Details, job.Description);
         Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
         Assert.NotNull(job.JobNumber);
-        Assert.True(job.JobType.Contains(Shared.JobTypeEnum.Construction));
+        Assert.True(job.JobTypes.Contains(JobTypeEnum.Construction));
 
-        job.Details = "Updated Job Details";
-        job.JobType = [Shared.JobTypeEnum.Surveying];
-        response = await _client.PutAsJsonAsync("/api/jobs", job);
+        JobUpdateDto updateDto = new()
+        {
+            JobId = job.JobId,
+            Address = job.Address,
+            ContactId = job.ContactId,
+            JobTypes = [JobTypeEnum.Surveying],
+            JobColourId = job.JobColourId,
+            JobStatusId = job.JobStatusId,
+            Details = "Updated Job Details",
+            CouncilId = job.CouncilId,
+            ResponsibleTeamMember = 1
+        };
+        response = await _client.PutAsJsonAsync("/api/jobs", updateDto);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         JobDetailsDto? updateJob = await response.Content.ReadFromJsonAsync<JobDetailsDto?>();
         Assert.NotNull(updateJob);
-        Assert.Equal(job.Details, updateJob.Details);
-        Assert.Equal(job.JobType, updateJob.JobType);
+        Assert.Equal("Updated Job Details", updateDto.Details);
+        Assert.Equal([JobTypeEnum.Surveying], updateDto.JobTypes);
+
+        // Set the council Id to null
+        updateDto.CouncilId = null;
+        response = await _client.PutAsJsonAsync("/api/jobs", updateDto);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        updateJob = await response.Content.ReadFromJsonAsync<JobDetailsDto?>();
+        Assert.NotNull(updateJob);
+        Assert.Null(updateJob.CouncilId);
+        Assert.Null(updateJob.Council);
     }
 
     [Fact]
@@ -222,10 +282,11 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto dto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
@@ -238,13 +299,13 @@ public sealed class JobsEndpointTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
         Assert.NotNull(job);
-        Assert.Equal(dto.Details, job.Details);
+        Assert.Equal(dto.Details, job.Description);
         Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
         Assert.NotNull(job.JobNumber);
-        Assert.True(job.JobType.Contains(Shared.JobTypeEnum.Construction));
+        Assert.True(job.JobTypes.Contains(JobTypeEnum.Construction));
 
-        job.Details = "Updated Job Details";
-        job.JobType = [Shared.JobTypeEnum.Surveying];
+        job.Description = "Updated Job Details";
+        job.JobTypes = [JobTypeEnum.Surveying];
         response = await _client.DeleteAsync($"/api/jobs/{job.JobId}");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -269,10 +330,11 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for note tests",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -307,10 +369,11 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for update note tests",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -362,10 +425,11 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for update note tests",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -398,10 +462,11 @@ public sealed class JobsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for file attachment test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -479,4 +544,5 @@ public sealed class JobsEndpointTests
         HttpResponseMessage response = await _client.PutAsJsonAsync($"/api/jobs/{nonexistentJobId}/files", fileDto);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
 }

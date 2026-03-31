@@ -16,7 +16,7 @@ else if (_job is null)
 else
 {
     <div class="job-detail-container">
-        <JobStatusProgress Statuses="@_job.JobTypeStatusDtos" CurrentStatusId="@_job.JobStatusId" />
+        <JobStatusProgress Statuses="@_job.JobTypeStatuses" CurrentStatusId="@_job.JobStatusId" />
         <!-- Header -->
         <PageHeader>
             <Content>
@@ -28,7 +28,7 @@ else
                         </div>
                     </div>
                     <div class="header-right">
-                        <StatusBadge StatusEnums="@_job.JobType" />
+                        <StatusBadge StatusEnums="@_job.JobTypes" />
                         <div class="header-actions">
                             <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href=@($"/jobs/edit/{JobId}") />
                         </div>
@@ -104,6 +104,22 @@ else
                         </div>
                     </ChildContent>
                 </Card>
+                <Card Title="History">
+                    <ChildContent>
+                        <div class="activity-list" style="max-height: 500px; overflow: scroll;">
+                            @foreach (JobHistoryDto history in _job.JobHistoryDtos)
+                            {
+                                <div class="activity-item border-grey d-flex flex-row justify-content-between">
+                                    <div>
+                                        <div class="activity-title">@history.DateChanged.ToLocalDateTimeString()</div>
+                                        <div class="activity-time">@history.ModifiedByUserName</div>
+                                    </div>
+                                    <div class="p-2 border-rad text-center" style="background-color: @history.Status.Colour; color: white;">@history.Status.Name</div>
+                                </div>
+                            }
+                        </div>
+                    </ChildContent>
+                </Card>
             </div>
 
             <div class="main-content">
@@ -111,7 +127,7 @@ else
                 <div class="visits-invoices">
                     <!-- Files-->
                     <!-- Site Visits -->
-                    <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" JobType="@_job.JobType.First()" />
+                    <JobSiteVisits SiteVisits="_job.SiteVisits" OnAdd="HandleAddSiteVisit" JobType="@_job.JobTypes.First()" />
                     <!-- Invoices -->
                     <Card HeaderTitle="Invoices" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Unsent, TabTypeEnum.Unpaid, TabTypeEnum.Overdue, TabTypeEnum.Deleted]">
                         <ChildContent>
@@ -126,26 +142,6 @@ else
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if (_dummyData.Invoices.Count == 0)
-                                    {
-                                        <tr>
-                                            <td colspan="5" class="empty-state">No records</td>
-                                        </tr>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var invoice in _dummyData.Invoices)
-                                        {
-                                            <tr>
-                                                <td>@invoice.Number</td>
-                                                <td>@invoice.Contact</td>
-                                                <td>@invoice.TotalPrice</td>
-                                                <td>@invoice.CreatedDate</td>
-                                                <td>
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
                                 </tbody>
                             </table>
                         </ChildContent>
@@ -161,6 +157,14 @@ else
                             <ChildContent>
                                 <div class="activity-list">
                                     <div class="activity-item border-grey">
+                                        <div class="activity-title">Created On</div>
+                                        <div class="activity-time">@_job.DateCreated.ToLocalDateTimeString()</div>
+                                    </div>
+                                    <div class="activity-item border-grey">
+                                        <div class="activity-title">Created By</div>
+                                        <div class="activity-time">@_job.CreatedBy</div>
+                                    </div>
+                                    <div class="activity-item border-grey">
                                         <div class="activity-title">Last Modified</div>
                                         <div class="activity-time">@_job.LastModified?.ModifiedOn.ToLocalDateTimeString()</div>
                                     </div>
@@ -174,78 +178,6 @@ else
                     </div>
                 </div>
                 <!-- Tasks -->
-                @* <Card HeaderTitle="Tasks" ShowHeaderWithTabs="true" Tabs="[TabTypeEnum.All, TabTypeEnum.Active, TabTypeEnum.ToInvoice, TabTypeEnum.Deleted]">
-                        <ChildContent>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Task</th>
-                                        <th>Quoted Price</th>
-                                        <th>Active Date</th>
-                                        <th>Completed Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if (_job.Tasks.Count == 0)
-                                    {
-                                        <tr>
-                                            <td colspan="5" class="empty-state">No records</td>
-                                        </tr>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var task in _job.Tasks)
-                                        {
-                                            <tr>
-                                                <td>@task.InvoiceRequired</td>
-                                                <td>@(task.QuotedPrice is null ? "" : task.QuotedPrice.Value)</td>
-                                                <td>@task.ActiveDate.ToString("dd/MM/yyyy")</td>
-                                                <td>@task.CompletedDate.ToString("dd/MM/yyyy")</td>
-                                                <td>
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
-                                </tbody>
-                            </table>
-                        </ChildContent>
-                    </Card>
- *@
-
-
-                @*  <!-- Checklist -->
-                    <Card Title="Checklist">
-                        <ChildContent>
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Item</th>
-                                        <th>Site Work</th>
-                                        <th>Checked</th>
-                                        <th>Sent</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in _dummyData.ChecklistItems)
-                                    {
-                                        <tr>
-                                            <td>@item.Name</td>
-                                            <td>
-                                                <select class="select-small">
-                                                    <option>Not Completed</option>
-                                                    <option>Completed</option>
-                                                </select>
-                                            </td>
-                                            <td><input type="checkbox" checked="@item.Checked" /></td>
-                                            <td><input type="checkbox" checked="@item.Sent" /></td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </ChildContent>
-                    </Card> *@
-
                 <!-- Recent Activity -->
 
             </div>

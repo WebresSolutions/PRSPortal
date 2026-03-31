@@ -25,5 +25,5 @@ public class CouncilCreationDto
     [MaxLength(500)]
     public string? Website { get; set; }
 
-    public AddressDTO? Address { get; set; }
+    public AddressDto? Address { get; set; }
 }

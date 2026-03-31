@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace Portal.Server.Helpers;
+﻿namespace Portal.Server.Helpers;
 
 public static class HttpContextExtensions
 {
@@ -11,13 +9,9 @@ public static class HttpContextExtensions
             ?? throw new Exception("UserId not found in HttpContext.Items. Ensure that the CustomMiddleware is properly configured and executed before accessing UserId.");
 
         if (userIdObj is int userId)
-        {
             return userId;
-        }
         else
-        {
             throw new Exception($"UserId in HttpContext.Items is not of type int. Actual type: {userIdObj.GetType()}");
-        }
     }
 
     public static string IdentityId(this HttpContext httpContext)

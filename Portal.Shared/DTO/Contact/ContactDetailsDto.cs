@@ -16,7 +16,7 @@ public record ContactDetailsDto(
     string Email,
     string? Phone,
     string? Fax,
-    AddressDTO? Address,
+    AddressDto? Address,
     ContactDto? ParentContact,
     string CreatedBy,
     DateTime CreatedOn,

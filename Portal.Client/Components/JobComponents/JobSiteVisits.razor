@@ -1,11 +1,12 @@
 @using Portal.Shared
 @using Portal.Shared.DTO.Job
+@using Portal.Shared.DataEnums
 
 <Card ShowHeaderWithAddButton="true" HeaderTitle="Site Visits" OnAddButtonClick="OnAdd">
     <ChildContent>
-        @if (SiteVisits.Count == 0)
+        @if (SiteVisits.Count() == 0)
         {
-            <div class="empty-state">No records</div>
+            <div class="empty-state" style="max-height: 200px;">No records</div>
         }
         else
         {
@@ -40,7 +41,7 @@
 
 @code {
     [Parameter]
-    public List<JobSiteVisitsDto> SiteVisits { get; set; } = new();
+    public IEnumerable<JobSiteVisitsDto> SiteVisits { get; set; } = []; 
 
     [Parameter]
     public JobTypeEnum JobType{ get; set; }

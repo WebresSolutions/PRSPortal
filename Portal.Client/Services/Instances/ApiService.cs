@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Portal.Client.Services.Interfaces;
-using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.File;
@@ -207,7 +207,7 @@ public class ApiService : IApiService
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public async Task<Result<JobDetailsDto>> UpdateJob(JobDetailsDto data)
+    public async Task<Result<JobDetailsDto>> UpdateJob(JobUpdateDto data)
     {
         Result<JobDetailsDto> res = new();
         try
@@ -1063,6 +1063,36 @@ public class ApiService : IApiService
         {
             Console.WriteLine($"Exception: {ex.Message}");
             // Handle exception
+        }
+        return res;
+    }
+    /// <summary>
+    /// Gets all jobs assigned to the specified user.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    public async Task<Result<UserJobsListDto>> GetUserJobs(int userId)
+    {
+        Result<UserJobsListDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/users/jobs/{userId}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                UserJobsListDto? dto = await response.Content.ReadFromJsonAsync<UserJobsListDto>();
+                if (dto is not null)
+                    res.Value = dto;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get user jobs";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
         }
         return res;
     }

@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using NetTopologySuite.Geometries;
+using Nextended.Core.Extensions;
 using Portal.Data;
 using Portal.Data.Models;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
 using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.File;
@@ -83,7 +86,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 _ => query.OrderByDescending(x => x.Id)
             };
 
-            int total = await query.CountAsync(); // Note: Count the union-ed set
+            int total = await query.CountAsync();
             int skipValue = (filter.Page - 1) * filter.PageSize;
 
             IQueryable<ListJobDto> jobs = query
@@ -91,11 +94,12 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 .Take(filter.PageSize)
                 .Select(x => new ListJobDto(
                     x.Id,
-                    new AddressDTO(x.AddressId ?? 1, (StateEnum)x.Address!.StateId!, x.Address.StateId ?? 3, x.Address.Suburb, x.Address.Street, x.Address.PostCode),
+                    new AddressDto(x.AddressId ?? 1, (StateEnum)x.Address!.StateId!, x.Address.StateId ?? 3, x.Address.Suburb, x.Address.Street, x.Address.PostCode),
                     x.Contact != null ? new ContactDto(x.ContactId, x.Contact.FullName) : null,
                     x.Contact != null && x.Contact.ParentContact != null ? new ContactDto(x.Contact.ParentContactId ?? 0, x.Contact.ParentContact!.FullName) : null,
                     x.JobNumber,
-                    x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray()
+                    x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray(),
+                    x.Status != null ? new JobTypeStatusDto(x.Status.Id, x.Status.JobTypeId, x.Status.Name, x.Status.Sequence, x.Status.Colour, x.Status.IsActive) : null
                 ));
             // Materialize the query
             List<ListJobDto> jobsList = await jobs.ToListAsync();
@@ -128,8 +132,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 JobStatusId = x.StatusId,
                 JobStatusName = x.Status != null ? x.Status.Name : null,
                 JobNumber = x.JobNumber,
-                JobType = x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray(),
-                Address = x.Address != null ? new AddressDTO(
+                JobTypes = x.JobTypes.Select(x => (JobTypeEnum)x.Id).ToArray(),
+                Address = x.Address != null ? new AddressDto(
                     x.AddressId ?? 1,
                     (StateEnum)x.Address!.StateId!,
                     x.Address.StateId ?? 3,
@@ -144,7 +148,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     ? new JobColourDto(x.JobColourId!.Value, x.JobColour.Color)
                     : null,
                 JobColourId = x.JobColourId,
-                Details = x.Details,
+                Description = x.Details,
                 PrimaryContact = x.Contact != null
                     ? new JobContactDto(
                         x.ContactId,
@@ -156,7 +160,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 TimeSheets = x.TimesheetEntries
                     .Select(ts
                         => new TimeSheetDto(ts.Id, ts.TypeId, ts.DateFrom, ts.DateTo, ts.UserId, ts.JobId, ts.Description, ts.User.DisplayName, x.JobNumber))
-                    .ToList(),
+                    .ToArray(),
                 ContactId = x.ContactId,
                 Council = x.Council != null ? new JobCouncilDto(x.Council.Id, x.Council.Name) : null,
                 CouncilId = x.CouncilId,
@@ -167,6 +171,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 DateCreated = x.CreatedOn,
                 DateModified = x.ModifiedOn,
                 CreatedBy = x.CreatedByUser.DisplayName,
+                TargetDeliveryDate = x.TargetDeliveryDate,
+                LatestClientUpdate = x.LatestClientUpdate,
                 JobFiles = x.JobFiles.Select(jf => new FileDto
                 {
                     JobId = x.Id,
@@ -179,7 +185,19 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     FileTypeId = jf.File.FileTypeId,
                     Description = jf.File.Description,
                     Title = jf.File.Title ?? ""
-                }).ToList()
+                }).ToArray(),
+                AssignedUsers = x.JobUsers
+                    .Where(ju => ju.DeletedAt == null)
+                    .Select(ju => new UserAssignmentDto(ju.User.DisplayName, ju.UserId, jobId, (JobAssignementTypeEnum)ju.AssignmentTypeId))
+                    .ToArray(),
+                JobHistoryDtos = x.JobStatusHistories
+                    .OrderByDescending(x => x.DateChanged)
+                    .Select(jh => new JobHistoryDto(
+                        jobId,
+                        new JobTypeStatusDto(jh.StatusIdNew, jh.JobId, jh.StatusIdNewNavigation.Name, 0, jh.StatusIdNewNavigation.Colour, true),
+                        jh.DateChanged,
+                        jh.ModifiedByUser.DisplayName))
+                    .ToArray()
             })
             .FirstOrDefaultAsync();
 
@@ -190,6 +208,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         IQueryable<JobSiteVisitsDto> query = _dbContext.Schedules
             .AsNoTracking()
             .AsSplitQuery()
+            .OrderByDescending(x => x.StartTime)
             .Where(s => s.JobId == jobId)
             .Select(s => new JobSiteVisitsDto
             {
@@ -202,9 +221,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 End = s.EndTime,
                 Category = s.ScheduleTrack.JobType.Name,
                 Notes = s.Notes ?? string.Empty
-            })
-            .OrderByDescending(x => x.Start);
-        job.SiteVisits = await query.ToListAsync();
+            });
+        job.SiteVisits = await query.ToArrayAsync();
 
         job.Tasks = await _dbContext.JobTasks
             .AsNoTracking()
@@ -222,14 +240,14 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 CreatedByUser = t.CreatedByUser.DisplayName ?? "",
                 QuotedPrice = t.QuotedPrice
             })
-            .ToListAsync();
+            .ToArrayAsync();
 
-        job.SiteVisitCount = job.SiteVisits.Count;
-        job.TaskCount = job.Tasks.Count;
-        job.JobTypeStatusDtos = await _dbContext.JobStatuses
-            .Where(x => job.JobType.Select(x => (int)x).Contains(x.JobTypeId) && x.IsActive)
+        job.SiteVisitCount = job.SiteVisits.Length;
+        job.TaskCount = job.Tasks.Length;
+        job.JobTypeStatuses = await _dbContext.JobStatuses
+            .Where(x => job.JobTypes.Select(x => (int)x).Contains(x.JobTypeId) && x.IsActive)
             .Select(x => new JobTypeStatusDto(x.Id, x.JobTypeId, x.Name, x.Sequence, x.Colour, x.IsActive))
-            .ToListAsync();
+            .ToArrayAsync();
 
         return result.SetValue(job);
     }
@@ -237,10 +255,11 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
     /// <inheritdoc/>
     public async Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto data)
     {
+        await using IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync();
         Result<int> result = new();
         try
         {
-            // Validation 
+            // Validation
             if (await _dbContext.Contacts.FirstOrDefaultAsync(x => x.Id == data.ContactId) is null)
                 return result.SetError(ErrorType.BadRequest, "Invalid contact id supplied.");
 
@@ -249,6 +268,19 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
 
             if (data.JobColourId is not null && await _dbContext.JobColours.FirstOrDefaultAsync(x => x.Id == data.JobColourId) is null)
                 return result.SetError(ErrorType.BadRequest, "Invalid job colour id supplied.");
+
+            if (!await _dbContext.AppUsers.AnyAsync(a => a.Id == data.ResponsibleTeamMember))
+                return result.SetError(ErrorType.BadRequest, "Invalid user Id provided");
+
+            if (!await JobAssignmentLookupIsCompleteAsync())
+                return result.SetError(ErrorType.BadRequest, "Job assignment types are missing. Seed job_assignment_type with ids 1 (Current Owner) and 2 (Responsible Team Member).");
+
+            DateTime now = DateTime.UtcNow;
+            DateTime? targetDeliveryDate = data.TargetDeliveryDate is not null ? DateTime.SpecifyKind(data.TargetDeliveryDate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
+            DateTime? latestClientUpdate = data.LatestClientUpdate is not null ? DateTime.SpecifyKind(data.LatestClientUpdate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
+
+            if (targetDeliveryDate is not null && targetDeliveryDate < now)
+                return result.SetError(ErrorType.BadRequest, "Target delivery date cannot be in the past.");
 
             JobType? construction = await _dbContext.JobTypes.FindAsync(1);
             JobType? survey = await _dbContext.JobTypes.FindAsync(2);
@@ -259,6 +291,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             if (await _dbContext.JobStatuses.FindAsync(data.StatusId) is not JobStatus status)
                 return result.SetError(ErrorType.BadRequest, "Invalid job status.");
 
+
             string jobNumber = await CreateJobNumber();
             Job job = new()
             {
@@ -267,10 +300,12 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 JobColourId = data.JobColourId,
                 Details = data.Details,
                 CreatedByUserId = httpContext.UserId(),
-                CreatedOn = DateTime.UtcNow,
+                CreatedOn = now,
                 JobNumber = jobNumber,
                 StatusId = data.StatusId,
                 Status = status,
+                TargetDeliveryDate = targetDeliveryDate,
+                LatestClientUpdate = latestClientUpdate
             };
 
             if (data.Address is not null)
@@ -293,7 +328,8 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                         Suburb = data.Address.Suburb,
                         StateId = (int?)data.Address.State ?? (int)StateEnum.VIC,
                         CreatedByUserId = httpContext.UserId(),
-                        Country = "AUS"
+                        Country = "AUS",
+                        CreatedOn = now
                     };
 
                     if (data.Address.LatLng is not null)
@@ -312,29 +348,45 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             await _dbContext.Jobs.AddAsync(job);
             await _dbContext.SaveChangesAsync();
 
-            // Add the job types 
+            // Add the job types
             foreach (JobTypeEnum typeEnum in data.JobType.Distinct())
             {
                 JobType type = typeEnum is JobTypeEnum.Construction ? construction : survey;
                 job.JobTypes.Add(type);
             }
 
+            // Add the Job Users
+            if (data.ResponsibleTeamMember is not null)
+            {
+                JobUser[] jobUsers = [
+                    new() { AssignmentTypeId = (int)JobAssignementTypeEnum.Responsible,
+                    UserId = data.ResponsibleTeamMember.Value,
+                    JobId = job.Id,
+                    Job = job,
+                    CreatedByUserId = httpContext.UserId(),
+                    CreatedOn = now
+                    }];
+                await _dbContext.JobUsers.AddRangeAsync(jobUsers);
+            }
+
             await _dbContext.SaveChangesAsync();
 
             // Create the sharepoint data structure in a background task
             await FileHelper.CreateJobSharepointStructure(_schedulerFactory, job.Id);
-
+            // Commit the values to the database
+            await transaction.CommitAsync();
             return result.SetValue(job.Id);
         }
         catch (Exception ex)
         {
+            await transaction.RollbackAsync();
             _logger.LogError(ex, "Failed to create job");
             return result.SetError(ErrorType.InternalError, "Failed to create job");
         }
     }
 
     /// <inheritdoc/>
-    public async Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobDetailsDto updateJobDto)
+    public async Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobUpdateDto data)
     {
         Result<JobDetailsDto> result = new();
         try
@@ -342,26 +394,43 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             Job? job = await _dbContext.Jobs
                 .Include(j => j.Address)
                 .Include(j => j.JobTypes)
-                .Where(j => j.Id == updateJobDto.JobId && j.DeletedAt == null)
+                .Include(j => j.JobUsers)
+                .Where(j => j.Id == data.JobId && j.DeletedAt == null)
                 .FirstOrDefaultAsync();
 
             if (job is null)
                 return result.SetError(ErrorType.NotFound, "Invalid job Id");
 
-            if (updateJobDto.JobType.Length < 1)
+            if (data.JobTypes.Length < 1)
                 return result.SetError(ErrorType.BadRequest, "The job must contain at least one job type");
 
-            //job.JobTypeId = (int)updateJobDto.JobType;
-            job.JobColourId = updateJobDto.JobColourId;
+            if (data.ResponsibleTeamMember is not null && !await _dbContext.AppUsers.AnyAsync(a => a.Id == data.ResponsibleTeamMember))
+                return result.SetError(ErrorType.BadRequest, "Invalid user Id provided");
+
+            if (!await JobAssignmentLookupIsCompleteAsync())
+                return result.SetError(ErrorType.BadRequest, "Job assignment types are missing. Seed job_assignment_type with ids 1 (Current Owner) and 2 (Responsible Team Member).");
+
+            DateTime now = DateTime.UtcNow;
+
+            DateTime? targetDeliveryDate = data.TargetDeliveryDate is not null ? DateTime.SpecifyKind(data.TargetDeliveryDate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
+            DateTime? latestClientUpdate = data.LatestClientUpdate is not null ? DateTime.SpecifyKind(data.LatestClientUpdate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
+
+            if (targetDeliveryDate is not null && targetDeliveryDate < now)
+                return result.SetError(ErrorType.BadRequest, "Target delivery date cannot be in the past.");
+
+            job.LatestClientUpdate = latestClientUpdate;
+            job.TargetDeliveryDate = targetDeliveryDate;
+            job.JobColourId = data.JobColourId;
             job.ModifiedByUserId = httpContext.UserId();
-            job.ModifiedOn = DateTime.UtcNow;
-            if (updateJobDto.Details is not null && updateJobDto.Details.Length > 4000)
-                job.Details = updateJobDto.Details[..4000].Trim();
+            job.ModifiedOn = now;
+
+            if (data.Details is not null && data.Details.Length > 4000)
+                job.Details = data.Details[..4000].Trim();
             else
-                job.Details = updateJobDto.Details;
+                job.Details = data.Details;
 
             job.JobTypes.Clear();
-            int[] desiredTypeIds = [.. updateJobDto.JobType.Select(x => (int)x).Distinct()];
+            int[] desiredTypeIds = [.. data.JobTypes.Select(x => (int)x).Distinct()];
             foreach (int typeId in desiredTypeIds)
             {
                 JobType? jobType = await _dbContext.JobTypes.FindAsync(typeId);
@@ -371,57 +440,65 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 job.JobTypes.Add(jobType);
             }
 
-            if (updateJobDto.ContactId != job.ContactId)
+            if (data.ContactId != job.ContactId)
             {
-                Contact? contact = await _dbContext.Contacts.FirstOrDefaultAsync(c => c.Id == updateJobDto.ContactId);
+                Contact? contact = await _dbContext.Contacts.FirstOrDefaultAsync(c => c.Id == data.ContactId);
                 if (contact is null)
                     return result.SetError(ErrorType.BadRequest, "Invalid Contact Id");
 
-                job.ContactId = updateJobDto.ContactId;
+                job.ContactId = data.ContactId;
                 job.Contact = contact;
             }
 
-            if (updateJobDto.CouncilId != job.CouncilId)
+            if (data.CouncilId != job.CouncilId)
             {
-                Council? council = await _dbContext.Councils.FirstOrDefaultAsync(c => c.Id == updateJobDto.CouncilId);
-                if (council is null)
-                    return result.SetError(ErrorType.BadRequest, "Invalid Contact Id");
+                if (data.CouncilId is null)
+                {
+                    job.Council = null;
+                    job.CouncilId = null;
+                }
+                else
+                {
+                    Council? council = await _dbContext.Councils.FirstOrDefaultAsync(c => c.Id == data.CouncilId);
+                    if (council is null)
+                        return result.SetError(ErrorType.BadRequest, "Invalid Contact Id");
 
-                job.CouncilId = updateJobDto.CouncilId;
-                job.Council = council;
+                    job.CouncilId = data.CouncilId;
+                    job.Council = council;
+                }
             }
 
-
-            if (job.Address is not null && updateJobDto.Address is not null)
+            if (job.Address is not null && data.Address is not null)
             {
-                job.Address.Street = updateJobDto.Address.Street;
-                job.Address.PostCode = updateJobDto.Address.PostCode;
-                job.Address.Suburb = updateJobDto.Address.Suburb;
-                job.Address.StateId = updateJobDto.Address.State is null ? (int)StateEnum.VIC : (int)updateJobDto.Address.State;
+                job.Address.Street = data.Address.Street;
+                job.Address.PostCode = data.Address.PostCode;
+                job.Address.Suburb = data.Address.Suburb;
+                job.Address.StateId = data.Address.State is null ? (int)StateEnum.VIC : (int)data.Address.State;
                 job.Address.ModifiedByUserId = httpContext.UserId();
+                job.Address.ModifiedOn = now;
 
-                if (updateJobDto.Address.LatLng is null)
+                if (data.Address.LatLng is null)
                     job.Address.Geom = null;
-                else if (updateJobDto.Address.LatLng is LatLngDto latLng)
+                else if (data.Address.LatLng is LatLngDto latLng)
                     job.Address.Geom = new(new Coordinate(latLng.Latitude, latLng.Longitude));
             }
             else
             {
-                if (updateJobDto.Address is not null)
+                if (data.Address is not null)
                 {
                     job.Address = new Address
                     {
-                        Street = updateJobDto.Address.Street,
-                        PostCode = updateJobDto.Address.PostCode,
-                        Suburb = updateJobDto.Address.Suburb,
-                        StateId = updateJobDto.Address.State is null ? (int)StateEnum.VIC : (int)updateJobDto.Address.State,
+                        Street = data.Address.Street,
+                        PostCode = data.Address.PostCode,
+                        Suburb = data.Address.Suburb,
+                        StateId = data.Address.State is null ? (int)StateEnum.VIC : (int)data.Address.State,
                         CreatedByUserId = httpContext.UserId(),
                         Country = "AUS"
                     };
 
-                    if (updateJobDto.Address.LatLng is not null)
+                    if (data.Address.LatLng is not null)
                     {
-                        Point latlng = new(new Coordinate(updateJobDto.Address.LatLng.Latitude, updateJobDto.Address.LatLng.Longitude));
+                        Point latlng = new(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
                         job.Address.Geom = latlng;
                     }
 
@@ -431,15 +508,15 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 }
             }
 
-            if (updateJobDto.JobStatusId != job.StatusId)
+            if (data.JobStatusId != job.StatusId)
             {
-                if (updateJobDto.JobStatusId is null)
+                if (data.JobStatusId is null)
                 {
                     job.StatusId = null;
                 }
                 else
                 {
-                    int newId = updateJobDto.JobStatusId.Value;
+                    int newId = data.JobStatusId.Value;
                     int[] jobTypeIds = [.. job.JobTypes.Select(t => t.Id)];
                     bool statusAllowed = await _dbContext.JobStatuses
                         .AsNoTracking()
@@ -451,27 +528,37 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     int? previousStatusId = job.StatusId;
                     job.StatusId = newId;
 
-                    if (previousStatusId is not null && previousStatusId.Value != newId)
+                    await _dbContext.JobStatusHistories.AddAsync(new JobStatusHistory
                     {
-                        await _dbContext.JobStatusHistories.AddAsync(new JobStatusHistory
-                        {
-                            JobId = job.Id,
-                            StatusIdOld = previousStatusId.Value,
-                            StatusIdNew = newId,
-                            DateChanged = DateTime.UtcNow,
-                            ModifiedByUserId = httpContext.UserId()
-                        });
-                    }
+                        JobId = job.Id,
+                        StatusIdOld = previousStatusId is null ? newId : previousStatusId.Value,
+                        StatusIdNew = newId,
+                        DateChanged = now,
+                        ModifiedByUserId = httpContext.UserId()
+                    });
                 }
             }
 
+            JobUser? existingResponsible = job.JobUsers.FirstOrDefault(x => x.AssignmentTypeId == (int)JobAssignementTypeEnum.Responsible);
+            if (job.JobUsers.Count != 1 || existingResponsible?.UserId != data.ResponsibleTeamMember)
+            {
+                job.JobUsers.Clear();
+                if (data.ResponsibleTeamMember is not null)
+                    job.JobUsers.Add(new JobUser
+                    {
+                        AssignmentTypeId = (int)JobAssignementTypeEnum.Responsible,
+                        UserId = data.ResponsibleTeamMember.Value,
+                        CreatedByUserId = httpContext.UserId(),
+                        CreatedOn = now
+                    });
+            }
             await _dbContext.SaveChangesAsync();
             // Return the updated job details
-            return await GetJob(updateJobDto.JobId);
+            return await GetJob(data.JobId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update job with ID {JobId}", updateJobDto.JobId);
+            _logger.LogError(ex, "Failed to update job with ID {JobId}", data.JobId);
             return result.SetError(ErrorType.InternalError, "Failed to update job");
         }
     }
@@ -622,7 +709,6 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
-
     /// <inheritdoc/>
     public async Task<Result<TechnicalContactDto[]>> GetTechnicalContacts(int? jobId, int? contactId, bool showDeleted = false)
     {
@@ -765,6 +851,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
     }
 
+    #region Private Methods
     /// <summary>
     /// Allocates the next job number for the current calendar year (UTC), format <c>{yyyy}{sequence}</c>
     /// (e.g. <c>2025001</c>, <c>2025123</c>). Only non-deleted jobs whose number starts with that year
@@ -833,7 +920,11 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         return maxSuffix + 1;
     }
 
-
+    private async Task<bool> JobAssignmentLookupIsCompleteAsync()
+    {
+        int[] requiredIds = [(int)JobAssignementTypeEnum.CurrentOwner, (int)JobAssignementTypeEnum.Responsible];
+        return await _dbContext.JobAssignmentTypes.CountAsync(t => requiredIds.Contains(t.Id)) == requiredIds.Length;
+    }
 
     private static bool IsAllAsciiDigits(ReadOnlySpan<char> span)
     {
@@ -844,5 +935,5 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         }
         return true;
     }
-
+    #endregion
 }

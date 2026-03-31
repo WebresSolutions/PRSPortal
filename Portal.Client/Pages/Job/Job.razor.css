@@ -83,7 +83,7 @@
 
 .main-grid {
     display: grid;
-    grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 350px) minmax(0, 1fr);
     gap: 1rem;
     min-width: 0;
 }
@@ -113,6 +113,7 @@
     display: grid;
     grid-template-columns: 4fr 3fr;
     gap: 1rem;
+    max-height: 400px;
 }
 
 .other-content {

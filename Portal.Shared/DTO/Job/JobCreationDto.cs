@@ -1,5 +1,7 @@
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Address;
 using System.ComponentModel.DataAnnotations;
+using static Portal.Shared.ValidationAttributes;
 
 namespace Portal.Shared.DTO.Job;
 
@@ -20,7 +22,18 @@ public class JobCreationDto
     /// <summary>
     /// The address details for the job. This is optional and can be null if not provided.
     /// </summary>
-    public AddressDTO? Address { get; set; }
+    public AddressDto? Address { get; set; }
+
+    /// <summary>
+    /// The target delivery date
+    /// </summary>
+    [DateGreaterThanOrEqualToToday]
+    public DateTime? TargetDeliveryDate { get; set; }
+
+    /// <summary>
+    /// When the client was last udpated
+    /// </summary>
+    public DateTime? LatestClientUpdate { get; set; }
 
     /// <summary>
     /// The Council Id
@@ -40,6 +53,12 @@ public class JobCreationDto
     [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters")]
     public string? Details { get; set; }
 
-    [Range(1, int.MaxValue, ErrorMessage = "Job status ID must be at least 1 when provided")]
+    /// <summary>
+    /// The status Id 
+    /// </summary>
+    [Range(1, int.MaxValue, ErrorMessage = "Job status ID must be at least 1")]
     public int StatusId { get; set; }
+
+
+    public int? ResponsibleTeamMember { get; set; }
 }

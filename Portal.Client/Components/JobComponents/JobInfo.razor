@@ -1,3 +1,5 @@
+@using Portal.Shared.DTO.User
+@using Portal.Shared.DataEnums
 
 <Card Title="Job Information">
     <ChildContent>
@@ -7,7 +9,8 @@
                 <div class="info-row">
                     <span class="info-label">Contact</span>
                     <span class="info-value">
-                        <a style="color: var(--color-secondary)" href=@($"/contacts/{Job.PrimaryContact!.ContactId}")>@Job.PrimaryContact.ContactName</a>
+                        <a style="color: var(--color-secondary)"
+                           href=@($"/contacts/{Job.PrimaryContact!.ContactId}")>@Job.PrimaryContact.ContactName</a>
                     </span>
                 </div>
                 <div class="info-row">
@@ -19,37 +22,51 @@
                     <span class="info-value">@Job.PrimaryContact.Phone</span>
                 </div>
             }
+
+            <div class="info-row">
+                <span class="info-label">Responsible User</span>
+                @if (_responsibleUser is not null)
+                {
+                    <span class="info-value">
+                        <a style="color: var(--color-secondary)" )>@_responsibleUser.Name</a>
+                    </span>
+                }
+            </div>
+
             @if (Job.Council is not null)
             {
                 <div class="info-row">
                     <span class="info-label">Council</span>
 
                     <span class="info-value">
-                        <a style="color: var(--color-secondary)" href=@($"/councils/{Job.Council!.CouncilId}")>@Job.Council.CouncilName</a>
+                        <a style="color: var(--color-secondary)"
+                           href=@($"/councils/{Job.Council!.CouncilId}")>@Job.Council.CouncilName</a>
                     </span>
                 </div>
             }
-            @if (!string.IsNullOrEmpty(""))
+
+            <div class="info-row">
+                <span class="info-label">Target Delivery Date</span>
+                @if (Job.TargetDeliveryDate is not null)
+                {
+                    <span class="info-value">@(Job.TargetDeliveryDate.Value.ToLocalDateOnlyString())</span>
+                }
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Latest Client Update</span>
+                @if (Job.LatestClientUpdate is not null)
+                {
+                    <span class="info-value">@(Job.LatestClientUpdate.Value.ToLocalDateTimeString())</span>
+                }
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Job.Description))
             {
                 <div class="info-row">
-                    <span class="info-label">Plan Ref</span>
-                    <span class="info-value"></span>
+                    <span class="info-label">@Job.Description</span>
                 </div>
             }
-            @if (!string.IsNullOrEmpty(Job.Details))
-            {
-                <div class="info-row">
-                    <span class="info-label">@Job.Details</span>
-                </div>
-            }
-            <div class="info-row">
-                <span class="info-label">Created</span>
-                <span class="info-value">@(Job.DateCreated.ToLocalDateTimeString())</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Created By</span>
-                <span class="info-value">@Job.CreatedBy</span>
-            </div>
         </div>
     </ChildContent>
 </Card>
@@ -60,6 +77,13 @@
     /// </summary>
     [Parameter]
     public required JobDetailsDto Job { get; set; }
+    private UserAssignmentDto? _responsibleUser;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _responsibleUser = Job.AssignedUsers.FirstOrDefault(x => x.assignmentType is JobAssignementTypeEnum.Responsible);
+    }
 
 }
 

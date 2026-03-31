@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Portal.Shared.DTO.Address;
 
-public class AddressDTO
+public class AddressDto
 {
     public int AddressId { get; set; }
     public StateEnum? State { get; set; }
@@ -21,7 +21,7 @@ public class AddressDTO
     public LatLngDto? LatLng { get; set; }
 
     // Empty Constructor
-    public AddressDTO()
+    public AddressDto()
     {
         Suburb = "";
         Street = "";
@@ -29,7 +29,7 @@ public class AddressDTO
     }
 
     // Primary Constructor
-    public AddressDTO(
+    public AddressDto(
         int addressId,
         StateEnum? state,
         int stateId,

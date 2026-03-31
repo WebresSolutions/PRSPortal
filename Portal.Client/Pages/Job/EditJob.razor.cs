@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
+using Portal.Shared.DTO.Types;
+using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Pages.Job;
@@ -15,23 +17,23 @@ public partial class EditJob
     /// </summary>
     [Parameter]
     public int JobId { get; set; }
-    /// <summary>
-    /// The model
-    /// </summary>
-    private JobDetailsDto? _model;
-    /// <summary>
-    /// The List of job contacts
-    /// </summary>
+
+    #region  Private Fields
+    private JobUpdateDto? _model;
     private ListContactDto? _jobContact;
-
-    /// <summary>
-    /// List of councils
-    /// </summary>
     private CouncilPartialDto[] _councils = [];
-
+    private JobTypeStatusDto[] _JobTypeStatusDtos = [];
     private readonly JobTypeEnum[] _jobtypes = [.. Enum.GetValues<JobTypeEnum>().Cast<int>().Select(x => (JobTypeEnum)x)];
     private List<JobTypeEnum> _selectedJobtypes = [];
+    private UserDto[] _users = [];
+    #endregion
 
+    /// <summary>
+    /// OnInitializedAsync is called when the component is initialized. 
+    /// It loads the job data and related data such as councils and users. 
+    /// It also handles any errors that occur during loading and displays appropriate messages to the user.
+    /// </summary>
+    /// <returns></returns>
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -39,22 +41,26 @@ public partial class EditJob
         Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
         if (councilResult?.IsSuccess == true && councilResult.Value is not null)
             _councils = councilResult.Value;
-        if (_model is { PrimaryContact: not null })
-        {
-            _jobContact = new()
-            {
-                ContactId = _model.ContactId,
-                FullName = _model.PrimaryContact.ContactName,
-                Phone = _model.PrimaryContact.Phone
-            };
-        }
+
+        Result<UserDto[]> users = await _apiService.GetUsersList();
+        if (users.IsSuccess && users.Value is not null)
+            _users = users.Value;
+        else
+            _snackbar.Add(users.ErrorDescription ?? "Error occured while loading the users", Severity.Error);
+
     }
 
-    private void OnSelect(IEnumerable<JobTypeEnum> jobTypes)
-    {
-        _selectedJobtypes = jobTypes?.ToList() ?? [];
-    }
+    /// <summary>
+    /// Sets the selected job types when the user selects them from the multi select component. 
+    /// This is used to update the model before submitting the form
+    /// </summary>
+    /// <param name="jobTypes"></param>
+    private void OnSelect(IEnumerable<JobTypeEnum> jobTypes) => _selectedJobtypes = jobTypes?.ToList() ?? [];
 
+    /// <summary>
+    /// Loads the job data for the given JobId and populates the model and related properties. Displays error messages if loading fails
+    /// </summary>
+    /// <returns></returns>
     private async Task LoadJobData()
     {
         IsLoading = true;
@@ -63,8 +69,38 @@ public partial class EditJob
             Result<JobDetailsDto>? result = await _apiService.Job(JobId);
             if (result is not null && result.IsSuccess && result.Value is not null)
             {
-                _model = result.Value;
-                _selectedJobtypes = _model.JobType.ToList();
+                _model = new()
+                {
+                    JobId = result.Value.JobId,
+                    Address = result.Value.Address,
+                    ContactId = result.Value.ContactId,
+                    CouncilId = result.Value.CouncilId,
+                    Details = result.Value.Description,
+                    JobColourId = result.Value.JobColourId,
+                    JobStatusId = result.Value.JobStatusId,
+                    JobTypes = result.Value.JobTypes,
+                    ResponsibleTeamMember = result.Value.AssignedUsers?.FirstOrDefault()?.UserId,
+                    Contact = result.Value.PrimaryContact is not null ? new()
+                    {
+                        ContactId = result.Value.PrimaryContact.ContactId,
+                        ContactName = result.Value.PrimaryContact.ContactName,
+                        Phone = result.Value.PrimaryContact.Phone ?? "",
+                        Email = result.Value.PrimaryContact.Email,
+                    } : new(),
+                    LatestClientUpdate = result.Value.LatestClientUpdate,
+                    TargetDeliveryDate = result.Value.TargetDeliveryDate,
+                };
+                _selectedJobtypes = [.. _model.JobTypes];
+                _JobTypeStatusDtos = result.Value.JobTypeStatuses;
+                if (_model is { Contact: not null })
+                {
+                    _jobContact = new()
+                    {
+                        ContactId = _model.ContactId,
+                        FullName = _model.Contact.ContactName,
+                        Phone = _model.Contact.Phone
+                    };
+                }
             }
             else
             {
@@ -81,6 +117,12 @@ public partial class EditJob
         }
     }
 
+    /// <summary>
+    /// Submits the form to update the job. 
+    /// It validates the form data, updates the model with selected job types, and calls the API to update the job.
+    ///  Displays success or error messages based on the result of the API call.
+    /// </summary>
+    /// <returns></returns>
     private async Task SubmitAsync()
     {
         try
@@ -88,13 +130,19 @@ public partial class EditJob
             if (_model is null)
                 return;
 
-            if (_model.JobType.Length < 1)
+            if (_model.JobTypes.Length < 1)
             {
                 _snackbar.Add("Must Select at least on Job Type");
                 return;
             }
 
-            _model.JobType = [.. _selectedJobtypes];
+            if (_model.TargetDeliveryDate is not null && _model.TargetDeliveryDate < DateTime.Today)
+            {
+                _snackbar.Add("Target Delivery Date cannot be in the past", Severity.Error);
+                return;
+            }
+
+            _model.JobTypes = [.. _selectedJobtypes];
 
             Result<JobDetailsDto> result = await _apiService.UpdateJob(_model);
             if (result.IsSuccess && result.Value is not null)
@@ -122,9 +170,6 @@ public partial class EditJob
         if (_model is null)
             return;
         _model.JobStatusId = value;
-        _model.JobStatusName = value is null
-            ? null
-            : _model.JobTypeStatusDtos.FirstOrDefault(s => s.Id == value)?.Name;
         StateHasChanged();
     }
 

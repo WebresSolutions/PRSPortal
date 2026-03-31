@@ -16,7 +16,8 @@ public static class DateTimeBuilder
     }
 
     public static string ToLocalDateTimeString(this DateTime dateTime)
-    {
-        return dateTime.ToLocalTime().ToString("g", CultureInfo.CreateSpecificCulture("en-AU"));
-    }
+        => dateTime.ToLocalTime().ToString("g", CultureInfo.CreateSpecificCulture("en-AU"));
+
+    public static string ToLocalDateOnlyString(this DateTime dateTime)
+        => dateTime.ToLocalTime().ToString("dd/MM/yyyy");
 }

@@ -14,7 +14,7 @@ public partial class JobColour
 
     public DateTime CreatedOn { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public virtual ICollection<Job> Jobs { get; set; } = new List<Job>();
 }

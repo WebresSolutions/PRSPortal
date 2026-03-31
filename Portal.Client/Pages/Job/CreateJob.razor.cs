@@ -1,9 +1,10 @@
 using MudBlazor;
-using Portal.Shared;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Types;
+using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Client.Pages.Job;
@@ -24,6 +25,7 @@ public partial class CreateJob
     private CouncilPartialDto[] _councils = [];
     private JobTypeEnum[] _jobtypes = [];
     private JobTypeStatusDto[] _statuses = [];
+    private UserDto[] _users = [];
     /// <summary>
     /// On initialized method for loading data on the first page load.
     /// </summary>
@@ -46,6 +48,12 @@ public partial class CreateJob
             },
             StatusId = _statuses.OrderBy(x => x.Sequence).First().Id
         };
+
+        Result<UserDto[]> users = await _apiService.GetUsersList();
+        if (users.IsSuccess && users.Value is not null)
+            _users = users.Value;
+        else
+            _snackbar.Add(users.ErrorDescription ?? "Error occured while loading the users", Severity.Error);
 
         Result<CouncilPartialDto[]>? councilResult = await _apiService.GetCouncils();
         if (councilResult?.IsSuccess == true && councilResult.Value is not null)

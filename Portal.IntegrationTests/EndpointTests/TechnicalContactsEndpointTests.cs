@@ -1,3 +1,4 @@
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Job;
 using System.Net;
@@ -47,10 +48,11 @@ public sealed class TechnicalContactsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for technical contact tests",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -81,10 +83,11 @@ public sealed class TechnicalContactsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for update technical contact tests",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);
@@ -145,10 +148,11 @@ public sealed class TechnicalContactsEndpointTests
     {
         JobCreationDto jobDto = new()
         {
-            JobType = [Shared.JobTypeEnum.Construction],
+            JobType = [JobTypeEnum.Construction],
             ContactId = 1,
             Details = "Job for invalid contact test",
-            StatusId = 1
+            StatusId = 1,
+            ResponsibleTeamMember = 2
         };
 
         HttpResponseMessage createJobResponse = await _client.PostAsJsonAsync("/api/jobs", jobDto);

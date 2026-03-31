@@ -59,7 +59,7 @@ public interface IJobService
     /// <param name="httpContext"></param>
     /// <param name="updateJobDto"></param>
     /// <returns></returns>
-    Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobDetailsDto updateJobDto);
+    Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobUpdateDto updateJobDto);
 
     /// <summary>
     /// Create a new job with the specified details and return the unique identifier of the created job. The method accepts a

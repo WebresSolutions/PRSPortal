@@ -19,14 +19,21 @@ public static class AsyncEnumerableExtensions
 
         async Task<List<T>> ExecuteAsync()
         {
-            List<T> list = new();
+            List<T> list = [];
 
-            await foreach (var element in source)
+            await foreach (T? element in source)
             {
                 list.Add(element);
             }
 
             return list;
         }
+    }
+
+    public static bool SetsContainSameElements<T>(this IEnumerable<T> set1, IEnumerable<T> set2)
+    {
+        HashSet<T> setXOR = [.. set1];
+        setXOR.SymmetricExceptWith(set2);
+        return (setXOR.Count == 0);
     }
 }

@@ -6,4 +6,4 @@
 /// </summary>
 /// <param name="userId">The unique identifier for the user</param>
 /// <param name="displayName">The display name of the user</param>
-public record UserDto(int? userId, string? displayName, bool isActive = true);
+public record UserDto(int userId, string? displayName, bool isActive = true);
