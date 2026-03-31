@@ -3,7 +3,6 @@ using Portal.Data;
 using Portal.Server.Controllers;
 using Portal.Server.Endpoints;
 using Portal.Server.Middleware;
-using Portal.Server.Services.Interfaces;
 using Scalar.AspNetCore;
 
 namespace Portal.Server;
@@ -124,7 +123,6 @@ public class Program
         // Seed database with an initial client application and test user
         using (IServiceScope scope = app.Services.CreateScope())
         {
-            IGraphService graphService = scope.ServiceProvider.GetService<IGraphService>() ?? throw new Exception("Graph service not registered.");
             PrsDbContext dbContext = scope.ServiceProvider.GetService<PrsDbContext>() ?? throw new Exception("Database not registered.");
 
             //MigrateUsers.MigrateUsersFromAzure(dbContext, graphService);

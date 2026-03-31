@@ -1,15 +1,17 @@
 ﻿@using Portal.Shared.DTO.User
-<Card Title="Assigned Jobs">
+<Card ShowHeaderWithTabs="true" HeaderTitle="Assigned Jobs" Shadow="false">
     <ChildContent>
         <div class="user-jobs-container">
             @foreach (var job in _jobList.UserJobs)
             {
-                <div class="border-grey border-rad light grey-background d-flex flex-column gap-1">
-                    <a href=@($"jobs/{job.JobId}") class="contact-link">@job.JobDetails.JobNumber</a>
-                    <div>@job.JobDetails.AddressAsString</div>
+                <div class="border-grey border-rad light grey-background d-flex flex-row gap-1 p-2 justify-content-between">
+                    <div>
+                        <a href=@($"jobs/{job.JobId}") class="contact-link"><strong>@job.JobDetails.JobNumber</strong></a>
+                        <div>@job.JobDetails.AddressAsString</div>
+                    </div>
                     @if (job.JobDetails.JobTypeStatus is not null)
                     {
-                        <div style="background-color: @job.JobDetails.JobTypeStatus.Colour">@job.JobDetails.JobTypeStatus.Name</div>
+                        <div style="background-color: @job.JobDetails.JobTypeStatus.Colour; color:white" class="p-2 border-rad">@job.JobDetails.JobTypeStatus.Name</div>
                     }
                 </div>
             }

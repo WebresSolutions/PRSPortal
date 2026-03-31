@@ -1,6 +1,5 @@
 @if (_gridState is not null)
 {
-    <ButtonIcon CssClass="mb-4 text-end" @onclick="@(() => _isEditing = !_isEditing)" Icon="bi bi-pencil" />
     <div class=@(_isEditing ? "custom-grid edit" : "custom-grid")
          style="@_gridState.AsCss()"
          @ondragover:preventDefault
@@ -25,20 +24,11 @@
                             <small>Pos: @item.X, @item.Y</small>
                         }
                     </div>
-                    @if (_isEditing)
-                    {
-                        <div class="resize-item drag-right"
-                             draggable="true"
-                             @ondrag="HandleResize"
-                             @ondragstart="(e) => HandleResizeStart(e, item)"
-                             @ondragend="HandleResizeEnd">
-                            ↔
-                        </div>
-                    }
                 </div>
             }
         }
     </div>
+    <ButtonIcon CssClass="mb-4 text-end" @onclick="@(() => _isEditing = !_isEditing)" Icon="bi bi-pencil" />
 }
 
 <style>
@@ -62,14 +52,13 @@
     }
 
     .grid-item {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15); 
         background: var(--color-white);
         color: var(--color-primary);
         border-radius: var(--border-rad);
         padding: 1rem;
         transition: ease-in-out all 0.1s;
         position: relative;
-        cursor: crosshair;
         height: 100%;
         overflow: scroll;
     }
@@ -81,20 +70,33 @@
             /* z-index: 0; */
         }
 
-    @@media(max-width: 1200px) {
+    @@media (max-width: 1200px) {
+        /* 1. Force the grid into a single vertical stack */
         .custom-grid {
-            grid-template-columns: 1fr !important;
-            grid-template-rows: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            width: 100% !important;
+            gap: 1.5rem !important; /* Spacing between the stacked items */
+            height: auto !important; /* Let the container grow with the items */
         }
-
-            .custom-grid > * {
-                grid-column: 1;
-            }
-
+        /* 2. Reset the wrapper positioning */
         .outer-grid-item {
-            /* Force every item to span the full width of that single column */
-            grid-column: 1 / -1 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            grid-column: auto !important;
             grid-row: auto !important;
+            position: static !important; /* Removes any absolute/relative offsets from C# */
+        }
+        /* 3. Apply the height and scroll constraints */
+        .grid-item {
+            width: 100% !important;
+            max-height: 500px !important; /* Your requested limit */
+            overflow-y: auto !important; /* Enables vertical scroll */
+            overflow-x: hidden !important; /* Prevents the 'too wide' horizontal scroll */
+            box-sizing: border-box !important; /* Crucial: keeps padding inside the 100% width */
+            /* Optional: aesthetic touch for mobile */
+            display: block !important;
         }
     }
 
