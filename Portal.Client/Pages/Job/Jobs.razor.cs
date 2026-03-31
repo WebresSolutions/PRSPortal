@@ -91,7 +91,7 @@ public partial class Jobs : IDisposable
             _filterState.ContactSearch = ContactSearch;
         if (JobNumberSearch is not null)
             _filterState.JobNumberSearch = JobNumberSearch;
-        if (!string.IsNullOrWhiteSpace(Order) && Enum.TryParse<SortDirectionEnum>(Order, true, out SortDirectionEnum orderEnum))
+        if (!string.IsNullOrWhiteSpace(Order) && Enum.TryParse(Order, true, out SortDirectionEnum orderEnum))
             _filterState.Order = orderEnum;
     }
 
@@ -108,13 +108,13 @@ public partial class Jobs : IDisposable
         if (_filterState.PageSize != 25)
             queryParams["pageSize"] = PageSize.ToString();
 
-        if (!string.IsNullOrWhiteSpace(_filterState.AddressSearch))
+        if (!string.IsNullOrWhiteSpace(AddressSearch))
             queryParams["address"] = AddressSearch;
 
-        if (!string.IsNullOrWhiteSpace(_filterState.ContactSearch))
+        if (!string.IsNullOrWhiteSpace(ContactSearch))
             queryParams["contact"] = ContactSearch;
 
-        if (!string.IsNullOrWhiteSpace(_filterState.JobNumberSearch))
+        if (!string.IsNullOrWhiteSpace(JobNumberSearch))
             queryParams["jobNumber"] = JobNumberSearch;
 
         if (_filterState.Order != SortDirectionEnum.Asc)
@@ -153,11 +153,11 @@ public partial class Jobs : IDisposable
                 _filterState.Order = sortDefinition.Descending ? SortDirectionEnum.Desc : SortDirectionEnum.Asc;
                 _filterState.OrderBy = sortDefinition.SortBy switch
                 {
-                    string s when s == nameof(ListJobDto.Contact1)
-                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.PostCode)
-                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.Suburb)
-                            || s == nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.Street)
-                            || s == nameof(ListJobDto.JobNumber) => s,
+                    string s when s is (nameof(ListJobDto.Contact1))
+                            or (nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.PostCode))
+                            or (nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.Suburb))
+                            or (nameof(ListJobDto.Address) + "." + nameof(ListJobDto.Address.Street))
+                            or (nameof(ListJobDto.JobNumber)) => s,
                     _ => nameof(ListJobDto.JobId)
                 };
             }
@@ -170,7 +170,7 @@ public partial class Jobs : IDisposable
             _filterState.Page = state.Page;
             _filterState.PageSize = state.PageSize;
             UpdateUrlFromState();
-            JobFilterDto search = new(apiPageNumber, apiPageSize, _filterState.AddressSearch, _filterState.ContactSearch, _filterState.JobNumberSearch, _filterState.OrderBy, _filterState.Order, _filterState.ShowDeleted, null, null);
+            JobFilterDto search = new(apiPageNumber, apiPageSize, AddressSearch, ContactSearch, JobNumberSearch, _filterState.OrderBy, _filterState.Order, _filterState.ShowDeleted, null, null);
             Result<PagedResponse<ListJobDto>>? apiResult = await _apiService.GetAllJobs(search);
 
             if (apiResult is not null && apiResult.IsSuccess && apiResult.Value is not null)
@@ -186,7 +186,6 @@ public partial class Jobs : IDisposable
             else
             {
                 _snackbar?.Add("Error", Severity.Error);
-
                 return new GridData<ListJobDto>() { Items = [], TotalItems = 0 };
             }
         }

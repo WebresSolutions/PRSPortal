@@ -115,6 +115,7 @@ public class UserService(PrsDbContext _dbContext, IXeroIntegrationService _xeroI
             {
                 UserId = userId,
                 UserJobs = await _dbContext.JobUsers
+                .AsSplitQuery()
                 .Where(x => x.UserId == userId)
                 .Select(x => new UserJobDto(x.UserId, x.JobId, new ListJobDto()
                 {

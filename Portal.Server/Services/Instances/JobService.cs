@@ -64,7 +64,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             {
                 string pattern = PartialMatch(filter.ContactSearch);
                 query = query.Where(job => job.Contact != null &&
-                                           job.Contact.SearchVector.Matches(pattern));
+                                           job.Contact.SearchVector.Matches(EF.Functions.ToTsQuery(pattern)));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.JobNumberSearch))
@@ -392,6 +392,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         try
         {
             Job? job = await _dbContext.Jobs
+                .AsSplitQuery()
                 .Include(j => j.Address)
                 .Include(j => j.JobTypes)
                 .Include(j => j.JobUsers)

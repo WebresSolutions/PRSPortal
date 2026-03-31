@@ -127,8 +127,12 @@ public partial class EditJob
     {
         try
         {
+
+
             if (_model is null)
                 return;
+
+            _model.JobTypes = [.. _selectedJobtypes];
 
             if (_model.JobTypes.Length < 1)
             {
@@ -142,12 +146,11 @@ public partial class EditJob
                 return;
             }
 
-            _model.JobTypes = [.. _selectedJobtypes];
 
             Result<JobDetailsDto> result = await _apiService.UpdateJob(_model);
             if (result.IsSuccess && result.Value is not null)
             {
-                _snackbar?.Add("Job created successfully.", Severity.Success);
+                _snackbar?.Add("Job updated successfully.", Severity.Success);
                 _navigationManager.NavigateTo($"/jobs/{result.Value.JobId}");
             }
             else
