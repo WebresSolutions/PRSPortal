@@ -7,3 +7,5 @@ This will create data objects in the 'Data' project and use the json setting fro
 > dotnet ef dbcontext scaffold Name=PrsConnection Npgsql.EntityFrameworkCore.PostgreSQL --output-dir ../Portal.Data/Models --context-dir ../Portal.Data --context PrsDbContext --force --no-onconfiguring --context-namespace Portal.Data --namespace Portal.Data.Models
 
 - If the build fails: clean the solution and rebuild.
+
+https://1b8q9wlp-5001.aue.devtunnels.ms/
