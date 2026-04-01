@@ -8,17 +8,17 @@
         <Content>
             <div>
                 <h2>Quotes</h2>
-                <div style="margin: auto">
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">New</MudButton>
-                </div>
             </div>
             <MudTextField T="string" Placeholder="Search" Adornment="Adornment.Start" Variant="Variant.Outlined"
-                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Large" Class="mt-0 mb-4" Clearable="true"></MudTextField>
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Large" Class="" Clearable="true">
+            </MudTextField>
         </Content>
     </PageHeader>
 
     <Card>
-
+        <TitleContent>
+            <HeaderTabs Href="/quotes/create" />
+        </TitleContent>
         <ChildContent>
 
         </ChildContent>
