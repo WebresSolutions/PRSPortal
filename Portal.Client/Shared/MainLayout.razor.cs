@@ -14,6 +14,8 @@ public partial class MainLayout : IAsyncDisposable
     protected HotKeysContext? _hotKeysContext;
     private bool _collapsed = true;
     private bool headerVisible = true;
+    private bool _mobileNavOpen;
+    private readonly HashSet<string> _mobileExpandedGroups = [];
 
     private List<NavLinkItem> navLinks = [];
 
@@ -59,7 +61,8 @@ public partial class MainLayout : IAsyncDisposable
                 return;
         }
 
-        sessionSettings?.NavbarCollapsed = _collapsed;
+        if (sessionSettings is not null)
+            sessionSettings.NavbarCollapsed = _collapsed;
         // Save to session storage for next time
         _sessionStorage.SetItem("SystemSettings", sessionSettings);
         string settingsJson = JsonSerializer.Serialize(sessionSettings);
@@ -69,6 +72,7 @@ public partial class MainLayout : IAsyncDisposable
 
 
     private string MainClass => _collapsed ? "main full" : "main";
+    private bool MobileNavOpen => _mobileNavOpen;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -85,10 +89,34 @@ public partial class MainLayout : IAsyncDisposable
 
     private async Task OpenDialogAsync() => await _dialog.ShowAsync<SearchDialog>("", new DialogOptions() { CloseButton = true, CloseOnEscapeKey = true });
 
-    public async ValueTask DisposeAsync()
+    private Task ToggleMobileNav()
+    {
+        _mobileNavOpen = !_mobileNavOpen;
+        return Task.CompletedTask;
+    }
+
+    private Task CloseMobileNav()
+    {
+        _mobileNavOpen = false;
+        return Task.CompletedTask;
+    }
+
+    private void ToggleMobileGroup(NavLinkItem navItem)
+    {
+        string key = GetMobileGroupKey(navItem);
+        if (!_mobileExpandedGroups.Add(key))
+            _mobileExpandedGroups.Remove(key);
+    }
+
+    private bool IsMobileGroupOpen(NavLinkItem navItem) => _mobileExpandedGroups.Contains(GetMobileGroupKey(navItem));
+
+    private static string GetMobileGroupKey(NavLinkItem navItem) => $"{navItem.Title}:{navItem.Link}";
+
+    public ValueTask DisposeAsync()
     {
         GC.SuppressFinalize(this);
         _ = _hotKeysContext?.DisposeAsync();
+        return ValueTask.CompletedTask;
     }
 
     private void GoToNextNavItem(bool up)
