@@ -113,7 +113,8 @@ public static class Dependencies
                         "https://localhost:44310",
                         "http://localhost:5555",
                         "http://localhost:7357",
-                        "https://164b253v-5000.aue.devtunnels.ms/"
+                        "https://1b8q9wlp-5001.aue.devtunnels.ms",
+                        "https://94s0k9cv-5001.auc1.devtunnels.ms"
                     )
                     .AllowAnyHeader()
                     .AllowAnyMethod()
