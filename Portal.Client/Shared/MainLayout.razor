@@ -68,6 +68,19 @@
                     }
                 </ul>
             </AuthorizeView>
+            <AuthorizeView>
+                <Authorized>
+                    <div style="display:grid; grid-template-columns: 1fr">
+                        <i class="bi bi-person-vcard btn" href="authentication/profile"></i>
+                        <i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <NavLink class="nav-link" href="authentication/login">
+                        <i class="bi bi-box-arrow-in-right btn" />
+                    </NavLink>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
     </div>
 

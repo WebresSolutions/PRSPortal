@@ -62,6 +62,10 @@
     opacity: 0.95;
 }
 
+.job-status-step-title{
+    display: inline;
+}
+
 .job-status-step--completed {
     background: color-mix(in srgb, var(--step-accent) 88%, #0f172a);
     color: #fff;
@@ -129,5 +133,8 @@
 
     .job-status-label {
         font-size: 0.6rem;
+    }
+    .job-status-step-title {
+        display: none;
     }
 }

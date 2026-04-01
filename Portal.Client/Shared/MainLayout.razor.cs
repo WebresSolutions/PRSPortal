@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Portal.Client.Components;
@@ -61,15 +63,17 @@ public partial class MainLayout : IAsyncDisposable
                 return;
         }
 
-        if (sessionSettings is not null)
-            sessionSettings.NavbarCollapsed = _collapsed;
+        sessionSettings?.NavbarCollapsed = _collapsed;
         // Save to session storage for next time
         _sessionStorage.SetItem("SystemSettings", sessionSettings);
         string settingsJson = JsonSerializer.Serialize(sessionSettings);
         SystemSettingDto obj = new() { SettingJson = settingsJson };
         _ = await _apiService.UpdateSystemSettings(obj);
     }
-
+    private void BeginSignOut(MouseEventArgs args)
+    {
+        _navigationManager.NavigateToLogout("authentication/logout");
+    }
 
     private string MainClass => _collapsed ? "main full" : "main";
     private bool MobileNavOpen => _mobileNavOpen;
