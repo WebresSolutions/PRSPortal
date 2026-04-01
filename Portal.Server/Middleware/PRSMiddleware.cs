@@ -54,17 +54,28 @@ public class PRSMiddleware(RequestDelegate next) // Remove dbContext from constr
                 {
                     if (email.Contains("prs.au") && !await dbContext.AppUsers.AnyAsync(x => x.IdentityId == identityId))
                     {
-                        // Create a new user 
-                        AppUser newUser = new()
+                        if (await dbContext.AppUsers.FirstOrDefaultAsync(x => x.IdentityId == identityId) is AppUser existingUser)
                         {
-                            IdentityId = identityId,
-                            Email = email,
-                            DisplayName = email.Split('@')[0],
-                            CreatedOn = DateTime.UtcNow,
-                        };
-                        dbContext.AppUsers.Add(newUser);
+                            // Update existing user with new IdentityId
+                            existingUser.IdentityId = identityId;
+                            dbContext.AppUsers.Update(existingUser);
+                            await dbContext.SaveChangesAsync();
+                            appUser = existingUser;
+                        }
+                        else
+                        {
+                            // Create a new user 
+                            AppUser newUser = new()
+                            {
+                                IdentityId = identityId,
+                                Email = email,
+                                DisplayName = email.Split('@')[0],
+                                CreatedOn = DateTime.UtcNow,
+                            };
+                            dbContext.AppUsers.Add(newUser);
+                            appUser = newUser;
+                        }
                         await dbContext.SaveChangesAsync();
-                        appUser = newUser;
                     }
                     else
                     {
