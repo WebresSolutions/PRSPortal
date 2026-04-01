@@ -59,10 +59,11 @@ INSERT INTO technical_contact_type (id, name, description) VALUES (2, 'Builder',
 INSERT INTO technical_contact_type (id, name, description) VALUES (3, 'Previous Client', 'Previous Client');
 INSERT INTO technical_contact_type (id, name, description) VALUES (4, 'Technical Contact', 'Technical Contact');
 
-INSERT INTO quote_status(name) VALUES ('Draft');
-INSERT INTO quote_status(name) VALUES ('Lost');
-INSERT INTO quote_status(name) VALUES ('Rejected');
-INSERT INTO quote_status(name) VALUES ('Sent');
+INSERT INTO quote_status(name, colour) VALUES ('Draft', '#cccccc');
+INSERT INTO quote_status(name, colour) VALUES ('New', '#fffff');
+INSERT INTO quote_status(name, colour) VALUES ('Sent', '#0d9488');
+INSERT INTO quote_status(name, colour) VALUES ('Lost', '#dc2626');
+INSERT INTO quote_status(name, colour) VALUES ('Rejected', '#ea580c');
 
 INSERT INTO timesheet_entry_type(name, description) VALUES ('Job', 'Job');
 INSERT INTO timesheet_entry_type(name, description) VALUES ('Regular', 'Regular work hours');

@@ -24,8 +24,8 @@ DROP TABLE IF EXISTS quote_template;
 DROP TABLE IF EXISTS quote_item;
 
 -- Tier 2: Tables with FKs pointing to core entities (Parents/Reference tables)
-DROP TABLE IF EXISTS job;
 DROP TABLE IF EXISTS quote;
+DROP TABLE IF EXISTS job;
 DROP TABLE IF EXISTS contact;
 DROP TABLE IF EXISTS app_file;
 DROP TABLE IF EXISTS council;
@@ -84,7 +84,7 @@ CREATE INDEX idx_app_user_identity_id ON app_user(identity_id);
 CREATE INDEX idx_app_user_deactivated_at ON app_user(deactivated_at);
 
 -- ============================================================================
--- STATE TABLE
+-- LOOKUP / TYPE TABLES
 -- ============================================================================
 
 CREATE TABLE states (
@@ -94,6 +94,194 @@ CREATE TABLE states (
 );
 
 COMMENT ON TABLE states IS 'States or territories for address management';
+
+-- ============================================================================
+-- CONTACT TYPE TABLE
+-- ============================================================================
+
+CREATE TABLE contact_type (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description TEXT,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_on TIMESTAMPTZ,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- ============================================================================
+-- JOB COLOUR TABLE
+-- ============================================================================
+
+CREATE TABLE job_colour (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    color VARCHAR(20) NOT NULL,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT job_color_format CHECK (color IS NULL OR color LIKE '#%'),
+    CONSTRAINT job_color_unique UNIQUE (color),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+COMMENT ON TABLE job_colour IS 'Colour of job';
+
+-- ============================================================================
+-- JOB TYPE TABLE
+-- ============================================================================
+
+CREATE TABLE job_type (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    abbreviation VARCHAR(15) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE job_type IS 'Type of job';
+COMMENT ON COLUMN job_type.name IS 'Construction = Set out. Survey = CAD.';
+
+-- ============================================================================
+-- FILE TYPE TABLE
+-- ============================================================================
+
+CREATE TABLE file_type(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    job_type_id INT NOT NULL REFERENCES job_type(id),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+COMMENT ON TABLE file_type IS 'File type and metadata';
+CREATE index idx_file_type_job_type_id on file_type(job_type_id);
+
+-- ============================================================================
+-- JOB STATUS TABLE
+-- ============================================================================
+
+CREATE TABLE job_status (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    sequence INT NOT NULL,
+    job_type_id INT NOT NULL REFERENCES job_type(id),
+    name VARCHAR(100) NOT NULL,
+    colour VARCHAR(12) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+COMMENT ON TABLE job_status IS 'The status of a Job';
+CREATE INDEX idx_job_status_type_id ON job_status(job_type_id);
+
+-- ============================================================================
+-- Technical Contact Types Table
+-- ============================================================================
+
+CREATE TABLE technical_contact_type (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description TEXT,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_on TIMESTAMPTZ,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- ============================================================================
+-- USER JOB ASSIGNMENT TYPE
+-- ============================================================================
+
+CREATE TABLE job_assignment_type(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    is_active BOOL NOT NULL DEFAULT true
+);
+
+-- ============================================================================
+-- JOB TASK TYPE TABLE (Many-to-One)
+-- ============================================================================
+CREATE TABLE job_task_type(
+    id SERIAL PRIMARY KEY,
+    job_type_id INT NOT NULL REFERENCES job_type(id),
+    name VARCHAR(255) NOT NULL,
+    description VARCHAR(500),
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE INDEX idx_job_task_type_name ON job_task_type(name);
+CREATE INDEX idx_job_task_type_job_type_id ON job_task_type(job_type_id);
+
+-- ============================================================================
+-- SERVICE CATALOG
+-- ============================================================================
+CREATE TABLE service_type (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    code VARCHAR(20) UNIQUE,
+    service_name VARCHAR(150) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    description TEXT
+);
+CREATE INDEX idx_service_type_code ON service_type(code);
+CREATE INDEX idx_service_type_active ON service_type(is_active);
+CREATE INDEX idx_service_catalog_name ON service_type(service_name);
+
+-- ============================================================================
+-- QUOTE STATUS HISTORY TABLE
+-- ============================================================================
+--
+CREATE TABLE quote_status (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL,
+    colour VARCHAR(10) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+COMMENT ON TABLE quote_status IS 'Holds the status of a quote';
+
+-- ============================================================================
+-- TIMESHEET ENTRY TABLE
+-- ============================================================================
+--
+CREATE TABLE timesheet_entry_type(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(50) NOT NULL,
+    description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- ============================================================================
+-- SCHEDULE COLOUR TABLE
+-- ============================================================================
+
+CREATE TABLE schedule_colour (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    color VARCHAR(20) NOT NULL,
+    description VARCHAR(255),
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT schedule_colour_format CHECK (color IS NULL OR color LIKE '#%')
+);
+
+COMMENT ON TABLE schedule_colour IS 'Colour of the schedule';
+
+-- ============================================================================
+-- APPLICATION SETTINGS TABLE
+-- ============================================================================
+CREATE TABLE application_setting(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    key VARCHAR(255) NOT NULL,
+    value JSONB NOT NULL,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT application_settings_key_unique UNIQUE (key)
+);
+
+-- ============================================================================
+-- Type Table For Notifications
+-- ============================================================================
+CREATE TABLE notification_type(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(100),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
 
 -- ============================================================================
 -- ADDRESS TABLE
@@ -135,20 +323,6 @@ CREATE INDEX idx_address_search_vector ON address USING GIN(search_vector);
 CREATE INDEX idx_address_street_suburb_trgm ON address USING GIN((street || ' ' || suburb) gin_trgm_ops);
 CREATE INDEX idx_address_geom ON address USING GIST (geom);
 
--- ============================================================================
--- CONTACT TYPE TABLE
--- ============================================================================
-
-CREATE TABLE contact_type (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    description TEXT,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_on TIMESTAMPTZ,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
--- ============================================================================
 -- CONTACT TABLE
 -- ============================================================================
 
@@ -235,53 +409,6 @@ create index idx_council_conact_council_id on council(id);
 create index idx_council_contact_contact_id on contact(id);
 create index idx_council_contact_address_id on address(id);
 
--- ============================================================================
--- JOB COLOUR TABLE
--- ============================================================================
-
-CREATE TABLE job_colour (
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    color VARCHAR(20) NOT NULL,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT job_color_format CHECK (color IS NULL OR color LIKE '#%'),
-    CONSTRAINT job_color_unique UNIQUE (color),
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
-COMMENT ON TABLE job_colour IS 'Colour of job';
-
--- ============================================================================
--- JOB TYPE TABLE
--- ============================================================================
-
-CREATE TABLE job_type (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    abbreviation VARCHAR(15) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-COMMENT ON TABLE job_type IS 'Type of job';
-COMMENT ON COLUMN job_type.name IS 'Construction = Set out. Survey = CAD.';
-
-
--- ============================================================================
--- FILE TYPE TABLE
--- ============================================================================
-
-CREATE TABLE file_type(
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    job_type_id INT NOT NULL REFERENCES job_type(id),
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
-COMMENT ON TABLE file_type IS 'File type and metadata';
-CREATE index idx_file_type_job_type_id on file_type(job_type_id);
-
--- ============================================================================
 -- FILE TABLE
 -- ============================================================================
 
@@ -314,25 +441,6 @@ CREATE INDEX idx_file_created_by ON app_file(created_by_user_id);
 CREATE INDEX idx_file_deleted_at ON app_file(deleted_at);
 CREATE INDEX idx_file_external_id ON app_file(external_id);
 
--- ============================================================================
--- JOB STATUS TABLE
--- ============================================================================
-
-CREATE TABLE job_status (
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    sequence INT NOT NULL,
-    job_type_id INT NOT NULL REFERENCES job_type(id),
-    name VARCHAR(100) NOT NULL,
-    colour VARCHAR(12) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
-COMMENT ON TABLE job_status IS 'The status of a Job';
-CREATE INDEX idx_job_status_type_id ON job_status(job_type_id);
-
-
--- ============================================================================
 -- JOB TABLE
 -- ============================================================================
 
@@ -404,20 +512,6 @@ COMMENT ON TABLE job_to_type IS 'Jobs can have multiple types. ';
 CREATE INDEX idx_job_to_type_job ON job_to_type(job_id);
 CREATE INDEX  idx_job_to_type_type ON job_to_type(job_type_id);
 
--- ============================================================================
--- Technical Contact Types Table
--- ============================================================================
-
-CREATE TABLE technical_contact_type (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    description TEXT,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_on TIMESTAMPTZ,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
--- ============================================================================
 -- technical Contact Table
 -- ============================================================================
 
@@ -439,18 +533,6 @@ CREATE INDEX technical_contacts_job_id_idx ON technical_contact(job_id);
 CREATE INDEX technical_contacts_created_by_user_id_idx ON technical_contact(created_by_user_id);
 CREATE INDEX technical_contacts_modified_by_user_id_idx ON technical_contact(modified_by_user_id);
 
--- ============================================================================
--- USER JOB ASSIGNMENT TYPE
--- ============================================================================
-
-CREATE TABLE job_assignment_type(
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    description VARCHAR(255) NOT NULL,
-    is_active BOOL NOT NULL DEFAULT true
-);
-
--- ============================================================================
 -- USER JOB TABLE (Many-to-Many)
 -- ============================================================================
 
@@ -517,22 +599,6 @@ CREATE INDEX idx_job_file_job_id ON job_file(job_id);
 CREATE INDEX idx_job_file_file_id ON job_file(file_id);
 CREATE INDEX idx_job_file_created_by ON job_file(created_by_user_id);
 
--- ============================================================================
--- JOB TASK TYPE TABLE (Many-to-One)
--- ============================================================================
-CREATE TABLE job_task_type(
-    id SERIAL PRIMARY KEY,
-    job_type_id INT NOT NULL REFERENCES job_type(id),
-    name VARCHAR(255) NOT NULL,
-    description VARCHAR(500),
-    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
-CREATE INDEX idx_job_task_type_name ON job_task_type(name);
-CREATE INDEX idx_job_task_type_job_type_id ON job_task_type(job_type_id);
-
--- ============================================================================
 -- JOB TASK TABLE (Many-to-One)
 -- ============================================================================
 
@@ -558,23 +624,6 @@ CREATE INDEX idx_task_deleted_at ON job_task(deleted_at);
 CREATE INDEX idx_task_created_by ON job_task(created_by_user_id);
 
 -- ============================================================================
--- SERVICE CATALOG
--- ============================================================================
-CREATE TABLE service_type (
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    code VARCHAR(20) UNIQUE,
-    service_name VARCHAR(150) NOT NULL,
-    default_rate NUMERIC(12, 2),
-    unit_of_measure VARCHAR(20),
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    description TEXT
-);
-CREATE INDEX idx_service_type_code ON service_type(code);
-CREATE INDEX idx_service_type_active ON service_type(is_active);
-CREATE INDEX idx_service_catalog_name ON service_type(service_name);
-
-
--- ============================================================================
 -- INVOICE TABLE
 -- ============================================================================
 CREATE TABLE invoice(
@@ -596,19 +645,6 @@ CREATE INDEX idx_invoice_created_by ON invoice(created_by_user_id);
 CREATE INDEX idx_invoice_modified_by ON invoice(modified_by_user_id);
 CREATE INDEX idx_invoice_deleted_at ON invoice(deleted_at);
 
--- ============================================================================
--- QUOTE STATUS HISTORY TABLE
--- ============================================================================
---
-CREATE TABLE quote_status (
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name VARCHAR(100) NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
-COMMENT ON TABLE quote_status IS 'Holds the status of a quote';
-
--- ============================================================================
 -- QUOTE TABLE
 -- ============================================================================
 CREATE TABLE quote (
@@ -617,8 +653,12 @@ CREATE TABLE quote (
     status_id INT NOT NULL REFERENCES quote_status(id),
     address_id INT REFERENCES address(id),
     contact_id INT REFERENCES contact(id),
+    job_type_id INT NOT NULL REFERENCES job_type(id),
+    job_id INT REFERENCES job(id),
+    quote_reference VARCHAR(50),
     total_price NUMERIC(12, 2),
     date_accepted TIMESTAMPTZ,
+    date_sent_to_client TIMESTAMPTZ,
     target_delivery_date TIMESTAMPTZ,
     description TEXT,
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
@@ -634,6 +674,8 @@ CREATE INDEX idx_quote_status_id ON quote(status_id);
 CREATE INDEX idx_quote_contact_id ON quote(contact_id);
 CREATE INDEX idx_quote_created_by ON quote(created_by_user_id);
 CREATE INDEX idx_quote_modified_by ON quote(modified_by_user_id);
+CREATE INDEX idx_quote_job_id ON quote(job_id);
+CREATE INDEX idx_quote_job_type_id ON quote(job_type_id);
 
 -- ============================================================================
 -- QUOTE ORDER ITEMS
@@ -643,9 +685,7 @@ CREATE TABLE quote_item (
         quote_id INT NOT NULL REFERENCES quote(id) ON DELETE CASCADE,
         service_id INT REFERENCES service_type(id),
         service_name_snapshot VARCHAR(150) NOT NULL,
-        applied_rate NUMERIC(12, 2) NOT NULL,
-        quantity NUMERIC(10, 2) DEFAULT 1.00,
-        subtotal NUMERIC(12, 2) GENERATED ALWAYS AS (applied_rate * quantity) STORED,
+        total NUMERIC(12, 2) NOT NULL,
         notes TEXT
 );
 
@@ -751,18 +791,6 @@ CREATE INDEX idx_quote_note_quote_id ON quote_note(quote_id);
 CREATE INDEX idx_quote_note_created_by ON quote_note(created_by_user_id);
 CREATE INDEX idx_quote_note_deleted_at ON quote_note(deleted_at);
 
--- ============================================================================
--- TIMESHEET ENTRY TABLE
--- ============================================================================
---
-CREATE TABLE timesheet_entry_type(
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name VARCHAR(50) NOT NULL,
-    description TEXT,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
--- ============================================================================
 -- TIMESHEET ENTRY TABLE
 -- ============================================================================
 
@@ -826,21 +854,6 @@ CREATE INDEX idx_schedule_users_schedule_track_id ON schedule_user(schedule_trac
 CREATE INDEX idx_schedule_users_user_id ON schedule_user(user_id);
 CREATE INDEX idx_schedule_users_created_by_id ON schedule_user(created_by_user_id);
 
--- ============================================================================
--- SCHEDULE COLOUR TABLE
--- ============================================================================
-
-CREATE TABLE schedule_colour (
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    color VARCHAR(20) NOT NULL,
-    description VARCHAR(255),
-    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT schedule_colour_format CHECK (color IS NULL OR color LIKE '#%')
-);
-
-COMMENT ON TABLE schedule_colour IS 'Colour of the schedule';
-
--- ============================================================================
 -- SCHEDULE TABLE
 -- ============================================================================
 
@@ -872,19 +885,6 @@ CREATE INDEX idx_schedule_start_time ON schedule(start_time);
 CREATE INDEX idx_schedule_end_time ON schedule(end_time);
 CREATE INDEX idx_schedule_created_by ON schedule(created_by_user_id);
 
--- ============================================================================
--- APPLICATION SETTINGS TABLE
--- ============================================================================
-CREATE TABLE application_setting(
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    key VARCHAR(255) NOT NULL,
-    value JSONB NOT NULL,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT application_settings_key_unique UNIQUE (key)
-);
-
--- ============================================================================
 -- USER DASHBOARD TABLE
 -- ============================================================================
 CREATE TABLE dashboard(
@@ -943,17 +943,6 @@ CREATE TABLE xero_access (
 CREATE INDEX idx_xero_access_expires ON xero_access(expires);
 CREATE INDEX idx_xero_access_token ON xero_access(token);
 
--- ============================================================================
--- Type Table For Notifications
--- ============================================================================
-CREATE TABLE notification_type(
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name VARCHAR(100) NOT NULL,
-    description VARCHAR(100),
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
--- ============================================================================
 -- Holds notification informations
 -- ============================================================================
 CREATE TABLE notification(

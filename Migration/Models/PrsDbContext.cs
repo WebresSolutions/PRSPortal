@@ -1004,6 +1004,8 @@ public partial class PrsDbContext : DbContext
 
             entity.ToTable("job_status", tb => tb.HasComment("The status of a Job"));
 
+            entity.HasIndex(e => e.JobTypeId, "idx_job_status_type_id");
+
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
@@ -1021,6 +1023,11 @@ public partial class PrsDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("name");
             entity.Property(e => e.Sequence).HasColumnName("sequence");
+
+            entity.HasOne(d => d.JobType).WithMany(p => p.JobStatuses)
+                .HasForeignKey(d => d.JobTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("job_status_job_type_id_fkey");
         });
 
         modelBuilder.Entity<JobStatusHistory>(entity =>
@@ -1175,7 +1182,7 @@ public partial class PrsDbContext : DbContext
 
         modelBuilder.Entity<JobUser>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.JobId }).HasName("job_user_pkey");
+            entity.HasKey(e => new { e.UserId, e.JobId, e.AssignmentTypeId }).HasName("job_user_pkey");
 
             entity.ToTable("job_user", tb => tb.HasComment("Many-to-many relationship between users and jobs"));
 
@@ -1290,6 +1297,10 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.CreatedByUserId, "idx_quote_created_by");
 
+            entity.HasIndex(e => e.JobId, "idx_quote_job_id");
+
+            entity.HasIndex(e => e.JobTypeId, "idx_quote_job_type_id");
+
             entity.HasIndex(e => e.ModifiedByUserId, "idx_quote_modified_by");
 
             entity.HasIndex(e => e.StatusId, "idx_quote_status_id");
@@ -1304,11 +1315,17 @@ public partial class PrsDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
             entity.Property(e => e.DateAccepted).HasColumnName("date_accepted");
+            entity.Property(e => e.DateSentToClient).HasColumnName("date_sent_to_client");
             entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
             entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.JobId).HasColumnName("job_id");
+            entity.Property(e => e.JobTypeId).HasColumnName("job_type_id");
             entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
             entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
             entity.Property(e => e.ModifiedOn).HasColumnName("modified_on");
+            entity.Property(e => e.QuoteReference)
+                .HasMaxLength(50)
+                .HasColumnName("quote_reference");
             entity.Property(e => e.StatusId).HasColumnName("status_id");
             entity.Property(e => e.TargetDeliveryDate).HasColumnName("target_delivery_date");
             entity.Property(e => e.TotalPrice)
@@ -1327,6 +1344,15 @@ public partial class PrsDbContext : DbContext
                 .HasForeignKey(d => d.CreatedByUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("quote_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.Job).WithMany(p => p.Quotes)
+                .HasForeignKey(d => d.JobId)
+                .HasConstraintName("quote_job_id_fkey");
+
+            entity.HasOne(d => d.JobType).WithMany(p => p.Quotes)
+                .HasForeignKey(d => d.JobTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("quote_job_type_id_fkey");
 
             entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.QuoteModifiedByUsers)
                 .HasForeignKey(d => d.ModifiedByUserId)
@@ -1351,23 +1377,15 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
-            entity.Property(e => e.AppliedRate)
-                .HasPrecision(12, 2)
-                .HasColumnName("applied_rate");
             entity.Property(e => e.Notes).HasColumnName("notes");
-            entity.Property(e => e.Quantity)
-                .HasPrecision(10, 2)
-                .HasDefaultValueSql("1.00")
-                .HasColumnName("quantity");
             entity.Property(e => e.QuoteId).HasColumnName("quote_id");
             entity.Property(e => e.ServiceId).HasColumnName("service_id");
             entity.Property(e => e.ServiceNameSnapshot)
                 .HasMaxLength(150)
                 .HasColumnName("service_name_snapshot");
-            entity.Property(e => e.Subtotal)
+            entity.Property(e => e.Total)
                 .HasPrecision(12, 2)
-                .HasComputedColumnSql("(applied_rate * quantity)", true)
-                .HasColumnName("subtotal");
+                .HasColumnName("total");
 
             entity.HasOne(d => d.Quote).WithMany(p => p.QuoteItems)
                 .HasForeignKey(d => d.QuoteId)
@@ -1427,6 +1445,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
+            entity.Property(e => e.Colour)
+                .HasMaxLength(10)
+                .HasColumnName("colour");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
@@ -1757,9 +1778,6 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Code)
                 .HasMaxLength(20)
                 .HasColumnName("code");
-            entity.Property(e => e.DefaultRate)
-                .HasPrecision(12, 2)
-                .HasColumnName("default_rate");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
@@ -1767,9 +1785,6 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.ServiceName)
                 .HasMaxLength(150)
                 .HasColumnName("service_name");
-            entity.Property(e => e.UnitOfMeasure)
-                .HasMaxLength(20)
-                .HasColumnName("unit_of_measure");
         });
 
         modelBuilder.Entity<State>(entity =>

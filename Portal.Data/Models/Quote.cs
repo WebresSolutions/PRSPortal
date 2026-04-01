@@ -18,9 +18,17 @@ public partial class Quote
 
     public int? ContactId { get; set; }
 
+    public int JobTypeId { get; set; }
+
+    public int? JobId { get; set; }
+
+    public string? QuoteReference { get; set; }
+
     public decimal? TotalPrice { get; set; }
 
     public DateTime? DateAccepted { get; set; }
+
+    public DateTime? DateSentToClient { get; set; }
 
     public DateTime? TargetDeliveryDate { get; set; }
 
@@ -42,7 +50,11 @@ public partial class Quote
 
     public virtual AppUser CreatedByUser { get; set; } = null!;
 
+    public virtual Job? Job { get; set; }
+
     public virtual ICollection<JobQuote> JobQuotes { get; set; } = new List<JobQuote>();
+
+    public virtual JobType JobType { get; set; } = null!;
 
     public virtual AppUser? ModifiedByUser { get; set; }
 

@@ -74,6 +74,8 @@ public partial class Job
 
     public virtual AppUser? ModifiedByUser { get; set; }
 
+    public virtual ICollection<Quote> Quotes { get; set; } = new List<Quote>();
+
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 
     public virtual JobStatus? Status { get; set; }

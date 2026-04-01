@@ -13,11 +13,7 @@ public partial class QuoteItem
 
     public string ServiceNameSnapshot { get; set; } = null!;
 
-    public decimal AppliedRate { get; set; }
-
-    public decimal? Quantity { get; set; }
-
-    public decimal? Subtotal { get; set; }
+    public decimal Total { get; set; }
 
     public string? Notes { get; set; }
 

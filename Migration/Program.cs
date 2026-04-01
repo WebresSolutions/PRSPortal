@@ -117,26 +117,37 @@ internal class Program
             throw new Exception("Context found to be null.");
 
         bool canConnect = _destinationContext.Database.CanConnect();
-        Console.WriteLine($"Can connect: {canConnect}");
-        if (resetDatabase)
+        Console.WriteLine($"Can connect to PGSQL: {canConnect}");
+        canConnect = _sourceContext.Database.CanConnect();
+        Console.WriteLine($"Can connect to MySQL: {canConnect}");
+        try
         {
-            string solutionDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory()));
-            string sqlPath = Path.Combine(solutionDir, "database_schema.sql");
-            string sqlSeederPath = Path.Combine(solutionDir, "seed.sql");
 
-            // Verify the file exists and show the path
-            if (!File.Exists(sqlPath) || !File.Exists(sqlSeederPath))
+            if (resetDatabase)
             {
-                throw new FileNotFoundException($"SQL file not found at: {sqlPath}");
+                string solutionDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory()));
+                string sqlPath = Path.Combine(solutionDir, "database_schema.sql");
+                string sqlSeederPath = Path.Combine(solutionDir, "seed.sql");
+
+                // Verify the file exists and show the path
+                if (!File.Exists(sqlPath) || !File.Exists(sqlSeederPath))
+                {
+                    throw new FileNotFoundException($"SQL file not found at: {sqlPath}");
+                }
+
+                string resetQuery = File.ReadAllText(sqlPath);
+                _destinationContext.Database.ExecuteSqlRaw(resetQuery);
+
+                string seedQuery = File.ReadAllText(sqlSeederPath);
+                _destinationContext.Database.ExecuteSqlRaw(seedQuery);
             }
 
-            string resetQuery = File.ReadAllText(sqlPath);
-            _destinationContext.Database.ExecuteSqlRaw(resetQuery);
-
-            string seedQuery = File.ReadAllText(sqlSeederPath);
-            _destinationContext.Database.ExecuteSqlRaw(seedQuery);
         }
-
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
         // Testing connection 
         return !_destinationContext.Database.CanConnect()
             ? throw new Exception("failed to connect to the database")

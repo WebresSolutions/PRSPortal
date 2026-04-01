@@ -5,7 +5,5 @@ public record ServiceTypeDto(
     int Id,
     string? Code,
     string ServiceName,
-    decimal? DefaultRate,
-    string? UnitOfMeasure,
     bool? IsActive,
     string? Description);

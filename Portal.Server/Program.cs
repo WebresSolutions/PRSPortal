@@ -96,6 +96,7 @@ public class Program
         app.AddTypesEndpoints("Types", enableAuth);
         app.AddUserEndpoints("Users", enableAuth);
         app.AddFileEndpoints("Files", enableAuth);
+        app.AddQuoteEndpoints("Quotes", enableAuth);
 
         // Only serve SPA index.html for non-API paths so /api/* returns JSON from endpoints, not HTML
         app.MapFallback(async (HttpContext context) =>

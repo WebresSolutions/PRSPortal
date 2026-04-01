@@ -11,10 +11,6 @@ public partial class ServiceType
 
     public string ServiceName { get; set; } = null!;
 
-    public decimal? DefaultRate { get; set; }
-
-    public string? UnitOfMeasure { get; set; }
-
     public bool IsActive { get; set; }
 
     public string? Description { get; set; }

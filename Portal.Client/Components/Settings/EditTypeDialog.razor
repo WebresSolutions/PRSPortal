@@ -28,8 +28,6 @@
                 <div class="d-flex flex-column gap-1">
                     <MudTextField @bind-Value="_code" Label="Code" Variant="Variant.Outlined" Class="mb-2" HelperText="Optional; must be unique if set" />
                     <MudTextField @bind-Value="_serviceName" Label="Service name" Variant="Variant.Outlined" Class="mb-2" />
-                    <MudNumericField @bind-Value="_defaultRate" Label="Default rate" Variant="Variant.Outlined" Class="mb-2" Format="N2" />
-                    <MudTextField @bind-Value="_unitOfMeasure" Label="Unit of measure" Variant="Variant.Outlined" Class="mb-2" />
                     <MudSwitch @bind-Value="_isActive" Label="Active" Color="Color.Primary" Class="mb-2" />
                     <MudTextField @bind-Value="_description" Label="Description" Variant="Variant.Outlined" Lines="3" />
                 </div>
@@ -121,8 +119,6 @@
             _id = sv.Id;
             _code = sv.Code ?? "";
             _serviceName = sv.ServiceName;
-            _defaultRate = sv.DefaultRate;
-            _unitOfMeasure = sv.UnitOfMeasure ?? "";
             _isActive = sv.IsActive != false;
             _description = sv.Description ?? "";
         }
@@ -174,7 +170,7 @@
                 string? uom = string.IsNullOrWhiteSpace(_unitOfMeasure) ? null : _unitOfMeasure.Trim();
                 string? desc = string.IsNullOrWhiteSpace(_description) ? null : _description.Trim();
                 var r7 = await ApiService.SaveServiceType(new ServiceTypeDto(
-                    _id, code, _serviceName.Trim(), _defaultRate, uom, _isActive, desc));
+                    _id, code, _serviceName.Trim(), _isActive, desc));
                 if (r7.IsSuccess) saved = r7.Value; else error = r7.ErrorDescription;
                 break;
         }

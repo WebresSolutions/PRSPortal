@@ -84,6 +84,11 @@ INSERT INTO job_task_type (job_type_id, name, description) VALUES
     (1, 'Medium Density Set Out', 'Construction department — medium density set out.'),
     (1, 'Apartment Set Out', 'Construction department — apartment set out.');
 
+INSERT INTO quote_status(name, colour) VALUES ('Draft', '#cccccc');
+INSERT INTO quote_status(name, colour) VALUES ('Lost', '#dc2626');
+INSERT INTO quote_status(name, colour) VALUES ('Rejected', '#ea580c');
+INSERT INTO quote_status(name, colour) VALUES ('Sent', '#0d9488');
+
 INSERT INTO states(id, name, abbreviation) VALUES (1, 'New South Wales', 'NSW');
 INSERT INTO states(id, name, abbreviation) VALUES (2, 'Queensland', 'QLD');
 INSERT INTO states(id, name, abbreviation) VALUES (3, 'Victoria', 'VIC');

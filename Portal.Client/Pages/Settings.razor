@@ -66,8 +66,6 @@
                             <div class="settings-type-row settings-type-row--head settings-type-row--service">
                                 <span>Code</span>
                                 <span>Service</span>
-                                <span>Rate</span>
-                                <span>Unit</span>
                                 <span>Active</span>
                                 <span class="settings-type-actions"></span>
                             </div>
@@ -82,8 +80,6 @@
                                     <div class="settings-type-row settings-type-row--service">
                                         <span class="settings-type-secondary">@(t.Code ?? "—")</span>
                                         <span class="settings-type-primary">@t.ServiceName</span>
-                                        <span class="settings-type-secondary">@(t.DefaultRate is null ? "—" : t.DefaultRate.Value.ToString("N2"))</span>
-                                        <span class="settings-type-secondary">@(t.UnitOfMeasure ?? "—")</span>
                                         <span class="settings-type-secondary">@(t.IsActive != false ? "Yes" : "No")</span>
                                         <span class="settings-type-actions">
                                             <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Service", "Edit service type", t))" />

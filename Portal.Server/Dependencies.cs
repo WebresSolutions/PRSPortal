@@ -92,6 +92,7 @@ public static class Dependencies
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<ITimeSheetService, TimeSheetService>();
         builder.Services.AddScoped<ITypesService, TypesService>();
+        builder.Services.AddScoped<IQuoteService, QuoteService>();
 
         // Add Swagger/OpenAPI services for API debugging
         if (builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger"))

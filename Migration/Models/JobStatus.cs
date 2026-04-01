@@ -26,5 +26,7 @@ public partial class JobStatus
 
     public virtual ICollection<JobStatusHistory> JobStatusHistoryStatusIdOldNavigations { get; set; } = new List<JobStatusHistory>();
 
+    public virtual JobType JobType { get; set; } = null!;
+
     public virtual ICollection<Job> Jobs { get; set; } = new List<Job>();
 }

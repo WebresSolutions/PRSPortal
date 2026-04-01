@@ -84,7 +84,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         => await GetTypesAsync(
             _dbContext.ServiceTypes.Where(x => x.IsActive)
                 .OrderBy(x => x.ServiceName)
-                .Select(x => new ServiceTypeDto(x.Id, x.Code, x.ServiceName, x.DefaultRate, x.UnitOfMeasure, x.IsActive, x.Description)),
+                .Select(x => new ServiceTypeDto(x.Id, x.Code, x.ServiceName, x.IsActive, x.Description)),
             "service types");
 
     /// <inheritdoc/>
@@ -135,7 +135,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             ServiceTypeDto[] serviceTypes = await _dbContext.ServiceTypes
                 .Where(x => x.IsActive)
                 .OrderBy(x => x.ServiceName)
-                .Select(x => new ServiceTypeDto(x.Id, x.Code, x.ServiceName, x.DefaultRate, x.UnitOfMeasure, x.IsActive, x.Description))
+                .Select(x => new ServiceTypeDto(x.Id, x.Code, x.ServiceName, x.IsActive, x.Description))
                 .ToArrayAsync();
             JobTypeStatusDto[] jobStatuses = await _dbContext.JobStatuses
                 .OrderBy(x => x.JobTypeId)
@@ -429,9 +429,6 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
             string? code = StringNormalizer.TrimAndTruncate(dto.Code, 20);
             if (string.IsNullOrWhiteSpace(code))
                 code = null;
-            string? uom = StringNormalizer.TrimAndTruncate(dto.UnitOfMeasure, 20);
-            if (string.IsNullOrWhiteSpace(uom))
-                uom = null;
             string? description = StringNormalizer.TrimAndTruncate(dto.Description, 2000);
             bool isActive = dto.IsActive != false;
 
@@ -448,14 +445,12 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
                 {
                     Code = code,
                     ServiceName = serviceName,
-                    DefaultRate = dto.DefaultRate,
-                    UnitOfMeasure = uom,
                     IsActive = isActive,
                     Description = description
                 };
                 await _dbContext.ServiceTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
-                res.SetValue(new ServiceTypeDto(e.Id, e.Code, e.ServiceName, e.DefaultRate, e.UnitOfMeasure, e.IsActive, e.Description));
+                res.SetValue(new ServiceTypeDto(e.Id, e.Code, e.ServiceName, e.IsActive, e.Description));
             }
             else
             {
@@ -463,12 +458,10 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
                 if (e is null) return res.SetError(ErrorType.BadRequest, "Service type not found");
                 e.Code = code;
                 e.ServiceName = serviceName;
-                e.DefaultRate = dto.DefaultRate;
-                e.UnitOfMeasure = uom;
                 e.IsActive = isActive;
                 e.Description = description;
                 await _dbContext.SaveChangesAsync();
-                res.SetValue(new ServiceTypeDto(e.Id, e.Code, e.ServiceName, e.DefaultRate, e.UnitOfMeasure, e.IsActive, e.Description));
+                res.SetValue(new ServiceTypeDto(e.Id, e.Code, e.ServiceName, e.IsActive, e.Description));
             }
             return res;
         }
