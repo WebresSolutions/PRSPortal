@@ -13,7 +13,7 @@
                     <div class="job-status-step job-status-step--@ProgressState(idx)"
                          style="@($"--step-accent: {step.Colour}; z-index: {idx + 1};")"
                          title="@step.Name">
-                        <span class="job-status-step-index" aria-hidden="true">@step.Name</span>
+                        <span class="job-status-step-index job-status-step-title" aria-hidden="true">@step.Name</span>
                     </div>
                 </div>
             }
