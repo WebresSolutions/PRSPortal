@@ -16,7 +16,6 @@ public partial class EditContact
     private ContactUpdateDto? _model;
     private ListContactDto? _parentContact;
     private ContactTypeDto[] _contactTypes = [];
-    private bool _isSubmitting;
 
     protected override async Task OnInitializedAsync()
     {
@@ -81,7 +80,6 @@ public partial class EditContact
     {
         if (_model is null) return;
 
-        _isSubmitting = true;
         try
         {
             Result<ContactDetailsDto> result = await _apiService.UpdateContact(_model);
@@ -95,7 +93,7 @@ public partial class EditContact
         }
         finally
         {
-            _isSubmitting = false;
+
         }
     }
 
