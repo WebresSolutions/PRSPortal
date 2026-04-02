@@ -12,17 +12,13 @@ public partial class QuoteTemplateItem
 
     public int QuoteTemplateId { get; set; }
 
-    public int LineOrder { get; set; }
-
     public int? ServiceId { get; set; }
 
     public string ServiceNameSnapshot { get; set; } = null!;
 
-    public decimal DefaultRate { get; set; }
+    public decimal DefaultPrice { get; set; }
 
-    public decimal DefaultQuantity { get; set; }
-
-    public string? Notes { get; set; }
+    public string? Description { get; set; }
 
     public virtual QuoteTemplate QuoteTemplate { get; set; } = null!;
 

@@ -1436,9 +1436,7 @@ public partial class PrsDbContext : DbContext
 
             entity.ToTable("quote_status", tb => tb.HasComment("Holds the status of a quote"));
 
-            entity.Property(e => e.Id)
-                .UseIdentityAlwaysColumn()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Colour)
                 .HasMaxLength(10)
                 .HasColumnName("colour");
@@ -1553,8 +1551,6 @@ public partial class PrsDbContext : DbContext
 
             entity.ToTable("quote_template_item", tb => tb.HasComment("Default lines for a quote_template; copy to quote_item when a template is applied."));
 
-            entity.HasIndex(e => new { e.QuoteTemplateId, e.LineOrder }, "idx_quote_template_item_line_order");
-
             entity.HasIndex(e => e.ServiceId, "idx_quote_template_item_service_id");
 
             entity.HasIndex(e => e.QuoteTemplateId, "idx_quote_template_item_template_id");
@@ -1562,15 +1558,10 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
                 .HasColumnName("id");
-            entity.Property(e => e.DefaultQuantity)
-                .HasPrecision(10, 2)
-                .HasDefaultValue(1.00m)
-                .HasColumnName("default_quantity");
-            entity.Property(e => e.DefaultRate)
+            entity.Property(e => e.DefaultPrice)
                 .HasPrecision(12, 2)
-                .HasColumnName("default_rate");
-            entity.Property(e => e.LineOrder).HasColumnName("line_order");
-            entity.Property(e => e.Notes).HasColumnName("notes");
+                .HasColumnName("default_price");
+            entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.QuoteTemplateId).HasColumnName("quote_template_id");
             entity.Property(e => e.ServiceId).HasColumnName("service_id");
             entity.Property(e => e.ServiceNameSnapshot)

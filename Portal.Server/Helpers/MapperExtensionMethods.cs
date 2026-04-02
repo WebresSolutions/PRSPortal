@@ -1,4 +1,7 @@
+using NetTopologySuite.Geometries;
 using Portal.Data.Models;
+using Portal.Shared;
+using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Schedule;
 
@@ -87,5 +90,30 @@ public static class MapperExtensionMethods
             CreatedByUserId = 0, // Caller must set
             ModifiedByUserId = 0  // Caller must set
         };
+    }
+
+    /// <summary>
+    /// Maps an AddressDto to an Address data object. Caller must set audit fields such as CreatedByUserId or ModifiedByUserId when persisting.
+    /// </summary>
+    /// <param name="dto">The address DTO to map.</param>
+    /// <returns>The mapped Address data object.</returns>
+    public static Address ToAddress(this AddressDto dto, int userId)
+    {
+        Address address = new()
+        {
+            Id = dto.AddressId,
+            Street = dto.Street,
+            PostCode = dto.PostCode,
+            Suburb = dto.Suburb,
+            StateId = dto.StateId != 0 ? dto.StateId : (int?)dto.State ?? (int)StateEnum.VIC,
+            Country = "AUS",
+            CreatedByUserId = dto.AddressId is 0 ? userId : dto.CreatedByUserId,
+            CreatedOn = dto.AddressId is 0 ? DateTime.UtcNow : dto.CreatedDate
+        };
+
+        if (dto.LatLng is not null)
+            address.Geom = new Point(new Coordinate(dto.LatLng.Latitude, dto.LatLng.Longitude));
+
+        return address;
     }
 }

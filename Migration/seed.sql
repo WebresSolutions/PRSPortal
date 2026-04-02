@@ -17,6 +17,13 @@ INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
 INSERT INTO job_assignment_type(id, name, description) VALUES(1, 'Current Owner', 'The current owner of the job.');
 INSERT INTO job_assignment_type(id, name, description) VALUES(2, 'Responsible Team Member', 'Whom the job is currently assigned to.');
 
+INSERT INTO quote_status(id, name, colour) VALUES (1, 'Draft', '#cccccc');
+INSERT INTO quote_status(id, name, colour) VALUES (2, 'New', '#ffffff');
+INSERT INTO quote_status(id, name, colour) VALUES (3, 'Sent', '#0d9488');
+INSERT INTO quote_status(id, name, colour) VALUES (4, 'Lost', '#dc2626');
+INSERT INTO quote_status(id, name, colour) VALUES (5, 'Rejected', '#ea580c');
+INSERT INTO quote_status(id, name, colour) VALUES (6, 'Accepted', '#ea580c');
+
 INSERT INTO file_type(job_type_id, name, description) VALUES
     -- Construction job SharePoint folders (job_type.id = 1)
     (1, '01. Comps Files', 'Construction job folder: comps files.'),
@@ -59,12 +66,6 @@ INSERT INTO technical_contact_type (id, name, description) VALUES (2, 'Builder',
 INSERT INTO technical_contact_type (id, name, description) VALUES (3, 'Previous Client', 'Previous Client');
 INSERT INTO technical_contact_type (id, name, description) VALUES (4, 'Technical Contact', 'Technical Contact');
 
-INSERT INTO quote_status(name, colour) VALUES ('Draft', '#cccccc');
-INSERT INTO quote_status(name, colour) VALUES ('New', '#fffff');
-INSERT INTO quote_status(name, colour) VALUES ('Sent', '#0d9488');
-INSERT INTO quote_status(name, colour) VALUES ('Lost', '#dc2626');
-INSERT INTO quote_status(name, colour) VALUES ('Rejected', '#ea580c');
-
 INSERT INTO timesheet_entry_type(name, description) VALUES ('Job', 'Job');
 INSERT INTO timesheet_entry_type(name, description) VALUES ('Regular', 'Regular work hours');
 
@@ -82,4 +83,11 @@ INSERT INTO job_task_type (job_type_id, name, description) VALUES
     (1, 'Medium Density Set Out', 'Construction department — medium density set out.'),
     (1, 'Apartment Set Out', 'Construction department — apartment set out.');
 
-INSERT INTO notification_type (name, description) VALUES ('General', 'A general notification for a user.')
+INSERT INTO notification_type (name, description) VALUES ('General', 'A general notification for a user.');
+
+INSERT INTO service_type (code, service_name, description) VALUES
+    ('TITLE-REEST', 'Title Re-establishment Survey', ''),
+    ('FEATURE-AHD', 'Feature & AHD Level Survey', ''),
+    ('NEIGH-SITE', 'Neighbourhood Site Description', ''),
+    ('INTERNAL-SURVEY', 'Internal Building Survey', ''),
+    ('EVLEVATION-PLAN', 'Elevations Plan', '');

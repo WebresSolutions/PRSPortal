@@ -7,6 +7,9 @@ public class AddressDto
     public int AddressId { get; set; }
     public StateEnum? State { get; set; }
     public int StateId { get; set; }
+    public int CreatedByUserId { get; set; }
+
+    public DateTime CreatedDate { get; set; }
 
     [MaxLength(200, ErrorMessage = "Suburb cannot exceed 200 characters")]
     public string Suburb { get; set; }

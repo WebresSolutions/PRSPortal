@@ -138,6 +138,19 @@ COMMENT ON TABLE job_type IS 'Type of job';
 COMMENT ON COLUMN job_type.name IS 'Construction = Set out. Survey = CAD.';
 
 -- ============================================================================
+-- QUOTE STATUS HISTORY TABLE
+-- ============================================================================
+
+CREATE TABLE quote_status (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    colour VARCHAR(10) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+COMMENT ON TABLE quote_status IS 'Holds the status of a quote';
+
+-- ============================================================================
 -- FILE TYPE TABLE
 -- ============================================================================
 
@@ -169,6 +182,7 @@ CREATE TABLE job_status (
 
 COMMENT ON TABLE job_status IS 'The status of a Job';
 CREATE INDEX idx_job_status_type_id ON job_status(job_type_id);
+
 
 -- ============================================================================
 -- Technical Contact Types Table
@@ -222,19 +236,6 @@ CREATE TABLE service_type (
 CREATE INDEX idx_service_type_code ON service_type(code);
 CREATE INDEX idx_service_type_active ON service_type(is_active);
 CREATE INDEX idx_service_catalog_name ON service_type(service_name);
-
--- ============================================================================
--- QUOTE STATUS HISTORY TABLE
--- ============================================================================
---
-CREATE TABLE quote_status (
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name VARCHAR(100) NOT NULL,
-    colour VARCHAR(10) NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
-COMMENT ON TABLE quote_status IS 'Holds the status of a quote';
 
 -- ============================================================================
 -- TIMESHEET ENTRY TABLE
@@ -720,18 +721,15 @@ CREATE INDEX idx_quote_template_deleted_at ON quote_template(deleted_at);
 CREATE TABLE quote_template_item (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     quote_template_id INT NOT NULL REFERENCES quote_template(id) ON DELETE CASCADE,
-    line_order INT NOT NULL DEFAULT 0,
     service_id INT REFERENCES service_type(id) ON DELETE SET NULL,
     service_name_snapshot VARCHAR(150) NOT NULL,
-    default_rate NUMERIC(12, 2) NOT NULL,
-    default_quantity NUMERIC(10, 2) NOT NULL DEFAULT 1.00,
-    notes TEXT
+    default_price NUMERIC(12, 2) NOT NULL,
+    description TEXT
 );
 
 COMMENT ON TABLE quote_template_item IS 'Default lines for a quote_template; copy to quote_item when a template is applied.';
 CREATE INDEX idx_quote_template_item_template_id ON quote_template_item(quote_template_id);
 CREATE INDEX idx_quote_template_item_service_id ON quote_template_item(service_id);
-CREATE INDEX idx_quote_template_item_line_order ON quote_template_item(quote_template_id, line_order);
 
 -- ============================================================================
 -- QUOTE STATUS HISTORY TABLE

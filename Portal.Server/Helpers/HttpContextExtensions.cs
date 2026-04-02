@@ -1,4 +1,6 @@
-﻿namespace Portal.Server.Helpers;
+﻿using System.Security.Claims;
+
+namespace Portal.Server.Helpers;
 
 public static class HttpContextExtensions
 {
@@ -16,8 +18,7 @@ public static class HttpContextExtensions
 
     public static string IdentityId(this HttpContext httpContext)
     {
-        string res = httpContext.User.Claims.FirstOrDefault(c => c.Type == "sid")?.Value ?? string.Empty;
-        return res;
+        return httpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
     }
 
     public static string GetMyUserEmail(this HttpContext httpContext)

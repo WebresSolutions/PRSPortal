@@ -1,3 +1,5 @@
+using Portal.Shared.DataEnums;
+
 namespace Portal.Shared.DTO.Types;
 
-public record QuotesStatusTypeDto(int Id, string Name, string Colour, bool IsActive);
+public record QuotesStatusTypeDto(QuoteStatusEnum StatusEnum, string Name, string Colour, bool IsActive);

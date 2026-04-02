@@ -74,8 +74,8 @@ public class PRSMiddleware(RequestDelegate next) // Remove dbContext from constr
                             };
                             dbContext.AppUsers.Add(newUser);
                             appUser = newUser;
+                            await dbContext.SaveChangesAsync();
                         }
-                        await dbContext.SaveChangesAsync();
                     }
                     else
                     {
