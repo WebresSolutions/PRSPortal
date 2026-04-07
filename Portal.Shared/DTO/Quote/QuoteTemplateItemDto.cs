@@ -9,4 +9,9 @@ namespace Portal.Shared.DTO.Quote;
 /// <param name="ServiceCode"> The code of the service associated with this quoting template item. </param>
 /// <param name="Description"> The description of the quoting template item. </param>
 /// <param name="DefaultPrice"> The default price of the quoting template item. </param>
-public record QuoteTemplateItemDto(int Id, int ServiceTypeId, string ServiceName, string? ServiceCode, string? Description, decimal DefaultPrice);
+public record QuoteTemplateItemDto(
+    int Id,
+    int ServiceTypeId,
+    string ServiceName,
+    string? Description,
+    decimal DefaultPrice);

@@ -300,13 +300,217 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
     }
 
     /// <inheritdoc/>
-    public async Task<Result<QuoteTemplateDto[]>> GetQuotingTemplates() => throw new NotImplementedException();
+    public async Task<Result<QuoteTemplateDto[]>> GetQuotingTemplates()
+    {
+        Result<QuoteTemplateDto[]> res = new();
+        try
+        {
+            res.Value = await _dbContext.QuoteTemplates
+                .Where(qt => qt.IsActive)
+                .Select(qt => new QuoteTemplateDto
+                (
+                    qt.Id,
+                    qt.Name,
+                    qt.Description,
+                    qt.IsActive,
+                    qt.CreatedOn,
+                    qt.ModifiedOn,
+                    qt.ModifiedByUserId != null ? qt.ModifiedByUser!.DisplayName : null,
+                    (JobTypeEnum)qt.JobTypeId!,
+                    qt.QuoteTemplateItems.Select(qti => new QuoteTemplateItemDto
+                    (
+                        qti.Id,
+                        qti.ServiceId ?? 0,
+                        qti.ServiceNameSnapshot ?? "",
+                        qti.Description,
+                        qti.DefaultPrice
+                    )).ToArray()
+                ))
+                .ToArrayAsync();
+
+            return res;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get the quoting template");
+            return res.SetError(ErrorType.InternalError, "Failed to get the quoting template.");
+        }
+    }
 
     /// <inheritdoc/>
-    public async Task<Result<QuoteTemplateDto>> CreateQuotingTemplate(QuoteTemplateDto quoteTemplateDto) => throw new NotImplementedException();
+    public async Task<Result<QuoteTemplateDto>> CreateQuotingTemplate(QuoteTemplateDto data, HttpContext httpContext)
+    {
+        Result<QuoteTemplateDto> res = new();
+        try
+        {
+            QuoteTemplate qt = new()
+            {
+                CreatedByUserId = httpContext.UserId(),
+                Description = data.Description,
+                Name = data.Name,
+                DeletedAt = null,
+                CreatedOn = DateTime.UtcNow,
+                IsActive = true,
+                JobTypeId = (int)data.JobType,
+            };
+
+            if (data.Description is not null && data.Description.Length > 4000)
+                qt.Description = data.Description[..4000].Trim();
+
+            await _dbContext.QuoteTemplates.AddAsync(qt);
+            await _dbContext.SaveChangesAsync();
+
+            // Validate all service types exist (load once for new line snapshots)
+            int[] distinctServiceTypes = [.. data.QuoteTemplateItems.Select(qi => qi.ServiceTypeId).Distinct()];
+
+            List<ServiceType> serviceTypesForPayload = await _dbContext.ServiceTypes
+                .Where(st => distinctServiceTypes.Contains(st.Id))
+                .ToListAsync();
+
+            if (serviceTypesForPayload.Count != distinctServiceTypes.Length)
+                return res.SetError(ErrorType.BadRequest, "One or more service types provided are invalid.");
+
+            QuoteTemplateItem[] quoteTemplateItems = [.. data.QuoteTemplateItems.Select(qti => new QuoteTemplateItem
+            {
+                QuoteTemplateId = qt.Id,
+                Description = qti.Description,
+                DefaultPrice = qti.DefaultPrice,
+                ServiceId = qti.ServiceTypeId,
+                ServiceNameSnapshot = serviceTypesForPayload.First(st => st.Id == qti.ServiceTypeId).ServiceName,
+            })];
+            await _dbContext.QuoteTemplateItems.AddRangeAsync(quoteTemplateItems);
+            await _dbContext.SaveChangesAsync();
+
+            QuoteTemplateDto createdQuoteTemplate = new(
+                qt.Id,
+                qt.Name,
+                qt.Description,
+                qt.IsActive,
+                qt.CreatedOn,
+                qt.ModifiedOn,
+                qt.ModifiedByUserId != null ? qt.ModifiedByUser!.DisplayName : null,
+                (JobTypeEnum)qt.JobTypeId!,
+                [.. quoteTemplateItems.Select(qti => new QuoteTemplateItemDto
+                (
+                    qti.Id,
+                    qti.ServiceId ?? 0,
+                    qti.ServiceNameSnapshot ?? "",
+                    qti.Description,
+                    qti.DefaultPrice
+                ))]
+            );
+
+            return res.SetValue(createdQuoteTemplate);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create the quote template");
+            return res.SetError(ErrorType.InternalError, "Failed to create the quoting template");
+        }
+    }
 
     /// <inheritdoc/>
-    public async Task<Result<QuoteTemplateDto>> UpdateQuotingTemplate(QuoteTemplateDto quoteTemplateDto) => throw new NotImplementedException();
+    public async Task<Result<QuoteTemplateDto>> UpdateQuotingTemplate(QuoteTemplateDto data, HttpContext httpContext)
+    {
+        Result<QuoteTemplateDto> res = new();
+        try
+        {
+            QuoteTemplate? qt = await _dbContext.QuoteTemplates
+                .Include(qt => qt.QuoteTemplateItems)
+                .FirstOrDefaultAsync(qt => qt.Id == data.Id);
+
+            if (qt is null)
+                return res.SetError(ErrorType.BadRequest, "Quote template not found.");
+
+            // Validate all service types exist (load once for new line snapshots)
+            int[] distinctServiceTypes = [.. data.QuoteTemplateItems.Select(qi => qi.ServiceTypeId).Distinct()];
+
+            List<ServiceType> serviceTypesForPayload = await _dbContext.ServiceTypes
+                .Where(st => distinctServiceTypes.Contains(st.Id))
+                .ToListAsync();
+
+            if (serviceTypesForPayload.Count != distinctServiceTypes.Length)
+                return res.SetError(ErrorType.BadRequest, "One or more service types provided are invalid.");
+
+            Dictionary<int, string> serviceNameById = serviceTypesForPayload.ToDictionary(st => st.Id, st => st.ServiceName);
+
+            qt.Name = data.Name;
+            qt.ModifiedByUserId = httpContext.UserId();
+            qt.IsActive = data.IsActive;
+            qt.ModifiedOn = DateTime.UtcNow;
+
+            if (data.Description is not null && data.Description.Length > 4000)
+                qt.Description = data.Description[..4000].Trim();
+            else
+                qt.Description = data.Description;
+
+            // Update Existing Quote Items and add new ones
+            QuoteTemplateItem[] existingQuoteItems = [.. qt.QuoteTemplateItems.Where(qi => data.QuoteTemplateItems.Any(qid => qid.Id == qi.Id))];
+
+            foreach (QuoteTemplateItem item in existingQuoteItems)
+            {
+                QuoteTemplateItemDto dto = data.QuoteTemplateItems.First(qid => qid.Id == item.Id);
+                item.ServiceNameSnapshot = dto.ServiceName;
+                item.ServiceId = dto.ServiceTypeId;
+                item.Description = dto.Description;
+                item.DefaultPrice = dto.DefaultPrice;
+            }
+
+            // Add new items
+            QuoteTemplateItem[] newQuoteItems = [.. data.QuoteTemplateItems
+                .Where(qi => !existingQuoteItems.Any(eq => eq.Id == qi.Id))
+                .Select(qi => new QuoteTemplateItem
+                {
+                    QuoteTemplateId = qt.Id,
+                    Description = qi.Description,
+                    ServiceId = qi.ServiceTypeId,
+                    ServiceNameSnapshot = serviceNameById[qi.ServiceTypeId],
+                    DefaultPrice = qi.DefaultPrice
+                })];
+            await _dbContext.QuoteTemplateItems.AddRangeAsync(newQuoteItems);
+
+            // Remove deleted items
+            QuoteTemplateItem[] removedQuoteItems = [.. qt.QuoteTemplateItems.Where(qi => !data.QuoteTemplateItems.Any(qid => qid.Id == qi.Id))];
+            _dbContext.QuoteTemplateItems.RemoveRange(removedQuoteItems);
+
+            await _dbContext.SaveChangesAsync();
+
+            string? modifiedByDisplay = qt.ModifiedByUserId is int modifierId
+                ? await _dbContext.AppUsers.AsNoTracking()
+                    .Where(u => u.Id == modifierId)
+                    .Select(u => u.DisplayName)
+                    .FirstOrDefaultAsync()
+                : null;
+
+            QuoteTemplateDto createdQuoteTemplate = new(
+              qt.Id,
+              qt.Name,
+              qt.Description,
+              qt.IsActive,
+              qt.CreatedOn,
+              qt.ModifiedOn,
+              modifiedByDisplay,
+              (JobTypeEnum)qt.JobTypeId!,
+              await _dbContext.QuoteTemplateItems
+                .Where(qti => qti.QuoteTemplateId == qt.Id)
+                .Select(qti => new QuoteTemplateItemDto
+                (
+                    qti.Id,
+                    qti.ServiceId ?? 0,
+                    qti.ServiceNameSnapshot ?? "",
+                    qti.Description,
+                    qti.DefaultPrice
+                )).ToArrayAsync()
+          );
+
+            return res.SetValue(createdQuoteTemplate);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create the quote template");
+            return res.SetError(ErrorType.InternalError, "Failed to create the quoting template");
+        }
+    }
 
     /// <inheritdoc/>
     public async Task<Result<bool>> DeleteQuotingTemplate(int quoteTemplateId) => throw new NotImplementedException();

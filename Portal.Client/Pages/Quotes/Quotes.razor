@@ -1,29 +1,96 @@
-﻿@inherits BaseDataComponent
+﻿@inherits BaseDataComponent;
+@using Portal.Shared
+@using Portal.Shared.DTO.Contact
+@using Portal.Shared.DTO.Quote
+@using Portal.Shared.ResponseModels
+@using Portal.Shared.Web
 
 @page "/quotes"
 
 <PageTitle>Quotes - PRS Portal</PageTitle>
+
 <div class="container">
     <PageHeader>
         <Content>
-            <div>
-                <h2>Quotes</h2>
+            <div class="page-header">
+                <div class="" style="min-width: 150px">
+                    <h2>Quotes</h2>
+                </div>
+                <div class="search-container ml-2">
+                    <MudTextField TextUpdateSuppression="false" T="string" @bind-Value="AddressSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { AddressSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.OtherHouses" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => { _filterState.AddressSearch = null; _ = OnSearch(); })"></MudTextField>
+                    <MudTextField TextUpdateSuppression="false" T="string" @bind-Value="JobNumberSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Job Number" Adornment="Adornment.Start" TextChanged="(async (x) => { JobNumberSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.Numbers" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => { _filterState.JobNumberSearch = null; _ = OnSearch(); })"></MudTextField>
+                    <MudTextField TextUpdateSuppression="false" T="string" @bind-Value="ContactSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Contact" Adornment="Adornment.Start" TextChanged="(async (x) => { ContactSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
+                                  AdornmentIcon="@Icons.Material.Filled.Group" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => { _filterState.ContactSearch = null; _ = OnSearch(); })"></MudTextField>
+                </div>
             </div>
-            <MudTextField T="string" Placeholder="Search" Adornment="Adornment.Start" Variant="Variant.Outlined"
-                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Large" Class="" Clearable="true">
-            </MudTextField>
         </Content>
     </PageHeader>
-
     <Card>
         <TitleContent>
-            <HeaderTabs Href="/quotes/create" />
+            <HeaderTabs OnTabSelect="ShowDelete" Href="/quotes/create" />
         </TitleContent>
         <ChildContent>
-
+            <MudDataGrid T="QuoteListDto"
+                         ServerData="LoadQuotes"
+                         Filterable="true"
+                         SortMode="SortMode.Single"
+                         Loading="base.IsLoading"
+                         RowsPerPage="_rowsPerPage"
+                         CurrentPage="_filterState.Page"
+                         CurrentPageChanged="@((page) => { _filterState.Page = page; UpdateUrlFromState(); })"
+                         Dense=true
+                         Hover="true"
+                         @ref="_grid"
+                         Striped="true">
+                <Columns>
+                    <TemplateColumn ShowFilterIcon="false" Title="Status" Sortable="false">
+                        <CellTemplate>
+                            <span class="quote-status-chip">@context.Item.Status.Name</span>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Property="x => x.QuoteReference" ShowFilterIcon="false" Sortable="true" Title="Quote ref" HeaderStyle="max-width: 120px">
+                        <CellTemplate>
+                            <a class="contact-link" href=@($"/quotes/{context.Item.Id}")>@context.Item.QuoteReference</a>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Property="x => x.TotalPrice" ShowFilterIcon="false" Sortable="false" Title="Total">
+                        <CellTemplate>
+                            @(context.Item.TotalPrice is { } p ? p.ToString("C2") : "—")
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn ShowFilterIcon="false" Title="Contact">
+                        <CellTemplate>
+                            @if (context.Item.Contact is { } c)
+                            {
+                                <a class="contact-link" href="/contacts/@c.contactId">@c.fullName</a>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <PropertyColumn Property="x => x.Address!.Street" ShowFilterIcon="false" Title="Street" />
+                    <PropertyColumn Property="x => x.Address!.Suburb" ShowFilterIcon="false" Title="Suburb" />
+                    <TemplateColumn ShowFilterIcon="false" Title="Job #" HeaderStyle="max-width: 90px">
+                        <CellTemplate>
+                            @if (context.Item.JobId is { } jobId && !string.IsNullOrWhiteSpace(context.Item.JobNumber))
+                            {
+                                <a class="contact-link" href=@($"/jobs/{jobId}")>@context.Item.JobNumber</a>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn StickyRight="true" Title="Action" HeaderStyle="max-width: 130px">
+                        <CellTemplate>
+                            <div class="d-flex flex-row gap-1">
+                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/quotes/edit/{context.Item.Id}")" />
+                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => RemoveQuote(context.Item.Id))" />
+                            </div>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="QuoteListDto" />
+                </PagerContent>
+            </MudDataGrid>
         </ChildContent>
     </Card>
 </div>
-@code {
-
-}

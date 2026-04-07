@@ -4,6 +4,7 @@ using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Integration;
 using Portal.Shared.DTO.Job;
+using Portal.Shared.DTO.Quote;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
 using Portal.Shared.DTO.TimeSheet;
@@ -244,6 +245,45 @@ public interface IApiService
     /// <param name="data">The contact update data.</param>
     /// <returns>A result containing the updated contact details on success.</returns>
     Task<Result<ContactDetailsDto>> UpdateContact(ContactUpdateDto data);
+    #endregion
+
+    #region QUOTES
+    /// <summary>
+    /// Retrieves a paged list of quotes with optional filters and sort.
+    /// </summary>
+    Task<Result<PagedResponse<QuoteListDto>>> GetAllQuotes(QuoteFilterDto filter);
+    /// <summary>
+    /// Retrieves quote details by id.
+    /// </summary>
+    Task<Result<QuoteDetailsDto>> GetQuoteDetails(int quoteId);
+    /// <summary>
+    /// Creates a new quote.
+    /// </summary>
+    Task<Result<int>> CreateQuote(QuoteCreationDto data);
+    /// <summary>
+    /// Updates an existing quote.
+    /// </summary>
+    Task<Result<int>> UpdateQuote(QuoteUpdateDto data);
+    /// <summary>
+    /// Deletes a quote by id.
+    /// </summary>
+    Task<Result<bool>> DeleteQuote(int quoteId);
+    /// <summary>
+    /// Gets all quoting templates.
+    /// </summary>
+    Task<Result<QuoteTemplateDto[]>> GetQuotingTemplates();
+    /// <summary>
+    /// Creates a new quoting template.
+    /// </summary>
+    Task<Result<QuoteTemplateDto>> CreateQuotingTemplate(QuoteTemplateDto data);
+    /// <summary>
+    /// Updates an existing quoting template.
+    /// </summary>
+    Task<Result<QuoteTemplateDto>> UpdateQuotingTemplate(QuoteTemplateDto data);
+    /// <summary>
+    /// Deletes a quoting template by id.
+    /// </summary>
+    Task<Result<bool>> DeleteQuotingTemplate(int templateId);
     #endregion
 
     #region USERS

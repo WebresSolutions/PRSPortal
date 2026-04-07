@@ -219,8 +219,8 @@ public partial class Jobs : IDisposable
     {
         _filterState.Page = 0;
         UpdateUrlFromState();
-        if (_grid is not null)
-            return _grid!.ReloadServerData();
+        //if (_grid is not null)
+        //    return _grid!.ReloadServerData();
 
         return Task.CompletedTask;
     }

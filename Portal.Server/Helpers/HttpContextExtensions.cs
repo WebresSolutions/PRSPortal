@@ -18,7 +18,8 @@ public static class HttpContextExtensions
 
     public static string IdentityId(this HttpContext httpContext)
     {
-        return httpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        string userId = httpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        return userId;
     }
 
     public static string GetMyUserEmail(this HttpContext httpContext)

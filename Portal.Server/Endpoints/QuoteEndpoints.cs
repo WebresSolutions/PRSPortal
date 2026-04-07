@@ -98,30 +98,21 @@ public static class QuoteEndpoints
             .WithDescription("Returns the quoting templates for a given quote ID")
             .Produces<List<QuoteTemplateDto>>();
 
-        quoteEndpointGroup.MapPost("templates",
-            async (
-                [FromServices] IQuoteService quoteService,
-                [FromBody] QuoteTemplateDto quoteTemplateDto
-            ) =>
-            {
-                Result<QuoteTemplateDto> result = await quoteService.CreateQuotingTemplate(quoteTemplateDto);
-                return EndpointsHelper.ProcessResult(result, "An error occurred while creating the quoting template");
-            })
-            .WithSummary("Create a new quoting template")
-            .WithDescription("Creates a new quoting template with the provided details")
-            .Produces<QuoteTemplateDto>();
-
         quoteEndpointGroup.MapPut("templates",
             async (
                 [FromServices] IQuoteService quoteService,
-                [FromBody] QuoteTemplateDto quoteTemplateDto
+                [FromBody] QuoteTemplateDto quoteTemplateDto,
+                HttpContext httpContext
             ) =>
             {
-                Result<QuoteTemplateDto> result = await quoteService.UpdateQuotingTemplate(quoteTemplateDto);
-                return EndpointsHelper.ProcessResult(result, "An error occurred while updating the quoting template");
+                Result<QuoteTemplateDto> result = quoteTemplateDto.Id is 0
+                    ? await quoteService.CreateQuotingTemplate(quoteTemplateDto, httpContext)
+                    : await quoteService.UpdateQuotingTemplate(quoteTemplateDto, httpContext);
+
+                return EndpointsHelper.ProcessResult(result, "An error occurred while creating the quoting template");
             })
-            .WithSummary("Update a quoting template")
-            .WithDescription("Updates an existing quoting template with the provided details")
+            .WithSummary("Create or update a quoting template")
+            .WithDescription("Creates a new quoting template with the provided details. Updates it if the id is not 0")
             .Produces<QuoteTemplateDto>();
 
         quoteEndpointGroup.MapDelete("templates/{quoteId}",

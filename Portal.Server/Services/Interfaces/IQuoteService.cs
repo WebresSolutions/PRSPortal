@@ -55,15 +55,17 @@ public interface IQuoteService
     /// Creates a new quoting template.
     /// </summary>
     /// <param name="quoteTemplateDto">The data for creating the new quoting template.</param>
+    /// <param name="httpContext">The HTTP context for the current user.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the ID of the newly created quoting template.</returns>
-    Task<Result<QuoteTemplateDto>> CreateQuotingTemplate(QuoteTemplateDto quoteTemplateDto);
+    Task<Result<QuoteTemplateDto>> CreateQuotingTemplate(QuoteTemplateDto quoteTemplateDto, HttpContext httpContext);
 
     /// <summary>
     /// Updates a quoting template.
     /// </summary>
     /// <param name="quoteTemplateDto">The data for updating the quoting template.</param>
+    /// <param name="httpContext">The HTTP context for the current user.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the ID of the updated quoting template.</returns>
-    Task<Result<QuoteTemplateDto>> UpdateQuotingTemplate(QuoteTemplateDto quoteTemplateDto);
+    Task<Result<QuoteTemplateDto>> UpdateQuotingTemplate(QuoteTemplateDto quoteTemplateDto, HttpContext httpContext);
 
     /// <summary>
     /// Deletes a quoting template.

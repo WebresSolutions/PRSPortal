@@ -7,6 +7,7 @@ using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Quote;
 using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
+using System.Net;
 using System.Net.Http.Json;
 
 namespace Portal.IntegrationTests.EndpointTests;
@@ -173,6 +174,196 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
         Assert.Equal(1, quoteFilterDto.Page);
     }
 
+    [Fact]
+    public async Task Put_quote_template_creates_template_and_persists_line_items_with_service_snapshots()
+    {
+        ServiceTypeDto[] serviceTypes = (await _client.GetFromJsonAsync<ServiceTypeDto[]>("/api/types/service"))!;
+        int titleId = serviceTypes.First(x => x.ServiceName == "Title Re-establishment Survey").Id;
+        int featureId = serviceTypes.First(x => x.ServiceName == "Feature & AHD Level Survey").Id;
+
+        QuoteTemplateDto request = new(
+            0,
+            "Integration template — create",
+            "Created by integration test",
+            true,
+            DateTime.UtcNow,
+            null,
+            null,
+            JobTypeEnum.Surveying,
+            [
+                new QuoteTemplateItemDto(0, titleId, "", "Title line", 2550.00m),
+                new QuoteTemplateItemDto(0, featureId, "", "Feature line", 2150.00m)
+            ]);
+
+        QuoteTemplateDto created = await PutQuoteTemplateAsync(request);
+        Assert.True(created.Id > 0);
+        Assert.Equal(request.Name, created.Name);
+        Assert.Equal(2, created.QuoteTemplateItems.Length);
+
+        using IServiceScope scope = _factory.Services.CreateScope();
+        PrsDbContext db = scope.ServiceProvider.GetRequiredService<PrsDbContext>();
+        Data.Models.QuoteTemplate? saved = await db.QuoteTemplates
+            .Include(t => t.QuoteTemplateItems)
+            .FirstOrDefaultAsync(t => t.Id == created.Id);
+
+        Assert.NotNull(saved);
+        Assert.Equal(2, saved.QuoteTemplateItems.Count);
+        Assert.Contains(saved.QuoteTemplateItems, i => i.ServiceNameSnapshot == "Title Re-establishment Survey" && i.DefaultPrice == 2550.00m);
+        Assert.Contains(saved.QuoteTemplateItems, i => i.ServiceNameSnapshot == "Feature & AHD Level Survey" && i.DefaultPrice == 2150.00m);
+    }
+
+    [Fact]
+    public async Task Put_quote_template_returns_bad_request_when_service_type_invalid()
+    {
+        QuoteTemplateDto request = new(
+            0,
+            "Bad services",
+            null,
+            true,
+            DateTime.UtcNow,
+            null,
+            null,
+            JobTypeEnum.Surveying,
+            [new QuoteTemplateItemDto(0, 999_999, "", null, 1.00m)]);
+
+        HttpResponseMessage response = await _client.PutAsJsonAsync("/api/quotes/templates", request);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_quote_template_updates_name_and_line_item_defaults()
+    {
+        ServiceTypeDto[] serviceTypes = (await _client.GetFromJsonAsync<ServiceTypeDto[]>("/api/types/service"))!;
+        int titleId = serviceTypes.First(x => x.ServiceName == "Title Re-establishment Survey").Id;
+        int neighbourhoodId = serviceTypes.First(x => x.ServiceName == "Neighbourhood Site Description").Id;
+
+        QuoteTemplateDto created = await PutQuoteTemplateAsync(new QuoteTemplateDto(
+            0,
+            "Template before update",
+            "Desc",
+            true,
+            DateTime.UtcNow,
+            null,
+            null,
+            JobTypeEnum.Construction,
+            [new QuoteTemplateItemDto(0, titleId, "", "Original", 100.00m)]));
+
+        QuoteTemplateItemDto existingLine = created.QuoteTemplateItems.Single();
+        QuoteTemplateItemDto updatedLine = existingLine with
+        {
+            Description = "Updated description",
+            DefaultPrice = 199.50m,
+            ServiceName = "Title Re-establishment Survey"
+        };
+
+        QuoteTemplateItemDto newLine = new(0, neighbourhoodId, "Neighbourhood Site Description", "New default line", 50.00m);
+
+        QuoteTemplateDto update = new(
+            created.Id,
+            "Template after update",
+            "Desc updated",
+            true,
+            created.CreatedOn,
+            created.ModifiedOn,
+            created.ModifiedBy,
+            JobTypeEnum.Construction,
+            [updatedLine, newLine]);
+
+        QuoteTemplateDto after = await PutQuoteTemplateAsync(update);
+        Assert.Equal("Template after update", after.Name);
+        Assert.Equal(2, after.QuoteTemplateItems.Length);
+
+        using IServiceScope scope = _factory.Services.CreateScope();
+        PrsDbContext db = scope.ServiceProvider.GetRequiredService<PrsDbContext>();
+        Data.Models.QuoteTemplate? saved = await db.QuoteTemplates
+            .Include(t => t.QuoteTemplateItems)
+            .FirstAsync(t => t.Id == created.Id);
+
+        Assert.Equal(2, saved.QuoteTemplateItems.Count);
+        Data.Models.QuoteTemplateItem titleRow = saved.QuoteTemplateItems.Single(i => i.ServiceId == titleId);
+        Assert.Equal(199.50m, titleRow.DefaultPrice);
+        Assert.Equal("Updated description", titleRow.Description);
+        Assert.Contains(saved.QuoteTemplateItems, i => i.ServiceId == neighbourhoodId && i.DefaultPrice == 50.00m);
+    }
+
+    [Fact]
+    public async Task Put_quote_template_update_removes_line_items_not_in_payload()
+    {
+        ServiceTypeDto[] serviceTypes = (await _client.GetFromJsonAsync<ServiceTypeDto[]>("/api/types/service"))!;
+        int titleId = serviceTypes.First(x => x.ServiceName == "Title Re-establishment Survey").Id;
+        int featureId = serviceTypes.First(x => x.ServiceName == "Feature & AHD Level Survey").Id;
+
+        QuoteTemplateDto created = await PutQuoteTemplateAsync(new QuoteTemplateDto(
+            0,
+            "Two lines then one",
+            null,
+            true,
+            DateTime.UtcNow,
+            null,
+            null,
+            JobTypeEnum.Surveying,
+            [
+                new QuoteTemplateItemDto(0, titleId, "Title Re-establishment Survey", "A", 1m),
+                new QuoteTemplateItemDto(0, featureId, "Feature & AHD Level Survey", "B", 2m)
+            ]));
+
+        QuoteTemplateItemDto keep = created.QuoteTemplateItems.First(i => i.ServiceTypeId == titleId);
+        keep = keep with { ServiceName = "Title Re-establishment Survey" };
+
+        QuoteTemplateDto update = new(
+            created.Id,
+            created.Name,
+            created.Description,
+            created.IsActive,
+            created.CreatedOn,
+            created.ModifiedOn,
+            created.ModifiedBy,
+            created.JobType,
+            [keep]);
+
+        await PutQuoteTemplateAsync(update);
+
+        using IServiceScope scope = _factory.Services.CreateScope();
+        PrsDbContext db = scope.ServiceProvider.GetRequiredService<PrsDbContext>();
+        List<Data.Models.QuoteTemplateItem> items = await db.QuoteTemplateItems
+            .Where(i => i.QuoteTemplateId == created.Id)
+            .ToListAsync();
+
+        Assert.Single(items);
+        Assert.Equal(titleId, items[0].ServiceId);
+    }
+
+    [Fact]
+    public async Task Get_quote_templates_includes_created_template()
+    {
+        string uniqueName = $"Listed template {Guid.NewGuid():N}";
+        ServiceTypeDto[] serviceTypes = (await _client.GetFromJsonAsync<ServiceTypeDto[]>("/api/types/service"))!;
+        int titleId = serviceTypes.First(x => x.ServiceName == "Title Re-establishment Survey").Id;
+
+        await PutQuoteTemplateAsync(new QuoteTemplateDto(
+            0,
+            uniqueName,
+            null,
+            true,
+            DateTime.UtcNow,
+            null,
+            null,
+            JobTypeEnum.Surveying,
+            [new QuoteTemplateItemDto(0, titleId, "", null, 1m)]));
+
+        QuoteTemplateDto[]? list = await _client.GetFromJsonAsync<QuoteTemplateDto[]>("/api/quotes/templates");
+        Assert.NotNull(list);
+        Assert.Contains(list, t => t.Name == uniqueName);
+    }
+
+    private async Task<QuoteTemplateDto> PutQuoteTemplateAsync(QuoteTemplateDto dto)
+    {
+        HttpResponseMessage response = await _client.PutAsJsonAsync("/api/quotes/templates", dto);
+        response.EnsureSuccessStatusCode();
+        QuoteTemplateDto? body = await response.Content.ReadFromJsonAsync<QuoteTemplateDto>();
+        Assert.NotNull(body);
+        return body;
+    }
 
     private async Task<int> CreateQuote()
     {

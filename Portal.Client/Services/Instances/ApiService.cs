@@ -6,12 +6,14 @@ using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Integration;
 using Portal.Shared.DTO.Job;
+using Portal.Shared.DTO.Quote;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
 using Portal.Shared.DTO.TimeSheet;
 using Portal.Shared.DTO.Types;
 using Portal.Shared.DTO.User;
 using Portal.Shared.ResponseModels;
+using System.Globalization;
 using System.Net.Http.Json;
 
 namespace Portal.Client.Services.Instances;
@@ -441,7 +443,8 @@ public class ApiService : IApiService
         {
             Dictionary<string, string> queryParameters = new()
             {
-                { "date", date.ToString() },
+                // ISO 8601 date only — culture-invariant so the API can bind DateOnly (dd/MM fails under invariant/US parsing).
+                { "date", date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) },
                 { "jobType", jobType.ToString() }
             };
 
@@ -628,7 +631,7 @@ public class ApiService : IApiService
                 { "jobType", jobType.ToString() }
             };
             if (weekDay.HasValue)
-                queryParams["weekDay"] = weekDay.Value.ToString("yyyy-MM-dd");
+                queryParams["weekDay"] = weekDay.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
             FormUrlEncodedContent dictFormUrlEncoded = new(queryParams);
             string queryString = await dictFormUrlEncoded.ReadAsStringAsync();
@@ -1030,6 +1033,295 @@ public class ApiService : IApiService
         }
         return res;
     }
+
+    #region QUOTES
+    /// <summary>
+    /// Retrieves a paged list of quotes with optional filters and sort.
+    /// </summary>
+    public async Task<Result<PagedResponse<QuoteListDto>>> GetAllQuotes(QuoteFilterDto filter)
+    {
+        Result<PagedResponse<QuoteListDto>> res = new();
+        try
+        {
+            Dictionary<string, object?> queryParams = new()
+            {
+                ["page"] = filter.Page,
+                ["pageSize"] = filter.PageSize,
+                ["order"] = (int)filter.Order,
+                ["deleted"] = filter.Deleted.ToString().ToLower(),
+                ["jobNumberSearch"] = filter.JobNumberSearch,
+                ["contactSearch"] = filter.ContactSearch,
+                ["addressSearch"] = filter.AddressSearch,
+                ["orderby"] = filter.OrderBy
+            };
+
+            string url = _navigationManager.GetUriWithQueryParameters("api/quotes", queryParams);
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                await NavigationToLoginPage();
+                return res.SetError(ErrorType.Unauthorized, "Unauthorized access");
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                res.Value = await response.Content.ReadFromJsonAsync<PagedResponse<QuoteListDto>>();
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get quotes";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+            res.SetError(ErrorType.InternalError, "A client-side error occurred.");
+        }
+
+        return res;
+    }
+
+    /// <summary>
+    /// Retrieves quote details by id.
+    /// </summary>
+    public async Task<Result<QuoteDetailsDto>> GetQuoteDetails(int quoteId)
+    {
+        Result<QuoteDetailsDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/quotes/{quoteId}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                QuoteDetailsDto? dto = await response.Content.ReadFromJsonAsync<QuoteDetailsDto>();
+                if (dto is not null)
+                    res.Value = dto;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get quote details";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Creates a new quote.
+    /// </summary>
+    public async Task<Result<int>> CreateQuote(QuoteCreationDto data)
+    {
+        Result<int> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("api/quotes", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                int? id = await response.Content.ReadFromJsonAsync<int>();
+                if (id.HasValue)
+                    res.Value = id.Value;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to create quote";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Updates an existing quote.
+    /// </summary>
+    public async Task<Result<int>> UpdateQuote(QuoteUpdateDto data)
+    {
+        Result<int> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync("api/quotes", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                int? id = await response.Content.ReadFromJsonAsync<int>();
+                if (id.HasValue)
+                    res.Value = id.Value;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to update quote";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Deletes a quote by id.
+    /// </summary>
+    public async Task<Result<bool>> DeleteQuote(int quoteId)
+    {
+        Result<bool> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/quotes/{quoteId}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                bool? ok = await response.Content.ReadFromJsonAsync<bool>();
+                if (ok.HasValue)
+                    res.Value = ok.Value;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to delete quote";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Gets all quoting templates.
+    /// </summary>
+    public async Task<Result<QuoteTemplateDto[]>> GetQuotingTemplates()
+    {
+        Result<QuoteTemplateDto[]> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync("api/quotes/templates");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                QuoteTemplateDto[]? templates = await response.Content.ReadFromJsonAsync<QuoteTemplateDto[]>();
+                res.Value = templates ?? Array.Empty<QuoteTemplateDto>();
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get quoting templates";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Creates a new quoting template.
+    /// </summary>
+    public async Task<Result<QuoteTemplateDto>> CreateQuotingTemplate(QuoteTemplateDto data)
+    {
+        Result<QuoteTemplateDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync("api/quotes/templates", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                QuoteTemplateDto? dto = await response.Content.ReadFromJsonAsync<QuoteTemplateDto>();
+                if (dto is not null)
+                    res.Value = dto;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to create quoting template";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Updates an existing quoting template.
+    /// </summary>
+    public async Task<Result<QuoteTemplateDto>> UpdateQuotingTemplate(QuoteTemplateDto data)
+    {
+        Result<QuoteTemplateDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync("api/quotes/templates", data);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                QuoteTemplateDto? dto = await response.Content.ReadFromJsonAsync<QuoteTemplateDto>();
+                if (dto is not null)
+                    res.Value = dto;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to update quoting template";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Deletes a quoting template by id (route parameter name on server: quoteId).
+    /// </summary>
+    public async Task<Result<bool>> DeleteQuotingTemplate(int templateId)
+    {
+        Result<bool> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/quotes/templates/{templateId}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                bool? ok = await response.Content.ReadFromJsonAsync<bool>();
+                if (ok.HasValue)
+                    res.Value = ok.Value;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to delete quoting template";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+    #endregion
 
     /// <summary>
     /// Gets notes for a particular user. If the user is not authorized, the method may trigger navigation to the login page. The returned result contains error information if the request fails.

@@ -1,0 +1,30 @@
+.search-container {
+    display: flex;
+    gap: var(--padding);
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        display: flex;
+        gap: var(--padding);
+        width: 100%;
+        flex-direction: column;
+    }
+}
+
+.quote-status-chip {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--color-primary);
+    color: var(--color-white);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
