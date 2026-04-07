@@ -8,5 +8,5 @@ public record QuoteFilterDto(
     string? AddressSearch = null,
     string? OrderBy = null,
     SortDirectionEnum Order = SortDirectionEnum.Asc,
-    bool Deleted = false
+    bool ShowDeleted = false
 );

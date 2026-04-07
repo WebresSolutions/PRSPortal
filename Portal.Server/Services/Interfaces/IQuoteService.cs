@@ -72,5 +72,5 @@ public interface IQuoteService
     /// </summary>
     /// <param name="quopteTemplateId">The unique identifier of the quoting template to delete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the ID of the deleted quoting template.</returns>
-    Task<Result<bool>> DeleteQuotingTemplate(int quopteTemplateId);
+    Task<Result<bool>> DeleteQuotingTemplate(int quopteTemplateId, HttpContext httpContext);
 }

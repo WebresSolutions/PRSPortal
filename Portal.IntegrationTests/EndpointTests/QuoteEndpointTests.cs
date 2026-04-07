@@ -162,7 +162,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
             AddressSearch = null,
             OrderBy = null,
             Order = SortDirectionEnum.Asc,
-            Deleted = false
+            ShowDeleted = false
         };
 
         PagedResponse<QuoteListDto>? quoteListDto = await _client.GetFromJsonAsync<PagedResponse<QuoteListDto>>("/api/quotes");
@@ -354,6 +354,121 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
         QuoteTemplateDto[]? list = await _client.GetFromJsonAsync<QuoteTemplateDto[]>("/api/quotes/templates");
         Assert.NotNull(list);
         Assert.Contains(list, t => t.Name == uniqueName);
+    }
+
+    [Fact]
+    public async Task Delete_quote_sets_deleted_at_and_returns_true()
+    {
+        int quoteId = await CreateQuote();
+
+        HttpResponseMessage response = await _client.DeleteAsync($"/api/quotes/{quoteId}");
+        response.EnsureSuccessStatusCode();
+        bool? body = await response.Content.ReadFromJsonAsync<bool?>();
+        Assert.True(body);
+
+        using IServiceScope scope = _factory.Services.CreateScope();
+        PrsDbContext db = scope.ServiceProvider.GetRequiredService<PrsDbContext>();
+        Data.Models.Quote? saved = await db.Quotes.AsNoTracking().FirstOrDefaultAsync(q => q.Id == quoteId);
+        Assert.NotNull(saved);
+        Assert.NotNull(saved.DeletedAt);
+
+        PagedResponse<QuoteListDto>? quoteListDto = await _client.GetFromJsonAsync<PagedResponse<QuoteListDto>>("/api/quotes");
+        Assert.NotNull(quoteListDto);
+        Assert.DoesNotContain(quoteListDto.Result, q => q.Id == quoteId);
+    }
+
+    [Fact]
+    public async Task Delete_quote_second_time_returns_bad_request()
+    {
+        int quoteId = await CreateQuote();
+        HttpResponseMessage first = await _client.DeleteAsync($"/api/quotes/{quoteId}");
+        first.EnsureSuccessStatusCode();
+
+        HttpResponseMessage second = await _client.DeleteAsync($"/api/quotes/{quoteId}");
+        Assert.Equal(HttpStatusCode.BadRequest, second.StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_quote_unknown_id_returns_bad_request()
+    {
+        HttpResponseMessage response = await _client.DeleteAsync("/api/quotes/999999");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_quote_invalid_route_id_returns_bad_request()
+    {
+        HttpResponseMessage response = await _client.DeleteAsync("/api/quotes/0");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_quote_template_sets_deleted_at_and_excludes_from_get_list()
+    {
+        string uniqueName = $"Delete template test {Guid.NewGuid():N}";
+        ServiceTypeDto[] serviceTypes = (await _client.GetFromJsonAsync<ServiceTypeDto[]>("/api/types/service"))!;
+        int titleId = serviceTypes.First(x => x.ServiceName == "Title Re-establishment Survey").Id;
+
+        QuoteTemplateDto created = await PutQuoteTemplateAsync(new QuoteTemplateDto(
+            0,
+            uniqueName,
+            null,
+            true,
+            DateTime.UtcNow,
+            null,
+            null,
+            JobTypeEnum.Surveying,
+            [new QuoteTemplateItemDto(0, titleId, "", null, 1m)]));
+
+        QuoteTemplateDto[]? before = await _client.GetFromJsonAsync<QuoteTemplateDto[]>("/api/quotes/templates");
+        Assert.NotNull(before);
+        Assert.Contains(before, t => t.Id == created.Id && t.Name == uniqueName);
+
+        HttpResponseMessage deleteResponse = await _client.DeleteAsync($"/api/quotes/templates/{created.Id}");
+        deleteResponse.EnsureSuccessStatusCode();
+        bool? deleted = await deleteResponse.Content.ReadFromJsonAsync<bool?>();
+        Assert.True(deleted);
+
+        using IServiceScope scope = _factory.Services.CreateScope();
+        PrsDbContext db = scope.ServiceProvider.GetRequiredService<PrsDbContext>();
+        Data.Models.QuoteTemplate? saved = await db.QuoteTemplates.AsNoTracking().FirstOrDefaultAsync(t => t.Id == created.Id);
+        Assert.NotNull(saved);
+        Assert.NotNull(saved.DeletedAt);
+
+        QuoteTemplateDto[]? after = await _client.GetFromJsonAsync<QuoteTemplateDto[]>("/api/quotes/templates");
+        Assert.NotNull(after);
+        Assert.DoesNotContain(after, t => t.Id == created.Id);
+    }
+
+    [Fact]
+    public async Task Delete_quote_template_second_time_returns_bad_request()
+    {
+        ServiceTypeDto[] serviceTypes = (await _client.GetFromJsonAsync<ServiceTypeDto[]>("/api/types/service"))!;
+        int titleId = serviceTypes.First(x => x.ServiceName == "Title Re-establishment Survey").Id;
+
+        QuoteTemplateDto created = await PutQuoteTemplateAsync(new QuoteTemplateDto(
+            0,
+            $"Twice-delete template {Guid.NewGuid():N}",
+            null,
+            true,
+            DateTime.UtcNow,
+            null,
+            null,
+            JobTypeEnum.Surveying,
+            [new QuoteTemplateItemDto(0, titleId, "", null, 1m)]));
+
+        HttpResponseMessage first = await _client.DeleteAsync($"/api/quotes/templates/{created.Id}");
+        first.EnsureSuccessStatusCode();
+
+        HttpResponseMessage second = await _client.DeleteAsync($"/api/quotes/templates/{created.Id}");
+        Assert.Equal(HttpStatusCode.BadRequest, second.StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_quote_template_unknown_id_returns_bad_request()
+    {
+        HttpResponseMessage response = await _client.DeleteAsync("/api/quotes/templates/999999");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     private async Task<QuoteTemplateDto> PutQuoteTemplateAsync(QuoteTemplateDto dto)

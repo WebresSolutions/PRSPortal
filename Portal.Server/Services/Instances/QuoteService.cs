@@ -170,7 +170,6 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
             else
                 quote.Description = data.Description;
 
-            // Validate all service types exist (load once for new line snapshots)
             int[] distinctServiceTypes = [.. data.QuoteItems.Select(qi => qi.ServiceTypeId).Distinct()];
 
             List<ServiceType> serviceTypesForPayload = await _dbContext.ServiceTypes
@@ -235,8 +234,10 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
         {
             IQueryable<Quote> query = _dbContext.Quotes.AsQueryable();
 
-            if (filter.Deleted)
+            if (filter.ShowDeleted)
                 query = query.Where(q => q.DeletedAt != null);
+            else
+                query = query.Where(q => q.DeletedAt == null);
 
             if (!string.IsNullOrEmpty(filter.ContactSearch))
             {
@@ -288,14 +289,26 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
     /// <inheritdoc/>
     public async Task<Result<bool>> DeleteQuote(int quoteId, HttpContext httpContext)
     {
+        Result<bool> res = new();
         try
         {
-            return new Result<bool>();
-        }
-        catch (Exception)
-        {
+            if (await _dbContext.Quotes.FindAsync(quoteId) is not Quote qt)
+                return res.SetError(ErrorType.BadRequest, "Quote not found.");
 
-            throw;
+            if (qt.DeletedAt != null)
+                return res.SetError(ErrorType.BadRequest, "Quote already deleted.");
+
+            qt.DeletedAt = DateTime.UtcNow;
+            qt.ModifiedByUserId = httpContext.UserId();
+            qt.ModifiedByUser = null;
+            await _dbContext.SaveChangesAsync();
+
+            return res.SetValue(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete the quote template");
+            return res.SetError(ErrorType.InternalError, "Failed to delete the quote");
         }
     }
 
@@ -306,7 +319,7 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
         try
         {
             res.Value = await _dbContext.QuoteTemplates
-                .Where(qt => qt.IsActive)
+                .Where(qt => qt.IsActive && qt.DeletedAt == null)
                 .Select(qt => new QuoteTemplateDto
                 (
                     qt.Id,
@@ -360,7 +373,6 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
             await _dbContext.QuoteTemplates.AddAsync(qt);
             await _dbContext.SaveChangesAsync();
 
-            // Validate all service types exist (load once for new line snapshots)
             int[] distinctServiceTypes = [.. data.QuoteTemplateItems.Select(qi => qi.ServiceTypeId).Distinct()];
 
             List<ServiceType> serviceTypesForPayload = await _dbContext.ServiceTypes
@@ -422,7 +434,6 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
             if (qt is null)
                 return res.SetError(ErrorType.BadRequest, "Quote template not found.");
 
-            // Validate all service types exist (load once for new line snapshots)
             int[] distinctServiceTypes = [.. data.QuoteTemplateItems.Select(qi => qi.ServiceTypeId).Distinct()];
 
             List<ServiceType> serviceTypesForPayload = await _dbContext.ServiceTypes
@@ -513,7 +524,28 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
     }
 
     /// <inheritdoc/>
-    public async Task<Result<bool>> DeleteQuotingTemplate(int quoteTemplateId) => throw new NotImplementedException();
+    public async Task<Result<bool>> DeleteQuotingTemplate(int quoteTemplateId, HttpContext httpContext)
+    {
+        Result<bool> res = new();
+        try
+        {
+            if (await _dbContext.QuoteTemplates.FindAsync(quoteTemplateId) is not QuoteTemplate qt)
+                return res.SetError(ErrorType.BadRequest, "Quote template not found.");
 
+            if (qt.DeletedAt != null)
+                return res.SetError(ErrorType.BadRequest, "Quote template already deleted.");
 
+            qt.DeletedAt = DateTime.UtcNow;
+            qt.ModifiedByUserId = httpContext.UserId();
+            qt.ModifiedByUser = null;
+            await _dbContext.SaveChangesAsync();
+
+            return res.SetValue(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete the quote template");
+            return res.SetError(ErrorType.InternalError, "Failed to delete the quoting template");
+        }
+    }
 }

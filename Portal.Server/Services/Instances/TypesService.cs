@@ -21,13 +21,13 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
     /// <inheritdoc/>
     public async Task<Result<TimeTypeDto[]>> GetTimeSheetTypes()
         => await GetTypesAsync(
-            _dbContext.TimesheetEntryTypes.Where(x => x.IsActive).Select(x => new TimeTypeDto(x.Id, x.Name, x.Description)),
+            _dbContext.TimesheetEntryTypes.Select(x => new TimeTypeDto(x.Id, x.Name, x.Description)),
             "timesheet types");
 
     /// <inheritdoc/>
     public async Task<Result<ContactTypeDto[]>> GetContactTypes()
         => await GetTypesAsync(
-            _dbContext.ContactTypes.Where(x => x.IsActive).Select(x => new ContactTypeDto(x.Id, x.Name, x.Description)),
+            _dbContext.ContactTypes.Select(x => new ContactTypeDto(x.Id, x.Name, x.Description)),
             "contact types");
 
     /// <inheritdoc/>
@@ -39,7 +39,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
     /// <inheritdoc/>
     public async Task<Result<JobColourDto[]>> GetJobColours()
         => await GetTypesAsync(
-            _dbContext.JobColours.Where(x => x.IsActive).Select(x => new JobColourDto(x.Id, x.Color)),
+            _dbContext.JobColours.Select(x => new JobColourDto(x.Id, x.Color)),
             "job colours");
 
     /// <inheritdoc/>
@@ -56,21 +56,20 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
     /// <inheritdoc/>
     public async Task<Result<FileTypeDto[]>> GetFileTypes()
         => await GetTypesAsync(
-            _dbContext.FileTypes.Where(x => x.IsActive).Select(x => new FileTypeDto(x.Id, x.Name, x.Description)),
+            _dbContext.FileTypes.Select(x => new FileTypeDto(x.Id, x.Name, x.Description)),
             "file types");
 
     /// <inheritdoc/>
     public async Task<Result<JobTaskTypeDto[]>> GetJobTaskTypes()
         => await GetTypesAsync(
             _dbContext.JobTaskTypes
-                .Where(x => x.IsActive)
                 .Select(x => new JobTaskTypeDto(x.Id, x.Name, x.Description)),
             "job task types");
 
     /// <inheritdoc/>
     public async Task<Result<TechnicalContactTypeDto[]>> GetTechnicalContactTypes()
         => await GetTypesAsync(
-            _dbContext.TechnicalContactTypes.Where(x => x.IsActive).Select(x => new TechnicalContactTypeDto(x.Id, x.Name, x.Description)),
+            _dbContext.TechnicalContactTypes.Select(x => new TechnicalContactTypeDto(x.Id, x.Name, x.Description)),
             "technical contact types");
 
     /// <inheritdoc/>
@@ -82,7 +81,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
     /// <inheritdoc/>
     public async Task<Result<ServiceTypeDto[]>> GetServiceTypes()
         => await GetTypesAsync(
-            _dbContext.ServiceTypes.Where(x => x.IsActive)
+            _dbContext.ServiceTypes
                 .OrderBy(x => x.ServiceName)
                 .Select(x => new ServiceTypeDto(x.Id, x.Code, x.ServiceName, x.IsActive, x.Description)),
             "service types");
@@ -104,24 +103,18 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
         {
             // Same DbContext cannot run multiple queries concurrently (see EF Core threading notes).
             TimeTypeDto[] timesheetTypes = await _dbContext.TimesheetEntryTypes
-                .Where(x => x.IsActive)
                 .Select(x => new TimeTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
             ContactTypeDto[] contactTypes = await _dbContext.ContactTypes
-                .Where(x => x.IsActive)
                 .Select(x => new ContactTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
             JobTypeDto[] jobTypes = await _dbContext.JobTypes
                 .Select(x => new JobTypeDto(x.Id, x.Name, x.Abbreviation)).ToArrayAsync();
             JobColourDto[] jobColours = await _dbContext.JobColours
-                .Where(x => x.IsActive)
                 .Select(x => new JobColourDto(x.Id, x.Color)).ToArrayAsync();
             FileTypeDto[] fileTypes = await _dbContext.FileTypes
-                .Where(x => x.IsActive)
                 .Select(x => new FileTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
             JobTaskTypeDto[] jobTaskTypes = await _dbContext.JobTaskTypes
-                .Where(x => x.IsActive)
                 .Select(x => new JobTaskTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
             TechnicalContactTypeDto[] technicalContactTypes = await _dbContext.TechnicalContactTypes
-                .Where(x => x.IsActive)
                 .Select(x => new TechnicalContactTypeDto(x.Id, x.Name, x.Description)).ToArrayAsync();
             StateDto[] states = await _dbContext.States
                 .Select(x => new StateDto(x.Id, x.Name, x.Abbreviation)).ToArrayAsync();
@@ -133,7 +126,6 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
                     Description = x.Description ?? string.Empty
                 }).ToArrayAsync();
             ServiceTypeDto[] serviceTypes = await _dbContext.ServiceTypes
-                .Where(x => x.IsActive)
                 .OrderBy(x => x.ServiceName)
                 .Select(x => new ServiceTypeDto(x.Id, x.Code, x.ServiceName, x.IsActive, x.Description))
                 .ToArrayAsync();

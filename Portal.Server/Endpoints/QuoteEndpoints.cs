@@ -118,10 +118,11 @@ public static class QuoteEndpoints
         quoteEndpointGroup.MapDelete("templates/{quoteId}",
             async (
                 [FromServices] IQuoteService quoteService,
-                [FromRoute] int quoteId
+                [FromRoute] int quoteId,
+                HttpContext httpContext
             ) =>
             {
-                Result<bool> result = await quoteService.DeleteQuotingTemplate(quoteId);
+                Result<bool> result = await quoteService.DeleteQuotingTemplate(quoteId, httpContext);
                 return EndpointsHelper.ProcessResult(result, "An error occurred while deleting the quoting template");
             })
             .WithSummary("Delete a quoting template")
