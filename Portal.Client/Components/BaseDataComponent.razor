@@ -1,5 +1,5 @@
 ﻿@using System.Text.Json
-
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 
 @code {
     [CascadingParameter]
@@ -33,11 +33,12 @@
 
             if (authenticationState?.User?.Identity is null || !authenticationState.User.Identity.IsAuthenticated)
             {
-                string returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
-                Console.WriteLine("ReturnURL: " + returnUrl);
-                // Use the current website's base URL instead of hardcoded Authority
-                string loginUrl = $"{_navigationManager.BaseUri}Authentication/Login?returnUrl={returnUrl}";
-                _navigationManager.NavigateTo(loginUrl, true);
+                InteractiveRequestOptions loginRequest = new()
+                {
+                    Interaction = InteractionType.SignIn,
+                    ReturnUrl = NormalizeReturnUrl(_navigationManager.ToBaseRelativePath(_navigationManager.Uri))
+                };
+                _navigationManager.NavigateToLogin("authentication/login", loginRequest);
             }
         }
     }
@@ -48,5 +49,12 @@
         {
             // await _jsRuntime.InvokeVoidAsync("initializeScrollHeader");
         }
+    }
+
+    private static string NormalizeReturnUrl(string baseRelativePath)
+    {
+        if (string.IsNullOrEmpty(baseRelativePath))
+            return "/";
+        return baseRelativePath.StartsWith('/') ? baseRelativePath : "/" + baseRelativePath;
     }
 }

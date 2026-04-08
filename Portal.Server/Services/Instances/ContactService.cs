@@ -14,11 +14,13 @@ using Quartz.Util;
 namespace Portal.Server.Services.Instances;
 
 /// <summary>
-/// Service implementation for contact-related business logic
-/// Handles contact retrieval, filtering, and data transformation
+/// Service implementation for contact-related business logic.
+/// Handles contact retrieval, filtering, and data transformation.
+/// </summary>
 public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _logger) : IContactService
-/// </summary>ctService
 {
+    /// <summary>Text search config for <c>tsvector</c> columns; queries use <c>websearch_to_tsquery</c> (phrases in quotes, OR, -exclude).</summary>
+    private const string ContactSearchConfig = "english";
     /// <summary>
     /// Retrieves a paged list of contacts with optional filtering and sorting
     /// </summary>
@@ -42,30 +44,27 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
                 if (!filter.NameEmailPhoneSearch.IsNullOrWhiteSpace())
                 {
                     string nameEmailSearch = filter.NameEmailPhoneSearch!.Trim();
-                    string pattern = PartialMatch(nameEmailSearch);
 
                     contactQuery = contactQuery.Where(contact =>
-                        contact.SearchVector.Matches(EF.Functions.ToTsQuery(pattern)));
+                        contact.SearchVector.Matches(EF.Functions.WebSearchToTsQuery(ContactSearchConfig, nameEmailSearch)));
                 }
                 if (!filter.AddressSearch.IsNullOrWhiteSpace())
                 {
                     string addressSearch = filter.AddressSearch!.Trim();
-                    string pattern = PartialMatch(addressSearch);
 
                     contactQuery = contactQuery.Where(contact =>
-                        contact.Address != null && contact.Address.SearchVector != null && contact.Address.SearchVector.Matches(EF.Functions.ToTsQuery(pattern)));
+                        contact.Address != null && contact.Address.SearchVector != null && contact.Address.SearchVector.Matches(EF.Functions.WebSearchToTsQuery(ContactSearchConfig, addressSearch)));
                 }
             }
             else if (!filter.SearchFilter.IsNullOrWhiteSpace())
             {
                 string searchFilter = filter.SearchFilter!.Trim();
                 bool isNumeric = int.TryParse(searchFilter, out int numericValue);
-                string pattern = PartialMatch(searchFilter);
 
                 contactQuery = contactQuery.Where(contact =>
                             (isNumeric && contact.Id == numericValue)
-                            || (contact.SearchVector != null && contact.SearchVector.Matches(EF.Functions.ToTsQuery(pattern)))
-                            || (contact.Address != null && contact.Address.SearchVector != null && contact.Address.SearchVector.Matches(EF.Functions.ToTsQuery(pattern))));
+                            || (contact.SearchVector != null && contact.SearchVector.Matches(EF.Functions.WebSearchToTsQuery(ContactSearchConfig, searchFilter)))
+                            || (contact.Address != null && contact.Address.SearchVector != null && contact.Address.SearchVector.Matches(EF.Functions.WebSearchToTsQuery(ContactSearchConfig, searchFilter))));
             }
 
             if (filter.contactType is not null)
@@ -127,8 +126,6 @@ public class ContactService(PrsDbContext _dbContext, ILogger<ContactService> _lo
             PagedResponse<ListContactDto> pagedResponse = new(contacts, filter.PageSize, filter.Page, total);
             result.Value = pagedResponse;
             return result;
-
-            static string PartialMatch(string filter) => string.Join(" & ", filter.Split(' ', StringSplitOptions.RemoveEmptyEntries)) + ":*";
         }
         catch (Exception ex)
         {

@@ -28,6 +28,8 @@ namespace Portal.Server.Services.Instances;
 /// </summary>
 public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IFileService _fileService, ISchedulerFactory _schedulerFactory) : IJobService
 {
+    /// <summary>Matches address/contact <c>tsvector</c> columns; queries use <c>websearch_to_tsquery</c>.</summary>
+    private const string FullTextSearchConfig = "english";
     /// <inheritdoc/>
     public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(JobFilterDto filter)
     {
@@ -55,16 +57,16 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
 
             if (!string.IsNullOrWhiteSpace(filter.AddressSearch))
             {
-                string pattern = PartialMatch(filter.AddressSearch);
+                string addressSearch = filter.AddressSearch.Trim();
                 query = query.Where(job => job.Address != null &&
-                                           job.Address.SearchVector.Matches(EF.Functions.ToTsQuery(pattern)));
+                                           job.Address.SearchVector.Matches(EF.Functions.WebSearchToTsQuery(FullTextSearchConfig, addressSearch)));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.ContactSearch))
             {
-                string pattern = PartialMatch(filter.ContactSearch);
+                string contactSearch = filter.ContactSearch.Trim();
                 query = query.Where(job => job.Contact != null &&
-                                           job.Contact.SearchVector.Matches(EF.Functions.ToTsQuery(pattern)));
+                                           job.Contact.SearchVector.Matches(EF.Functions.WebSearchToTsQuery(FullTextSearchConfig, contactSearch)));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.JobNumberSearch))
@@ -112,8 +114,6 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             _logger.LogError(ex, "Failed to get all jobs");
             return result.SetError(ErrorType.InternalError, "Failed to get list of jobs");
         }
-
-        static string PartialMatch(string filter) => string.Join(" & ", filter.Split(' ', StringSplitOptions.RemoveEmptyEntries)) + ":*";
     }
 
     /// <inheritdoc/>

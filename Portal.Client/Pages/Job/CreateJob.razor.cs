@@ -107,7 +107,7 @@ public partial class CreateJob
     /// <returns></returns>
     public async Task<IEnumerable<ListContactDto>> SearchContacts(string search, CancellationToken token)
     {
-        ContactFilterDto filter = new(Page: 1, PageSize: 500, SearchFilter: search, OrderBy: $"{nameof(ListContactDto.FullName)}", Order: Portal.Shared.SortDirectionEnum.Desc);
+        ContactFilterDto filter = new(Page: 1, PageSize: 100, SearchFilter: search, OrderBy: $"{nameof(ListContactDto.FullName)}", Order: Portal.Shared.SortDirectionEnum.Desc);
         Result<PagedResponse<ListContactDto>>? contactResult = await _apiService.GetAllContacts(filter);
 
         if (contactResult?.IsSuccess == true && contactResult.Value?.Result is not null)

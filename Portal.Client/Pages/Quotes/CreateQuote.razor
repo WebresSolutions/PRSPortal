@@ -1,16 +1,284 @@
 ﻿@page "/quotes/create"
+@using Portal.Shared.DTO.Quote
+@using Portal.Shared.DTO.Types
 @inherits BaseDataComponent
 
 <div class="container">
-    <PageHeader>
-        <Content>
-            <h1>New Quote</h1>
-        </Content>
-    </PageHeader>
+    <Card>
+        <ChildContent>
+            <h2>New Quote</h2>
+            <div class="quote-container">
+                <MudStepper @bind-ActiveIndex="_stepperIndex" Vertical Class="border-rad border-grey p-2">
+                    <LabelTemplate>
+                        @if (context.IsActive) {
+                            if (_stepperIndex is 0)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Person2" Color="Color.Secondary"></MudIcon>
+                            }else if (_stepperIndex is 1)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Color="Color.Secondary"></MudIcon>
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Description" Color="Color.Secondary"></MudIcon>
+                            }
+                        }
+                        else if (context.Completed) {
+                            <div style="height: 10px; width:10px; background-color: var(--color-secondary); border-radius: 50%;"></div>
+                        }
+                        else {
+                            <div style="height: 10px; width:10px; background-color: #d4ddeb; border-radius: 50%;"></div>
+                        }
+                    </LabelTemplate>
+                    <ChildContent>
+                        <MudStep Title="Quote Details" SecondaryText="Quoting details. Contact, Address, Type..." @ref="_mudStep">
+                            <div>
+                                <h5 class="form-section-title border-bottom py-2">Contact Details</h5>
+                                <div class="d-flex flex-row gap-2 grey-background p-3 border-rad border-grey">
+                                    @* <label for="job-contact">Contact</label> *@
+                                    <MudAutocomplete Placeholder="Select a contact" name="job-contact" T="ListContactDto" Value="_jobContact" ValueChanged="OnContactChanged" Clearable="false" Variant="Variant.Outlined" DebounceInterval="100"
+                                                     SearchFunc="@SearchContacts" ToStringFunc="@(e=> e.ToString())" MaxItems="50" Required="true">
+                                        <MoreItemsTemplate>
+                                            <div class="d-flex justify-content-center">
+                                                <small>
+                                                    Only the first 50 items are shown
+                                                </small>
+                                            </div>
+                                        </MoreItemsTemplate>
+                                    </MudAutocomplete>
+                                    <ButtonIcon Href="contacts/create" Icon="bi bi-plus" />
+                                </div>
 
+                                <EditAddress Address="_model.Address" />
+                            </div>
+                        </MudStep>
+                        <MudStep Title="Fees" SecondaryText="Select fees to apply for this quote." Skippable="false">
+                            <h5 class="form-section-title border-bottom pb-2">Fees</h5>
+                            <div>
+                                <label for="template-select">Select a quote template</label>
+                                <div class="quote-templates">
+                                    @foreach (QuoteTemplateDto template in _templates)
+                                    {
+                                        <div>
+
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <table class="table table-bordered border-rad">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Amount</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (QuoteItemDto item in _model.QuoteItems)
+                                    {
+                                        <tr>
+                                            <td>@item.ServiceName</td>
+                                            <td>@item.Notes</td>
+                                            <td>@item.Total.ToString("C")</td>
+                                            <td>
+                                                <MudButton StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveService(item))"/>
+                                            </td>
+                                        </tr>
+                                    }
+
+                                    <tr>
+                                        <td colspan="4">
+                                            <div class="d-flex flex-row justify-content-between border-rad grey-background border-grey p-3">
+                                                <div>
+                                                    <label>Service</label>
+                                                    <MudSelect T="ServiceTypeDto" @bind-Value="_serviceType" Variant="Variant.Outlined" Placeholder="Service Type">
+                                                        @foreach (ServiceTypeDto service in _services)
+                                                        {
+                                                            <MudSelectItem Value="service">@service.Code</MudSelectItem>
+                                                        }
+                                                    </MudSelect>
+                                                </div>
+                                                <div>
+                                                    <label>Description</label>
+                                                    <MudTextField @bind-Value="_description" Variant="Variant.Outlined" Placeholder="Description" Class="mx-2"/>
+                                                </div>
+                                                <div>
+                                                    <label>Cost</label>    
+                                                    <MudNumericField T="decimal" @bind-Value="_price" Variant="Variant.Outlined" Placeholder="Amount" Class="mx-2" AdornmentIcon=""/>
+                                                </div>
+                                                <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Secondary" OnClick="@AddService"/>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </MudStep>
+                        <MudStep Title="Review">
+                            <h5 class="form-section-title border-bottom pb-2">Review</h5>
+                            
+                        </MudStep>
+                    </ChildContent>
+                    <CompletedContent>
+                   
+                    </CompletedContent>
+                </MudStepper>
+                <div class="border-rad border-grey p-3 d-flex flex-column gap-2">
+                    <h5 class="form-section-title border-bottom py-2">Quote Summary</h5>
+                    @if (_jobContact is not null)
+                    {
+                        <div class="p-3 grey-background border-rad border-grey d-flex flex-column">
+                            <b>Contact Details</b>
+                            <div class="info-row">
+                                <span class="info-label">Name</span>
+                                <span class="info-value">
+                                    <a class="contact-link"
+                                       href="@_navigationManager.ToAbsoluteUri($"/contacts/{_jobContact.ContactId}").ToString()"
+                                       target="_blank"
+                                       rel="noopener noreferrer">@_jobContact.FullName</a>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Phone</span>
+                                <span class="info-value">
+                                    @_jobContact.Phone
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email</span>
+                                <span class="info-value">@_jobContact.Email</span>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="p-3 grey-background border-rad border-grey d-flex flex-column">
+                        <b>Address Details</b>
+                        <div class="info-row">
+                            <span class="info-label">Address</span>
+                            <span class="info-value">
+                                @_model.Address.ToDisplayString()
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 grey-background border-rad border-grey d-flex flex-column">
+                        <b>Fee Summary</b>
+                        @if (_model.QuoteItems is not [])
+                        {   
+                            <div class="info-row">
+                                <span class="info-label">Email</span>
+                                <span class="info-value">
+                                </span>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="info-label">No fees added yet</span>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </ChildContent>
+    </Card>
 </div>
 
 
-@code {
 
-}
+
+<style>
+
+    .mud-stepper.mud-stepper__vertical .mud-stepper-content {
+            border-inline-start: 1px solid var(--color-secondary);
+    }
+
+    .mud-stepper.mud-stepper__vertical .mud-stepper-nav-connector .mud-stepper-nav-connector-line{
+            border-inline-start: 1px solid var(--color-secondary);
+    }
+    .form-section-title {
+        font-size: 1rem;
+        margin: 1rem 0 0.5rem;
+    }
+
+    .quote-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 10px;
+    }
+
+    .info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .info-row {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .info-label {
+        font-size: 0.7rem;
+        color: #64748b;
+    }
+
+    .info-value {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    .contact-link {
+        color: var(--color-secondary);
+        text-decoration: none;
+    }
+
+        .contact-link:hover {
+            text-decoration: underline;
+        }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: calc(2 * var(--padding));
+        align-items: start;
+    }
+
+    .form-sections {
+        display: flex;
+        flex-direction: column;
+        gap: var(--padding);
+        padding: calc(2 * var(--padding));
+        background-color: var(--color-light-grey);
+    }
+
+    .form-section-title {
+        font-size: 1rem;
+        margin: 1rem 0 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+        justify-content: center;
+    }
+
+    .quote-templates{
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    @@media (max-width: 900px) {
+        .quote-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

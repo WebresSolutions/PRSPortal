@@ -4,6 +4,8 @@ using Portal.Shared;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Quote;
+using Portal.Shared.DTO.Types;
+using Portal.Shared.DataEnums;
 using Portal.Shared.ResponseModels;
 using Portal.Shared.Web;
 
@@ -42,12 +44,20 @@ public partial class Quotes : IDisposable
     private readonly int _rowsPerPage = 25;
     private MudDataGrid<QuoteListDto>? _grid;
     private SessionSearchData _filterState = new();
+    private QuoteTemplateDto[] _quotingTemplates = [];
+    private ServiceTypeDto[] _serviceTypesForTemplates = [];
+    private string _newTemplateName = "";
+    private string? _newTemplateDescription;
+    private JobTypeEnum _newTemplateJobType = JobTypeEnum.Construction;
+    private readonly List<NewTemplateLineEditor> _newTemplateLines = [];
+    private bool _templateFormBusy;
     #endregion
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         SyncStateFromQueryParameters();
+        await LoadQuotingTemplateSectionAsync();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -238,6 +248,101 @@ public partial class Quotes : IDisposable
         _filterState.ShowDeleted = tabType is TabTypeEnum.Deleted;
         if (_grid is not null)
             await _grid.ReloadServerData();
+    }
+
+    private async Task LoadQuotingTemplateSectionAsync()
+    {
+        Task<Result<QuoteTemplateDto[]>> templatesTask = _apiService.GetQuotingTemplates();
+        Task<Result<AllSettingsTypesDto>> typesTask = _apiService.GetAllSettingsTypes();
+        await Task.WhenAll(templatesTask, typesTask);
+
+        Result<QuoteTemplateDto[]> templatesResult = await templatesTask;
+        if (templatesResult.IsSuccess && templatesResult.Value is not null)
+            _quotingTemplates = templatesResult.Value;
+
+        Result<AllSettingsTypesDto> typesResult = await typesTask;
+        if (typesResult.IsSuccess && typesResult.Value?.ServiceTypes is { Length: > 0 } st)
+            _serviceTypesForTemplates = [.. st.Where(s => s.IsActive != false)];
+
+        if (!templatesResult.IsSuccess)
+            _snackbar?.Add(templatesResult.ErrorDescription ?? "Could not load quoting templates.", Severity.Warning);
+        if (!typesResult.IsSuccess)
+            _snackbar?.Add(typesResult.ErrorDescription ?? "Could not load service types for templates.", Severity.Warning);
+    }
+
+    private void AddNewTemplateLine()
+    {
+        int? defaultServiceId = _serviceTypesForTemplates.FirstOrDefault()?.Id;
+        _newTemplateLines.Add(new NewTemplateLineEditor { ServiceTypeId = defaultServiceId });
+        StateHasChanged();
+    }
+
+    private void RemoveNewTemplateLine(NewTemplateLineEditor line)
+    {
+        _newTemplateLines.Remove(line);
+        StateHasChanged();
+    }
+
+    private async Task CreateNewQuotingTemplateAsync()
+    {
+        string name = _newTemplateName.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            _snackbar?.Add("Template name is required.", Severity.Warning);
+            return;
+        }
+
+        List<NewTemplateLineEditor> linesWithService = _newTemplateLines.Where(l => l.ServiceTypeId.HasValue).ToList();
+        if (linesWithService.Count != _newTemplateLines.Count)
+        {
+            _snackbar?.Add("Each line must have a service selected, or remove empty lines.", Severity.Warning);
+            return;
+        }
+
+        QuoteTemplateItemDto[] items = [.. linesWithService.Select(l =>
+        {
+            ServiceTypeDto svc = _serviceTypesForTemplates.First(s => s.Id == l.ServiceTypeId!.Value);
+            return new QuoteTemplateItemDto(0, svc.Id, svc.ServiceName, string.IsNullOrWhiteSpace(l.Description) ? null : l.Description.Trim(), l.DefaultPrice);
+        })];
+
+        QuoteTemplateDto payload = new(
+            0,
+            name,
+            string.IsNullOrWhiteSpace(_newTemplateDescription) ? null : _newTemplateDescription.Trim(),
+            true,
+            default,
+            null,
+            null,
+            _newTemplateJobType,
+            items);
+
+        _templateFormBusy = true;
+        try
+        {
+            Result<QuoteTemplateDto> result = await _apiService.CreateQuotingTemplate(payload);
+            if (result.IsSuccess)
+            {
+                _snackbar?.Add("Quoting template created.", Severity.Success);
+                _newTemplateName = "";
+                _newTemplateDescription = null;
+                _newTemplateJobType = JobTypeEnum.Construction;
+                _newTemplateLines.Clear();
+                await LoadQuotingTemplateSectionAsync();
+            }
+            else
+                _snackbar?.Add(result.ErrorDescription ?? "Failed to create quoting template.", Severity.Error);
+        }
+        finally
+        {
+            _templateFormBusy = false;
+        }
+    }
+
+    private sealed class NewTemplateLineEditor
+    {
+        public int? ServiceTypeId { get; set; }
+        public decimal DefaultPrice { get; set; }
+        public string? Description { get; set; }
     }
 
     private async Task RemoveQuote(int quoteId)

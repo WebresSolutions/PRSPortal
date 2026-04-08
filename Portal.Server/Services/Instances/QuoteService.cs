@@ -17,6 +17,9 @@ namespace Portal.Server.Services.Instances;
 
 public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger) : IQuoteService
 {
+    /// <summary>Matches contact <c>tsvector</c>; queries use <c>websearch_to_tsquery</c>.</summary>
+    private const string FullTextSearchConfig = "english";
+
     /// <inheritdoc/>
     public async Task<Result<QuoteDetailsDto>> GetQuoteDetails(int quoteId)
     {
@@ -241,8 +244,8 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
 
             if (!string.IsNullOrEmpty(filter.ContactSearch))
             {
-                string pattern = PartialMatch(filter.ContactSearch);
-                query = query.Where(q => q.Contact != null && q.Contact.SearchVector.Matches(EF.Functions.ToTsQuery(pattern)));
+                string contactSearch = filter.ContactSearch.Trim();
+                query = query.Where(q => q.Contact != null && q.Contact.SearchVector.Matches(EF.Functions.WebSearchToTsQuery(FullTextSearchConfig, contactSearch)));
             }
 
             bool isDescending = filter.Order is SortDirectionEnum.Desc;
@@ -281,9 +284,6 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
             _logger.LogError(ex, "Failed to get all quotes.");
             return res.SetError(ErrorType.InternalError, "Failed to get the quotes.");
         }
-
-
-        static string PartialMatch(string filter) => string.Join(" & ", filter.Split(' ', StringSplitOptions.RemoveEmptyEntries)) + ":*";
     }
 
     /// <inheritdoc/>

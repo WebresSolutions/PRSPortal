@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Portal.Client.Services.Interfaces;
 using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Contact;
@@ -1806,11 +1807,21 @@ public class ApiService : IApiService
     /// <remarks>This method forces a full page reload when redirecting to the login page. The current URL is
     /// included as the return URL parameter, allowing users to be redirected back after successful login.</remarks>
     /// <returns>A task that represents the asynchronous navigation operation.</returns>
-    private async Task NavigationToLoginPage()
+    private Task NavigationToLoginPage()
     {
-        string returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
-        string loginUrl = $"{_navigationManager.BaseUri}Authentication/Login?returnUrl={returnUrl}";
-        //_navigationManager.NavigateTo(loginUrl, true);
+        string returnPath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+        if (string.IsNullOrEmpty(returnPath))
+            returnPath = "/";
+        else if (!returnPath.StartsWith('/'))
+            returnPath = "/" + returnPath;
+
+        InteractiveRequestOptions loginRequest = new()
+        {
+            Interaction = InteractionType.SignIn,
+            ReturnUrl = returnPath
+        };
+        _navigationManager.NavigateToLogin("authentication/login", loginRequest);
+        return Task.CompletedTask;
     }
 
 }

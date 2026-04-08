@@ -32,7 +32,7 @@
                     <div class="form-grid">
                         <div>
                             <h3 class="form-section-title border-bottom pb-2">Council Details</h3>
-                            <div class="form-sections border-rad">
+                            <div class="form-sections border-rad border-grey grey-background">
                                 <div>
                                     <label for="council-name">Council Name</label>
                                     <MudTextField name="council-name" @bind-Value="_model.CouncilName" Variant="Variant.Outlined" Class="mb-3" For="@(() => _model.CouncilName)" Required="true" />
@@ -93,7 +93,6 @@
         flex-direction: column;
         gap: var(--padding);
         padding: calc(2 * var(--padding));
-        background-color: var(--color-light-grey);
     }
 
     .form-section-title {

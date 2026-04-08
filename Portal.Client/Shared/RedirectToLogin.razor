@@ -1,11 +1,19 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using Microsoft.Extensions.Options
-@inject IOptionsSnapshot<RemoteAuthenticationOptions<ApiAuthorizationProviderOptions>> RemoteOptions
-
 
 @code {
     protected override void OnInitialized()
     {
-        _navigationManager.NavigateToLogin("authentication/login");
+        string returnPath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+        if (string.IsNullOrEmpty(returnPath))
+            returnPath = "/";
+        else if (!returnPath.StartsWith('/'))
+            returnPath = "/" + returnPath;
+
+        InteractiveRequestOptions loginRequest = new()
+        {
+            Interaction = InteractionType.SignIn,
+            ReturnUrl = returnPath
+        };
+        _navigationManager.NavigateToLogin("authentication/login", loginRequest);
     }
 }
