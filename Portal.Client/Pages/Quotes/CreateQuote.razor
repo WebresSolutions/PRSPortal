@@ -105,8 +105,8 @@
                                                     <MudTextField @bind-Value="_description" Variant="Variant.Outlined" Placeholder="Description" Class="mx-2"/>
                                                 </div>
                                                 <div>
-                                                    <label>Cost</label>    
-                                                    <MudNumericField T="decimal" @bind-Value="_price" Variant="Variant.Outlined" Placeholder="Amount" Class="mx-2" AdornmentIcon=""/>
+                                                    <label for="cost">Cost</label>    
+                                                    <MudNumericField name="cost" T="decimal" @bind-Value="_price" Variant="Variant.Outlined" Placeholder="Amount" Class="mx-2" AdornmentIcon=""/>
                                                 </div>
                                                 <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Secondary" OnClick="@AddService"/>
                                             </div>
