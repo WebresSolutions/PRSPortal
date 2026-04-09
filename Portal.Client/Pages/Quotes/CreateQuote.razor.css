@@ -220,7 +220,6 @@
     .settings-type-secondary {
         font-size: 0.9rem;
         color: var(--color-grey-dark);
-        min-width: 150px;
         word-break: break-word;
     }
 
