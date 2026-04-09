@@ -39,8 +39,8 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
                         Id = qi.Id,
                         ServiceTypeId = qi.ServiceId ?? 0,
                         ServiceName = qi.ServiceNameSnapshot ?? "",
-                        Total = qi.Total,
-                        Notes = qi.Notes
+                        Price = qi.Total,
+                        Description = qi.Notes
                     }).ToArray(),
                     q.JobTypeId,
                     new QuotesStatusTypeDto((QuoteStatusEnum)q.Status.Id, q.Status.Name, "", q.Status.IsActive),
@@ -97,7 +97,7 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
                 QuoteReference = "Q" + DateTime.UtcNow.Ticks.ToString("D6"),
                 Description = data.Description,
                 StatusId = data.QuoteStatusId,
-                TotalPrice = data.QuoteItems.Sum(qi => qi.Total),
+                TotalPrice = data.QuoteItems.Sum(qi => qi.Price),
                 ContactId = data.ContactId,
                 JobTypeId = data.QuoteTypeId,
                 JobId = null,
@@ -113,8 +113,8 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
             QuoteItem[] quoteItems = [.. data.QuoteItems.Select(qi => new QuoteItem
             {
                 QuoteId = newQuote.Id,
-                Notes = qi.Notes,
-                Total = qi.Total,
+                Notes = qi.Description,
+                Total = qi.Price,
                 ServiceId = qi.ServiceTypeId,
                 ServiceNameSnapshot = serviceTypes.First(st => st.Id == qi.ServiceTypeId).ServiceName,
 
@@ -193,8 +193,8 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
                 item.ServiceNameSnapshot = quoteItemDto.ServiceName;
                 item.ServiceId = quoteItemDto.ServiceTypeId;
                 item.QuoteId = quote.Id;
-                item.Notes = quoteItemDto.Notes;
-                item.Total = quoteItemDto.Total;
+                item.Notes = quoteItemDto.Description;
+                item.Total = quoteItemDto.Price;
             }
 
             List<QuoteItem> newQuoteItems = [.. data.QuoteItems
@@ -202,8 +202,8 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
                 .Select(qi => new QuoteItem
                 {
                     QuoteId = quote.Id,
-                    Notes = qi.Notes,
-                    Total = qi.Total,
+                    Notes = qi.Description,
+                    Total = qi.Price,
                     ServiceId = qi.ServiceTypeId,
                     ServiceNameSnapshot = serviceNameById[qi.ServiceTypeId]
                 })];
@@ -212,7 +212,7 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
             List<QuoteItem> removedQuoteItems = [.. quote.QuoteItems.Where(qi => !data.QuoteItems.Any(qid => qid.Id == qi.Id))];
             _dbContext.QuoteItems.RemoveRange(removedQuoteItems);
 
-            quote.TotalPrice = data.QuoteItems.Sum(qi => qi.Total);
+            quote.TotalPrice = data.QuoteItems.Sum(qi => qi.Price);
             quote.ModifiedOn = DateTime.UtcNow;
             quote.ModifiedByUserId = httpContext.UserId();
 

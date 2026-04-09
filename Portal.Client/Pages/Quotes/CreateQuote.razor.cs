@@ -69,11 +69,31 @@ public partial class CreateQuote
     private void AddService()
     {
         if (_serviceType is not null)
-            _model.QuoteItems.Add(new QuoteItemDto { ServiceName = _serviceType.ServiceName, ServiceTypeId = _serviceType.Id, Notes = _serviceType?.Description ?? string.Empty, Total = _price });
+            _model.QuoteItems.Add(new QuoteItemDto { ServiceName = _serviceType.ServiceName, ServiceTypeId = _serviceType.Id, Description = _serviceType?.Description ?? string.Empty, Price = _price });
     }
 
+    /// <summary>
+    /// Removes a service from the quote creation model's list of quote items. This is called when the user clicks the remove button for a service in the UI.
+    /// </summary>
+    /// <param name="service"></param>
     private void RemoveService(QuoteItemDto service)
     {
         _model.QuoteItems.Remove(service);
+    }
+
+    /// <summary>
+    /// Handles the selection of a quote template. It updates the quote creation model with the details from the selected template and moves to the next step in the stepper.
+    /// </summary>
+    /// <param name="template"></param>
+    private void SelectTemplate(QuoteTemplateDto template)
+    {
+        _model.Description = template.Description;
+        _model.QuoteTypeId = template.QuoteTemplateItems.FirstOrDefault()?.ServiceTypeId ?? 0;
+        _model.QuoteItems = [.. template.QuoteTemplateItems.Select(qi => new QuoteItemDto {
+            Description = qi.Description,
+            ServiceName = qi.ServiceName,
+            ServiceTypeId = qi.ServiceTypeId,
+            Price = qi.DefaultPrice })];
+        _stepperIndex = 1;
     }
 }

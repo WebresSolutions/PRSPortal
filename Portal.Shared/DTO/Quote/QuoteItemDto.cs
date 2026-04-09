@@ -17,10 +17,14 @@ public class QuoteItemDto
     /// <summary>
     /// The total price for this quote item. This value is calculated based on the service type and any additional factors such as quantity or discounts, and it contributes to the overall total price of the quote.
     /// </summary>
-    public decimal Total { get; set; }
+    public decimal Price { get; set; }
     /// <summary>
     /// Optional notes or comments related to this quote item. This field can be used to provide additional information or special instructions regarding the service being quoted, which can be helpful for both the client and the service provider when reviewing the quote details.
     /// </summary>
-    public string? Notes { get; set; }
+    public string? Description { get; set; }
+/// <summary>
+/// Indicates whether the quote item is currently being edited.
+/// </summary>
+    public bool IsEditing { get; set; }
 
 }

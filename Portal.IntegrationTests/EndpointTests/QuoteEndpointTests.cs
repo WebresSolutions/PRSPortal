@@ -64,7 +64,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
         Assert.Equal(3, quoteDetails.QuoteItems.Length);
 
         Dictionary<string, decimal> lineTotalsByService = quoteDetails.QuoteItems
-            .ToDictionary(x => x.ServiceName, x => x.Total);
+            .ToDictionary(x => x.ServiceName, x => x.Price);
 
         Assert.Equal(2550.00m, lineTotalsByService["Title Re-establishment Survey"]);
         Assert.Equal(2150.00m, lineTotalsByService["Feature & AHD Level Survey"]);
@@ -110,7 +110,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
             Id = 0,
             ServiceTypeId = extraServiceId,
             ServiceName = "",
-            Total = 100.00m
+            Price = 100.00m
         });
 
         QuoteUpdateDto update = ToUpdateDto(before, items);
@@ -133,7 +133,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
 
         List<QuoteItemDto> items = CloneQuoteItems(before.QuoteItems);
         QuoteItemDto first = items.First(x => x.ServiceName == "Title Re-establishment Survey");
-        first.Total = 2600.00m;
+        first.Price = 2600.00m;
 
         QuoteUpdateDto update = ToUpdateDto(before, items);
         HttpResponseMessage putResponse = await _client.PutAsJsonAsync("/api/quotes", update);
@@ -504,9 +504,9 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
             },
             QuoteItems =
             [
-                new QuoteItemDto { ServiceTypeId = titleReestablishmentServiceId, Total = 2550.00m },
-                new QuoteItemDto { ServiceTypeId = featureAndAhdLevelServiceId, Total = 2150.00m },
-                new QuoteItemDto { ServiceTypeId = neighbourhoodSiteDescriptionServiceId, Total = 1200.00m }
+                new QuoteItemDto { ServiceTypeId = titleReestablishmentServiceId, Price = 2550.00m },
+                new QuoteItemDto { ServiceTypeId = featureAndAhdLevelServiceId, Price = 2150.00m },
+                new QuoteItemDto { ServiceTypeId = neighbourhoodSiteDescriptionServiceId, Price = 1200.00m }
             ]
         };
 
@@ -524,8 +524,8 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
             Id = i.Id,
             ServiceTypeId = i.ServiceTypeId,
             ServiceName = i.ServiceName,
-            Total = i.Total,
-            Notes = i.Notes
+            Price = i.Price,
+            Description = i.Description
         })];
 
     private static QuoteUpdateDto ToUpdateDto(QuoteDetailsDto details, List<QuoteItemDto> quoteItems)

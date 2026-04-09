@@ -106,7 +106,7 @@
             {
                 <div class="mb-4">
                     <h4 class="quotes-templates-subheading mb-2">Existing templates</h4>
-                    <div class="d-flex flex-column gap-2">
+                    <div class="d-flex flex-row flex-wrap gap-2">
                         @foreach (QuoteTemplateDto t in _quotingTemplates)
                         {
                             <div class="grey-background border-rad border-grey p-3 d-flex flex-wrap justify-content-between align-items-start gap-2">
@@ -116,9 +116,9 @@
                                     {
                                         <div class="small text-muted mt-1">@t.Description</div>
                                     }
+                                    <span class="small text-muted mt-1">Fee Items:</span> @(t.QuoteTemplateItems?.Length ?? 0)
                                     <div class="small mt-1">
-                                        <span class="text-muted">Job type:</span> @t.JobType.GetDisplayName()
-                                        <span class="text-muted ms-2">Lines:</span> @(t.QuoteTemplateItems?.Length ?? 0)
+                                        <StatusBadge SingleStatus="@t.JobType" />
                                     </div>
                                 </div>
                                 @if (!t.IsActive)
@@ -139,12 +139,15 @@
             else
             {
                 <div class="d-flex flex-column gap-3 quotes-templates-form">
-                    <MudTextField T="string" @bind-Value="_newTemplateName" Label="Template name" Variant="Variant.Outlined" Required="true" />
-                    <MudTextField T="string" @bind-Value="_newTemplateDescription" Label="Description (optional)" Variant="Variant.Outlined" Lines="2" />
-                    <MudSelect T="JobTypeEnum" @bind-Value="_newTemplateJobType" Label="Job type hint" Variant="Variant.Outlined">
-                        <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
-                        <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
-                    </MudSelect>
+                    <div>
+                        <div></div>
+                        <MudTextField T="string" @bind-Value="_newTemplateName" Label="Template name" Variant="Variant.Outlined" Required="true" />
+                        <MudTextField T="string" @bind-Value="_newTemplateDescription" Label="Description (optional)" Variant="Variant.Outlined" Lines="2" />
+                        <MudSelect T="JobTypeEnum" @bind-Value="_newTemplateJobType" Label="Job type hint" Variant="Variant.Outlined">
+                            <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
+                            <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
+                        </MudSelect>
+                    </div>
 
                     <div>
                         <div class="d-flex flex-row align-items-center justify-content-between mb-2">
@@ -178,30 +181,11 @@
                         }
                     </div>
 
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateNewQuotingTemplateAsync" Disabled="_templateFormBusy">
-                        @(_templateFormBusy ? "Saving…" : "Create template")
-                    </MudButton>
+                    <ButtonIcon OnClick="CreateNewQuotingTemplateAsync" Disabled="_templateFormBusy"  Text=@(_templateFormBusy ? "Saving…" : "Create template")/>
                 </div>
             }
         </ChildContent>
     </Card>
 </div>
 
-<style>
-    .quotes-templates-heading {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--color-primary);
-        margin: 0;
-    }
 
-    .quotes-templates-subheading {
-        font-size: 0.95rem;
-        font-weight: 600;
-        margin: 0;
-    }
-
-    .quotes-template-price-field {
-        max-width: 160px;
-    }
-</style>

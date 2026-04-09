@@ -28,3 +28,20 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.quotes-templates-heading {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 0;
+}
+
+.quotes-templates-subheading {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.quotes-template-price-field {
+    max-width: 160px;
+}
