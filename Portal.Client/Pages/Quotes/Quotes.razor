@@ -50,7 +50,7 @@
                 <Columns>
                     <TemplateColumn ShowFilterIcon="false" Title="Status" Sortable="false">
                         <CellTemplate>
-                            <span class="quote-status-chip">@context.Item.Status.Name</span>
+                            <span class="quote-status-chip" style="background:@context.Item.Status.Colour !important">@context.Item.Status.Name</span>
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn Property="x => x.QuoteReference" ShowFilterIcon="false" Sortable="true" Title="Quote ref" HeaderStyle="max-width: 120px">
@@ -60,7 +60,7 @@
                     </TemplateColumn>
                     <TemplateColumn Property="x => x.TotalPrice" ShowFilterIcon="false" Sortable="false" Title="Total">
                         <CellTemplate>
-                            @(context.Item.TotalPrice is { } p ? p.ToString("C2") : "—")
+                            @(context.Item.TotalPrice is { } p ? p.ToString("C2", new System.Globalization.CultureInfo("en-US")) : "—")
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn ShowFilterIcon="false" Title="Contact">
@@ -109,8 +109,8 @@
                     <div class="d-flex flex-row flex-wrap gap-2">
                         @foreach (QuoteTemplateDto t in _quotingTemplates)
                         {
-                            <div class="grey-background border-rad border-grey p-3 d-flex flex-wrap justify-content-between align-items-start gap-2">
-                                <div>
+                            <div class="@($"grey-background border-rad border-grey p-3 d-flex flex-wrap justify-content-between align-items-start gap-2 quotes-template-existing-card {(_editingTemplateSnapshot?.Id == t.Id ? "quotes-template-existing-card--editing" : "")}")">
+                                <div class="flex-grow-1 min-w-0">
                                     <strong>@t.Name</strong>
                                     @if (!string.IsNullOrWhiteSpace(t.Description))
                                     {
@@ -120,81 +120,106 @@
                                     <div class="small mt-1">
                                         <StatusBadge SingleStatus="@t.JobType" />
                                     </div>
+                                    @if (!t.IsActive)
+                                    {
+                                        <span class="small text-muted d-block mt-1">Inactive</span>
+                                    }
                                 </div>
-                                @if (!t.IsActive)
-                                {
-                                    <span class="small text-muted">Inactive</span>
-                                }
+                                <div class="d-flex flex-row gap-1 align-items-start flex-shrink-0">
+                                    <ButtonIcon Icon="bi bi-pencil" Title="Edit template" OnClick="@(() => BeginEditTemplate(t))" Disabled="_templateFormBusy" />
+                                    <ButtonIcon Icon="bi bi-trash" Title="Delete template" CssClass="text-red" OnClick="@(() => DeleteQuotingTemplateAsync(t))" Disabled="_templateFormBusy" />
+                                </div>
                             </div>
                         }
                     </div>
                 </div>
             }
 
-            <h4 class="quotes-templates-subheading mb-3">Create new template</h4>
-            @if (_serviceTypesForTemplates.Length == 0)
-            {
-                <p class="text-muted small">Service types are not available. Check Settings or try again later.</p>
-            }
-            else
-            {
-                <div class="d-flex flex-column gap-3 quotes-templates-form">
-                    <div class="d-flex flex-row gap-2">
-                        <div class="d-flex flex-column gap-2">
-                            <div>
-                                <label for="template-name" class="required-field-label">Template name</label>
-                                <MudTextField name="template-name" T="string" @bind-Value="_newTemplateName" Variant="Variant.Outlined" Required="true" />
-                            </div>
-                            <div>
-                                <label for="job-type" class="required-field-label">Type</label>
-                                <MudSelect name="job-type" T="JobTypeEnum" @bind-Value="_newTemplateJobType" Variant="Variant.Outlined">
-                                    <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
-                                    <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
-                                </MudSelect>
-                            </div>
+            <div class="quotes-template-create-card grey-background border-rad border-grey p-3 p-md-4">
+                <div class="quotes-template-create-card-header">
+                    @if (_editingTemplateSnapshot is null)
+                    {
+                        <h4 class="quotes-templates-subheading mb-1">Create new template</h4>
+                        <p class="text-muted small mb-0">Name, type, and optional default services for new quotes.</p>
+                    }
+                    else
+                    {
+                        <h4 class="quotes-templates-subheading mb-1">Edit template</h4>
+                        <p class="text-muted small mb-0">Updating <strong>@_editingTemplateSnapshot.Name</strong>. Changes apply the next time this template is used on a quote.</p>
+                    }
+                </div>
+
+                @if (_serviceTypesForTemplates.Length == 0)
+                {
+                    <p class="text-muted small mb-0 mt-3">Service types are not available. Check Settings or try again later.</p>
+                }
+                else
+                {
+                    <div class="quotes-template-create-grid mt-3">
+                        <div class="quotes-template-field quotes-template-field-name">
+                            <label for="template-name" class="required-field-label">Template name</label>
+                            <MudTextField name="template-name" T="string" @bind-Value="_newTemplateName" Variant="Variant.Outlined" Required="true" Class="w-100" Margin="Margin.Dense" />
                         </div>
-                        <div class="">
+                        <div class="quotes-template-field quotes-template-field-desc">
                             <label for="template-description" class="required-field-label">Template description</label>
-                            <MudTextField name="template-description" T="string" @bind-Value="_newTemplateDescription" Variant="Variant.Outlined" Lines="2" />
+                            <MudTextField name="template-description" T="string" @bind-Value="_newTemplateDescription" Variant="Variant.Outlined" Lines="4" Class="w-100 quotes-template-desc-field" Margin="Margin.Dense" />
+                        </div>
+                        <div class="quotes-template-field quotes-template-field-type">
+                            <label for="job-type" class="required-field-label">Type</label>
+                            <MudSelect name="job-type" T="JobTypeEnum" @bind-Value="_newTemplateJobType" Variant="Variant.Outlined" Class="w-100" Margin="Margin.Dense" >
+                                <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
+                                <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
+                            </MudSelect>
                         </div>
                     </div>
 
-                    <div>
-                        <div class="d-flex flex-row align-items-center justify-content-between mb-2">
-                            <label class="mb-0">Default fee lines</label>
-                            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="AddNewTemplateLine" Disabled="_templateFormBusy">Add line</MudButton>
+                    <div class="quotes-template-fee-lines mt-4">
+                        <div class="quotes-template-fee-lines-toolbar d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+                            <div>
+                                <span class="quotes-template-fee-lines-title d-block">Default fee lines</span>
+                                <span class="text-muted small">Optional — add services with default prices, or save a name-only template.</span>
+                            </div>
+                            <ButtonIcon Icon="bi bi-plus-lg" Text="Add line" CssClass="text-green" Title="Add default fee line" OnClick="AddNewTemplateLine" Disabled="_templateFormBusy" />
                         </div>
                         @if (_newTemplateLines.Count == 0)
                         {
-                            <p class="text-muted small mb-0">No lines yet. You can save a name-only template, or add one or more services with default prices.</p>
+                            <div class="quotes-template-fee-lines-empty">
+                                <i class="bi bi-ui-checks-grid quotes-template-fee-lines-empty-icon" aria-hidden="true"></i>
+                                <p class="mb-0 small text-muted">No lines yet. Use <strong>Add line</strong> to pre-fill services when this template is used.</p>
+                            </div>
                         }
                         else
                         {
                             <div class="d-flex flex-column gap-2">
                                 @foreach (NewTemplateLineEditor line in _newTemplateLines)
                                 {
-                                    <div class="grey-background border-rad border-grey p-3 d-flex flex-column gap-2">
+                                    <div class="quotes-template-line-editor border-rad border-grey p-3 d-flex flex-column gap-2">
                                         <div class="d-flex flex-wrap gap-2 align-items-end">
-                                            <MudSelect T="int?" @bind-Value="line.ServiceTypeId" Label="Service" Variant="Variant.Outlined" Class="flex-grow-1" Style="min-width: 200px;">
+                                            <MudSelect T="int?" @bind-Value="line.ServiceTypeId" Label="Service" Variant="Variant.Outlined" Class="flex-grow-1" Style="min-width: 200px;" Margin="Margin.Dense">
                                                 @foreach (ServiceTypeDto svc in _serviceTypesForTemplates)
                                                 {
                                                     <MudSelectItem T="int?" Value="svc.Id">@svc.ServiceName</MudSelectItem>
                                                 }
                                             </MudSelect>
-                                            <MudNumericField T="decimal" @bind-Value="line.DefaultPrice" Label="Default price" Variant="Variant.Outlined" Class="quotes-template-price-field" />
+                                            <MudNumericField T="decimal" @bind-Value="line.DefaultPrice" Label="Default price" Variant="Variant.Outlined" Class="quotes-template-price-field" Margin="Margin.Dense" />
                                             <ButtonIcon Icon="bi bi-trash" Title="Remove line" CssClass="text-red" OnClick="@(() => RemoveNewTemplateLine(line))" Disabled="_templateFormBusy" />
                                         </div>
-                                        <MudTextField T="string" @bind-Value="line.Description" Label="Line description (optional)" Variant="Variant.Outlined" />
+                                        <MudTextField T="string" @bind-Value="line.Description" Label="Line description (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                     </div>
                                 }
                             </div>
                         }
                     </div>
-                    <div class="d-flex justify-content-center">
-                        <ButtonIcon Icon="bi bi-save" OnClick="CreateNewQuotingTemplateAsync" Disabled="_templateFormBusy" Text=@(_templateFormBusy ? "Saving…" : "Create template") />
+
+                    <div class="quotes-template-create-actions d-flex flex-wrap justify-content-end gap-2 mt-4 pt-3 border-top">
+                        @if (_editingTemplateSnapshot is not null)
+                        {
+                            <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" OnClick="CancelTemplateEdit" Disabled="_templateFormBusy" Text="Cancel" Title="Discard changes" />
+                        }
+                        <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" OnClick="SaveQuotingTemplateAsync" Disabled="_templateFormBusy" Text=@(_templateFormBusy ? "Saving…" : (_editingTemplateSnapshot is null ? "Create template" : "Save changes")) Title=@(_editingTemplateSnapshot is null ? "Create quoting template" : "Save template changes") />
                     </div>
-                </div>
-            }
+                }
+            </div>
         </ChildContent>
     </Card>
 </div>

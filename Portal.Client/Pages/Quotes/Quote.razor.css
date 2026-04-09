@@ -1,0 +1,107 @@
+.quote-detail-page {
+    padding-bottom: 2rem;
+}
+
+.quote-detail-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+.quote-detail-status {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--color-primary);
+    color: var(--color-white);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.quote-detail-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 0 0 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.quote-detail-page .info-row {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.quote-detail-page .info-label {
+    font-size: 0.7rem;
+    color: #64748b;
+}
+
+.quote-detail-page .info-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: left;
+}
+
+.contact-link {
+    color: var(--color-secondary);
+    text-decoration: none;
+}
+
+.contact-link:hover {
+    text-decoration: underline;
+}
+
+.quote-detail-lines-head {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 0.85fr);
+    gap: 0.75rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #64748b;
+    background: var(--color-light-grey);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.quote-detail-line-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+@media (min-width: 768px) {
+    .quote-detail-lines-head {
+        display: grid;
+    }
+
+    .quote-detail-line-row {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 0.85fr);
+        gap: 0.75rem;
+        align-items: start;
+    }
+
+    .quote-detail-line-row .d-md-none {
+        display: none !important;
+    }
+}
+
+.quote-detail-lines-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0.85rem;
+    background: var(--color-light-grey);
+    font-size: 0.95rem;
+}

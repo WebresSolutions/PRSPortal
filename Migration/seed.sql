@@ -17,12 +17,12 @@ INSERT INTO job_type(id, name, abbreviation) VALUES (2, 'Survey', 'Survey');
 INSERT INTO job_assignment_type(id, name, description) VALUES(1, 'Current Owner', 'The current owner of the job.');
 INSERT INTO job_assignment_type(id, name, description) VALUES(2, 'Responsible Team Member', 'Whom the job is currently assigned to.');
 
-INSERT INTO quote_status(id, name, colour) VALUES (1, 'Draft', '#cccccc');
-INSERT INTO quote_status(id, name, colour) VALUES (2, 'New', '#ffffff');
-INSERT INTO quote_status(id, name, colour) VALUES (3, 'Sent', '#0d9488');
-INSERT INTO quote_status(id, name, colour) VALUES (4, 'Lost', '#dc2626');
-INSERT INTO quote_status(id, name, colour) VALUES (5, 'Rejected', '#ea580c');
-INSERT INTO quote_status(id, name, colour) VALUES (6, 'Accepted', '#ea580c');
+INSERT INTO quote_status(id, name, colour) VALUES (1, 'Draft', '#DBD3D8');
+INSERT INTO quote_status(id, name, colour) VALUES (2, 'New', '#81C14B');
+INSERT INTO quote_status(id, name, colour) VALUES (3, 'Sent', '#9FBBCC');
+INSERT INTO quote_status(id, name, colour) VALUES (4, 'Lost', '#FFE900'); 
+INSERT INTO quote_status(id, name, colour) VALUES (5, 'Rejected', '#D56062');
+INSERT INTO quote_status(id, name, colour) VALUES (6, 'Accepted', '#2E933C');
 
 INSERT INTO file_type(job_type_id, name, description) VALUES
     -- Construction job SharePoint folders (job_type.id = 1)

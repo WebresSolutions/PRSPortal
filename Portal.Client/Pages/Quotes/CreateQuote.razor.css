@@ -1,8 +1,8 @@
-    .mud-stepper.mud-stepper__vertical .mud-stepper-content {
-        border-inline-start: 1px solid var(--color-secondary);
-    }
+.mud-stepper.mud-stepper__vertical .mud-stepper-content ::deep {
+    border-inline-start: 1px solid var(--color-secondary);
+}
 
-    .mud-stepper.mud-stepper__vertical .mud-stepper-nav-connector .mud-stepper-nav-connector-line {
+    .mud-stepper.mud-stepper__vertical .mud-stepper-nav-connector .mud-stepper-nav-connector-line ::deep{
         border-inline-start: 1px solid var(--color-secondary);
     }
 
@@ -15,6 +15,7 @@
         display: grid;
         grid-template-columns: 2fr 1fr;
         gap: 10px;
+        margin: 1rem;
     }
     
     @media (max-width: 900px) {
@@ -72,11 +73,6 @@
         background-color: var(--color-light-grey);
     }
 
-    .settings-page {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
 
     .settings-section-title {
         margin: 0.25rem 0 0;
@@ -124,7 +120,7 @@
         background: var(--color-white);
         border: 1px solid rgba(39, 33, 60, 0.08);
         border-radius: var(--border-rad);
-        padding: 1.15rem 1.25rem;
+        padding: 1rem 1rem;
         box-shadow: 0 1px 2px rgba(39, 33, 60, 0.04);
     }
 
@@ -300,4 +296,92 @@
         color: var(--color-grey-dark);
         font-style: italic;
     }
+
+.create-quote-review-block-title {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.create-quote-review-address-line {
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.create-quote-review-fee-table {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.create-quote-review-fee-head {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 0.9fr);
+    gap: 0.75rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #64748b;
+    background: var(--color-light-grey);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.create-quote-review-fee-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+@media (min-width: 768px) {
+    .create-quote-review-fee-row {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, 0.9fr);
+        gap: 0.75rem;
+        align-items: start;
+    }
+
+    .create-quote-review-fee-row .d-md-none {
+        display: none !important;
+    }
+}
+
+.create-quote-review-fee-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0.85rem;
+    background: var(--color-light-grey);
+    font-size: 0.95rem;
+}
+
+/* Summary panel stays stacked even when viewport is wide (parent column can exceed 768px). */
+.create-quote-review-fees--sidebar .create-quote-review-fee-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.25rem;
+}
+
+.quote-summary-panel ::deep button.custom-btn-icon.custom-button {
+    width: 100% !important;
+    justify-content: center;
+}
+
+.quote-summary-panel {
+    position: sticky;
+    top: 0.75rem;
+    align-self: start;
+    overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+    .quote-summary-panel {
+        position: static;
+        max-height: none;
+    }
+}
 

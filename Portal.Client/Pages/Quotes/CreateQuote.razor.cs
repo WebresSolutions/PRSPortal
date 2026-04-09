@@ -1,22 +1,26 @@
 using MudBlazor;
+using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Quote;
 using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
+using System.Globalization;
 
 namespace Portal.Client.Pages.Quotes;
 
 public partial class CreateQuote
 {
+    private static readonly CultureInfo QuoteCurrencyCulture = new("en-US");
+
     private QuoteTemplateDto[] _templates = [];
-    private QuoteCreationDto _model = new() { Address = new() };
+    private QuoteCreationDto _model = new() { Address = new() { State = Portal.Shared.StateEnum.VIC, StateId = (int)Portal.Shared.StateEnum.VIC }, QuoteStatusId = (int)QuoteStatusEnum.Draft, QuoteTypeId = (int)JobTypeEnum.Surveying };
     private int _stepperIndex = 0;
     private ListContactDto? _jobContact;
     private ServiceTypeDto? _serviceType;
     private decimal _price;
     private string _description = string.Empty;
-    private MudStep _mudStep = new();
     private ServiceTypeDto[] _services = [];
+    private bool _submitting;
 
     protected override async Task OnInitializedAsync()
     {
@@ -30,13 +34,40 @@ public partial class CreateQuote
 
     }
 
-    private async Task SaveQuote()
-    {
-        Result<int> res = await _apiService.CreateQuote(_model);
-        if (res?.IsSuccess != true)
-            _snackbar.Add("Failed to create quote. Please try again.", Severity.Error);
+    private decimal QuoteItemsTotal => _model.QuoteItems.Sum(i => i.Price);
 
-        _navigationManager.NavigateTo($"/quotes/{res!.Value}");
+    private async Task SaveQuote(QuoteStatusEnum status)
+    {
+        if (_model.ContactId <= 0 || _jobContact is null)
+        {
+            _snackbar.Add("Please select a contact.", Severity.Warning);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_model.Address.Street) && string.IsNullOrWhiteSpace(_model.Address.Suburb))
+        {
+            _snackbar.Add("Please enter an address (at least street or suburb).", Severity.Warning);
+            return;
+        }
+
+        _model.QuoteStatusId = (int)status;
+        _submitting = true;
+        try
+        {
+            Result<int> res = await _apiService.CreateQuote(_model);
+            if (res is null || !res.IsSuccess)
+            {
+                _snackbar.Add(res?.ErrorDescription ?? "Failed to create quote. Please try again.", Severity.Error);
+                return;
+            }
+
+            _snackbar.Add("Quote created.", Severity.Success);
+            _navigationManager.NavigateTo($"/quotes/{res.Value}");
+        }
+        finally
+        {
+            _submitting = false;
+        }
     }
 
     /// <summary>
@@ -88,12 +119,10 @@ public partial class CreateQuote
     private void SelectTemplate(QuoteTemplateDto template)
     {
         _model.Description = template.Description;
-        _model.QuoteTypeId = template.QuoteTemplateItems.FirstOrDefault()?.ServiceTypeId ?? 0;
         _model.QuoteItems = [.. template.QuoteTemplateItems.Select(qi => new QuoteItemDto {
             Description = qi.Description,
             ServiceName = qi.ServiceName,
             ServiceTypeId = qi.ServiceTypeId,
             Price = qi.DefaultPrice })];
-        _stepperIndex = 1;
     }
 }

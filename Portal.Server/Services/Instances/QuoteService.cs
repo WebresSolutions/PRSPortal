@@ -43,7 +43,7 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
                         Description = qi.Notes
                     }).ToArray(),
                     q.JobTypeId,
-                    new QuotesStatusTypeDto((QuoteStatusEnum)q.Status.Id, q.Status.Name, "", q.Status.IsActive),
+                    new QuotesStatusTypeDto((QuoteStatusEnum)q.Status.Id, q.Status.Name, q.Status.Colour, q.Status.IsActive),
                     q.Address == null ? null : new AddressDto(q.Address.Id, (StateEnum)q.Address.StateId!, q.Address.StateId ?? 3, q.Address.Suburb, q.Address.Street, q.Address.PostCode),
                     q.Contact == null ? null : new ListContactDto(q.Contact.Id, q.Contact.FullName, q.Contact.Email, q.Contact.Phone, null, null, (ContactTypeEnum)q.Contact.TypeId),
                     q.CreatedOn,
@@ -269,7 +269,7 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
                     q.Id,
                     q.QuoteReference ?? "",
                     q.TotalPrice,
-                    new QuotesStatusTypeDto((QuoteStatusEnum)q.Status.Id, q.Status.Name, "", q.Status.IsActive),
+                    new QuotesStatusTypeDto((QuoteStatusEnum)q.Status.Id, q.Status.Name, q.Status.Colour, q.Status.IsActive),
                     q.Contact == null ? null : new ContactDto(q.Contact.Id, q.Contact.FullName),
                     q.Address == null ? null : new AddressDto(q.Address.Id, (StateEnum)q.Address.StateId!, q.Address.StateId ?? 3, q.Address.Suburb, q.Address.Street, q.Address.PostCode),
                     q.JobId,
@@ -446,6 +446,7 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
             Dictionary<int, string> serviceNameById = serviceTypesForPayload.ToDictionary(st => st.Id, st => st.ServiceName);
 
             qt.Name = data.Name;
+            qt.JobTypeId = (int)data.JobType;
             qt.ModifiedByUserId = httpContext.UserId();
             qt.IsActive = data.IsActive;
             qt.ModifiedOn = DateTime.UtcNow;

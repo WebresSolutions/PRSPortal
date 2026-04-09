@@ -67,12 +67,12 @@ body {
     }
 
     /* Sidebar cards must not overflow their flex container */
-    .wide-container .sidebar ::deep .card-container {
+    .wide-container .sidebar .card-container {
         min-width: 0;
         overflow: hidden;
     }
 
-    .wide-container ::deep .card-container .container {
+    .wide-container .card-container .container {
         padding: 0;
         margin: 0;
     }

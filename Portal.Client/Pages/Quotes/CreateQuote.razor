@@ -1,203 +1,192 @@
 ﻿@page "/quotes/create"
-@using Portal.Data.Models
 @using Portal.Shared.DTO.Quote
 @using Portal.Shared.DTO.Types
-@using System.Globalization
+@using Portal.Shared.DataEnums
 @inherits BaseDataComponent
 
-<div class="container">
+<div class="wide-container">
     <Card>
         <ChildContent>
             <h2>New Quote</h2>
             <div class="quote-container">
-                <MudStepper @bind-ActiveIndex="_stepperIndex" Vertical Class="border-rad border-grey p-2">
-                    <LabelTemplate>
-                        @if (context.IsActive)
-                        {
-                            if (_stepperIndex is 0)
+                <section class="border-rad border-grey p-3">
+                    <div>
+                        <h5 class="form-section-title border-bottom py-2">Details </h5>
+                        <div class="quotes-template-field quotes-template-field-type grey-background p-3 border-grey border-rad">
+                            <div class="">
+                                <label class="">Job Type</label>
+                                <MudSelect name="job-type" T="int" @bind-Value="_model.QuoteTypeId" Variant="Variant.Outlined" Class="w-100" Margin="Margin.Dense">
+                                    <MudSelectItem T="int" Value="(int)JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
+                                    <MudSelectItem T="int" Value="(int)JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
+                                </MudSelect>
+                            </div>
+                            <div>
+                                <label class="">Description</label>
+                                <MudTextField @bind-Value="_model.Description" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="Description" />
+                            </div>
+                        </div>
+                        <h5 class="form-section-title border-bottom py-2">Contact Details</h5>
+                        <div class="d-flex flex-row gap-2 grey-background p-3 border-rad border-grey mb-3">
+                            <MudAutocomplete Placeholder="Select a contact" name="job-contact"
+                                             T="ListContactDto" Value="_jobContact" ValueChanged="OnContactChanged"
+                                             Clearable="false" Variant="Variant.Outlined" DebounceInterval="100"
+                                             SearchFunc="@SearchContacts" ToStringFunc="@(e=> e?.ToString())" MaxItems="50"
+                                             Required="true">
+                                <MoreItemsTemplate>
+                                    <div class="d-flex justify-content-center">
+                                        <small>
+                                            Only the first 50 items are shown
+                                        </small>
+                                    </div>
+                                </MoreItemsTemplate>
+                            </MudAutocomplete>
+                            <ButtonIcon Href="@_navigationManager.ToAbsoluteUri($"/contacts/create").ToString()" OpenInNewTab="true" Icon="bi bi-plus" />
+                        </div>
+
+                        <EditAddress Address="_model.Address" />
+                    </div>
+                    <h5 class="form-section-title border-bottom pb-2">Fees</h5>
+                    <div class="border-grey p-3 border-rad mb-2">
+                        <label for="template-select">Select a quote template or enter manually</label>
+                        <div class="quote-templates mb-3 d-flex flex-row flex-wrap gap-2">
+                            @if (_templates.Length == 0)
                             {
-                                <MudIcon Icon="@Icons.Material.Filled.Person2" Color="Color.Secondary"></MudIcon>
+                                <p class="settings-empty">No templates available. Please create a quote template first.</p>
                             }
-                            else if (_stepperIndex is 1)
+                            else
+                                @foreach (QuoteTemplateDto template in _templates)
+                                {
+                                    <div class="grey-background border-grey border-rad p-3 cursor-pointer hover" @onclick="() => SelectTemplate(template)">
+                                        <strong>@template.Name</strong>
+                                        <small class="d-block">@template.Description</small>
+                                    </div>
+                                }
+                        </div>
+                    </div>
+
+                    <section class="settings-panel settings-panel-span-full">
+                        <div class="settings-type-list">
+                            <div class="settings-type-row settings-type-row--head settings-type-row--service">
+                                <span>Name</span>
+                                <span>Description</span>
+                                <span>Cost</span>
+                                <span>Edit</span>
+                            </div>
+                            @if (_model.QuoteItems.Count == 0)
                             {
-                                <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Color="Color.Secondary"></MudIcon>
+                                <p class="settings-empty">No Fees yet.</p>
                             }
                             else
                             {
-                                <MudIcon Icon="@Icons.Material.Filled.Description" Color="Color.Secondary"></MudIcon>
+                                @foreach (QuoteItemDto t in _model.QuoteItems)
+                                {
+                                    <div class="settings-type-row settings-type-row--service">
+                                        @if (t.IsEditing)
+                                        {
+
+                                            <div class="settings-type-secondary">
+                                                <MudSelect T="int" @bind-Value="t.ServiceTypeId" Margin="Margin.Dense"
+                                                           Variant="Variant.Outlined" Placeholder="Service Type">
+                                                    @foreach (ServiceTypeDto service in _services)
+                                                    {
+                                                        <MudSelectItem Value="service.Id">
+                                                            @service.Code
+                                                            <small>
+                                                                (@service.ServiceName)
+                                                            </small>
+                                                        </MudSelectItem>
+                                                    }
+                                                </MudSelect>
+                                            </div>
+                                            <div class="settings-type-secondary">
+                                                <MudTextField @bind-Value="t.Description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                              Placeholder="Description" />
+                                            </div>
+                                            <div class="settings-type-secondary">
+                                                <MudNumericField name="cost" T="decimal" @bind-Value="t.Price" Margin="Margin.Dense"
+                                                                 Variant="Variant.Outlined" Placeholder="Amount"
+                                                                 AdornmentIcon="" />
+                                            </div>
+                                            <div />
+                                            <div class="d-flex align-items-center">
+                                                <ButtonIcon Icon="bi bi-check-lg" CssClass="text-green" Title="Save" OnClick="@(() => t.IsEditing = false)" />
+                                                <ButtonIcon Icon="bi bi-x-lg ms-2" CssClass="text-red ms-2" Title="Cancel" OnClick="@(() => t.IsEditing = false)" />
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="settings-type-secondary">@(t.ServiceName)</span>
+                                            <span class="settings-type-secondary">@(t.Description)</span>
+                                            <span class="settings-type-primary">@t.Price.ToString("C", QuoteCurrencyCulture) +GST</span>
+                                            <span class="settings-type-primary"></span>
+                                            <span class="settings-type-actions">
+                                                <ButtonIcon Icon="bi bi-trash" Title="Remove" CssClass="text-red" OnClick="@(() => RemoveService(t))" />
+                                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => t.IsEditing = true)" CssClass="ms-2" />
+                                            </span>
+                                        }
+                                    </div>
+                                }
                             }
-                        }
-                        else if (context.Completed)
-                        {
-                            <div style="height: 10px; width:10px; background-color: var(--color-secondary); border-radius: 50%;">
-                            </div>
-                        }
-                        else
-                        {
-                            <div style="height: 10px; width:10px; background-color: #d4ddeb; border-radius: 50%;"></div>
-                        }
-                    </LabelTemplate>
-                    <ChildContent>
-                        <MudStep Title="Quote Details" SecondaryText="Quoting details. Contact, Address, Type..."
-                                 @ref="_mudStep">
-                            <div>
-                                <h5 class="form-section-title border-bottom py-2">Contact Details</h5>
-                                <div class="d-flex flex-row gap-2 grey-background p-3 border-rad border-grey mb-3">
-                                    <MudAutocomplete Placeholder="Select a contact" name="job-contact"
-                                                     T="ListContactDto" Value="_jobContact" ValueChanged="OnContactChanged"
-                                                     Clearable="false" Variant="Variant.Outlined" DebounceInterval="100"
-                                                     SearchFunc="@SearchContacts" ToStringFunc="@(e=> e.ToString())" MaxItems="50"
-                                                     Required="true">
-                                        <MoreItemsTemplate>
-                                            <div class="d-flex justify-content-center">
+                            <div class="d-flex flex-row gap-2 justify-content-between border-rad grey-background p-3">
+                                <div class="settings-type-secondary">
+                                    <label>Service</label>
+                                    <MudSelect T="ServiceTypeDto" @bind-Value="_serviceType" Margin="Margin.Dense"
+                                               Variant="Variant.Outlined" Placeholder="Service Type">
+                                        @foreach (ServiceTypeDto service in _services)
+                                        {
+                                            <MudSelectItem Value="service">
+                                                @service.Code
                                                 <small>
-                                                    Only the first 50 items are shown
+                                                    (@service.ServiceName)
                                                 </small>
-                                            </div>
-                                        </MoreItemsTemplate>
-                                    </MudAutocomplete>
-                                    <ButtonIcon Href="contacts/create" Icon="bi bi-plus" />
-                                </div>
-
-                                <EditAddress Address="_model.Address" />
-                            </div>
-                        </MudStep>
-                        <MudStep Title="Fees" SecondaryText="Select fees to apply for this quote." Skippable="false">
-                            <h5 class="form-section-title border-bottom pb-2">Fees</h5>
-                            <div class="border-grey p-3 border-rad mb-2">
-                                <label for="template-select">Select a quote template or enter manually</label>
-                                <div class="quote-templates mb-3 d-flex flex-row flex-wrap gap-2">
-                                    @if (_templates.Length == 0)
-                                    {
-                                        <p class="settings-empty">No templates available. Please create a quote template first.</p>
-                                    }
-                                    else
-                                        @foreach (QuoteTemplateDto template in _templates)
-                                        {
-                                            <div class="grey-background border-grey border-rad p-3 cursor-pointer hover" @onclick="() => SelectTemplate(template)">
-                                                <strong>@template.Name</strong>
-                                                <small class="d-block">@template.Description</small>
-                                            </div>
+                                            </MudSelectItem>
                                         }
+                                    </MudSelect>
+                                </div>
+                                <div>
+                                    <label>Description</label>
+                                    <MudTextField @bind-Value="_description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                                  Placeholder="Description" />
+                                </div>
+                                <div>
+                                    <label for="cost">Cost</label>
+                                    <MudNumericField name="cost" T="decimal" @bind-Value="_price" Margin="Margin.Dense"
+                                                     Variant="Variant.Outlined" Placeholder="Amount"
+                                                     AdornmentIcon="" />
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <ButtonIcon Icon="bi bi-plus" CssClass="text-green" Title="Remove" OnClick="@AddService" />
                                 </div>
                             </div>
+                        </div>
+                    </section>
+                    <div class="d-flex flex-row justify-content-between align-items-center p-3 border-top border-grey mt-3 border-rad">
+                        <span class="settings-type-secondary"><strong>Total:</strong></span>
+                        <span class="settings-type-primary">@QuoteItemsTotal.ToString("C", QuoteCurrencyCulture)</span>
+                    </div>
 
-                            <section class="settings-panel settings-panel-span-full">
-                                <div class="settings-type-list">
-                                    <div class="settings-type-row settings-type-row--head settings-type-row--service">
-                                        <span>Name</span>
-                                        <span>Description</span>
-                                        <span>Cost</span>
-                                        <span>Edit</span>
-                                    </div>
-                                    @if (_model.QuoteItems.Count == 0)
-                                    {
-                                        <p class="settings-empty">No Fees yet.</p>
-                                    }
-                                    else
-                                    {
-                                        @foreach (QuoteItemDto t in _model.QuoteItems)
-                                        {
-                                            <div class="settings-type-row settings-type-row--service">
-                                                @if (t.IsEditing)
-                                                {
+                </section>
+                <div class="border-rad border-grey p-3 d-flex flex-column gap-2 quote-summary-panel">
+                    <h5 class="form-section-title border-bottom py-2 mb-0">Quote summary</h5>
+                    <p class="text-muted small mb-0">Review details here as you work; create the quote when ready.</p>
 
-                                                    <div class="settings-type-secondary">
-                                                        <MudSelect T="int" @bind-Value="t.ServiceTypeId" Margin="Margin.Dense"
-                                                                   Variant="Variant.Outlined" Placeholder="Service Type">
-                                                            @foreach (ServiceTypeDto service in _services)
-                                                            {
-                                                                <MudSelectItem Value="service.Id">
-                                                                    @service.Code
-                                                                    <small>
-                                                                        (@service.ServiceName)
-                                                                    </small>
-                                                                </MudSelectItem>
-                                                            }
-                                                        </MudSelect>
-                                                    </div>
-                                                    <div class="settings-type-secondary">
-                                                        <MudTextField @bind-Value="t.Description" Variant="Variant.Outlined" Margin="Margin.Dense"
-                                                                      Placeholder="Description" />
-                                                    </div>
-                                                    <div class="settings-type-secondary">
-                                                        <MudNumericField name="cost" T="decimal" @bind-Value="t.Price" Margin="Margin.Dense"
-                                                                         Variant="Variant.Outlined" Placeholder="Amount"
-                                                                         AdornmentIcon="" />
-                                                    </div>
-                                                    <div/>
-                                                    <div class="d-flex align-items-center">
-                                                        <ButtonIcon Icon="bi bi-check-lg" CssClass="text-green" Title="Save" OnClick="@(() => t.IsEditing = false)" />
-                                                        <ButtonIcon Icon="bi bi-x-lg ms-2" CssClass="text-red ms-2" Title="Cancel" OnClick="@(() => t.IsEditing = false)" />
-                                                    </div>
-                                                }
-                                                else
-                                                {
-                                                    <span class="settings-type-secondary">@(t.ServiceName)</span>
-                                                    <span class="settings-type-secondary">@(t.Description)</span>
-                                                    <span class="settings-type-primary">@t.Price.ToString("C", new CultureInfo("en-US"))</span>
-                                                    <span class="settings-type-primary"></span>
-                                                    <span class="settings-type-actions">
-                                                        <ButtonIcon Icon="bi bi-trash" Title="Remove" CssClass="text-red" OnClick="@(() => RemoveService(t))" />
-                                                        <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => t.IsEditing = true)" CssClass="ms-2" />
-                                                    </span>
-                                                }
-                                            </div>
-                                        }
-                                    }
-                                    <div class="d-flex flex-row gap-2 justify-content-between border-rad grey-background p-3">
-                                        <div class="settings-type-secondary">
-                                            <label>Service</label>
-                                            <MudSelect T="ServiceTypeDto" @bind-Value="_serviceType" Margin="Margin.Dense"
-                                                       Variant="Variant.Outlined" Placeholder="Service Type">
-                                                @foreach (ServiceTypeDto service in _services)
-                                                {
-                                                    <MudSelectItem Value="service">
-                                                        @service.Code
-                                                        <small>
-                                                            (@service.ServiceName)
-                                                        </small>
-                                                    </MudSelectItem>
-                                                }
-                                            </MudSelect>
-                                        </div>
-                                        <div>
-                                            <label>Description</label>
-                                            <MudTextField @bind-Value="_description" Variant="Variant.Outlined" Margin="Margin.Dense"
-                                                          Placeholder="Description" />
-                                        </div>
-                                        <div>
-                                            <label for="cost">Cost</label>
-                                            <MudNumericField name="cost" T="decimal" @bind-Value="_price" Margin="Margin.Dense"
-                                                             Variant="Variant.Outlined" Placeholder="Amount"
-                                                             AdornmentIcon="" />
-                                        </div>
-                                        <div class="d-flex align-items-center">
-                                            <ButtonIcon Icon="bi bi-plus" CssClass="text-green" Title="Remove" OnClick="@AddService" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-                            <div class="d-flex flex-row justify-content-between align-items-center p-3 border-top border-grey mt-3 border-rad">
-                                <span class="settings-type-secondary"><strong>Total:</strong></span>
-                                <span class="settings-type-primary">@_model.QuoteItems.Sum(i => i.Price).ToString("C", new CultureInfo("en-US"))</span>
-                            </div>
-                        </MudStep>
-                        <MudStep Title="Review">
-                            <h5 class="form-section-title border-bottom pb-2">Review</h5>
-                            
-                        </MudStep>
-                    </ChildContent>
-                    <CompletedContent>
-                   
-                    </CompletedContent>
-                </MudStepper>
-                <div class="border-rad border-grey p-3 d-flex flex-column gap-2">
-                    <h5 class="form-section-title border-bottom py-2">Quote Summary</h5>
-                    @if (_jobContact is not null)
+                    @if (_model.ContactId <= 0 || _jobContact is null)
                     {
-                        <div class="p-3 grey-background border-rad border-grey d-flex flex-column">
-                            <b>Contact Details</b>
+                        <MudAlert Severity="Severity.Warning" Class="mb-0" Dense="true">Select a contact on step 1.</MudAlert>
+                    }
+                    @if (string.IsNullOrWhiteSpace(_model.Address.Street) && string.IsNullOrWhiteSpace(_model.Address.Suburb))
+                    {
+                        <MudAlert Severity="Severity.Warning" Class="mb-0" Dense="true">Add a street or suburb for the site address.</MudAlert>
+                    }
+                    @if (_model.QuoteItems.Count == 0)
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mb-0" Dense="true">No fee lines yet (optional).</MudAlert>
+                    }
+
+                    <div class="p-3 grey-background border-rad border-grey d-flex flex-column">
+                        <span class="create-quote-review-block-title">Contact</span>
+                        @if (_jobContact is not null)
+                        {
                             <div class="info-row">
                                 <span class="info-label">Name</span>
                                 <span class="info-value">
@@ -208,50 +197,84 @@
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Phone</span>
-                                <span class="info-value">
-                                    @_jobContact.Phone
-                                </span>
+                                <span class="info-value">@(string.IsNullOrWhiteSpace(_jobContact.Phone) ? "—" : _jobContact.Phone)</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Email</span>
-                                <span class="info-value">@_jobContact.Email</span>
-                            </div>
-                        </div>
-                    }
-
-                    <div class="p-3 grey-background border-rad border-grey d-flex flex-column">
-                        <b>Address Details</b>
-                        <div class="info-row">
-                            <span class="info-label">Address</span>
-                            <span class="info-value">
-                                @_model.Address.ToDisplayString()
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="p-3 grey-background border-rad border-grey d-flex flex-column">
-                        <b>Fee Summary</b>
-                        @if (_model.QuoteItems is not [])
-                        {
-                            <div class="info-row">
-                                <span class="info-label">Total Price</span>
-                                <span class="info-value">
-                                    @_model.QuoteItems.Sum(i => i.Price).ToString("C", new CultureInfo("en-US"))
-                                </span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Number of Items</span>
-                                <span class="info-value">
-                                    @_model.QuoteItems.Count
-                                </span>
+                                <span class="info-value">@(string.IsNullOrWhiteSpace(_jobContact.Email) ? "—" : _jobContact.Email)</span>
                             </div>
                         }
                         else
                         {
-                            <span class="info-label">No fees added yet</span>
+                            <p class="text-muted small mb-0">No contact selected.</p>
                         }
                     </div>
 
+                    <div class="p-3 grey-background border-rad border-grey d-flex flex-column">
+                        <span class="create-quote-review-block-title">Site address</span>
+                        <p class="create-quote-review-address-line mb-2">@_model.Address.ToDisplayString()</p>
+                        <div class="info-row">
+                            <span class="info-label">Street</span>
+                            <span class="info-value">@(string.IsNullOrWhiteSpace(_model.Address.Street) ? "—" : _model.Address.Street)</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Suburb &amp; postcode</span>
+                            <span class="info-value">
+                                @if (string.IsNullOrWhiteSpace(_model.Address.Suburb) && string.IsNullOrWhiteSpace(_model.Address.PostCode))
+                                {
+                                    <text>—</text>
+                                }
+                                else
+                                {
+                                    <text>@_model.Address.Suburb @_model.Address.State @_model.Address.PostCode</text>
+                                }
+                            </span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(_model.Description))
+                    {
+                        <div class="p-3 grey-background border-rad border-grey d-flex flex-column">
+                            <span class="create-quote-review-block-title">Quote notes</span>
+                            <p class="small mb-0 text-break">@_model.Description</p>
+                        </div>
+                    }
+
+                    <div class="create-quote-review-fees create-quote-review-fees--sidebar">
+                        <span class="create-quote-review-block-title d-block mb-2">Fees</span>
+                        @if (_model.QuoteItems.Count == 0)
+                        {
+                            <p class="text-muted small mb-0">No lines yet.</p>
+                        }
+                        else
+                        {
+                            <div class="create-quote-review-fee-table border-rad border-grey overflow-hidden">
+                                @foreach (QuoteItemDto line in _model.QuoteItems)
+                                {
+                                    <div class="create-quote-review-fee-row">
+                                        <div>
+                                            <span class="text-muted small">Service</span>
+                                            <span class="fw-semibold d-block">@line.ServiceName</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted small">Description</span>
+                                            <span class="d-block">@(string.IsNullOrWhiteSpace(line.Description) ? "—" : line.Description)</span>
+                                        </div>
+                                        <div class="fw-semibold pt-1">@line.Price.ToString("C", QuoteCurrencyCulture) <span class="text-muted small fw-normal">+GST</span></div>
+                                    </div>
+                                }
+                                <div class="create-quote-review-fee-total">
+                                    <span class="fw-semibold">Total (ex. GST)</span>
+                                    <span class="fw-semibold">@QuoteItemsTotal.ToString("C", QuoteCurrencyCulture)</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex flex-row gap-2 pt-2">
+                        <ButtonIcon Icon="bi bi-save" CssClass="" Text="Save Draft" OnClick="@(() => SaveQuote(QuoteStatusEnum.Draft))" Disabled="_submitting" Title="Create this quote" />
+                        <ButtonIcon Icon="bi bi-check2-circle" CssClass="text-green" Text="Create quote" OnClick="@(() => SaveQuote(QuoteStatusEnum.New))" Disabled="_submitting" Title="Create this quote" />
+                    </div>
                 </div>
             </div>
         </ChildContent>

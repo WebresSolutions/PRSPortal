@@ -45,3 +45,99 @@
 .quotes-template-price-field {
     max-width: 160px;
 }
+
+.quotes-template-create-card-header {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.quotes-template-create-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    align-items: start;
+}
+
+.quotes-template-field-name {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.quotes-template-field-type {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.quotes-template-field-desc {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.quotes-template-desc-field {
+    flex: 1;
+}
+
+.quotes-template-desc-field ::deep textarea {
+    min-height: 7.5rem;
+}
+
+.quotes-template-fee-lines-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.quotes-template-fee-lines-empty {
+    border: 1px dashed #cbd5e1;
+    border-radius: var(--border-rad);
+    padding: 1.25rem 1rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.65);
+}
+
+.quotes-template-fee-lines-empty-icon {
+    display: block;
+    font-size: 1.75rem;
+    margin: 0 auto 0.5rem;
+    opacity: 0.45;
+}
+
+.quotes-template-line-editor {
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.quotes-template-existing-card {
+    min-width: min(100%, 280px);
+    max-width: 420px;
+}
+
+.quotes-template-existing-card--editing {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.quotes-template-create-actions {
+    border-color: #e2e8f0 !important;
+}
+
+@media (max-width: 768px) {
+    .quotes-template-create-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+    }
+
+    .quotes-template-field-name,
+    .quotes-template-field-type,
+    .quotes-template-field-desc {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .quotes-template-desc-field ::deep textarea {
+        min-height: 5rem;
+    }
+}
