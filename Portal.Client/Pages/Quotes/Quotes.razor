@@ -139,14 +139,24 @@
             else
             {
                 <div class="d-flex flex-column gap-3 quotes-templates-form">
-                    <div>
-                        <div></div>
-                        <MudTextField T="string" @bind-Value="_newTemplateName" Label="Template name" Variant="Variant.Outlined" Required="true" />
-                        <MudTextField T="string" @bind-Value="_newTemplateDescription" Label="Description (optional)" Variant="Variant.Outlined" Lines="2" />
-                        <MudSelect T="JobTypeEnum" @bind-Value="_newTemplateJobType" Label="Job type hint" Variant="Variant.Outlined">
-                            <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
-                            <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
-                        </MudSelect>
+                    <div class="d-flex flex-row gap-2">
+                        <div class="d-flex flex-column gap-2">
+                            <div>
+                                <label for="template-name" class="required-field-label">Template name</label>
+                                <MudTextField name="template-name" T="string" @bind-Value="_newTemplateName" Variant="Variant.Outlined" Required="true" />
+                            </div>
+                            <div>
+                                <label for="job-type" class="required-field-label">Type</label>
+                                <MudSelect name="job-type" T="JobTypeEnum" @bind-Value="_newTemplateJobType" Variant="Variant.Outlined">
+                                    <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
+                                    <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
+                                </MudSelect>
+                            </div>
+                        </div>
+                        <div class="">
+                            <label for="template-description" class="required-field-label">Template description</label>
+                            <MudTextField name="template-description" T="string" @bind-Value="_newTemplateDescription" Variant="Variant.Outlined" Lines="2" />
+                        </div>
                     </div>
 
                     <div>
@@ -180,8 +190,9 @@
                             </div>
                         }
                     </div>
-
-                    <ButtonIcon OnClick="CreateNewQuotingTemplateAsync" Disabled="_templateFormBusy"  Text=@(_templateFormBusy ? "Saving…" : "Create template")/>
+                    <div class="d-flex justify-content-center">
+                        <ButtonIcon Icon="bi bi-save" OnClick="CreateNewQuotingTemplateAsync" Disabled="_templateFormBusy" Text=@(_templateFormBusy ? "Saving…" : "Create template") />
+                    </div>
                 </div>
             }
         </ChildContent>

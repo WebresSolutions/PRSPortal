@@ -29,8 +29,7 @@
                         }
                         else if (context.Completed)
                         {
-                            <div
-                                style="height: 10px; width:10px; background-color: var(--color-secondary); border-radius: 50%;">
+                            <div style="height: 10px; width:10px; background-color: var(--color-secondary); border-radius: 50%;">
                             </div>
                         }
                         else
@@ -68,18 +67,18 @@
                             <div>
                                 <label for="template-select">Select a quote template</label>
                                 <div class="quote-templates mb-3 d-flex flex-row flex-wrap gap-2">
-                                     @if (_templates.Length == 0)
+                                    @if (_templates.Length == 0)
                                     {
                                         <p class="settings-empty">No templates available. Please create a quote template first.</p>
                                     }
                                     else
-                                    @foreach (QuoteTemplateDto template in _templates)
-                                    {
-                                        <div class="grey-background border-grey border-rad p-3 cursor-pointer hover" @onclick="() => SelectTemplate(template)">
-                                            <strong>@template.Name</strong>
-                                            <small class="d-block">@template.Description</small>
-                                        </div>
-                                    }
+                                        @foreach (QuoteTemplateDto template in _templates)
+                                        {
+                                            <div class="grey-background border-grey border-rad p-3 cursor-pointer hover" @onclick="() => SelectTemplate(template)">
+                                                <strong>@template.Name</strong>
+                                                <small class="d-block">@template.Description</small>
+                                            </div>
+                                        }
                                 </div>
                             </div>
 
@@ -90,7 +89,6 @@
                                         <span>Description</span>
                                         <span>Cost</span>
                                         <span>Edit</span>
-                                        <span class="settings-type-actions"></span>
                                     </div>
                                     @if (_model.QuoteItems.Count == 0)
                                     {
@@ -109,24 +107,29 @@
                                                                    Variant="Variant.Outlined" Placeholder="Service Type">
                                                             @foreach (ServiceTypeDto service in _services)
                                                             {
-                                                                <MudSelectItem Value="service">@service.ServiceName</MudSelectItem>
+                                                                <MudSelectItem Value="service">
+                                                                    @service.Code
+                                                                    <small>
+                                                                        (@service.ServiceName)
+                                                                    </small>
+                                                                </MudSelectItem>
                                                             }
                                                         </MudSelect>
                                                     </div>
-                                                    <div>
+                                                    <div class="settings-type-secondary">
                                                         <label>Description</label>
                                                         <MudTextField @bind-Value="t.Description" Variant="Variant.Outlined"
                                                                       Placeholder="Description" />
                                                     </div>
-                                                    <div>
+                                                    <div class="settings-type-secondary">
                                                         <label for="cost">Cost</label>
                                                         <MudNumericField name="cost" T="decimal" @bind-Value="t.Price"
-                                                                         Variant="Variant.Outlined" Placeholder="Amount" 
+                                                                         Variant="Variant.Outlined" Placeholder="Amount"
                                                                          AdornmentIcon="" />
                                                     </div>
                                                     <div class="d-flex align-items-center">
-                                                        <ButtonIcon Icon="bi bi-check-lg" CssClass="text-green" Title="Save" OnClick="@(() => t.IsEditing = false)"/> 
-                                                        <ButtonIcon Icon="bi bi-x-lg ms-2" CssClass="text-red ms-2" Title="Cancel"  OnClick="@(() => t.IsEditing = false)"/> 
+                                                        <ButtonIcon Icon="bi bi-check-lg" CssClass="text-green" Title="Save" OnClick="@(() => t.IsEditing = false)" />
+                                                        <ButtonIcon Icon="bi bi-x-lg ms-2" CssClass="text-red ms-2" Title="Cancel" OnClick="@(() => t.IsEditing = false)" />
                                                     </div>
                                                 }
                                                 else
@@ -135,8 +138,8 @@
                                                     <span class="settings-type-secondary">@(t.Description)</span>
                                                     <span class="settings-type-primary">@t.Price.ToString("C", new CultureInfo("en-US"))</span>
                                                     <span class="settings-type-actions">
-                                                        <ButtonIcon Icon="bi bi-trash" Title="Remove" CssClass="text-red" OnClick="@(() => RemoveService(t))" /> 
-                                                        <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => t.IsEditing = true)" CssClass="ms-2"/> 
+                                                        <ButtonIcon Icon="bi bi-trash" Title="Remove" CssClass="text-red" OnClick="@(() => RemoveService(t))" />
+                                                        <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => t.IsEditing = true)" CssClass="ms-2" />
                                                     </span>
                                                 }
                                             </div>
@@ -149,7 +152,12 @@
                                                        Variant="Variant.Outlined" Placeholder="Service Type">
                                                 @foreach (ServiceTypeDto service in _services)
                                                 {
-                                                    <MudSelectItem Value="service">@service.Code</MudSelectItem>
+                                                    <MudSelectItem Value="service">
+                                                        @service.Code
+                                                        <small>
+                                                            (@service.ServiceName)
+                                                        </small>
+                                                    </MudSelectItem>
                                                 }
                                             </MudSelect>
                                         </div>
@@ -161,11 +169,11 @@
                                         <div>
                                             <label for="cost">Cost</label>
                                             <MudNumericField name="cost" T="decimal" @bind-Value="_price"
-                                                             Variant="Variant.Outlined" Placeholder="Amount" 
+                                                             Variant="Variant.Outlined" Placeholder="Amount"
                                                              AdornmentIcon="" />
                                         </div>
                                         <div class="d-flex align-items-center">
-                                            <ButtonIcon Icon="bi bi-plus" CssClass="text-green" Title="Remove" OnClick="@AddService"/> 
+                                            <ButtonIcon Icon="bi bi-plus" CssClass="text-green" Title="Remove" OnClick="@AddService" />
                                         </div>
                                     </div>
                                 </div>
