@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.JSInterop;
@@ -20,10 +21,12 @@ public partial class MainLayout : IAsyncDisposable
     private readonly HashSet<string> _mobileExpandedGroups = [];
 
     private List<NavLinkItem> navLinks = [];
+    private List<BreadcrumbItem> _breadcrumbItems = [];
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        _navigationManager.LocationChanged += OnLocationChanged;
         string today = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
         navLinks =
         [   new NavLinkItem { Link = "", Title = "Home", Icon = Icons.Material.Filled.Home, MatchAll = true },
@@ -47,6 +50,263 @@ public partial class MainLayout : IAsyncDisposable
             new NavLinkItem { Link = "Settings", Title = "Settings", Icon = Icons.Material.Filled.Settings },
             new NavLinkItem { Link = "Admin", Title = "Admin", Icon = Icons.Material.Filled.AdminPanelSettings }
         ];
+        RefreshBreadcrumbs();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) =>
+        _ = InvokeAsync(() =>
+        {
+            RefreshBreadcrumbs();
+            StateHasChanged();
+        });
+
+    private void RefreshBreadcrumbs()
+    {
+        string relative = _navigationManager.ToBaseRelativePath(_navigationManager.Uri).Split('?')[0].TrimEnd('/');
+        string[] raw = relative.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        string[] lower = [.. raw.Select(s => s.ToLowerInvariant())];
+
+        if (raw.Length == 0)
+        {
+            _breadcrumbItems = [new BreadcrumbItem("Home", href: null, disabled: true)];
+            return;
+        }
+
+        List<BreadcrumbItem> items = [new BreadcrumbItem("Home", "/")];
+
+        switch (lower[0])
+        {
+            case "jobs":
+                AppendEntitySection(items, raw, lower, "Jobs", "job", "Job");
+                break;
+            case "contacts":
+                AppendEntitySection(items, raw, lower, "Contacts", "contact", "Contact");
+                break;
+            case "councils":
+                AppendEntitySection(items, raw, lower, "Councils", "council", "Council");
+                break;
+            case "quotes":
+                AppendQuotesSection(items, raw, lower);
+                break;
+            case "timesheets":
+                AppendTimesheetsSection(items, raw, lower);
+                break;
+            case "schedule":
+                AppendScheduleSection(items, raw, lower);
+                break;
+            case "week":
+                AppendWeekSection(items, raw, lower);
+                break;
+            case "authentication":
+                AppendAuthenticationSection(items, raw, lower);
+                break;
+            case "settings":
+            case "admin":
+            case "notes":
+            case "tasks":
+            case "tools":
+            case "invoices":
+            case "counter":
+                AppendSimpleSection(items, raw, lower);
+                break;
+            default:
+                AppendGenericTrail(items, raw);
+                break;
+        }
+
+        _breadcrumbItems = items;
+    }
+
+    private static void AppendEntitySection(List<BreadcrumbItem> items, string[] raw, string[] lower, string listTitle, string createEditNoun, string detailNoun)
+    {
+        string rootHref = "/" + raw[0];
+
+        if (lower.Length == 1)
+        {
+            items.Add(new BreadcrumbItem(listTitle, href: null, disabled: true));
+            return;
+        }
+
+        items.Add(new BreadcrumbItem(listTitle, rootHref));
+
+        if (lower.Length == 2 && lower[1] == "create")
+        {
+            items.Add(new BreadcrumbItem($"Create {createEditNoun}", href: null, disabled: true));
+            return;
+        }
+
+        if (lower.Length == 3 && lower[1] == "edit" && int.TryParse(raw[2], out _))
+        {
+            items.Add(new BreadcrumbItem($"Edit {createEditNoun}", href: null, disabled: true));
+            return;
+        }
+
+        if (lower.Length == 2 && int.TryParse(raw[1], out _))
+        {
+            items.Add(new BreadcrumbItem($"{detailNoun} {raw[1]}", href: null, disabled: true));
+            return;
+        }
+
+        AppendGenericTrailFrom(items, raw, 1);
+    }
+
+    private static void AppendQuotesSection(List<BreadcrumbItem> items, string[] raw, string[] lower)
+    {
+        string rootHref = "/" + raw[0];
+
+        if (lower.Length == 1)
+        {
+            items.Add(new BreadcrumbItem("Quotes", href: null, disabled: true));
+            return;
+        }
+
+        items.Add(new BreadcrumbItem("Quotes", rootHref));
+
+        if (lower.Length == 2 && lower[1] == "create")
+        {
+            items.Add(new BreadcrumbItem("Create quote", href: null, disabled: true));
+            return;
+        }
+
+        if (lower.Length == 2 && int.TryParse(raw[1], out _))
+        {
+            items.Add(new BreadcrumbItem($"Quote {raw[1]}", href: null, disabled: true));
+            return;
+        }
+
+        AppendGenericTrailFrom(items, raw, 1);
+    }
+
+    private static void AppendTimesheetsSection(List<BreadcrumbItem> items, string[] raw, string[] lower)
+    {
+        string today = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
+
+        if (lower.Length == 1)
+        {
+            items.Add(new BreadcrumbItem("Timesheets", href: null, disabled: true));
+            return;
+        }
+
+        items.Add(new BreadcrumbItem("Times", $"/{raw[0]}/{today}"));
+
+        if (lower.Length == 2)
+        {
+            items.Add(new BreadcrumbItem(FormatDateLabel(raw[1]), href: null, disabled: true));
+            return;
+        }
+
+        AppendGenericTrailFrom(items, raw, 1);
+    }
+
+    private static void AppendScheduleSection(List<BreadcrumbItem> items, string[] raw, string[] lower)
+    {
+        string rootHref = "/" + raw[0];
+
+        if (lower.Length == 1)
+        {
+            items.Add(new BreadcrumbItem("Daily", href: null, disabled: true));
+            return;
+        }
+
+        items.Add(new BreadcrumbItem("Daily", rootHref));
+
+        if (lower.Length >= 2)
+        {
+            items.Add(new BreadcrumbItem(FormatDateLabel(raw[1]), href: null, disabled: true));
+        }
+
+        if (lower.Length >= 3)
+        {
+            items.Add(new BreadcrumbItem(JobTypeLabel(lower[2]), href: null, disabled: true));
+        }
+    }
+
+    private static void AppendWeekSection(List<BreadcrumbItem> items, string[] raw, string[] lower)
+    {
+        string rootHref = "/" + raw[0];
+
+        if (lower.Length == 1)
+        {
+            items.Add(new BreadcrumbItem("Weekly", href: null, disabled: true));
+            return;
+        }
+
+        items.Add(new BreadcrumbItem("Weekly", rootHref));
+
+        if (lower.Length >= 2)
+        {
+            items.Add(new BreadcrumbItem(FormatDateLabel(raw[1]), href: null, disabled: true));
+        }
+
+        if (lower.Length >= 3)
+        {
+            items.Add(new BreadcrumbItem(JobTypeLabel(lower[2]), href: null, disabled: true));
+        }
+    }
+
+    private static void AppendAuthenticationSection(List<BreadcrumbItem> items, string[] raw, string[] lower)
+    {
+        if (lower.Length >= 2)
+        {
+            items.Add(new BreadcrumbItem(HumanizeSegment(lower[1]), href: null, disabled: true));
+            return;
+        }
+
+        items.Add(new BreadcrumbItem("Account", href: null, disabled: true));
+    }
+
+    private static void AppendSimpleSection(List<BreadcrumbItem> items, string[] raw, string[] lower)
+    {
+        if (lower.Length == 1)
+        {
+            items.Add(new BreadcrumbItem(HumanizeSegment(lower[0]), href: null, disabled: true));
+            return;
+        }
+
+        AppendGenericTrailFrom(items, raw, 0);
+    }
+
+    private static void AppendGenericTrail(List<BreadcrumbItem> items, string[] raw) => AppendGenericTrailFrom(items, raw, 0);
+
+    private static void AppendGenericTrailFrom(List<BreadcrumbItem> items, string[] raw, int startIndex)
+    {
+        for (int i = startIndex; i < raw.Length; i++)
+        {
+            string path = "/" + string.Join("/", raw.Take(i + 1));
+            bool last = i == raw.Length - 1;
+            string text = HumanizeSegment(raw[i]);
+            if (last)
+                items.Add(new BreadcrumbItem(text, href: null, disabled: true));
+            else
+                items.Add(new BreadcrumbItem(text, path));
+        }
+    }
+
+    private static string FormatDateLabel(string segment) =>
+        DateOnly.TryParse(segment, out DateOnly d) ? d.ToString("MMM d, yyyy") : HumanizeSegment(segment);
+
+    private static string JobTypeLabel(string segment)
+    {
+        if (int.TryParse(segment, out int t))
+        {
+            return t switch
+            {
+                1 => "Construction",
+                2 => "Surveying",
+                _ => HumanizeSegment(segment)
+            };
+        }
+
+        return HumanizeSegment(segment);
+    }
+
+    private static string HumanizeSegment(string segment)
+    {
+        if (string.IsNullOrEmpty(segment))
+            return segment;
+
+        string[] parts = segment.Split('-', StringSplitOptions.RemoveEmptyEntries);
+        return string.Join(' ', parts.Select(static p => char.ToUpperInvariant(p[0]) + p[1..].ToLowerInvariant()));
     }
 
     private async Task ToggleNav()
@@ -118,6 +378,7 @@ public partial class MainLayout : IAsyncDisposable
 
     public ValueTask DisposeAsync()
     {
+        _navigationManager.LocationChanged -= OnLocationChanged;
         GC.SuppressFinalize(this);
         _ = _hotKeysContext?.DisposeAsync();
         return ValueTask.CompletedTask;

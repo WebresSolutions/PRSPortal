@@ -23,9 +23,7 @@ else
                 <div class="job-header">
                     <div class="header-left">
                         <h1>Job <span class="colour-secondary">#@_job.JobNumber</span></h1>
-                        <div class="header-info">
-                            <span>@_job.Address?.ToDisplayString()</span>
-                        </div>
+                        <span>@_job.Address?.ToDisplayString()</span>
                     </div>
                     <div class="header-right">
                         <StatusBadge StatusEnums="@_job.JobTypes" />

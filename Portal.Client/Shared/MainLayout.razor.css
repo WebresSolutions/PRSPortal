@@ -123,6 +123,11 @@
     padding-left: 2.25rem;
 }
 
+.main-breadcrumbs {
+    margin-bottom: 0.75rem;
+    padding: 0 0.25rem;
+}
+
 .main {
     margin-top: 20px;
     margin-bottom: 100px;

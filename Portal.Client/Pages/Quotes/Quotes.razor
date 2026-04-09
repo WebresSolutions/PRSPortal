@@ -50,7 +50,7 @@
                 <Columns>
                     <TemplateColumn ShowFilterIcon="false" Title="Status" Sortable="false">
                         <CellTemplate>
-                            <span class="quote-status-chip" style="background:@context.Item.Status.Colour !important">@context.Item.Status.Name</span>
+                            <QuoteStatusBadge SingleStatus="context.Item.Status" />
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn Property="x => x.QuoteReference" ShowFilterIcon="false" Sortable="true" Title="Quote ref" HeaderStyle="max-width: 120px">
