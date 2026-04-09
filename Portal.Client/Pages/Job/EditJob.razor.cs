@@ -48,6 +48,11 @@ public partial class EditJob
         else
             _snackbar.Add(users.ErrorDescription ?? "Error occured while loading the users", Severity.Error);
 
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+                new("Jobs", href: "/jobs", disabled: false),
+                new($"Edit", href: $"/jobs/edit", disabled: true)
+          ]);
     }
 
     /// <summary>

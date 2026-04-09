@@ -15,6 +15,11 @@ public partial class CreateCouncil
     {
         IsLoading = true;
         await base.OnInitializedAsync();
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+            new("Councils", href: "/councils", disabled: false),
+            new($"Councils/create", href: $"/councils/create", disabled: true)
+          ]);
         _model = new()
         {
             Address = new()

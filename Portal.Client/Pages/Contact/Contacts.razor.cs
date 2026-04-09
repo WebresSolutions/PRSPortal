@@ -75,6 +75,10 @@ public partial class Contacts
 
         // Update URL if query parameters don't match session data
         UpdateUrlFromSessionData();
+        _breadCrumbService.SetBreadCrumbItems(
+        [
+            new("Contacts", href: "/contacts", disabled: true)
+        ]);
     }
 
     /// <summary>

@@ -59,6 +59,10 @@ public partial class Quotes : IDisposable
         await base.OnInitializedAsync();
         SyncStateFromQueryParameters();
         await LoadQuotingTemplateSectionAsync();
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+            new("Quotes", href: "/quotes", disabled: true)
+          ]);
     }
 
     protected override async Task OnParametersSetAsync()

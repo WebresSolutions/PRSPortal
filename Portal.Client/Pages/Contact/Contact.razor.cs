@@ -27,7 +27,6 @@ public partial class Contact : IDisposable
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-        await LoadContactData();
     }
 
     /// <summary>
@@ -37,6 +36,12 @@ public partial class Contact : IDisposable
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        await LoadContactData();
+        _breadCrumbService.SetBreadCrumbItems(
+        [
+                new("Contacts", href: "/contacts", disabled: false),
+                new(_contact?.FullName ?? "Contact", href: $"/contacts/{ContactId}", disabled: true)
+        ]);
     }
 
     /// <summary>

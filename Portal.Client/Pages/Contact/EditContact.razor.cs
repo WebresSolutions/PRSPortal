@@ -24,6 +24,12 @@ public partial class EditContact
         Result<ContactTypeDto[]>? typesResult = await _apiService.GetContactTypes();
         if (typesResult?.IsSuccess == true && typesResult.Value is not null)
             _contactTypes = typesResult.Value;
+
+        _breadCrumbService.SetBreadCrumbItems(
+        [
+                new("Contacts", href: "/contacts", disabled: false),
+                new("Edit Contact", href: $"/contacts/edit/{ContactId}", disabled: true)
+        ]);
     }
 
     private async Task LoadContactData()

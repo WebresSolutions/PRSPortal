@@ -14,11 +14,6 @@ namespace Portal.Client.Pages.Schedule;
 /// </summary>
 public partial class ScheduleDayView
 {
-    /// <summary>
-    /// Gets or sets the navigation manager for page navigation
-    /// </summary>
-    [Inject]
-    private NavigationManager? NavigationManager { get; set; }
 
     /// <summary>
     /// Gets or sets the date to display schedules for, supplied from route parameters (format: yyyy-MM-dd)
@@ -70,21 +65,26 @@ public partial class ScheduleDayView
             dateOnly = DateOnly.FromDateTime(System.DateTime.Today);
             Date = dateOnly.ToString("yyyy-MM-dd");
         }
-
         // If no job type provided, default to Construction
         JobType ??= (int)JobTypeEnum.Construction;
 
         _dateTime = dateOnly.ToDateTime(new TimeOnly(0, 0));
         _jobTypeEnum = (JobTypeEnum)JobType.Value;
 
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+            new($"{Date}", href: $"/schedule/{Date}/{JobType.Value}", disabled: true)
+          ]);
+
+
         // Navigate to URL with parameters if they weren't provided
-        if (NavigationManager != null)
+        if (_navigationManager != null)
         {
-            string currentUri = NavigationManager.Uri;
+            string currentUri = _navigationManager.Uri;
             string expectedUri = $"/schedule/{Date}/{JobType.Value}";
             if (!currentUri.Contains(expectedUri))
             {
-                NavigationManager.NavigateTo(expectedUri);
+                _navigationManager.NavigateTo(expectedUri);
                 return;
             }
         }
@@ -151,8 +151,8 @@ public partial class ScheduleDayView
     /// <returns>A task representing the asynchronous operation</returns>
     private void ReloadCalendar(DateOnly dateOnly)
     {
-        if (NavigationManager != null && JobType.HasValue)
-            NavigationManager.NavigateTo($"/schedule/{dateOnly:yyyy-MM-dd}/{JobType.Value}");
+        if (_navigationManager != null && JobType.HasValue)
+            _navigationManager.NavigateTo($"/schedule/{dateOnly:yyyy-MM-dd}/{JobType.Value}");
     }
 
     /// <summary>
@@ -162,9 +162,9 @@ public partial class ScheduleDayView
     private void SwapJobType()
     {
         JobTypeEnum newJobType = _jobTypeEnum == JobTypeEnum.Construction ? JobTypeEnum.Surveying : JobTypeEnum.Construction;
-        if (NavigationManager != null && !string.IsNullOrEmpty(Date))
+        if (_navigationManager != null && !string.IsNullOrEmpty(Date))
         {
-            NavigationManager.NavigateTo($"/schedule/{Date}/{(int)newJobType}");
+            _navigationManager.NavigateTo($"/schedule/{Date}/{(int)newJobType}");
         }
     }
 
@@ -178,13 +178,5 @@ public partial class ScheduleDayView
             await LoadSchedule();
         else
             _snackbar.Add("Failed to create new schedule track", Severity.Error);
-    }
-
-    /// <summary>
-    /// Navigates back to the previous page
-    /// </summary>
-    private void NavigateBack()
-    {
-        NavigationManager?.NavigateTo("/");
     }
 }

@@ -34,6 +34,11 @@ public partial class Councils
             _currentPage = savedSession.Page;
             _searchString = savedSession.SearchString ?? string.Empty;
         }
+
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+            new("Councils", href: "/councils", disabled: true)
+          ]);
     }
 
     /// <summary>

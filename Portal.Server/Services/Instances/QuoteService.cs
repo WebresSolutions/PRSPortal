@@ -77,9 +77,9 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
         try
         {
             int[] serviceIds = [.. data.QuoteItems.Select(qi => qi.ServiceTypeId)];
-            List<ServiceType> serviceTypes = await _dbContext.ServiceTypes.Where(st => serviceIds.Contains(st.Id)).ToListAsync();
+            List<ServiceType> serviceTypes = await _dbContext.ServiceTypes.ToListAsync();
 
-            if (serviceTypes.Count != serviceIds.Length)
+            if (!serviceIds.All(x => serviceTypes.Any(st => st.Id == x)))
                 return res.SetError(ErrorType.BadRequest, "One or more service types provided are invalid.");
 
             QuoteStatus[] quoteStatusTypes = await _dbContext.QuoteStatuses.Where(qs => qs.IsActive).ToArrayAsync();
@@ -173,16 +173,13 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
             else
                 quote.Description = data.Description;
 
-            int[] distinctServiceTypes = [.. data.QuoteItems.Select(qi => qi.ServiceTypeId).Distinct()];
+            int[] serviceIds = [.. data.QuoteItems.Select(qi => qi.ServiceTypeId)];
+            List<ServiceType> serviceTypes = await _dbContext.ServiceTypes.ToListAsync();
 
-            List<ServiceType> serviceTypesForPayload = await _dbContext.ServiceTypes
-                .Where(st => distinctServiceTypes.Contains(st.Id))
-                .ToListAsync();
-
-            if (serviceTypesForPayload.Count != distinctServiceTypes.Length)
+            if (!serviceIds.All(x => serviceTypes.Any(st => st.Id == x)))
                 return res.SetError(ErrorType.BadRequest, "One or more service types provided are invalid.");
 
-            Dictionary<int, string> serviceNameById = serviceTypesForPayload.ToDictionary(st => st.Id, st => st.ServiceName);
+            Dictionary<int, string> serviceNameById = serviceTypes.Where(x => serviceIds.Contains(x.Id)).ToDictionary(st => st.Id, st => st.ServiceName);
 
             // Update Existing Quote Items and add new ones
             List<QuoteItem> existingQuoteItems = [.. quote.QuoteItems.Where(qi => data.QuoteItems.Any(qid => qid.Id == qi.Id))];

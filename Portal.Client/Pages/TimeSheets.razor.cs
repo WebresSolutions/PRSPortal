@@ -48,6 +48,10 @@ public partial class TimeSheets
     protected override async Task OnInitializedAsync()
     {
         IsLoading = true;
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+            new("Time Sheets", href: "/timesheets", disabled: true),
+          ]);
         await base.OnInitializedAsync();
         SelectedDate = DateOnly.FromDateTime(DateTime.Today);
         await LoadEntriesAsync();

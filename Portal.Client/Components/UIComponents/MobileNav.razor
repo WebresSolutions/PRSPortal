@@ -1,0 +1,111 @@
+<div class="mobile-nav-shell">
+    <div class="mobile-top-row shadow-sm">
+        <NavLink href="/" class="mobile-logo-link">
+            <img alt="PRS" src="/images/PRS-Primary-Logo.svg" class="mobile-logo" />
+        </NavLink>
+        <button type="button" class="mobile-nav-toggle" @onclick="ToggleMobileNav" aria-label="Toggle navigation menu">
+            <i class="bi @(_mobileNavOpen ? "bi-x-lg" : "bi-list")"></i>
+        </button>
+    </div>
+
+    @if (_mobileNavOpen)
+    {
+        <div class="mobile-nav-overlay" @onclick="CloseMobileNav"></div>
+    }
+
+    <div class="mobile-nav-menu @(_mobileNavOpen ? "open" : "")">
+        <AuthorizeView>
+            <ul class="mobile-nav-list">
+                @foreach (NavLinkItem navItem in NavLinks)
+                {
+                    <li class="mobile-nav-item">
+                        @if (navItem.SubLinks.Count > 0)
+                        {
+                            <div class="mobile-nav-group-header">
+                                <button type="button" class="mobile-nav-link mobile-nav-expand" @onclick="@(() => ToggleMobileGroup(navItem))">
+                                    <span class="mobile-nav-link-content">
+                                        <MudIcon Icon="@navItem.Icon" Title="@navItem.Title" />
+                                        <span>@navItem.Title</span>
+                                    </span>
+                                    <i class="bi @(IsMobileGroupOpen(navItem) ? "bi-chevron-up" : "bi-chevron-down")"></i>
+                                </button>
+                            </div>
+
+                            @if (IsMobileGroupOpen(navItem))
+                            {
+                                <ul class="mobile-sublinks">
+                                    @foreach (NavLinkItem subLink in navItem.SubLinks)
+                                    {
+                                        <li>
+                                            <NavLink class="mobile-nav-link mobile-nav-sublink" href="@subLink.Link" Match="NavLinkMatch.Prefix" @onclick="CloseMobileNav">
+                                                @if (!string.IsNullOrEmpty(subLink.Icon))
+                                                {
+                                                    <MudIcon Icon="@subLink.Icon" Title="@subLink.Title" Size="Size.Small" />
+                                                }
+                                                <span>@subLink.Title</span>
+                                            </NavLink>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        }
+                        else
+                        {
+                            <NavLink class="mobile-nav-link" href="@navItem.Link" Match="@(navItem.MatchAll ? NavLinkMatch.All : NavLinkMatch.Prefix)" @onclick="CloseMobileNav">
+                                <MudIcon Icon="@navItem.Icon" Title="@navItem.Title" />
+                                <span>@navItem.Title</span>
+                            </NavLink>
+                        }
+                    </li>
+                }
+            </ul>
+        </AuthorizeView>
+        <AuthorizeView>
+            <Authorized>
+                <div style="display:grid; grid-template-columns: 1fr">
+                    <i class="bi bi-person-vcard btn" href="authentication/profile"></i>
+                    <i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <NavLink class="nav-link" href="authentication/login">
+                    <i class="bi bi-box-arrow-in-right btn" />
+                </NavLink>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public required List<NavLinkItem> NavLinks { get; set; }
+
+    private bool _mobileNavOpen;
+    private readonly HashSet<string> _mobileExpandedGroups = [];
+
+    private void ToggleMobileNav()
+    {
+        _mobileNavOpen = !_mobileNavOpen;
+    }
+
+    private void CloseMobileNav()
+    {
+        _mobileNavOpen = false;
+    }
+
+    private void ToggleMobileGroup(NavLinkItem navItem)
+    {
+        string key = GetMobileGroupKey(navItem);
+        if (!_mobileExpandedGroups.Add(key))
+            _mobileExpandedGroups.Remove(key);
+    }
+
+    private bool IsMobileGroupOpen(NavLinkItem navItem) => _mobileExpandedGroups.Contains(GetMobileGroupKey(navItem));
+
+    private static string GetMobileGroupKey(NavLinkItem navItem) => $"{navItem.Title}:{navItem.Link}";
+
+    private void BeginSignOut(MouseEventArgs args)
+    {
+        _navigationManager.NavigateToLogout("authentication/logout");
+    }
+}

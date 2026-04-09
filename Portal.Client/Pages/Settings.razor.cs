@@ -44,6 +44,10 @@ public partial class Settings
     protected override async Task OnInitializedAsync()
     {
         base.IsLoading = true;
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+            new("Settings", href: "/settings", disabled: true),
+          ]);
         await base.OnInitializedAsync();
         _primaryColour = await GetColour("--color-primary");
         _secondaryColour = await GetColour("--color-secondary");

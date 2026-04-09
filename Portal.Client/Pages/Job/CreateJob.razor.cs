@@ -59,6 +59,11 @@ public partial class CreateJob
         if (councilResult?.IsSuccess == true && councilResult.Value is not null)
             _councils = councilResult.Value;
 
+        _breadCrumbService.SetBreadCrumbItems(
+           [
+            new("Jobs", href: "/jobs", disabled: false),
+            new("Create Job", href: "/jobs/create", disabled: true)
+           ]);
         IsLoading = false;
 
     }

@@ -1,9 +1,8 @@
-using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Shared;
 using Portal.Shared.DTO.Quote;
 using Portal.Shared.ResponseModels;
+using System.Globalization;
 
 namespace Portal.Client.Pages.Quotes;
 
@@ -21,6 +20,11 @@ public partial class Quote
     {
         await base.OnInitializedAsync();
         await LoadIfNeededAsync();
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+            new("Quotes", href: "/quotes", disabled: false),
+            new($"{_quote?.QuoteReference}", href: $"/quotes/{QuoteId}", disabled: true)
+          ]);
     }
 
     protected override async Task OnParametersSetAsync()

@@ -24,6 +24,12 @@ public partial class CreateQuote
 
     protected override async Task OnInitializedAsync()
     {
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+            new("Quotes", href: "/quotes", disabled: false),
+            new($"Quotes/create", href: $"/quotes/create", disabled: true)
+          ]);
+
         Result<QuoteTemplateDto[]>? templatesResult = await _apiService.GetQuotingTemplates();
         if (templatesResult?.IsSuccess == true && templatesResult.Value is not null)
             _templates = templatesResult.Value;

@@ -62,6 +62,10 @@ public partial class Jobs : IDisposable
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+                new("Jobs", href: "/jobs", disabled: true),
+          ]);
         SyncStateFromQueryParameters();
     }
 

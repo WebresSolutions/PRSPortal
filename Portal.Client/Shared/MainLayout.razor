@@ -6,91 +6,15 @@
 
 <div class="page">
     <SideNav NavToggled="@ToggleNav" NavLinks="navLinks" Minimize="_collapsed" />
-    <div class="mobile-nav-shell">
-        <div class="mobile-top-row shadow-sm">
-            <NavLink href="/" class="mobile-logo-link">
-                <img alt="PRS" src="/images/PRS-Primary-Logo.svg" class="mobile-logo" />
-            </NavLink>
-            <button type="button" class="mobile-nav-toggle" @onclick="ToggleMobileNav" aria-label="Toggle navigation menu">
-                <i class="bi @(MobileNavOpen ? "bi-x-lg" : "bi-list")"></i>
-            </button>
-        </div>
-
-        @if (MobileNavOpen)
-        {
-            <div class="mobile-nav-overlay" @onclick="CloseMobileNav"></div>
-        }
-
-        <div class="mobile-nav-menu @(MobileNavOpen ? "open" : "")">
-            <AuthorizeView>
-                <ul class="mobile-nav-list">
-                    @foreach (NavLinkItem navItem in navLinks)
-                    {
-                        <li class="mobile-nav-item">
-                            @if (navItem.SubLinks.Count > 0)
-                            {
-                                <div class="mobile-nav-group-header">
-                                    <button type="button" class="mobile-nav-link mobile-nav-expand" @onclick="@(() => ToggleMobileGroup(navItem))">
-                                        <span class="mobile-nav-link-content">
-                                            <MudIcon Icon="@navItem.Icon" Title="@navItem.Title" />
-                                            <span>@navItem.Title</span>
-                                        </span>
-                                        <i class="bi @(IsMobileGroupOpen(navItem) ? "bi-chevron-up" : "bi-chevron-down")"></i>
-                                    </button>
-                                </div>
-
-                                @if (IsMobileGroupOpen(navItem))
-                                {
-                                    <ul class="mobile-sublinks">
-                                        @foreach (NavLinkItem subLink in navItem.SubLinks)
-                                        {
-                                            <li>
-                                                <NavLink class="mobile-nav-link mobile-nav-sublink" href="@subLink.Link" Match="NavLinkMatch.Prefix" @onclick="CloseMobileNav">
-                                                    @if (!string.IsNullOrEmpty(subLink.Icon))
-                                                    {
-                                                        <MudIcon Icon="@subLink.Icon" Title="@subLink.Title" Size="Size.Small" />
-                                                    }
-                                                    <span>@subLink.Title</span>
-                                                </NavLink>
-                                            </li>
-                                        }
-                                    </ul>
-                                }
-                            }
-                            else
-                            {
-                                <NavLink class="mobile-nav-link" href="@navItem.Link" Match="@(navItem.MatchAll ? NavLinkMatch.All : NavLinkMatch.Prefix)" @onclick="CloseMobileNav">
-                                    <MudIcon Icon="@navItem.Icon" Title="@navItem.Title" />
-                                    <span>@navItem.Title</span>
-                                </NavLink>
-                            }
-                        </li>
-                    }
-                </ul>
-            </AuthorizeView>
-            <AuthorizeView>
-                <Authorized>
-                    <div style="display:grid; grid-template-columns: 1fr">
-                        <i class="bi bi-person-vcard btn" href="authentication/profile"></i>
-                        <i class="bi bi-box-arrow-left btn" @onclick="BeginSignOut" />
-                    </div>
-                </Authorized>
-                <NotAuthorized>
-                    <NavLink class="nav-link" href="authentication/login">
-                        <i class="bi bi-box-arrow-in-right btn" />
-                    </NavLink>
-                </NotAuthorized>
-            </AuthorizeView>
-        </div>
-    </div>
+    <MobileNav NavLinks="navLinks" />
 
     <div class="@MainClass">
         <div class="main-breadcrumbs">
-            <MudBreadcrumbs Items="_breadcrumbItems" Separator="/" />
+            <MudBreadcrumbs Items="_breadCrumbService.GetBreadCrumbItems()" Separator="/"  Class="bread-crumbs"/>
         </div>
         @Body
     </div>
-    @* <footer>
+@*     <footer>
         Built by <a href="https://webres.solutions" target="_blank" style="color: #b2424d;">Webres Solutions</a>
     </footer> *@
 </div>

@@ -93,6 +93,7 @@ public class Program
         // The service holds stateful information about the current user session.
         builder.Services.AddSingleton<SessionStorage>();
         builder.Services.AddHotKeys2();
+        builder.Services.AddSingleton<BreadCrumbService>();
         builder.Services.AddBlazorGoogleMaps(builder.Configuration.GetValue<string>("GoogleMaps:MapsApiKey") ?? throw new Exception("Google Maps API key is null"));
         WebAssemblyHost host = builder.Build();
         await host.RunAsync();

@@ -17,6 +17,11 @@ public partial class EditCouncil
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+            new("Councils", href: "/councils", disabled: false),
+            new($"Councils/edit", href: $"/councils/edit", disabled: true)
+          ]);
         await LoadCouncilData();
     }
 

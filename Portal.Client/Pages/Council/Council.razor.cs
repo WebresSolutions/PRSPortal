@@ -28,6 +28,11 @@ public partial class Council : IDisposable
         IsLoading = true;
 
         await LoadCouncilData();
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+            new("Councils", href: "/councils", disabled: false),
+            new($"{_council?.CouncilName}", href: $"/councils/{CouncilId}", disabled: true)
+          ]);
         IsLoading = false;
     }
 

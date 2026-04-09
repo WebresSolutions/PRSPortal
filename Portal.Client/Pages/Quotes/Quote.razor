@@ -1,5 +1,6 @@
 @page "/quotes/{QuoteId:int}"
 @inherits BaseDataComponent
+@using Portal.Shared.DataEnums
 @using Portal.Shared.DTO.Quote
 @using Portal.Shared.Helpers
 
@@ -29,7 +30,10 @@ else
                             <QuoteStatusBadge SingleStatus="_quote.QuotesStatus" />
                         </div>
                         @* <p class="small mt-3 mb-0 text-break">@_quote.Description</p> *@
-                        <ButtonIcon Icon="bi bi-pencil" Title="Edit quote" Href="@($"/quotes/edit/{QuoteId}")" />
+                        @if (_quote.QuotesStatus.StatusEnum is QuoteStatusEnum.Draft or QuoteStatusEnum.New or QuoteStatusEnum.Rejected)
+                        {
+                            <ButtonIcon Icon="bi bi-pencil" Title="Edit quote" Href="@($"/quotes/edit/{QuoteId}")" />
+                        }
                     </div>
                 </Content>
             </PageHeader>

@@ -44,6 +44,12 @@ public partial class ScheduleWeekView
             _navigationManager.NavigateTo($"/week/{_weekStart:yyyy-MM-dd}/{JobType.Value}", replace: false);
 
         await LoadWeek();
+
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+            new($"{_weekStart:yyyy-MM-dd} - {_weekEnd:yyyy-MM-dd}", href: $"/week/{_weekStart:yyyy-MM-dd}", disabled: true)
+          ]);
+
         base.IsLoading = false;
     }
 

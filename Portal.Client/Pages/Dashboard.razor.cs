@@ -10,6 +10,14 @@ public partial class Dashboard
     private static int _colspan = 5;
     private static int _rowspan = 4;
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _breadCrumbService.SetBreadCrumbItems(
+        [
+        ]);
+    }
+
     private readonly Dictionary<string, GridItem> Components = new()
     {
         {
@@ -24,22 +32,6 @@ public partial class Dashboard
                 Content = builder =>
                 {
                     builder.OpenComponent<UserDetailsComponent>(0);
-                    builder.CloseComponent();
-                }
-            }
-        },
-        {
-            "SystemSettings",
-            new GridItem
-            {
-                X = 5,
-                Y = 0,
-                RowSpan  = _rowspan,
-                ColSpan = _colspan,
-                ItemId = "SystemSettings",
-                Content = builder =>
-                {
-                    builder.OpenComponent<Settings>(0);
                     builder.CloseComponent();
                 }
             }
@@ -65,8 +57,8 @@ public partial class Dashboard
             new GridItem
             {
                 ItemId = "UserJobs",
-                Y = 4,
-                X= 0,
+                Y = 0,
+                X= 5,
                 ColSpan = _colspan,
                 RowSpan = _rowspan,
                 Content = builder =>

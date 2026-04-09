@@ -1,8 +1,5 @@
-using GoogleMapsComponents;
-using GoogleMapsComponents.Maps;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Portal.Client.Webmodels;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
 
@@ -24,6 +21,11 @@ public partial class Job
         IsLoading = true;
         await base.OnInitializedAsync();
         await LoadJobData();
+        _breadCrumbService.SetBreadCrumbItems(
+           [
+                new("Jobs", href: "/jobs", disabled: false),
+                new($"#{_job?.JobNumber ?? "Job"}", href: $"/jobs/{JobId}", disabled: true)
+           ]);
         IsLoading = false;
     }
 

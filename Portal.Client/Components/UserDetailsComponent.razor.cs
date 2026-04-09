@@ -39,7 +39,7 @@ public partial class UserDetailsComponent
         if (AuthenticationState is not null)
         {
             AuthenticationState state = await AuthenticationState;
-            AccessTokenResult accessTokenResult = await AuthorizationService.RequestAccessToken();
+            AccessTokenResult accessTokenResult = await _authorizationService.RequestAccessToken();
 
             if (!accessTokenResult.TryGetToken(out AccessToken? token))
             {

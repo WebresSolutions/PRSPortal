@@ -32,6 +32,12 @@ public partial class CreateContact
             _contactTypes = typesResult.Value;
 
         IsLoading = false;
+
+        _breadCrumbService.SetBreadCrumbItems(
+        [
+                new("Contacts", href: "/contacts", disabled: false),
+                new("Create Contact", href: "/contacts/create", disabled: true)
+        ]);
     }
 
     private void OnParentContactChanged(ListContactDto? value)
