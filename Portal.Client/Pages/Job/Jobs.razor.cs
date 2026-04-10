@@ -62,10 +62,6 @@ public partial class Jobs : IDisposable
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _breadCrumbService.SetBreadCrumbItems(
-          [
-                new("Jobs", href: "/jobs", disabled: true),
-          ]);
         SyncStateFromQueryParameters();
     }
 
@@ -75,6 +71,10 @@ public partial class Jobs : IDisposable
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
+        _breadCrumbService.SetBreadCrumbItems(
+          [
+                new("Jobs", href: "/jobs", disabled: true),
+          ]);
         SyncStateFromQueryParameters();
         if (_grid is not null)
             await _grid.ReloadServerData();
@@ -107,7 +107,10 @@ public partial class Jobs : IDisposable
         Dictionary<string, string?> queryParams = [];
 
         if (_filterState.Page > 0)
+        {
+            Page = _filterState.Page;
             queryParams["page"] = Page.ToString();
+        }
 
         if (_filterState.PageSize != 25)
             queryParams["pageSize"] = PageSize.ToString();

@@ -174,20 +174,11 @@ public partial class EditQuote
         }
     }
 
-    private async Task<IEnumerable<ListContactDto>> SearchContacts(string search, CancellationToken token)
-    {
-        ContactFilterDto filter = new(Page: 1, PageSize: 100, SearchFilter: search, OrderBy: nameof(ListContactDto.FullName), Order: Portal.Shared.SortDirectionEnum.Desc);
-        Result<PagedResponse<ListContactDto>>? contactResult = await _apiService.GetAllContacts(filter);
-        if (contactResult?.IsSuccess == true && contactResult.Value?.Result is not null)
-            return contactResult.Value.Result;
-        return [];
-    }
-
-    private void OnContactChanged(ListContactDto value)
+    private void OnContactChanged(ListContactDto? value)
     {
         _jobContact = value;
         if (_model is not null)
-            _model.ContactId = value.ContactId;
+            _model.ContactId = value?.ContactId ?? 0;
     }
 
     private void AddService()

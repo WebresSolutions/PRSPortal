@@ -1,4 +1,4 @@
-﻿@page "/quotes/create"
+@page "/quotes/create"
 @using Portal.Shared.DTO.Quote
 @using Portal.Shared.DTO.Types
 @using Portal.Shared.DataEnums
@@ -27,19 +27,9 @@
                         </div>
                         <h5 class="form-section-title border-bottom py-2">Contact Details</h5>
                         <div class="d-flex flex-row gap-2 grey-background p-3 border-rad border-grey mb-3">
-                            <MudAutocomplete Placeholder="Select a contact" name="job-contact"
-                                             T="ListContactDto" Value="_jobContact" ValueChanged="OnContactChanged"
-                                             Clearable="false" Variant="Variant.Outlined" DebounceInterval="100"
-                                             SearchFunc="@SearchContacts" ToStringFunc="@(e=> e?.ToString())" MaxItems="50"
-                                             Required="true">
-                                <MoreItemsTemplate>
-                                    <div class="d-flex justify-content-center">
-                                        <small>
-                                            Only the first 50 items are shown
-                                        </small>
-                                    </div>
-                                </MoreItemsTemplate>
-                            </MudAutocomplete>
+                            <ContactAutocomplete Placeholder="Select a contact" Name="job-contact"
+                                               Value="_jobContact" ValueChanged="OnContactChanged"
+                                               Clearable="false" Required="true" />
                             <ButtonIcon Href="@_navigationManager.ToAbsoluteUri($"/contacts/create").ToString()" OpenInNewTab="true" Icon="bi bi-plus" />
                         </div>
 

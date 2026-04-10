@@ -1,46 +1,35 @@
 @page "/quotes/edit/{QuoteId:int}"
+@inherits BaseDataComponent
+
 @using Portal.Shared.DTO.Contact
 @using Portal.Shared.DTO.Quote
 @using Portal.Shared.DTO.Types
 @using Portal.Shared.DataEnums
 @using Portal.Shared.Helpers
-@inherits BaseDataComponent
 
 <PageTitle>Edit quote @(_details?.QuoteReference ?? QuoteId.ToString()) - PRS Portal</PageTitle>
 
-<div class="container">
+<div class="wide-container">
     <PageHeader>
         <Content>
-            <div style="min-width: 150px">
-                <h2>Edit quote <span class="colour-secondary">#@(_details?.QuoteReference ?? "…")</span></h2>
+            <div class="d-flex flex-row justify-content-between w-100">
+                <div style="min-width: 150px">
+                    <h2>Edit quote <span class="colour-secondary">#@(_details?.QuoteReference ?? "…")</span></h2>
+                </div>
                 @if (_details is not null)
                 {
-                    <p class="text-muted small mb-0">@_details.QuotesStatus.Name</p>
+                    <div class="mt-1">
+                        <QuoteStatusBadge SingleStatus="_details.QuotesStatus" />
+                    </div>
                 }
             </div>
         </Content>
     </PageHeader>
 
     <Card>
-        @if (base.IsLoading)
+        @if (base.IsLoading || _model is null)
         {
             <MudSkeleton Height="640px;" />
-        }
-        else if (_details is not null && !CanEdit)
-        {
-            <MudAlert Severity="Severity.Info" Class="m-3">
-                Only quotes in Draft, New, or Rejected status can be edited. This quote is currently <strong>@_details.QuotesStatus.Name</strong>.
-            </MudAlert>
-            <div class="p-3 pt-0 d-flex flex-wrap gap-2">
-                <ButtonIcon Icon="bi bi-arrow-left" Href="@($"/quotes/{QuoteId}")" Text="Back to quote" />
-            </div>
-        }
-        else if (_model is null)
-        {
-            <p class="p-3 mb-0 text-muted">Quote not found or could not be loaded.</p>
-            <div class="p-3 pt-0">
-                <ButtonIcon Icon="bi bi-arrow-left" Href="/quotes" Text="Back to quotes" />
-            </div>
         }
         else
         {
@@ -90,17 +79,9 @@
 
                             <h5 class="form-section-title border-bottom py-2">Contact details</h5>
                             <div class="d-flex flex-row gap-2 grey-background p-3 border-rad border-grey mb-3">
-                                <MudAutocomplete Placeholder="Select a contact" name="quote-contact"
-                                                 T="ListContactDto" Value="_jobContact" ValueChanged="OnContactChanged"
-                                                 Clearable="false" Variant="Variant.Outlined" DebounceInterval="100"
-                                                 SearchFunc="@SearchContacts" ToStringFunc="@(e => e?.ToString())" MaxItems="50"
-                                                 Required="true">
-                                    <MoreItemsTemplate>
-                                        <div class="d-flex justify-content-center">
-                                            <small>Only the first 50 items are shown</small>
-                                        </div>
-                                    </MoreItemsTemplate>
-                                </MudAutocomplete>
+                                <ContactAutocomplete Placeholder="Select a contact" Name="quote-contact"
+                                                     Value="_jobContact" ValueChanged="OnContactChanged"
+                                                     Clearable="false" Required="true" />
                                 <ButtonIcon Href="@_navigationManager.ToAbsoluteUri("/contacts/create").ToString()" OpenInNewTab="true" Icon="bi bi-plus" />
                             </div>
 
@@ -297,8 +278,9 @@
                             }
                         </div>
 
-                        <div class="d-flex flex-row flex-wrap gap-2 pt-2">
+                        <div class="d-flex flex-column flex-wrap gap-2 pt-2">
                             <ButtonIcon Icon="bi bi-save" Text="Save changes" Disabled="_submitting" Title="Save quote" ButtonType="submit" />
+                            <ButtonIcon Icon="bi bi-save" Text="Save as Draft" Disabled="_submitting" Title="Save quote" ButtonType="submit" />
                             <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" Href="@($"/quotes/{QuoteId}")" Text="Cancel" />
                         </div>
                     </div>

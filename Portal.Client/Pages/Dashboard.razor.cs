@@ -7,8 +7,8 @@ namespace Portal.Client.Pages;
 
 public partial class Dashboard
 {
-    private static int _colspan = 5;
-    private static int _rowspan = 4;
+    private static int _colspan = 1;
+    private static int _rowspan = 1;
 
     protected override void OnInitialized()
     {
@@ -25,8 +25,8 @@ public partial class Dashboard
             new GridItem
             {
                 ItemId = "UserDetails",
-                X = 5,
-                Y = 4,
+                X = 0,
+                Y = 1,
                 ColSpan = _colspan,
                 RowSpan = _rowspan,
                 Content = builder =>
@@ -58,7 +58,7 @@ public partial class Dashboard
             {
                 ItemId = "UserJobs",
                 Y = 0,
-                X= 5,
+                X= 1,
                 ColSpan = _colspan,
                 RowSpan = _rowspan,
                 Content = builder =>

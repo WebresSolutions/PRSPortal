@@ -28,6 +28,7 @@ public partial class EditContact
         _breadCrumbService.SetBreadCrumbItems(
         [
                 new("Contacts", href: "/contacts", disabled: false),
+                new($"{_model?.FirstName} {_model?.LastName}", href: $"/contacts/{ContactId}", disabled: false),
                 new("Edit Contact", href: $"/contacts/edit/{ContactId}", disabled: true)
         ]);
     }
@@ -103,12 +104,4 @@ public partial class EditContact
         }
     }
 
-    public async Task<IEnumerable<ListContactDto>> SearchContacts(string search, CancellationToken token)
-    {
-        ContactFilterDto filter = new(Page: 1, PageSize: 500, SearchFilter: search, OrderBy: nameof(ListContactDto.FullName), Order: Portal.Shared.SortDirectionEnum.Desc);
-        Result<PagedResponse<ListContactDto>>? contactResult = await _apiService.GetAllContacts(filter);
-        if (contactResult?.IsSuccess == true && contactResult.Value?.Result is not null)
-            return contactResult.Value.Result;
-        return [];
-    }
 }

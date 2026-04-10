@@ -140,7 +140,7 @@ label {
 }
 
 .border-grey{
-    border: 1px solid #e2e8f0 !important;
+    border: 2px solid #e2e8f0 !important;
 }
 
 .padding {
@@ -357,6 +357,7 @@ a {
 
 .contact-link {
     color: var(--color-secondary) !important;
+    font-weight: 600;
 }
 
 .btn-add {

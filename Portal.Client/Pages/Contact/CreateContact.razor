@@ -45,14 +45,8 @@
                                 {
                                     <div>
                                         <label for="parent-contact">Parent Contact</label>
-                                        <MudAutocomplete name="parent-contact" T="ListContactDto" Value="_parentContact" ValueChanged="OnParentContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
-                                                         SearchFunc="@SearchContacts" ToStringFunc="@(e => e.ToString())" MaxItems="50">
-                                            <MoreItemsTemplate>
-                                                <div class="d-flex justify-content-center">
-                                                    <small>Only the first 50 items are shown</small>
-                                                </div>
-                                            </MoreItemsTemplate>
-                                        </MudAutocomplete>
+                                        <ContactAutocomplete Name="parent-contact" Value="_parentContact" ValueChanged="OnParentContactChanged"
+                                                             Clearable="true" SearchPageSize="500" />
                                     </div>
                                 }
 

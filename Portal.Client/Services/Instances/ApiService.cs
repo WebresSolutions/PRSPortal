@@ -1049,7 +1049,7 @@ public class ApiService : IApiService
                 ["page"] = filter.Page,
                 ["pageSize"] = filter.PageSize,
                 ["order"] = (int)filter.Order,
-                ["deleted"] = filter.ShowDeleted.ToString().ToLower(),
+                ["deleted"] = filter.Deleted.ToString().ToLower(),
                 ["jobNumberSearch"] = filter.JobNumberSearch,
                 ["contactSearch"] = filter.ContactSearch,
                 ["addressSearch"] = filter.AddressSearch,

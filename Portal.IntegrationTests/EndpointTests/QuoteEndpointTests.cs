@@ -162,7 +162,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
             AddressSearch = null,
             OrderBy = null,
             Order = SortDirectionEnum.Asc,
-            ShowDeleted = false
+            Deleted = false
         };
 
         PagedResponse<QuoteListDto>? quoteListDto = await _client.GetFromJsonAsync<PagedResponse<QuoteListDto>>("/api/quotes");

@@ -26,7 +26,7 @@ public partial class CustomizableGrid
     /// </summary>
     protected override void OnInitialized()
     {
-        _gridState = new(GridRowsColumns.Item1, GridRowsColumns.Item2, 120, 8)
+        _gridState = new(GridRowsColumns.Item1, GridRowsColumns.Item2, 600, 10)
         {
             Items = [.. Components.Select(x => x.Value)]
         };

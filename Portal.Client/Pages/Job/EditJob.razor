@@ -85,16 +85,8 @@
                                 </div>
                                 <div>
                                     <label for="job-contact">Contact</label>
-                                    <MudAutocomplete name="job-contact" T="ListContactDto" Value="_jobContact" ValueChanged="OnContactChanged" Clearable="true" Variant="Variant.Outlined" DebounceInterval="100"
-                                                     SearchFunc="@SearchContacts" ToStringFunc="@(e=> e.ToString())" MaxItems="50" Required="true">
-                                        <MoreItemsTemplate>
-                                            <div class="d-flex justify-content-center">
-                                                <small>
-                                                    Only the first 10 items are shown
-                                                </small>
-                                            </div>
-                                        </MoreItemsTemplate>
-                                    </MudAutocomplete>
+                                    <ContactAutocomplete Name="job-contact" Value="_jobContact" ValueChanged="OnContactChanged"
+                                                         Clearable="true" Required="true" SearchPageSize="500" />
                                     <ValidationMessage For="@(() => _model.ContactId)" />
                                 </div>
                                 <div>

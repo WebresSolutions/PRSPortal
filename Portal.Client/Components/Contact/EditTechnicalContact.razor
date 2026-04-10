@@ -11,16 +11,11 @@
                 <DataAnnotationsValidator />
                 <div>
                     <label for="contact">Contact</label>
-                    <MudAutocomplete T="ListContactDto" name="contact" Value="_jobContact" ValueChanged="OnContactChanged" Clearable="false" Variant="Variant.Outlined" DebounceInterval="200"
-                                     SearchFunc="@SearchContacts" ToStringFunc="@(e=> e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})")" MaxItems="100" Required="true">
-                        <MoreItemsTemplate>
-                            <div class="d-flex justify-content-center">
-                                <small>
-                                    Only the first 100 contacts are shown. Please refine your search to find the contact you are looking for.
-                                </small>
-                            </div>
-                        </MoreItemsTemplate>
-                    </MudAutocomplete>
+                    <ContactAutocomplete Name="contact" Value="_jobContact" ValueChanged="OnContactChanged"
+                                         Clearable="false" Required="true" DebounceInterval="200"
+                                         MaxItems="100" SearchPageSize="100" UseNameEmailPhoneSearch="true"
+                                         ToStringFunc="@TechnicalContactDisplay"
+                                         MoreItemsHint="Only the first 100 contacts are shown. Please refine your search to find the contact you are looking for." />
                 </div>
                 <div>
                     <label for="contact-role">Contact Role</label>

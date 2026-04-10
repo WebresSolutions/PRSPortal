@@ -94,7 +94,7 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
 
             Quote newQuote = new()
             {
-                QuoteReference = "Q" + DateTime.UtcNow.Ticks.ToString("D6"),
+                QuoteReference = "Q" + DateTime.UtcNow.ToString("yy"),
                 Description = data.Description,
                 StatusId = data.QuoteStatusId,
                 TotalPrice = data.QuoteItems.Sum(qi => qi.Price),
@@ -234,7 +234,7 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
         {
             IQueryable<Quote> query = _dbContext.Quotes.AsQueryable();
 
-            if (filter.ShowDeleted)
+            if (filter.Deleted)
                 query = query.Where(q => q.DeletedAt != null);
             else
                 query = query.Where(q => q.DeletedAt == null);

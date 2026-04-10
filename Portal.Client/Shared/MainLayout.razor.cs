@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Portal.Client.Components;
@@ -24,10 +23,10 @@ public partial class MainLayout : IAsyncDisposable
         string today = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
         navLinks =
         [   new NavLinkItem { Link = "", Title = "Home", Icon = Icons.Material.Filled.Home, MatchAll = true },
+            new NavLinkItem { Link = "quotes", Title = "Quotes", Icon = Icons.Material.Filled.Task },
             new NavLinkItem { Link = "jobs", Title = "Jobs", Icon = Icons.Material.Filled.Build },
             new NavLinkItem { Link = "contacts", Title = "Contacts", Icon = Icons.Material.Filled.AccountBox },
             new NavLinkItem { Link = "councils", Title = "Councils", Icon = Icons.Material.Filled.Group },
-            new NavLinkItem { Link = "quotes", Title = "Quotes", Icon = Icons.Material.Filled.Task },
             new NavLinkItem { Link = $"timeSheets/{today}", Title = "Times", Icon = Icons.Material.Filled.Timelapse },
             new NavLinkItem { Link = $"schedule", Title = "Daily", Icon = Icons.Material.Outlined.Today,
                 SubLinks = [

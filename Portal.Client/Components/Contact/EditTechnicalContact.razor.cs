@@ -54,11 +54,14 @@ public partial class EditTechnicalContact
     /// </summary>
     /// <param name="value">The new contact</param>
     /// <returns></returns>
-    private void OnContactChanged(ListContactDto value)
+    private void OnContactChanged(ListContactDto? value)
     {
         _jobContact = value;
-        Model.ContactId = value.ContactId;
+        Model.ContactId = value?.ContactId ?? 0;
     }
+
+    private static string? TechnicalContactDisplay(ListContactDto? e) =>
+        e is null ? null : $"{e.FullName} ({e.Email}) ({e.Phone})";
 
     /// <summary>
     /// Called when the form is submitted, used to save the technical contact
@@ -79,20 +82,4 @@ public partial class EditTechnicalContact
         }
     }
 
-    /// <summary>
-    /// Used by the type ahead auto complete for searching contacts
-    /// </summary>
-    /// <param name="search">The search string</param>
-    /// <param name="token">The token</param>
-    /// <returns></returns>
-    public async Task<IEnumerable<ListContactDto>> SearchContacts(string search, CancellationToken token)
-    {
-        ContactFilterDto filter = new(Page: 1, PageSize: 100, NameEmailPhoneSearch: search);
-        Result<PagedResponse<ListContactDto>>? contactResult = await _apiService.GetAllContacts(filter);
-
-        if (contactResult?.IsSuccess == true && contactResult.Value?.Result is not null)
-            return contactResult.Value.Result;
-        else
-            return [];
-    }
 }

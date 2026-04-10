@@ -245,7 +245,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
         job.SiteVisitCount = job.SiteVisits.Length;
         job.TaskCount = job.Tasks.Length;
         job.JobTypeStatuses = await _dbContext.JobStatuses
-            .Where(x => job.JobTypes.Select(x => (int)x).Contains(x.JobTypeId) && x.IsActive)
+            .Where(x => (int)job.JobTypes.First() == x.JobTypeId && x.IsActive)
             .Select(x => new JobTypeStatusDto(x.Id, x.JobTypeId, x.Name, x.Sequence, x.Colour, x.IsActive))
             .ToArrayAsync();
 

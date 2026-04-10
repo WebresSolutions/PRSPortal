@@ -13,7 +13,7 @@
 
 .prs-logo {
     height: 48px;
-    transition: ease-in-out all 0.1s;
+    transition: ease-in-out all 0.05s;
 }
 
 .sidebar-top {
@@ -72,27 +72,27 @@
         display: flex;
         align-items: center;
         line-height: 3rem;
-        transition: all ease-in-out 0.1s;
+        transition: all ease-in-out 0.05s;
         min-width: 120px;
     }
 
     .nav-item.min ::deep a {
         min-width: unset;
-        transition: all ease-in-out 0.5s;
+        transition: all ease-in-out 0.05s;
     }
 
     .nav-item ::deep a.active {
-        background-color: var(--color-background);
+        background-color: var(--color-grey);
         color: var(--color-secondary) !important;
         border-bottom: 2px solid #e2e8f0;
-        transition: all ease-in-out 0.1s;
+        transition: all ease-in-out 0.05s;
     }
 
     .nav-item ::deep a:hover {
-        background-color: var(--color-background);
+        background-color: var(--color-grey);
         /*color: var(--color-grey-dark);*/
-        transition: all ease-in-out 0.1s;
-        transform: translateY(-3px);
+        transition: all ease-in-out 0.04s;
+        transform: translateX(3px);
     }
 
 .nav-link-container {
@@ -108,7 +108,7 @@
     font-size: 0.9rem;
     /*padding: 0.25rem;*/
     margin-left: auto;
-    transition: all ease-in-out 0.2s;
+    transition: all ease-in-out 0.05s;
 }
 
     .nav-chevron:hover {
@@ -136,14 +136,14 @@
 }
 
     .sublink-item ::deep a {
-        padding-left: 0;
+        padding-left: 0.5rem;
         font-size: 0.9rem;
         font-weight: 400;
         height: 2.5rem;
     }
 
         .sublink-item ::deep a.active {
-            background-color: var(--color-background);
+            background-color: var(--color-grey);
             color: var(--color-secondary) !important;
             border-bottom: 2px solid #e2e8f0;
         }

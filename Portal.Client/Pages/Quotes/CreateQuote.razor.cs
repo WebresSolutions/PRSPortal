@@ -77,30 +77,13 @@ public partial class CreateQuote
     }
 
     /// <summary>
-    /// Used by the type ahead auto complete for searching contacts
-    /// </summary>
-    /// <param name="search">The search string</param>
-    /// <param name="token">The token</param>
-    /// <returns></returns>
-    private async Task<IEnumerable<ListContactDto>> SearchContacts(string search, CancellationToken token)
-    {
-        ContactFilterDto filter = new(Page: 1, PageSize: 100, SearchFilter: search, OrderBy: $"{nameof(ListContactDto.FullName)}", Order: Portal.Shared.SortDirectionEnum.Desc);
-        Result<PagedResponse<ListContactDto>>? contactResult = await _apiService.GetAllContacts(filter);
-
-        if (contactResult?.IsSuccess == true && contactResult.Value?.Result is not null)
-            return contactResult.Value.Result;
-        else
-            return [];
-    }
-
-    /// <summary>
     /// Handles the selected contact change from the type-ahead and updates the job creation model.
     /// </summary>
     /// <param name="value">The selected contact, or null if cleared.</param>
-    private void OnContactChanged(ListContactDto value)
+    private void OnContactChanged(ListContactDto? value)
     {
         _jobContact = value;
-        _model.ContactId = value.ContactId;
+        _model.ContactId = value?.ContactId ?? 0;
     }
 
     private void AddService()

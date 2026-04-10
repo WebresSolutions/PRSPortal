@@ -51,7 +51,8 @@ public partial class EditJob
         _breadCrumbService.SetBreadCrumbItems(
           [
                 new("Jobs", href: "/jobs", disabled: false),
-                new($"Edit", href: $"/jobs/edit", disabled: true)
+                new($"Job", href: $"/jobs/{JobId}", disabled: false),
+                new($"Edit", href: $"/jobs/edit/{JobId}", disabled: true)
           ]);
     }
 
@@ -180,23 +181,5 @@ public partial class EditJob
         _model.JobStatusId = value;
         StateHasChanged();
     }
-
-    /// <summary>
-    /// Used by the type ahead auto complete for searching contacts
-    /// </summary>
-    /// <param name="search">The search string</param>
-    /// <param name="token">The token</param>
-    /// <returns></returns>
-    public async Task<IEnumerable<ListContactDto>> SearchContacts(string search, CancellationToken token)
-    {
-        ContactFilterDto filter = new(Page: 1, PageSize: 500, SearchFilter: search, OrderBy: $"{nameof(ListContactDto.FullName)}", Order: Portal.Shared.SortDirectionEnum.Desc);
-        Result<PagedResponse<ListContactDto>>? contactResult = await _apiService.GetAllContacts(filter);
-
-        if (contactResult?.IsSuccess == true && contactResult.Value?.Result is not null)
-            return contactResult.Value.Result;
-        else
-            return [];
-    }
-
 
 }
