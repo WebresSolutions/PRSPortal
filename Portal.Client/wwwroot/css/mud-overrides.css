@@ -1,0 +1,105 @@
+/* MudBlazor — linked after css/app.css so :root colour tokens exist */
+
+:root {
+    --mud-ripple-color: var(--color-primary) !important;
+    --mud-palette-primary: var(--color-primary) !important;
+    --mud-palette-secondary: var(--color-secondary) !important;
+    --mud-palette-info: var(--color-primary) !important;
+    --mud-default-borderradius: var(--border-rad) !important;
+}
+
+.mud-elevation-1 {
+    box-shadow: none !important;
+}
+
+.mud-table {
+    box-shadow: none !important;
+}
+
+.mud-table-container {
+    overflow-y: hidden !important;
+}
+
+.mud-button-filled.mud-button-filled-primary {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+    background-color: var(--color-primary) !important;
+}
+
+.mud-input.mud-input-filled.mud-input-underline:before {
+    border-bottom: none !important;
+}
+
+.mud-button-filled.mud-button-filled-error {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+}
+
+.mud-button-filled.mud-button-filled-success {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+    background-color: var(--color-success) !important;
+}
+
+.mud-button-filled.mud-button-filled-secondary {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+}
+
+.mud-button-filled.mud-button-filled-default {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+}
+
+.mud-button-filled.mud-button-filled-info {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+}
+
+.mud-secondary-text {
+    color: var(--color-secondary) !important;
+}
+
+.mud-tab.mud-tab-active {
+    color: var(--color-secondary) !important;
+}
+
+    .mud-tab .mud-tab-active .mud-ripple .mud-tab-panel > * {
+        color: var(--color-secondary) !important;
+    }
+
+.mud-tab-slider {
+    background: black !important;
+}
+
+.mud-input-outlined-border {
+    border-radius: var(--border-rad) !important;
+    padding: 3px !important;
+}
+
+.mud-table-cell.sticky-left {
+    z-index: auto !important;
+    background: none;
+}
+
+.mud-input {
+    background: white !important;
+    border-radius: var(--border-rad) !important;
+}
+
+    .mud-input > input.mud-input-root-outlined, div.mud-input-slot.mud-input-root-outlined {
+        padding: 16px 10px !important;
+    }
+
+.mud-input-control.mud-input-outlined-with-label {
+    margin-bottom: 0px !important;
+    margin-top: 0px !important;
+}
+
+.mud-skeleton {
+    border-radius: var(--border-rad) !important;
+}
+
+.mud-dialog .mud-dialog-title {
+    padding: 0 !important;
+}

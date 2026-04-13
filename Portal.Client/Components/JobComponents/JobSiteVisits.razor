@@ -17,7 +17,7 @@
                         <div class="visit-fields">
                             <div class="visit-field">
                                 <span class="visit-label">Date</span>
-                                <span class="visit-value"><a class="contact-link" Href=@($"/schedule/{visit.StartAsDateTime().ToString("yyyy-MM-dd")}/{(int)JobType}")>@visit.StartAsDateTime().ToString("yyyy-MM-dd") | @visit.GetStartEndAsString()</a></span>
+                                <span class="visit-value"><a class="prs-link" Href=@($"/schedule/{visit.StartAsDateTime().ToString("yyyy-MM-dd")}/{(int)JobType}")>@visit.StartAsDateTime().ToString("yyyy-MM-dd") | @visit.GetStartEndAsString()</a></span>
                             </div>
                             <div class="visit-field">
                                 <span class="visit-label">Assignees</span>

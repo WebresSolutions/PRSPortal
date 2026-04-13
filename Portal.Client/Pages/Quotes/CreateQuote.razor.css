@@ -49,12 +49,12 @@
         text-align: left;
     }
 
-    .contact-link {
+    .prs-link {
         color: var(--color-secondary);
         text-decoration: none;
     }
 
-    .contact-link:hover {
+    .prs-link:hover {
         text-decoration: underline;
     }
 

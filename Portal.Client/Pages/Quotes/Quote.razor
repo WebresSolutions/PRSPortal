@@ -19,155 +19,169 @@ else
         <div class="wide-container quote-detail-page">
             <PageHeader>
                 <Content>
-                    <div style="min-width: 10px">
-                        <h2>Quote <span class="colour-secondary">#@_quote.QuoteReference</span></h2>
-                        <div>
-                            <p class="text-muted small mb-0">@_quote.Address!.ToDisplayString()</p>
-                        </div>
+                    <div class="quote-detail-header-title">
+                        <h2 class="mb-1">Quote <span class="colour-secondary">#@_quote.QuoteReference</span></h2>
+                        <p class="text-muted small mb-0">@_quote.Address!.ToDisplayString()</p>
                     </div>
-                    <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
-                        <div class="mt-1">
+                    <div class="quote-detail-header-aside">
+                        <div class="quote-detail-header-toolbar">
                             <QuoteStatusBadge SingleStatus="_quote.QuotesStatus" />
+                            @if (_quote.QuotesStatus.StatusEnum is QuoteStatusEnum.Draft or QuoteStatusEnum.New or QuoteStatusEnum.Rejected)
+                            {
+                                <div class="quote-detail-header-actions">
+                                    <MudButton Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               Size="Size.Small"
+                                               Class="quote-send-header-btn"
+                                               StartIcon="@Icons.Material.Filled.Send"
+                                               OnClick="@OnSendQuoteAsync">
+                                        @(_quote.QuotesStatus.StatusEnum is QuoteStatusEnum.Rejected ? "Re-send to client" : "Send to client")
+                                    </MudButton>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   title="Edit quote"
+                                                   aria-label="Edit quote"
+                                                   Href="@($"/quotes/edit/{QuoteId}")"
+                                                   Color="Color.Primary"
+                                                   Variant="Variant.Outlined"
+                                                   Size="Size.Small"
+                                                   Class="quote-header-edit-btn" />
+                                </div>
+                            }
                         </div>
-                        @* <p class="small mt-3 mb-0 text-break">@_quote.Description</p> *@
-                        @if (_quote.QuotesStatus.StatusEnum is QuoteStatusEnum.Draft or QuoteStatusEnum.New or QuoteStatusEnum.Rejected)
-                        {
-                            <ButtonIcon Icon="bi bi-pencil" Title="Edit quote" Href="@($"/quotes/edit/{QuoteId}")" />
-                        }
                     </div>
                 </Content>
             </PageHeader>
-            <div class="row g-3">
-                <div class="col-lg-6">
+            <div class="quote-container">
+                <section class="">
+                    <div class="quote-contact-address">
+                        <Card>
+                            <ChildContent>
+                                <h5 class="quote-detail-card-title">Contact</h5>
+                                @if (_quote.Contact is { } c)
+                                {
+                                    <div class="info-row">
+                                        <span class="info-label">Name</span>
+                                        <span class="info-value">
+                                            <a class="prs-link" href="@($"/contacts/{c.ContactId}")">@c.FullName</a>
+                                        </span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Phone</span>
+                                        <span class="info-value">@(string.IsNullOrWhiteSpace(c.Phone) ? "—" : c.Phone)</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Email</span>
+                                        <span class="info-value">@(string.IsNullOrWhiteSpace(c.Email) ? "—" : c.Email)</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="text-muted small mb-0">No contact on file.</p>
+                                }
+                            </ChildContent>
+                        </Card>
+                        <Card>
+                            <ChildContent>
+                                <h5 class="quote-detail-card-title">Site address</h5>
+                                @if (_quote.Address is { } a)
+                                {
+                                    <div class="info-row">
+                                        <span class="info-label">Street</span>
+                                        <span class="info-value">@(string.IsNullOrWhiteSpace(a.Street) ? "—" : a.Street)</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Suburb</span>
+                                        <span class="info-value">@a.Suburb @a.State @a.PostCode</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="text-muted small mb-0">No address on file.</p>
+                                }
+                            </ChildContent>
+                        </Card>
+                    </div>
                     <Card>
                         <ChildContent>
-                            <h5 class="quote-detail-card-title">Contact</h5>
-                            @if (_quote.Contact is { } c)
+                            <h5 class="quote-detail-card-title">Linked job</h5>
+                            @if (_quote.JobId is { } jobId && !string.IsNullOrWhiteSpace(_quote.JobNumber))
                             {
-                                <div class="info-row">
-                                    <span class="info-label">Name</span>
-                                    <span class="info-value">
-                                        <a class="contact-link" href="@($"/contacts/{c.ContactId}")">@c.FullName</a>
-                                    </span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Phone</span>
-                                    <span class="info-value">@(string.IsNullOrWhiteSpace(c.Phone) ? "—" : c.Phone)</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Email</span>
-                                    <span class="info-value">@(string.IsNullOrWhiteSpace(c.Email) ? "—" : c.Email)</span>
-                                </div>
+                                <p class="mb-0">
+                                    <a class="prs-link" href="@($"/jobs/{jobId}")">Job #@_quote.JobNumber</a>
+                                </p>
                             }
                             else
                             {
-                                <p class="text-muted small mb-0">No contact on file.</p>
+                                <p class="text-muted small mb-0">No job linked.</p>
                             }
                         </ChildContent>
                     </Card>
-                </div>
-                <div class="col-lg-6">
-                    <Card>
+                   
+                </section>
+                <section>
+                    <Card CssClass="">
                         <ChildContent>
-                            <h5 class="quote-detail-card-title">Site address</h5>
-                            @if (_quote.Address is { } a)
+                            <h5 class="quote-detail-card-title">Fee lines</h5>
+                            @if (_quote.QuoteItems.Length == 0)
                             {
-                                <div class="info-row">
-                                    <span class="info-label">Street</span>
-                                    <span class="info-value">@(string.IsNullOrWhiteSpace(a.Street) ? "—" : a.Street)</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="info-label">Suburb</span>
-                                    <span class="info-value">@a.Suburb @a.State @a.PostCode</span>
-                                </div>
+                                <p class="text-muted small mb-0">No line items.</p>
                             }
                             else
                             {
-                                <p class="text-muted small mb-0">No address on file.</p>
+                                <div class="quote-detail-lines border-rad border-grey overflow-hidden">
+                                    <div class="quote-detail-lines-head d-none d-md-grid">
+                                        <span>Service</span>
+                                        <span>Description</span>
+                                        <span class="text-md-end">Amount (+GST)</span>
+                                    </div>
+                                    @foreach (QuoteItemDto line in _quote.QuoteItems)
+                                    {
+                                        <div class="quote-detail-line-row">
+                                            <div>
+                                                <span class="d-md-none text-muted small">Service</span>
+                                                <span class="fw-semibold d-block">@line.ServiceName</span>
+                                            </div>
+                                            <div>
+                                                <span class="d-md-none text-muted small">Description</span>
+                                                <span class="d-block">@(string.IsNullOrWhiteSpace(line.Description) ? "—" : line.Description)</span>
+                                            </div>
+                                            <div class="text-md-end fw-semibold">@line.Price.ToString("C", QuoteCurrencyCulture)</div>
+                                        </div>
+                                    }
+                                    <div class="quote-detail-lines-total">
+                                        <span class="fw-semibold">Total (ex. GST)</span>
+                                        <span class="fw-semibold">@_quote.TotalPrice.ToString("C", QuoteCurrencyCulture)</span>
+                                    </div>
+                                </div>
                             }
                         </ChildContent>
                     </Card>
-                </div>
+                    <Card>
+                        <ChildContent>
+                            <h5 class="quote-detail-card-title">Timeline</h5>
+                            <div class="info-row">
+                                <span class="info-label">Target delivery</span>
+                                <span class="info-value">@(_quote.TargetDeliveryDate is { } t ? t.ToLocalDateTimeString() : "—")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Sent to client</span>
+                                <span class="info-value">@(_quote.DateSentToClient is { } s ? s.ToLocalDateTimeString() : "—")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Created</span>
+                                <span class="info-value">@_quote.CreatedAt.ToLocalDateTimeString() · @_quote.Createdby</span>
+                            </div>
+                            @if (_quote.UpdatedAt is { } updated)
+                            {
+                                <div class="info-row">
+                                    <span class="info-label">Last updated</span>
+                                    <span class="info-value">@updated.ToLocalDateTimeString() · @(_quote.UpdatedBy ?? "—")</span>
+                                </div>
+                            }
+                        </ChildContent>
+                    </Card>
+                </section>
             </div>
-
-            <Card CssClass="mt-3">
-                <ChildContent>
-                    <h5 class="quote-detail-card-title">Linked job</h5>
-                    @if (_quote.JobId is { } jobId && !string.IsNullOrWhiteSpace(_quote.JobNumber))
-                    {
-                        <p class="mb-0">
-                            <a class="contact-link" href="@($"/jobs/{jobId}")">Job #@_quote.JobNumber</a>
-                        </p>
-                    }
-                    else
-                    {
-                        <p class="text-muted small mb-0">No job linked.</p>
-                    }
-                </ChildContent>
-            </Card>
-
-            <Card CssClass="mt-3">
-                <ChildContent>
-                    <h5 class="quote-detail-card-title">Timeline</h5>
-                    <div class="info-row">
-                        <span class="info-label">Created</span>
-                        <span class="info-value">@_quote.CreatedAt.ToLocalDateTimeString() · @_quote.Createdby</span>
-                    </div>
-                    @if (_quote.UpdatedAt is { } updated)
-                    {
-                        <div class="info-row">
-                            <span class="info-label">Last updated</span>
-                            <span class="info-value">@updated.ToLocalDateTimeString() · @(_quote.UpdatedBy ?? "—")</span>
-                        </div>
-                    }
-                    <div class="info-row">
-                        <span class="info-label">Target delivery</span>
-                        <span class="info-value">@(_quote.TargetDeliveryDate is { } t ? t.ToLocalDateTimeString() : "—")</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Sent to client</span>
-                        <span class="info-value">@(_quote.DateSentToClient is { } s ? s.ToLocalDateTimeString() : "—")</span>
-                    </div>
-                </ChildContent>
-            </Card>
-
-            <Card CssClass="mt-3">
-                <ChildContent>
-                    <h5 class="quote-detail-card-title">Fee lines</h5>
-                    @if (_quote.QuoteItems.Length == 0)
-                    {
-                        <p class="text-muted small mb-0">No line items.</p>
-                    }
-                    else
-                    {
-                        <div class="quote-detail-lines border-rad border-grey overflow-hidden">
-                            <div class="quote-detail-lines-head d-none d-md-grid">
-                                <span>Service</span>
-                                <span>Description</span>
-                                <span class="text-md-end">Amount (+GST)</span>
-                            </div>
-                            @foreach (QuoteItemDto line in _quote.QuoteItems)
-                            {
-                                <div class="quote-detail-line-row">
-                                    <div>
-                                        <span class="d-md-none text-muted small">Service</span>
-                                        <span class="fw-semibold d-block">@line.ServiceName</span>
-                                    </div>
-                                    <div>
-                                        <span class="d-md-none text-muted small">Description</span>
-                                        <span class="d-block">@(string.IsNullOrWhiteSpace(line.Description) ? "—" : line.Description)</span>
-                                    </div>
-                                    <div class="text-md-end fw-semibold">@line.Price.ToString("C", QuoteCurrencyCulture)</div>
-                                </div>
-                            }
-                            <div class="quote-detail-lines-total">
-                                <span class="fw-semibold">Total (ex. GST)</span>
-                                <span class="fw-semibold">@_quote.TotalPrice.ToString("C", QuoteCurrencyCulture)</span>
-                            </div>
-                        </div>
-                    }
-                </ChildContent>
-            </Card>
         </div>
     }
 }

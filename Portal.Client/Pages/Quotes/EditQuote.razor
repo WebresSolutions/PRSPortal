@@ -220,7 +220,8 @@
                                 <div class="info-row">
                                     <span class="info-label">Name</span>
                                     <span class="info-value">
-                                        <a class="contact-link"
+                                        <a class="
+                                        "
                                            href="@_navigationManager.ToAbsoluteUri($"/contacts/{_jobContact.ContactId}").ToString()"
                                            target="_blank" rel="noopener noreferrer">@_jobContact.FullName</a>
                                     </span>
@@ -278,10 +279,27 @@
                             }
                         </div>
 
-                        <div class="d-flex flex-column flex-wrap gap-2 pt-2">
-                            <ButtonIcon Icon="bi bi-save" Text="Save changes" Disabled="_submitting" Title="Save quote" ButtonType="submit" />
-                            <ButtonIcon Icon="bi bi-save" Text="Save as Draft" Disabled="_submitting" Title="Save quote" ButtonType="submit" />
-                            <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" Href="@($"/quotes/{QuoteId}")" Text="Cancel" />
+                        <div class="d-flex flex-row gap-2 pt-2 justify-content-center">
+                            <ButtonIcon Icon="bi-floppy-fill"
+                                        CssClass="text-green"
+                                        Text="Save changes"
+                                        OnClick="@( () => _model.QuoteStatusId = QuoteStatusEnum.New)"
+                                        Disabled="_submitting"
+                                        Title="Save quote"
+                                        ButtonType="submit" />
+                            @if (_model.QuoteStatusId is QuoteStatusEnum.Draft)
+                            {
+                                <ButtonIcon Icon="bi bi-save"
+                                            Text="Save as Draft"
+                                            OnClick="@( () => _model.QuoteStatusId = QuoteStatusEnum.Draft)"
+                                            Disabled="_submitting"
+                                            Title="Save quote"
+                                            ButtonType="submit" />
+                            }
+                            <ButtonIcon Icon="bi bi-x-circle"
+                                        CssClass="text-red"
+                                        Href="@($"/quotes/{QuoteId}")"
+                                        Text="Cancel" />
                         </div>
                     </div>
                 </div>

@@ -55,7 +55,7 @@
                     </TemplateColumn>
                     <TemplateColumn Property="x => x.QuoteReference" ShowFilterIcon="false" Sortable="true" Title="Quote ref" HeaderStyle="max-width: 120px">
                         <CellTemplate>
-                            <a class="contact-link" href=@($"/quotes/{context.Item.Id}")>@context.Item.QuoteReference</a>
+                            <a class="prs-link" href=@($"/quotes/{context.Item.Id}")>@context.Item.QuoteReference</a>
                         </CellTemplate>
                     </TemplateColumn>
                     <TemplateColumn Property="x => x.TotalPrice" ShowFilterIcon="false" Sortable="false" Title="Total">
@@ -67,7 +67,7 @@
                         <CellTemplate>
                             @if (context.Item.Contact is { } c)
                             {
-                                <a class="contact-link" href="/contacts/@c.contactId">@c.fullName</a>
+                                <a class="prs-link" href="/contacts/@c.contactId">@c.fullName</a>
                             }
                         </CellTemplate>
                     </TemplateColumn>
@@ -77,7 +77,7 @@
                         <CellTemplate>
                             @if (context.Item.JobId is { } jobId && !string.IsNullOrWhiteSpace(context.Item.JobNumber))
                             {
-                                <a class="contact-link" href=@($"/jobs/{jobId}")>@context.Item.JobNumber</a>
+                                <a class="prs-link" href=@($"/jobs/{jobId}")>@context.Item.JobNumber</a>
                             }
                         </CellTemplate>
                     </TemplateColumn>

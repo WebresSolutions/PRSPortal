@@ -32,7 +32,7 @@ else
                 @if (_contact.ParentContact is not null)
                 {
                     <h1>
-                        <a class="contact-link" href=@($"contacts/{_contact.ParentContact.contactId}") @onclick="@(() => _navigationManager.NavigateTo($"contacts/{_contact.ParentContact.contactId}"))">
+                        <a class="prs-link" href=@($"contacts/{_contact.ParentContact.contactId}") @onclick="@(() => _navigationManager.NavigateTo($"contacts/{_contact.ParentContact.contactId}"))">
                             @_contact.ParentContact.fullName
                         </a> / @_contact.FullName
                     </h1>
@@ -177,7 +177,7 @@ else
                                     </TemplateColumn>
                                     <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job Number #" HeaderStyle="max-width: 75px">
                                         <CellTemplate>
-                                            <a class="contact-link" href=@($"/jobs/{context.Item.JobId}")>@context.Item.JobNumber</a>
+                                            <a class="prs-link" href=@($"/jobs/{context.Item.JobId}")>@context.Item.JobNumber</a>
                                         </CellTemplate>
                                     </TemplateColumn>
                                     <PropertyColumn Property="x => x.Address.Street" ShowFilterIcon="false" Title="Street" />

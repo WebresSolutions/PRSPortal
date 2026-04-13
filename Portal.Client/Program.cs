@@ -89,6 +89,7 @@ public class Program
             config.SnackbarConfiguration.ShowTransitionDuration = 500;
             config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
         });
+        builder.Services.AddHttpClient<IEntraProfilePhotoService, EntraProfilePhotoService>();
         builder.Services.AddSingleton<IApiService, ApiService>();
         // The service holds stateful information about the current user session.
         builder.Services.AddSingleton<SessionStorage>();

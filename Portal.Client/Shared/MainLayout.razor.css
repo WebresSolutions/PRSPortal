@@ -75,7 +75,7 @@ footer {
     }
 
 ::deep .mud-breadcrumb-item > a {
-    color: red !important;
+    color: var(--color-secondary) !important;
     font-weight: 700;
     font-variant-caps: titling-caps;
 }

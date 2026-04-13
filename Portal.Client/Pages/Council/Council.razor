@@ -142,12 +142,12 @@ else
                                 </TemplateColumn>
                                 <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Job #" HeaderStyle="max-width: 75px">
                                     <CellTemplate>
-                                        <a class="contact-link" href=@($"/jobs/{context.Item.JobId}")>@context.Item.JobNumber</a>
+                                        <a class="prs-link" href=@($"/jobs/{context.Item.JobId}")>@context.Item.JobNumber</a>
                                     </CellTemplate>
                                 </TemplateColumn>
                                 <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Title="Contact" HeaderStyle="max-width: 75px">
                                     <CellTemplate>
-                                        <a class="contact-link" href=@($"/contacts/{context.Item.Contact1?.contactId}")>@context.Item.JoinedContactName</a>
+                                        <a class="prs-link" href=@($"/contacts/{context.Item.Contact1?.contactId}")>@context.Item.JoinedContactName</a>
                                     </CellTemplate>
                                 </TemplateColumn>
                                 <PropertyColumn Property="x => x.Address.Street" ShowFilterIcon="false" Title="Street" />

@@ -47,7 +47,7 @@
                     </TemplateColumn>
                     <TemplateColumn Property="x => x.FullName" ShowFilterIcon="false" Title="Name">
                         <CellTemplate>
-                            <a class="contact-link" href=@($"/contacts/{context.Item.ContactId}")>@context.Item.FullName</a>
+                            <a class="prs-link" href=@($"/contacts/{context.Item.ContactId}")>@context.Item.FullName</a>
                         </CellTemplate>
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.Email" ShowFilterIcon="false" Title="Email" />
@@ -64,7 +64,7 @@
                         <CellTemplate>
                             @if (context.Item.ParentContact != null)
                             {
-                                <a class="contact-link" href=@($"/contacts/{context.Item.ParentContact.contactId}")>@context.Item.ParentContact.fullName</a>
+                                <a class="prs-link" href=@($"/contacts/{context.Item.ParentContact.contactId}")>@context.Item.ParentContact.fullName</a>
                             }
                         </CellTemplate>
                     </TemplateColumn>

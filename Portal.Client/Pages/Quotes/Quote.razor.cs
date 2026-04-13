@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
 using Portal.Shared.DTO.Quote;
 using Portal.Shared.ResponseModels;
@@ -71,5 +72,11 @@ public partial class Quote
         }
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnSendQuoteAsync(MouseEventArgs _)
+    {
+        // Wire to API when send-to-client is implemented.
+        return Task.CompletedTask;
     }
 }

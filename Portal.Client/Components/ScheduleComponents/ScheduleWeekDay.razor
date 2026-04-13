@@ -5,7 +5,7 @@
 
 <div class="week-day-column">
     <div class="week-day-header">
-        <a title="View Day" class="contact-link" href=@($"/schedule/{Day.ToString("yyyy-MM-dd")}/{(int)JobType!}")>@Day.ToString("ddd")</a>
+        <a title="View Day" class="prs-link" href=@($"/schedule/{Day.ToString("yyyy-MM-dd")}/{(int)JobType!}")>@Day.ToString("ddd")</a>
         <br />
         <small>@Day.ToString("d MMM")</small>
         <HeaderTabs Tabs="[TabTypeEnum.ByTrack, TabTypeEnum.ByDate]" OnTabSelect="@((x) => _selectedtab = x)" ShowAddButton=false Center="true" ShowBorderBottom="false" />
@@ -20,12 +20,12 @@
                         string users = string.Join(", ", groupByTrackItem.Value.First().AssignedUsers.Select(u => u.displayName ?? ""));
                     }
                     <div>
-                        <b class="contact-link mb-2">@users</b>
+                        <b class="prs-link mb-2">@users</b>
                     </div>
                     @foreach (var entry in groupByTrackItem.Value)
                     {
                         <div class="week-item" style="border-left: 4px solid @(entry.Schedule.Colour?.ColourHex ?? "#ccc")">
-                            <b class="contact-link cursor-pointer" @onclick="@(() => OpenDialogAsync(entry))">View</b>
+                            <b class="prs-link cursor-pointer" @onclick="@(() => OpenDialogAsync(entry))">View</b>
                             <span class="week-item-time">@DateTimeBuilder.TimeRange(entry.Schedule.Start, entry.Schedule.End)</span>
                             @if (!string.IsNullOrWhiteSpace(entry.Schedule.Description))
                             {
@@ -50,7 +50,7 @@
             foreach (WeeklyScheduleDto entry in Items.OrderBy(x => x.Schedule.Start))
             {
                 <div class="week-item" style="border-left: 4px solid @(entry.Schedule.Colour?.ColourHex ?? "#ccc")">
-                    <b class="contact-link cursor-pointer" @onclick="@(() => OpenDialogAsync(entry))">View</b>
+                    <b class="prs-link cursor-pointer" @onclick="@(() => OpenDialogAsync(entry))">View</b>
                     <span class="week-item-time">@DateTimeBuilder.TimeRange(entry.Schedule.Start, entry.Schedule.End)</span>
                     @if (!string.IsNullOrWhiteSpace(entry.Schedule.Description))
                     {

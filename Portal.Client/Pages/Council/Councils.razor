@@ -39,7 +39,7 @@
                 <Columns>
                     <TemplateColumn Property="x => x.CouncilName" ShowFilterIcon="false" Title="Council Name" >
                         <CellTemplate>
-                            <a class="contact-link" href=@($"/councils/{context.Item.CouncilId}")>@context.Item.CouncilName</a>
+                            <a class="prs-link" href=@($"/councils/{context.Item.CouncilId}")>@context.Item.CouncilName</a>
                         </CellTemplate>
                     </TemplateColumn>
                     <PropertyColumn Property="x => x.Phone" ShowFilterIcon="false" Title="Phone" />

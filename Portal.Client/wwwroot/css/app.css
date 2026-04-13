@@ -1,12 +1,13 @@
-﻿
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+﻿@import url('inter-local.css');
 
 :root {
     --color-primary: #27213C;
     --color-primary-light: #ff957d;
     --color-secondary: #ff5020;
+    --color-secondary-dark: #A92300;
+    --color-secondary-light: #FF9174;
     --color-background: #f4f5f4;
-    --color-success: #10b981;
+    --color-success: #69C301;
     --color-grey-dark: #808080;
     --color-grey: #f5f3f5;
     --color-light-grey: #f8fafc;
@@ -14,15 +15,10 @@
     --color-yellow: #a16207;
     --border-rad: 10px;
     --padding: 10px;
-    --colour-survey: #7DCE82;
+    --colour-survey: #539A00;
     --colour-construction: #FF8360;
     --colour-company: #F0544F;
     --colour-individual: #C6D8D3;
-    --mud-ripple-color: var(--color-primary) !important;
-    --mud-palette-primary: var(--color-primary) !important;
-    --mud-palette-secondary: var(--color-secondary) !important;
-    --mud-palette-info: var(--color-primary) !important;
-    --mud-default-borderradius: var(--border-rad) !important;
 }
 
 html,
@@ -30,21 +26,11 @@ body {
     background-color: var(--color-background) !important;
     transition: color 0.5s, background-color 0.5s;
     line-height: 1.6;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-}
-
-.wide-container {
-    max-width: 2500px;
-    width: 100%;
-    min-width: 0;
-    margin: 0 auto;
-    padding: 1rem;
-    min-height: 100vh;
-    box-sizing: border-box;
 }
 
 /* Override Card component styles for this page */
@@ -53,7 +39,7 @@ body {
     width: 100%;
     min-width: 0;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 0rem 1rem;
     min-height: 100vh;
     box-sizing: border-box;
 }
@@ -130,16 +116,17 @@ label {
 .grey-background {
     background-color: var(--color-light-grey);
 }
-.grey-background.hover:hover {
+
+    .grey-background.hover:hover {
         border-color: rgba(39, 33, 60, 0.1);
         background: var(--color-grey);
-}
+    }
 
 .white-background {
     background-color: var(--color-white);
 }
 
-.border-grey{
+.border-grey {
     border: 2px solid #e2e8f0 !important;
 }
 
@@ -166,7 +153,11 @@ ul {
 }
 
 .text-green {
-    color: seagreen;
+    color: var(--color-success);
+}
+
+.text-grey {
+    color: var(--color-grey-dark);
 }
 
 .cursor-pointer {
@@ -178,6 +169,17 @@ ul {
     background-color: #1b6ec2;
     border-color: #1861ac;
 }
+
+.prs-link {
+    color: var(--color-secondary) !important;
+    font-weight: 600;
+}
+
+    .prs-link:hover {
+        color: var(--color-secondary) !important;
+        transition:all ease-in-out 0.2s;
+    }
+
 
 .valid.modified:not([type="checkbox"]) {
     outline: 1px solid #26b050;
@@ -226,18 +228,6 @@ ul {
         transform: translateY(-3px);
     }
 
-.mud-elevation-1 {
-    box-shadow: none !important;
-}
-
-.mud-table {
-    box-shadow: none !important;
-}
-
-.mud-table-container {
-    overflow-y: hidden !important;
-}
-
 .shadow {
     box-shadow: rgba(33, 35, 38, 0.1) 0px 10px 10px -10px !important;
 }
@@ -256,108 +246,6 @@ ul {
 
 a {
     text-decoration: none !important;
-}
-
-.mud-button-filled.mud-button-filled-primary {
-    border-radius: var(--border-rad);
-    box-shadow: none;
-    background-color: var(--color-primary) !important;
-}
-
-.mud-input.mud-input-filled.mud-input-underline:before {
-    border-bottom: none !important;
-}
-
-.mud-input.mud-input-filled.mud-input-underline:before {
-    border-bottom: none !important;
-}
-
-.mud-button-filled.mud-button-filled-primary {
-    border-radius: var(--border-rad);
-    box-shadow: none;
-    background-color: var(--color-primary) !important;
-}
-
-.mud-button-filled.mud-button-filled-error {
-    border-radius: var(--border-rad);
-    box-shadow: none;
-}
-
-.mud-button-filled.mud-button-filled-success {
-    border-radius: var(--border-rad);
-    box-shadow: none;
-    background-color: var(--color-success) !important;
-}
-
-.mud-button-filled.mud-button-filled-secondary {
-    border-radius: var(--border-rad);
-    box-shadow: none;
-}
-
-.mud-button-filled.mud-button-filled-default {
-    border-radius: var(--border-rad);
-    box-shadow: none;
-}
-
-.mud-button-filled.mud-button-filled-info {
-    border-radius: var(--border-rad);
-    box-shadow: none;
-}
-
-.mud-secondary-text {
-    color: var(--color-secondary) !important;
-}
-
-.mud-tab.mud-tab-active {
-    color: var(--color-secondary) !important;
-}
-
-    .mud-tab .mud-tab-active .mud-ripple .mud-tab-panel > * {
-        color: var(--color-secondary) !important;
-    }
-
-.mud-tab-slider {
-    background: black !important;
-}
-
-.mud-input-outlined-border {
-    border-radius: var(--border-rad) !important;
-    padding: 3px !important;
-}
-
-.mud-table-cell.sticky-left {
-    z-index: auto !important;
-}
-
-.mud-input {
-    background: white !important;
-    border-radius: var(--border-rad) !important;
-}
-
-    .mud-input > input.mud-input-root-outlined, div.mud-input-slot.mud-input-root-outlined {
-        padding: 16px 10px !important;
-    }
-
-.mud-input-control.mud-input-outlined-with-label {
-    margin-bottom: 0px !important;
-    margin-top: 0px !important;
-}
-
-.mud-skeleton {
-    border-radius: var(--border-rad) !important;
-}
-
-.mud-table-cell.sticky-left {
-    background: none;
-}
-
-.mud-dialog .mud-dialog-title {
-    padding: 0 !important;
-}
-
-.contact-link {
-    color: var(--color-secondary) !important;
-    font-weight: 600;
 }
 
 .btn-add {
@@ -410,43 +298,6 @@ a {
         transform: scale(1);
     }
 }
-
-.custom-marker {
-    background-color: var(--color-primary);
-    color: white;
-    padding: var(--padding);
-    border: 2px solid white;
-}
-
-    .custom-marker::after {
-        background-color: var(--color-primary);
-        content: '';
-        position: absolute;
-        left: 42%;
-        top: 80%;
-        width: 10px;
-        height: 10px;
-        clear: both;
-        transform: rotate(-45deg);
-    }
-
-.custom-marker {
-    background-color: var(--color-primary);
-    color: white;
-    padding: var(--padding);
-}
-
-    .custom-marker::after {
-        background-color: var(--color-primary);
-        content: '';
-        position: absolute;
-        left: 42%;
-        top: 80%;
-        width: 10px;
-        height: 10px;
-        clear: both;
-        transform: rotate(-45deg);
-    }
 
 .page-header {
     display: flex;

@@ -10,14 +10,14 @@
 
 @code {
     [Parameter]
-    public QuotesStatusTypeDto SingleStatus { get; set; }
+    public required QuotesStatusTypeDto SingleStatus { get; set; }
 }
 
 <style>
     /* Fixed footprint so the badge looks the same in grids, headers, and detail pages */
     .status-badge {
         box-sizing: border-box;
-        width: 140px;
+        width: 120px;
         height: 28px;
         border-radius: 14px;
         color: var(--color-white);

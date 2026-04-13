@@ -50,7 +50,7 @@
                     </TemplateColumn>
                     <TemplateColumn Property="x => x.JobNumber" ShowFilterIcon="false" Sortable="true" Title="Job #" HeaderStyle="max-width: 75px">
                         <CellTemplate>
-                            <a class="contact-link" href=@($"/jobs/{context.Item.JobId}")>@context.Item.JobNumber</a>
+                            <a class="prs-link" href=@($"/jobs/{context.Item.JobId}")>@context.Item.JobNumber</a>
                         </CellTemplate>
                     </TemplateColumn>
                     @* <PropertyColumn Property="x => x.JobId" ShowFilterIcon="false" HeaderStyle="max-width: 75px" /> *@
@@ -58,13 +58,13 @@
                         <CellTemplate>
                             @if (context.Item is { Contact1: not null, Contact2: not null })
                             {
-                                <a class="contact-link" href="/contacts/@context.Item.Contact1.contactId">@(context.Item.Contact1.fullName)</a>
+                                <a class="prs-link" href="/contacts/@context.Item.Contact1.contactId">@(context.Item.Contact1.fullName)</a>
                                 <i>/</i>
-                                <a class="contact-link" href="/contacts/@context.Item.Contact2.contactId">@(context.Item.Contact2.fullName)</a>
+                                <a class="prs-link" href="/contacts/@context.Item.Contact2.contactId">@(context.Item.Contact2.fullName)</a>
                             }
                             else if (context.Item is { Contact1: not null, Contact2: null })
                             {
-                                <a class="contact-link" href="/contacts/@context.Item.Contact1.contactId">@(context.Item.Contact1.fullName)</a>
+                                <a class="prs-link" href="/contacts/@context.Item.Contact1.contactId">@(context.Item.Contact1.fullName)</a>
                             }
                             else
                             {

@@ -16,12 +16,13 @@
                 <div class="day-view-event schedule-items shadow-deep"
                      style="top: @(topPx)px; height: @(heightPx)px; border-left: 4px solid @(evt.Colour ?? "#ccc"); background: var(--color-background);"
                      @onclick="@(() => OnEventClick.InvokeAsync(evt))">
-                    <b class="contact-link cursor-pointer">View</b>
+                    <b class="
+cursor-pointer">View</b>
                     <br />
                     @if (evt.JobAddress is not null && evt.JobNumber is not null && evt.JobId is not null)
                     {
                         <small>
-                            <a class="contact-link" href="@($"/jobs/{evt.JobId}")">Job: @(evt.JobNumber?.ToString() ?? "")</a>
+                            <a class="prs-link" href="@($"/jobs/{evt.JobId}")">Job: @(evt.JobNumber?.ToString() ?? "")</a>
                             - @evt.JobAddress
                         </small>
                         <hr />
