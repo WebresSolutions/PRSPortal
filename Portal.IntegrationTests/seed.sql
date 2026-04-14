@@ -125,11 +125,11 @@ INSERT INTO address (street, suburb, state_id, post_code, country, created_by_us
     VALUES ('78 Mountain View Road', 'Sandy Bay', 3, '7005', 'Australia', 1, ST_SetSRID(ST_Point(147.3340, -42.9030), 4326), 'r22m6v');
 
 INSERT INTO contact (first_name, last_name, email, phone, address_id, created_by_user_id, type_id)
-    VALUES ('Alice', 'Smith', 'alice.smith@example.com', '+61 411 222 333', 1, 1, 2);
+    VALUES ('Alice', 'Smith', 'jordan@ws1.com.au', '+61 411 222 333', 1, 1, 2);
 INSERT INTO contact (first_name, last_name, email, phone, address_id, created_by_user_id, parent_contact_id, type_id)
-    VALUES ('Bob', 'Jones', 'bob.jones@provider.net', '+61 422 333 444', 2, 1, 1, 2);
+    VALUES ('Bob', 'Jones', 'jordan@ws1.com.au', '+61 422 333 444', 2, 1, 1, 2);
 INSERT INTO contact (first_name, last_name, email, phone, address_id, created_by_user_id, type_id)
-    VALUES ('Charlie', 'Brown', 'charlie.b@work.com', '+61 433 444 555', 3, 1, 2);
+    VALUES ('Charlie', 'Brown', 'jordan@ws1.com.au', '+61 433 444 555', 3, 1, 2);
 
 INSERT INTO council (name, address_id, phone, email, website, created_by_user_id)
     VALUES ('City of Melbourne', 1, '03 9658 9658', 'enquiries@melbourne.vic.gov.au', 'https://www.melbourne.vic.gov.au', 1);

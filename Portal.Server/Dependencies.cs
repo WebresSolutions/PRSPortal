@@ -5,9 +5,13 @@ using Microsoft.Identity.Web;
 using Portal.Data;
 using Portal.Server.Options;
 using Portal.Server.Services.Instances;
+using Portal.Server.Services.Instances.Utilities;
+using Portal.Server.Services.Instances.UtilityServices;
 using Portal.Server.Services.Interfaces;
+using Portal.Server.Services.Interfaces.UtilityServices;
 using Portal.Server.Services.Mocks;
 using Quartz;
+using Smtp2Go.Api;
 using Xero.NetStandard.OAuth2.Api;
 
 namespace Portal.Server;
@@ -52,13 +56,11 @@ public static class Dependencies
         builder.Services.AddAuthorization();
         builder.Services.Configure<XeroOptions>(builder.Configuration.GetSection("XeroSettings"));
         builder.Services.Configure<SharePointOptions>(builder.Configuration.GetSection("SharepointOptions"));
+        builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("EmailOptions"));
 
         builder.WebHost.UseStaticWebAssets();
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
-
-        string tenantId = builder.Configuration.GetValue<string>("AzureAd:TenantId") ?? "";
-        string clientId = builder.Configuration.GetValue<string>("AzureAd:ClientId") ?? "";
 
         builder.Services.AddQuartz();
         // Add Quartz.NET as a hosted service
@@ -79,10 +81,18 @@ public static class Dependencies
             else
                 return new SharePointService(options, logger);
         });
-
+        builder.Services.AddSingleton<IApiService, Smtp2GoApiService>(provider =>
+        {
+            EmailOptions options = provider.GetRequiredService<IOptions<EmailOptions>>().Value;
+            return new Smtp2GoApiService(options.ApiKey);
+        });
         builder.Services.AddScoped<IFileService, FileService>();
+        builder.Services.AddScoped<IPdfGenerationService, PdfGenerationService>();
         builder.Services.AddSingleton<IAccountingApi, AccountingApi>();
         builder.Services.AddSingleton<IPayrollAuApi, PayrollAuApi>();
+        builder.Services.AddSingleton<IEmailService, EmailService>();
+
+        #region Scoped Services.
         builder.Services.AddScoped<IXeroIntegrationService, XeroIntegrationService>();
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IScheduleService, ScheduleService>();
@@ -93,6 +103,7 @@ public static class Dependencies
         builder.Services.AddScoped<ITimeSheetService, TimeSheetService>();
         builder.Services.AddScoped<ITypesService, TypesService>();
         builder.Services.AddScoped<IQuoteService, QuoteService>();
+        #endregion
 
         // Add Swagger/OpenAPI services for API debugging
         if (builder.Configuration.GetValue<bool>("ApiSettings:EnableSwagger"))

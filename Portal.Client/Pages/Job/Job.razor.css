@@ -27,16 +27,6 @@
         margin: 0;
     }
 
-    .job-detail-container ::deep .cd-title {
-        margin-left: 0;
-        margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid #e2e8f0;
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--color-primary);
-    }
-
 .job-header {
     display: flex;
     justify-content: space-between;

@@ -19,28 +19,13 @@ using System.Net.Http.Json;
 
 namespace Portal.Client.Services.Instances;
 
-/// <summary>
-/// Service implementation for making API calls to the server
-/// Handles HTTP requests with authentication and error handling
-/// </summary>
+/// <inheritdoc />
 public class ApiService : IApiService
 {
-    /// <summary>
-    /// The HTTP client used for making API requests
-    /// </summary>
     private readonly HttpClient _httpClient;
 
-    /// <summary>
-    /// Navigation manager for handling page navigation
-    /// </summary>
     private readonly NavigationManager _navigationManager;
-    /// <summary>
-    /// Initializes a new instance of the ApiService class
-    /// </summary>
-    /// <param name="httpClientFactory">Factory for creating HTTP clients</param>
-    /// <param name="configuration">Application configuration</param>
-    /// <param name="navigationManager">Navigation manager for redirecting to login</param>
-    /// <exception cref="Exception">Thrown when HTTP client configuration is missing</exception>
+
     public ApiService(IHttpClientFactory httpClientFactory, IConfiguration configuration, NavigationManager navigationManager)
     {
         string httpClientName = configuration.GetValue<string>("HttpClient")
@@ -50,19 +35,7 @@ public class ApiService : IApiService
         _navigationManager = navigationManager;
     }
 
-    /// <summary>
-    /// Retrieves a paged list of jobs, optionally filtered by name and sorted according to the specified criteria.
-    /// </summary>
-    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The method does
-    /// not throw exceptions for HTTP errors; instead, error information is included in the returned result.</remarks>
-    /// <param name="pageSize">The maximum number of jobs to include in each page of results. Must be a positive integer.</param>
-    /// <param name="pageNumber">The 1-based index of the page to retrieve. Must be greater than or equal to 1.</param>
-    /// <param name="nameFilter">An optional filter to return only jobs whose names contain the specified value. If null, no name filtering is
-    /// applied.</param>
-    /// <param name="orderby">An optional field name by which to sort the results. If null, the default sort order is used.</param>
-    /// <param name="order">The direction in which to sort the results. Specify ascending or descending.</param>
-    /// <returns>A result containing a paged response of job data transfer objects. If no jobs match the criteria, the response
-    /// contains an empty collection.</returns>
+    /// <inheritdoc />
     public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(JobFilterDto filter)
     {
         Result<PagedResponse<ListJobDto>> res = new();
@@ -111,14 +84,7 @@ public class ApiService : IApiService
 
         return res;
     }
-    /// <summary>
-    /// Retrieves the details of a job with the specified identifier.
-    /// </summary>
-    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
-    /// result will contain error information if the job is not found or if the request fails.</remarks>
-    /// <param name="id">The unique identifier of the job to retrieve.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{JobDetailsDto}"/> object with the job details if found; otherwise, contains error information.</returns>
+    /// <inheritdoc />
     public async Task<Result<JobDetailsDto>> Job(int id)
     {
         Result<JobDetailsDto> res = new();
@@ -145,9 +111,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Creates a new job with the provided details.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<int>> CreateJob(JobCreationDto data)
     {
         Result<int> res = new();
@@ -174,11 +138,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Deletes a job with the specified identifier. If the user is not authorized, the method may trigger navigation to the login page. The returned result contains error information if the request fails.
-    /// </summary>
-    /// <param name="jobId"></param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public async Task<Result<bool>> DeleteJob(int jobId)
     {
         Result<bool> res = new();
@@ -205,11 +165,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Updates Job Details
-    /// </summary>
-    /// <param name="data"></param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public async Task<Result<JobDetailsDto>> UpdateJob(JobUpdateDto data)
     {
         Result<JobDetailsDto> res = new();
@@ -237,12 +193,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Gets the notes for a job.
-    /// </summary>
-    /// <param name="jobId">The job id.</param>
-    /// <param name="includeDeleted">Whether to include soft-deleted notes.</param>
-    /// <returns>The list of notes for the job.</returns>
+    /// <inheritdoc />
     public async Task<Result<List<JobNoteDto>>> GetJobNotes(int jobId, bool includeDeleted = false, bool? actionRequired = null)
     {
         Result<List<JobNoteDto>> res = new();
@@ -272,11 +223,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Creates or updates a job note. Use NoteId 0 to create; set NoteId to the existing note id to update.
-    /// </summary>
-    /// <param name="note">The note to create or update.</param>
-    /// <returns>The updated job details including notes.</returns>
+    /// <inheritdoc />
     public async Task<Result<List<JobNoteDto>>> SaveJobNote(JobNoteDto note)
     {
         Result<List<JobNoteDto>> res = new();
@@ -303,9 +250,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Gets technical contacts filtered by jobId and/or contactId. At least one of jobId or contactId must be provided.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<TechnicalContactDto[]>> GetTechnicalContacts(int? jobId, int? contactId, bool showDeleted = false)
     {
         Result<TechnicalContactDto[]> res = new();
@@ -337,9 +282,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Creates or updates a technical contact (links a contact to a job with a role). Use Id 0 to create; set Id to the existing technical contact id to update.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<TechnicalContactDto[]>> SaveTechnicalContact(SaveTechnicalContactTypeDto dto)
     {
         Result<TechnicalContactDto[]> res = new();
@@ -366,10 +309,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Saves (uploads or replaces) a file for a job.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<int>> SaveJobFile(int jobId, FileDto file)
     {
         Result<int> res = new();
@@ -396,10 +336,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Gets file data (metadata and content) by file id.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<FileDto>> GetFileData(int fileId)
     {
         Result<FileDto> res = new();
@@ -426,17 +363,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Retrieves the list of available schedule slots for an individual on the specified date and job type.
-    /// </summary>
-    /// <remarks>If the user is not authorized, the operation will redirect to the login page. The returned
-    /// Result object contains error information if the request fails.</remarks>
-    /// <param name="date">The date for which to retrieve available schedule slots.</param>
-    /// <param name="jobType">The type of job for which to retrieve schedule slots.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with a list of
-    /// ScheduleSlotDTO instances representing the available schedule slots. If no slots are available, the list will be
-    /// empty.</returns>
+    /// <inheritdoc />
     public async Task<Result<List<ScheduleTrackDto>>> GetIndividualSchedule(DateOnly date, JobTypeEnum jobType)
     {
         Result<List<ScheduleTrackDto>> res = new();
@@ -475,14 +402,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Retrieves the list of available schedule colours from the server.
-    /// </summary>
-    /// <remarks>If the user is not authorized, the method may trigger navigation to the login page before
-    /// returning. The returned list may be empty if no schedule colours are available.</remarks>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="Result{T}"/> object
-    /// with a list of <see cref="ScheduleColourDto"/> instances if the request is successful; otherwise, contains error
-    /// information describing the failure.</returns>
+    /// <inheritdoc />
     public async Task<Result<List<ScheduleColourDto>>> GetScheduleColours()
     {
         Result<ScheduleColourDto[]> arrayResult = await GetTypesAsync<ScheduleColourDto>("api/types/schedulecolour", "schedule colours");
@@ -493,14 +413,7 @@ public class ApiService : IApiService
             res.SetError(arrayResult.Error ?? ErrorType.InternalError, arrayResult.ErrorDescription ?? "Failed to get schedule colours");
         return res;
     }
-    /// <summary>
-    /// Updates the schedule colour using the specified colour data.
-    /// </summary>
-    /// <remarks>If the update request is unauthorized, the user is redirected to the login page. The returned
-    /// Result object provides details about the success or failure of the operation.</remarks>
-    /// <param name="colour">The schedule colour data to update. Cannot be null.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with the updated
-    /// schedule colour data if the update is successful; otherwise, contains error information.</returns>
+    /// <inheritdoc />
     public async Task<Result<ScheduleColourDto>> UpdateScheduleColour(ScheduleColourDto colour)
     {
         Result<ScheduleColourDto> res = new();
@@ -528,10 +441,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Gets a single schedule by id.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<ScheduleDto>> GetSchedule(int id)
     {
         Result<ScheduleDto> res = new();
@@ -558,10 +468,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Creates or updates a schedule. Use Id 0 to create; set Id to the existing schedule id to update.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<int>> UpdateSchedule(UpdateScheduleDto data)
     {
         Result<int> res = new();
@@ -588,10 +495,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Creates or updates a schedule track (day slot). Use ScheduleTrackId 0 to create.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<ScheduleTrackDto>> UpdateScheduleTrack(UpdateScheduleTrackDto data)
     {
         Result<ScheduleTrackDto> res = new();
@@ -618,10 +522,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Gets the weekly schedule for the given job type, optionally for the week containing the specified day.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<WeeklyGroupedByScheduleDto[]>> GetWeeklySchedule(JobTypeEnum jobType, DateOnly? weekDay = null)
     {
         Result<WeeklyGroupedByScheduleDto[]> res = new();
@@ -656,10 +557,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Deletes a schedule track.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<int>> DeleteScheduleTrack(int id)
     {
         Result<int> res = new();
@@ -685,16 +583,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Retrieves the current system settings from the server asynchronously.
-    /// </summary>
-    /// <remarks>If the user is not authorized, the method may trigger navigation to the login page. The
-    /// returned result object includes error details if the operation fails, such as when the server returns an error
-    /// response.</remarks>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{SystemSettingDto}"/> object with the retrieved system settings if the request is successful;
-    /// otherwise, contains error information.</returns>
+    /// <inheritdoc />
     public async Task<Result<SystemSettingDto>> GetSystemSettings()
     {
         Result<SystemSettingDto> res = new();
@@ -721,14 +610,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Updates the system settings with the specified values asynchronously.
-    /// </summary>
-    /// <remarks>If the operation is unauthorized, the user may be redirected to the login page. The returned
-    /// Result object provides details about the success or failure of the update operation.</remarks>
-    /// <param name="settings">An object containing the new system settings to apply. Cannot be null.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with the updated
-    /// system settings if the update is successful; otherwise, contains error information.</returns>
+    /// <inheritdoc />
     public async Task<Result<SystemSettingDto>> UpdateSystemSettings(SystemSettingDto settings)
     {
         Result<SystemSettingDto> res = new();
@@ -755,14 +637,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Retrieves all councils from the server asynchronously.
-    /// </summary>
-    /// <remarks>If the user is not authorized, the method may trigger navigation to the login page. The returned
-    /// result object includes error details if the operation fails.</remarks>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{CouncilPartialDto[]}"/> object with the list of councils if the request is successful;
-    /// otherwise, contains error information.</returns>
+    /// <inheritdoc />
     public async Task<Result<CouncilPartialDto[]>> GetCouncils()
     {
         Result<CouncilPartialDto[]> res = new();
@@ -789,14 +664,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Retrieves the details of a council with the specified identifier.
-    /// </summary>
-    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
-    /// result will contain error information if the council is not found or if the request fails.</remarks>
-    /// <param name="councilId">The unique identifier of the council to retrieve.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{CouncilDetailsDto}"/> object with the council details if found; otherwise, contains error information.</returns>
+    /// <inheritdoc />
     public async Task<Result<CouncilDetailsDto>> GetCouncilDetails(int councilId)
     {
         Result<CouncilDetailsDto> res = new();
@@ -822,10 +690,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Creates a new council with the provided details.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<int>> CreateCouncil(CouncilCreationDto data)
     {
         Result<int> res = new();
@@ -852,10 +717,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Updates an existing council with the provided details.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<CouncilDetailsDto>> UpdateCouncil(CouncilUpdateDto data)
     {
         Result<CouncilDetailsDto> res = new();
@@ -882,14 +744,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Retrieves a paged list of contacts, optionally filtered by split search fields or searchFilter for type-ahead, and sorted.
-    /// </summary>
-    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The method does
-    /// not throw exceptions for HTTP errors; instead, error information is included in the returned result.</remarks>
-    /// <param name="filter">Filter parameters including page, pageSize, order, orderby, deleted, and optional search fields or searchFilter.</param>
-    /// <returns>A result containing a paged response of contact data transfer objects. If no contacts match the criteria, the response
-    /// contains an empty collection.</returns>
+    /// <inheritdoc />
     public async Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(ContactFilterDto filter)
     {
         Result<PagedResponse<ListContactDto>> res = new();
@@ -940,14 +795,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Retrieves the details of a contact with the specified identifier.
-    /// </summary>
-    /// <remarks>If the request is unauthorized, the user may be redirected to the login page. The returned
-    /// result will contain error information if the contact is not found or if the request fails.</remarks>
-    /// <param name="contactId">The unique identifier of the contact to retrieve.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a <see
-    /// cref="Result{ContactDetailsDto}"/> object with the contact details if found; otherwise, contains error information.</returns>
+    /// <inheritdoc />
     public async Task<Result<ContactDetailsDto>> GetContactDetails(int contactId)
     {
         Result<ContactDetailsDto> res = new();
@@ -974,10 +822,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Creates a new contact with the provided details.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<int>> CreateContact(ContactCreationDto data)
     {
         Result<int> res = new();
@@ -1004,10 +849,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Updates an existing contact with the provided details.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<ContactDetailsDto>> UpdateContact(ContactUpdateDto data)
     {
         Result<ContactDetailsDto> res = new();
@@ -1036,9 +878,7 @@ public class ApiService : IApiService
     }
 
     #region QUOTES
-    /// <summary>
-    /// Retrieves a paged list of quotes with optional filters and sort.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<PagedResponse<QuoteListDto>>> GetAllQuotes(QuoteFilterDto filter)
     {
         Result<PagedResponse<QuoteListDto>> res = new();
@@ -1083,10 +923,7 @@ public class ApiService : IApiService
 
         return res;
     }
-
-    /// <summary>
-    /// Retrieves quote details by id.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<QuoteDetailsDto>> GetQuoteDetails(int quoteId)
     {
         Result<QuoteDetailsDto> res = new();
@@ -1113,10 +950,34 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Creates a new quote.
-    /// </summary>
+    /// <inheritdoc />
+    public async Task<Result<QuotePdfDto>> GetQuotePdf(int quoteId)
+    {
+        Result<QuotePdfDto> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"api/quotes/{quoteId}/pdf");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                QuotePdfDto? dto = await response.Content.ReadFromJsonAsync<QuotePdfDto>();
+                if (dto is not null)
+                    res.Value = dto;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get quote pdf details";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+    /// <inheritdoc />
     public async Task<Result<int>> CreateQuote(QuoteCreationDto data)
     {
         Result<int> res = new();
@@ -1143,10 +1004,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Updates an existing quote.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<int>> UpdateQuote(QuoteUpdateDto data)
     {
         Result<int> res = new();
@@ -1173,10 +1031,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Deletes a quote by id.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<bool>> DeleteQuote(int quoteId)
     {
         Result<bool> res = new();
@@ -1203,10 +1058,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Gets all quoting templates.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<QuoteTemplateDto[]>> GetQuotingTemplates()
     {
         Result<QuoteTemplateDto[]> res = new();
@@ -1232,10 +1084,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Creates a new quoting template.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<QuoteTemplateDto>> CreateQuotingTemplate(QuoteTemplateDto data)
     {
         Result<QuoteTemplateDto> res = new();
@@ -1262,10 +1111,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Updates an existing quoting template.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<QuoteTemplateDto>> UpdateQuotingTemplate(QuoteTemplateDto data)
     {
         Result<QuoteTemplateDto> res = new();
@@ -1292,10 +1138,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Deletes a quoting template by id (route parameter name on server: quoteId).
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<bool>> DeleteQuotingTemplate(int templateId)
     {
         Result<bool> res = new();
@@ -1322,12 +1165,35 @@ public class ApiService : IApiService
         }
         return res;
     }
+    /// <inheritdoc />
+    public async Task<Result<int>> SendQuoteToCustomer(int quoteId)
+    {
+        Result<int> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.PutAsync($"api/quotes/{quoteId}/send", null);
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                int? id = await response.Content.ReadFromJsonAsync<int>();
+                if (id.HasValue)
+                    res.Value = id.Value;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to send quote to customer";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
     #endregion
-
-    /// <summary>
-    /// Gets notes for a particular user. If the user is not authorized, the method may trigger navigation to the login page. The returned result contains error information if the request fails.
-    /// </summary>
-    /// <returns></returns>
+    /// <inheritdoc />
     public async Task<Result<JobNoteDto[]>> GetUserNotes(bool includeDeleted = false, bool? actionRequired = null)
     {
         Result<JobNoteDto[]> res = new();
@@ -1359,10 +1225,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Gets all jobs assigned to the specified user.
-    /// </summary>
-    /// <param name="userId">The user identifier.</param>
+    /// <inheritdoc />
     public async Task<Result<UserJobsListDto>> GetUserJobs(int userId)
     {
         Result<UserJobsListDto> res = new();
@@ -1389,10 +1252,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Gets a list of users
-    /// </summary>
-    /// <returns>An array of users</returns>
+    /// <inheritdoc />
     public async Task<Result<UserDto[]>> GetUsersList()
     {
         Result<UserDto[]> res = new();
@@ -1420,9 +1280,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Gets timesheet entries for a user within a date range. Use userId 0 for the current user.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<TimeSheetDto[]>> GetUserTimeSheets(int userId, DateTime start, DateTime? end)
     {
         Result<TimeSheetDto[]> res = new();
@@ -1451,9 +1309,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Adds a new timesheet entry for the current user.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<TimeSheetDto>> AddTimeSheetEntry(TimeSheetDto entry)
     {
         Result<TimeSheetDto> res = new();
@@ -1479,12 +1335,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Updates a timesheet entry for the current user. The entry must have a valid ID corresponding to an existing timesheet entry. 
-    /// If the entry does not exist or the update fails, the returned result will contain error information.
-    /// </summary>
-    /// <param name="entry">The timesheet entry being updated</param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public async Task<Result<TimeSheetDto>> UpdateTimeSheet(TimeSheetDto entry)
     {
         Result<TimeSheetDto> res = new();
@@ -1510,26 +1361,30 @@ public class ApiService : IApiService
         }
         return res;
     }
-    /// <summary>
-    /// Gets the list of timesheet entry types.
-    /// </summary>
+    /// <inheritdoc />
     public Task<Result<TimeTypeDto[]>> GetTimeSheetTypes() =>
         GetTypesAsync<TimeTypeDto>("api/types/timesheet", "timesheet types");
+    /// <inheritdoc />
     public Task<Result<ContactTypeDto[]>> GetContactTypes() =>
         GetTypesAsync<ContactTypeDto>("api/types/contact", "contact types");
+    /// <inheritdoc />
     public Task<Result<JobTypeDto[]>> GetJobTypes() =>
         GetTypesAsync<JobTypeDto>("api/types/job", "job types");
+    /// <inheritdoc />
     public Task<Result<JobColourDto[]>> GetJobColours() =>
         GetTypesAsync<JobColourDto>("api/types/jobcolour", "job colours");
+    /// <inheritdoc />
     public Task<Result<FileTypeDto[]>> GetFileTypes() =>
         GetTypesAsync<FileTypeDto>("api/types/file", "file types");
+    /// <inheritdoc />
     public Task<Result<JobTaskTypeDto[]>> GetJobTaskTypes() =>
         GetTypesAsync<JobTaskTypeDto>("api/types/jobtask", "job task types");
+    /// <inheritdoc />
     public Task<Result<TechnicalContactTypeDto[]>> GetTechnicalContactTypes() =>
         GetTypesAsync<TechnicalContactTypeDto>("api/types/technicalcontact", "technical contact types");
+    /// <inheritdoc />
     public Task<Result<StateDto[]>> GetStates() =>
         GetTypesAsync<StateDto>("api/types/state", "states");
-
     /// <inheritdoc />
     public async Task<Result<AllSettingsTypesDto>> GetAllSettingsTypes()
     {
@@ -1556,7 +1411,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
+    /// <inheritdoc />
     private async Task<Result<T[]>> GetTypesAsync<T>(string url, string typeName)
     {
         Result<T[]> res = new();
@@ -1582,6 +1437,7 @@ public class ApiService : IApiService
         }
         return res;
     }
+    /// <inheritdoc />
     private async Task<Result<T>> PutTypeAsync<T>(string url, T dto, string typeName)
     {
         Result<T> res = new();
@@ -1608,23 +1464,30 @@ public class ApiService : IApiService
         }
         return res;
     }
+    /// <inheritdoc />
     public Task<Result<TimeTypeDto>> SaveTimeSheetType(TimeTypeDto dto) =>
         PutTypeAsync("api/types/timesheet", dto, "timesheet type");
+    /// <inheritdoc />
     public Task<Result<ContactTypeDto>> SaveContactType(ContactTypeDto dto) =>
         PutTypeAsync("api/types/contact", dto, "contact type");
+    /// <inheritdoc />
     public Task<Result<JobTypeDto>> SaveJobType(JobTypeDto dto) =>
         PutTypeAsync("api/types/job", dto, "job type");
+    /// <inheritdoc />
     public Task<Result<JobColourDto>> SaveJobColour(JobColourDto dto) =>
         PutTypeAsync("api/types/jobcolour", dto, "job colour");
+    /// <inheritdoc />
     public Task<Result<FileTypeDto>> SaveFileType(FileTypeDto dto) =>
         PutTypeAsync("api/types/file", dto, "file type");
+    /// <inheritdoc />
     public Task<Result<JobTaskTypeDto>> SaveJobTaskType(JobTaskTypeDto dto) =>
         PutTypeAsync("api/types/jobtask", dto, "job task type");
+    /// <inheritdoc />
     public Task<Result<TechnicalContactTypeDto>> SaveTechnicalContactType(TechnicalContactTypeDto dto) =>
         PutTypeAsync("api/types/technicalcontact", dto, "technical contact type");
+    /// <inheritdoc />
     public Task<Result<ServiceTypeDto>> SaveServiceType(ServiceTypeDto dto) =>
         PutTypeAsync("api/types/service", dto, "service type");
-
     /// <inheritdoc />
     public async Task<Result<JobTypeStatusDto[]>> GetJobStatuses()
     {
@@ -1651,7 +1514,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     /// <inheritdoc />
     public async Task<Result<JobTypeStatusDto[]>> SaveJobTypeStatuses(IEnumerable<JobTypeStatusDto> dtos)
     {
@@ -1680,11 +1542,8 @@ public class ApiService : IApiService
         }
         return res;
     }
-
     #region INTEGRATION
-    /// <summary>
-    /// Gets the Xero OAuth authorization URL; redirect the user to this URL to start OAuth.
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<XeroAuthorizeResponse>> GetXeroAuthorizeUrl()
     {
         Result<XeroAuthorizeResponse> res = new();
@@ -1711,10 +1570,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Returns whether Xero is connected (has stored refresh token).
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<XeroStatusResponse>> GetXeroStatus()
     {
         Result<XeroStatusResponse> res = new();
@@ -1741,10 +1597,7 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Disconnects Xero (removes stored tokens).
-    /// </summary>
+    /// <inheritdoc />
     public async Task<Result<bool>> DisconnectXero()
     {
         Result<bool> res = new();
@@ -1768,12 +1621,7 @@ public class ApiService : IApiService
     }
     #endregion
 
-    /// <summary>
-    /// Deletes a timesheet entry for the current user. The entry must have a valid ID corresponding to an existing timesheet entry. 
-    /// If the entry does not exist or the update fails, the returned result will contain error information.
-    /// </summary>
-    /// <param name="entry">The timesheet entry being updated</param>
-    /// <returns></returns>
+    /// <inheritdoc />
     public async Task<Result<bool>> DeleteTimeSheetEntry(TimeSheetDto entry)
     {
         Result<bool> res = new();
@@ -1799,14 +1647,6 @@ public class ApiService : IApiService
         }
         return res;
     }
-
-    /// <summary>
-    /// Navigates asynchronously to the login page, preserving the current URL as the return destination after
-    /// authentication.
-    /// </summary>
-    /// <remarks>This method forces a full page reload when redirecting to the login page. The current URL is
-    /// included as the return URL parameter, allowing users to be redirected back after successful login.</remarks>
-    /// <returns>A task that represents the asynchronous navigation operation.</returns>
     private Task NavigationToLoginPage()
     {
         string returnPath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
@@ -1823,5 +1663,6 @@ public class ApiService : IApiService
         _navigationManager.NavigateToLogin("authentication/login", loginRequest);
         return Task.CompletedTask;
     }
+
 
 }

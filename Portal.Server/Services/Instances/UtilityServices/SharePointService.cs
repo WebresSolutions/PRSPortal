@@ -10,11 +10,11 @@ using Microsoft.Identity.Client;
 using Microsoft.Kiota.Abstractions;
 using Moq;
 using Portal.Server.Options;
-using Portal.Server.Services.Interfaces;
+using Portal.Server.Services.Interfaces.UtilityServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Portal.Server.Services.Instances;
+namespace Portal.Server.Services.Instances.UtilityServices;
 
 /// <summary>
 /// Service class for interacting with Microsoft Graph API.

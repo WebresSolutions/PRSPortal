@@ -1,0 +1,41 @@
+﻿@using Portal.Shared.DTO.Quote
+
+<section>
+    <div>
+        <p>Are you sure you want to send the quote <strong>@QuoteDetails.QuoteReference</strong> to <strong>@QuoteDetails.Contact?.Email</strong>?</p>
+    </div>
+    <div>
+        <div>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@SendQuoteToCustomer" Disabled="@_sendingQuote">Yes</MudButton>
+            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="@(Close)"> Disabled="@_sendingQuote"No</MudButton>
+        </div>
+    </div>
+
+</section>
+
+@code {
+    [Parameter]
+    public required QuoteDetailsDto QuoteDetails { get; set; }
+
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    private bool _sendingQuote = false;
+
+    public void Close() => MudDialog?.Close(DialogResult.Cancel());
+
+    public async Task SendQuoteToCustomer()
+    {
+        _sendingQuote = true;
+        var res = await _apiService.SendQuoteToCustomer(QuoteDetails.Id);
+        if (res.IsSuccess)
+        {
+            MudDialog?.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            // Handle error
+        }
+        _sendingQuote = false;
+    }
+}

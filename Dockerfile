@@ -41,8 +41,13 @@ RUN dotnet build -c $BUILD_CONFIGURATION --no-restore
 RUN dotnet publish "Portal.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --no-restore
 
 FROM base AS final
-# Required by Npgsql for PostgreSQL connection (GSSAPI/Kerberos)
-RUN apt-get update && apt-get install -y --no-install-recommends libgssapi-krb5-2 && rm -rf /var/lib/apt/lists/*
+# libgssapi-krb5-2: Npgsql / PostgreSQL (GSSAPI/Kerberos)
+# fontconfig + fonts-liberation: PDFsharp text rendering on Linux containers
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgssapi-krb5-2 \
+    fontconfig \
+    fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Copy the published server application

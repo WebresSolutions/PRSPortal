@@ -16,7 +16,7 @@ public static class SettingsEndpoints
     /// Registers settings-related API endpoints with the application
     /// </summary>
     /// <param name="app">The web application to register endpoints with</param>
-    public static void AddSettingEndpoints(this WebApplication app, string tags, bool reqAuth = true)
+    public static WebApplication AddSettingEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/settings").WithTags(tags);
 
@@ -51,5 +51,7 @@ public static class SettingsEndpoints
             appGroup.RequireAuthorization();
         else
             appGroup.AllowAnonymous();
+
+        return app;
     }
 }

@@ -24,7 +24,7 @@
     }
     @if (Title != string.Empty && !ShowHeaderWithAddButton)
     {
-        <h1 class="cd-title">@Title</h1>
+        <h5 class="cd-title">@Title</h5>
     }
     @if (IsLoading)
     {
@@ -171,9 +171,13 @@
     }
 
     .cd-title {
-        text-align: left;
-        margin-bottom: 1.5rem;
-        margin-left: 1.5rem;
+        margin-left: 0;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--color-primary);
     }
 
     .card-header-simple {

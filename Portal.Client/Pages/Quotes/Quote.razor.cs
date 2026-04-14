@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor;
+using Portal.Client.Components.Quotes;
 using Portal.Shared.DTO.Quote;
 using Portal.Shared.ResponseModels;
 using System.Globalization;
@@ -16,11 +17,12 @@ public partial class Quote
 
     private QuoteDetailsDto? _quote;
     private int? _loadedForId;
+    private QuotePdfDto? _quotePdf;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await LoadIfNeededAsync();
+        await LoadQuoteAsync();
         _breadCrumbService.SetBreadCrumbItems(
           [
             new("Quotes", href: "/quotes", disabled: false),
@@ -31,24 +33,6 @@ public partial class Quote
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-        await LoadIfNeededAsync();
-    }
-
-    private async Task LoadIfNeededAsync()
-    {
-        if (_loadedForId == QuoteId)
-            return;
-
-        _loadedForId = QuoteId;
-        IsLoading = true;
-        try
-        {
-            await LoadQuoteAsync();
-        }
-        finally
-        {
-            IsLoading = false;
-        }
     }
 
     private async Task LoadQuoteAsync()
@@ -64,6 +48,16 @@ public partial class Quote
                 if (result.Error is not ErrorType.NotFound)
                     _snackbar?.Add(result.ErrorDescription ?? "Could not load quote.", Severity.Warning);
             }
+
+            Result<QuotePdfDto> pdfResult = await _apiService.GetQuotePdf(QuoteId);
+            if (pdfResult.IsSuccess && pdfResult.Value is not null)
+                _quotePdf = pdfResult.Value;
+            else
+            {
+                _quotePdf = null;
+                if (pdfResult.Error is not ErrorType.NotFound)
+                    _snackbar?.Add(pdfResult.ErrorDescription ?? "Could not load quote PDF.", Severity.Warning);
+            }
         }
         catch (Exception)
         {
@@ -74,9 +68,12 @@ public partial class Quote
         await InvokeAsync(StateHasChanged);
     }
 
-    private Task OnSendQuoteAsync(MouseEventArgs _)
+    private async Task OnSendQuoteAsync(MouseEventArgs _)
     {
-        // Wire to API when send-to-client is implemented.
-        return Task.CompletedTask;
+        IDialogReference sendResult = await _dialog.ShowAsync<SendQuoteConfirmation>("Send Quote", new DialogParameters { ["QuoteDetails"] = _quote });
+        if (sendResult.Result.IsCanceled)
+            return;
+
+        await LoadQuoteAsync();
     }
 }

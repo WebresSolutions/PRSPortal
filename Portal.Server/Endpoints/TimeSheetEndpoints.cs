@@ -12,7 +12,7 @@ namespace Portal.Server.Controllers;
 /// </summary>
 public static class TimeSheetEndpoints
 {
-    public static void AddTimeSheetendpoints(this WebApplication app, string tags, bool reqAuth = true)
+    public static WebApplication AddTimeSheetendpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/timesheet").WithTags(tags);
 
@@ -78,5 +78,7 @@ public static class TimeSheetEndpoints
             appGroup.RequireAuthorization();
         else
             appGroup.AllowAnonymous();
+
+        return app;
     }
 }

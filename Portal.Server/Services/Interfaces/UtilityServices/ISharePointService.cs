@@ -1,6 +1,6 @@
 ﻿using Microsoft.Graph;
 using Microsoft.Graph.Models;
-namespace Portal.Server.Services.Interfaces;
+namespace Portal.Server.Services.Interfaces.UtilityServices;
 
 /// <summary>
 /// Interface for interacting with Microsoft Graph API, particularly for SharePoint operations.

@@ -34,6 +34,8 @@ public partial class Quote
 
     public string? Description { get; set; }
 
+    public int? QuoteSentByUserId { get; set; }
+
     public int CreatedByUserId { get; set; }
 
     public DateTime CreatedOn { get; set; }
@@ -52,8 +54,6 @@ public partial class Quote
 
     public virtual Job? Job { get; set; }
 
-    public virtual ICollection<JobQuote> JobQuotes { get; set; } = new List<JobQuote>();
-
     public virtual JobType JobType { get; set; } = null!;
 
     public virtual AppUser? ModifiedByUser { get; set; }
@@ -61,6 +61,8 @@ public partial class Quote
     public virtual ICollection<QuoteItem> QuoteItems { get; set; } = new List<QuoteItem>();
 
     public virtual ICollection<QuoteNote> QuoteNotes { get; set; } = new List<QuoteNote>();
+
+    public virtual AppUser? QuoteSentByUser { get; set; }
 
     public virtual ICollection<QuoteStatusHistory> QuoteStatusHistories { get; set; } = new List<QuoteStatusHistory>();
 

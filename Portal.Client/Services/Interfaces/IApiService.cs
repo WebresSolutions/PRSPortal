@@ -284,6 +284,20 @@ public interface IApiService
     /// Deletes a quoting template by id.
     /// </summary>
     Task<Result<bool>> DeleteQuotingTemplate(int templateId);
+    /// <summary>
+    /// Gets the quote PDF data (including content and metadata) for a given quote id. The returned result contains error information if the request fails, such as when the quote is not found or the user is unauthorized.
+    /// If successful, the result includes a QuotePdfDto with the PDF content and related information.
+    /// </summary>
+    /// <param name="quoteId">The unique identifier of the quote for which to retrieve the PDF.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="Result{QuotePdfDto}"/> object with the PDF data if successful; otherwise, contains error information.</returns>
+    Task<Result<QuotePdfDto>> GetQuotePdf(int quoteId);
+    /// <summary>
+    /// Sends the specified quote to the customer associated with it.
+    /// </summary>
+    /// <param name="quoteId">The unique identifier of the quote to send. Must correspond to an existing quote.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a Result object with the ID of the
+    /// sent quote if successful.</returns>
+    Task<Result<int>> SendQuoteToCustomer(int quoteId);
     #endregion
 
     #region USERS

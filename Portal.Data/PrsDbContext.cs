@@ -48,8 +48,6 @@ public partial class PrsDbContext : DbContext
 
     public virtual DbSet<JobNote> JobNotes { get; set; }
 
-    public virtual DbSet<JobQuote> JobQuotes { get; set; }
-
     public virtual DbSet<JobStatus> JobStatuses { get; set; }
 
     public virtual DbSet<JobStatusHistory> JobStatusHistories { get; set; }
@@ -954,46 +952,6 @@ public partial class PrsDbContext : DbContext
                 .HasConstraintName("job_note_modified_by_user_id_fkey");
         });
 
-        modelBuilder.Entity<JobQuote>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("job_quote_pkey");
-
-            entity.ToTable("job_quote", tb => tb.HasComment("Links quotes to jobs"));
-
-            entity.HasIndex(e => e.CreatedByUserId, "idx_job_quote_created_by");
-
-            entity.HasIndex(e => e.JobId, "idx_job_quote_job_id");
-
-            entity.HasIndex(e => e.QuoteId, "idx_job_quote_quote_id");
-
-            entity.Property(e => e.Id)
-                .UseIdentityAlwaysColumn()
-                .HasColumnName("id");
-            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
-            entity.Property(e => e.CreatedOn)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_on");
-            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
-            entity.Property(e => e.JobId).HasColumnName("job_id");
-            entity.Property(e => e.LegacyId).HasColumnName("legacy_id");
-            entity.Property(e => e.QuoteId).HasColumnName("quote_id");
-
-            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.JobQuotes)
-                .HasForeignKey(d => d.CreatedByUserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("job_quote_created_by_user_id_fkey");
-
-            entity.HasOne(d => d.Job).WithMany(p => p.JobQuotes)
-                .HasForeignKey(d => d.JobId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("job_quote_job_id_fkey");
-
-            entity.HasOne(d => d.Quote).WithMany(p => p.JobQuotes)
-                .HasForeignKey(d => d.QuoteId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("job_quote_quote_id_fkey");
-        });
-
         modelBuilder.Entity<JobStatus>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("job_status_pkey");
@@ -1297,6 +1255,8 @@ public partial class PrsDbContext : DbContext
 
             entity.HasIndex(e => e.ModifiedByUserId, "idx_quote_modified_by");
 
+            entity.HasIndex(e => e.QuoteSentByUserId, "idx_quote_sent_by");
+
             entity.HasIndex(e => e.StatusId, "idx_quote_status_id");
 
             entity.Property(e => e.Id)
@@ -1320,6 +1280,7 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.QuoteReference)
                 .HasMaxLength(50)
                 .HasColumnName("quote_reference");
+            entity.Property(e => e.QuoteSentByUserId).HasColumnName("quote_sent_by_user_id");
             entity.Property(e => e.StatusId).HasColumnName("status_id");
             entity.Property(e => e.TargetDeliveryDate).HasColumnName("target_delivery_date");
             entity.Property(e => e.TotalPrice)
@@ -1351,6 +1312,10 @@ public partial class PrsDbContext : DbContext
             entity.HasOne(d => d.ModifiedByUser).WithMany(p => p.QuoteModifiedByUsers)
                 .HasForeignKey(d => d.ModifiedByUserId)
                 .HasConstraintName("quote_modified_by_user_id_fkey");
+
+            entity.HasOne(d => d.QuoteSentByUser).WithMany(p => p.QuoteQuoteSentByUsers)
+                .HasForeignKey(d => d.QuoteSentByUserId)
+                .HasConstraintName("quote_quote_sent_by_user_id_fkey");
 
             entity.HasOne(d => d.Status).WithMany(p => p.Quotes)
                 .HasForeignKey(d => d.StatusId)

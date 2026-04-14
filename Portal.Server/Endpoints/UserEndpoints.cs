@@ -9,7 +9,7 @@ namespace Portal.Server.Endpoints;
 
 public static class UserEndpoints
 {
-    public static void AddUserEndpoints(this WebApplication app, string tags, bool reqAuth = true)
+    public static WebApplication AddUserEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
         RouteGroupBuilder userEndpointGroup = app.MapGroup("/api/users").WithTags(tags);
 
@@ -63,5 +63,7 @@ public static class UserEndpoints
             userEndpointGroup.RequireAuthorization();
         else
             userEndpointGroup.AllowAnonymous();
+
+        return app;
     }
 }

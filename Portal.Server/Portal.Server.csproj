@@ -11,6 +11,12 @@
 	  <None Remove="Enums\**" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Content Include="Assets\images\**\*">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
+	</ItemGroup>
+	<ItemGroup>
 		<ProjectReference Include="..\Portal.Client\Portal.Client.csproj" />
 		<ProjectReference Include="..\Portal.Data\Portal.Data.csproj" />
 		<ProjectReference Include="..\Portal.Shared\Portal.Shared.csproj" />
@@ -28,6 +34,7 @@
 		<PackageReference Include="Microsoft.Identity.Web" Version="4.6.0" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.1" />
 		<PackageReference Include="Npgsql.NetTopologySuite" Version="10.0.2" />
+		<PackageReference Include="PDFsharp" Version="6.2.4" />
 		<PackageReference Include="Quartz.Extensions.Hosting" Version="3.16.1" />
 		<PackageReference Include="Quartz.Serialization.Json" Version="3.16.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.5" />
@@ -38,6 +45,7 @@
 		<PackageReference Include="Microsoft.Graph" Version="5.103.0" />
 		<PackageReference Include="Moq" Version="4.20.72" />
 		<PackageReference Include="Xero.NetStandard.OAuth2Client" Version="1.6.0" />
+		<PackageReference Include="Smtp2Go.ApiClient" Version="0.0.5" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Update="Properties\Resources.Designer.cs">

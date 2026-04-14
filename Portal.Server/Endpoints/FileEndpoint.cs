@@ -8,7 +8,7 @@ namespace Portal.Server.Endpoints;
 
 public static class FileEndpoint
 {
-    public static void AddFileEndpoints(this WebApplication app, string tags, bool reqAuth = true)
+    public static WebApplication AddFileEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/files").WithTags(tags);
 
@@ -28,5 +28,7 @@ public static class FileEndpoint
             appGroup.RequireAuthorization();
         else
             appGroup.AllowAnonymous();
+
+        return app;
     }
 }

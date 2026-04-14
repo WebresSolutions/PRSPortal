@@ -12,7 +12,7 @@ public static class CouncilEnpoints
     /// Registers council-related API endpoints with the application.
     /// </summary>
     /// <param name="app">The web application to register endpoints with</param>
-    public static void AddCouncilEndpoints(this WebApplication app, string tags, bool reqAuth = true)
+    public static WebApplication AddCouncilEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/councils").WithTags(tags); ;
 
@@ -77,5 +77,7 @@ public static class CouncilEnpoints
             appGroup.RequireAuthorization();
         else
             appGroup.AllowAnonymous();
+
+        return app;
     }
 }

@@ -86,17 +86,17 @@ public class Program
 
         bool enableAuth = app.Configuration.GetValue<bool>("ApiSettings:AuthRequired");
 
-        app.AddIntegrationEndpoints("Xero");
-        app.AddJobEndpoints("Jobs", enableAuth);
-        app.AddScheduleEndpoints("Scheduling", enableAuth);
-        app.AddSettingEndpoints("Settings", enableAuth);
-        app.AddCouncilEndpoints("Councils", enableAuth);
-        app.AddContactEndpoints("Contacts", enableAuth);
-        app.AddTimeSheetendpoints("TimeSheets", enableAuth);
-        app.AddTypesEndpoints("Types", enableAuth);
-        app.AddUserEndpoints("Users", enableAuth);
-        app.AddFileEndpoints("Files", enableAuth);
-        app.AddQuoteEndpoints("Quotes", enableAuth);
+        app.AddIntegrationEndpoints("Xero")
+            .AddJobEndpoints("Jobs", enableAuth)
+            .AddScheduleEndpoints("Scheduling", enableAuth)
+            .AddSettingEndpoints("Settings", enableAuth)
+            .AddCouncilEndpoints("Councils", enableAuth)
+            .AddContactEndpoints("Contacts", enableAuth)
+            .AddTimeSheetendpoints("TimeSheets", enableAuth)
+            .AddTypesEndpoints("Types", enableAuth)
+            .AddUserEndpoints("Users", enableAuth)
+            .AddFileEndpoints("Files", enableAuth)
+            .AddQuoteEndpoints("Quotes", enableAuth);
 
         // Only serve SPA index.html for non-API paths so /api/* returns JSON from endpoints, not HTML
         app.MapFallback(async (HttpContext context) =>

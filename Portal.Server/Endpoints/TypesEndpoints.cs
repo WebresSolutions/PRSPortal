@@ -14,7 +14,7 @@ namespace Portal.Server.Controllers;
 /// </summary>
 public static class TypesEndpoints
 {
-    public static void AddTypesEndpoints(this WebApplication app, string tags, bool reqAuth = true)
+    public static WebApplication AddTypesEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/types").WithTags(tags);
 
@@ -216,5 +216,7 @@ public static class TypesEndpoints
             appGroup.RequireAuthorization();
         else
             appGroup.AllowAnonymous();
+
+        return app;
     }
 }

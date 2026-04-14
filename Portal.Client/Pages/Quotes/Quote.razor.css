@@ -11,6 +11,10 @@
         color: var(--color-primary);
     }
 
+.quote-pdf-preview {
+    min-height: 700px;
+}
+
 .quote-detail-header-aside {
     min-width: 0;
     flex-shrink: 0;

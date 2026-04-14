@@ -4,6 +4,7 @@ using Portal.Data;
 using Portal.Data.Models;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
+using Portal.Server.Services.Interfaces.UtilityServices;
 using Portal.Shared;
 using Portal.Shared.DataEnums;
 using Portal.Shared.DTO;
@@ -15,7 +16,7 @@ using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Services.Instances;
 
-public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger) : IQuoteService
+public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger, IEmailService _emailService, IPdfGenerationService _pdfGenerationService, IJobService _jobService) : IQuoteService
 {
     /// <summary>Matches contact <c>tsvector</c>; queries use <c>websearch_to_tsquery</c>.</summary>
     private const string FullTextSearchConfig = "english";
@@ -92,9 +93,17 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
 
             Address address = await DBHelpers.CreateOrUpdateAddress(_dbContext, data.Address.ToAddress(httpContext.UserId()), httpContext.UserId());
 
+            // Find count of quotes created in the current year to generate the quote reference number. This ensures the quote reference number is sequential for each year.
+            int count = await _dbContext.Quotes.CountAsync(q => q.CreatedOn.Year == DateTime.UtcNow.Year);
+            int nextQuoteNumber = count + 1;
+            string quoteReference = "Q" + DateTime.UtcNow.ToString("yy") + nextQuoteNumber.ToString("D4");
+            // Assert that this is unique, if not, append a random 4 digit number to the end. This is a safeguard and should not happen in normal circumstances.
+            if (await _dbContext.Quotes.AnyAsync(q => q.QuoteReference == quoteReference))
+                quoteReference += new Random().Next(0, 9999).ToString("D4");
+
             Quote newQuote = new()
             {
-                QuoteReference = "Q" + DateTime.UtcNow.ToString("yy"),
+                QuoteReference = quoteReference,
                 Description = data.Description,
                 StatusId = data.QuoteStatusId,
                 TotalPrice = data.QuoteItems.Sum(qi => qi.Price),
@@ -543,6 +552,94 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to delete the quote template");
+            return res.SetError(ErrorType.InternalError, "Failed to delete the quoting template");
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<Result<int>> SendQuoteToClient(int quoteId, HttpContext httpContext)
+    {
+        Result<int> res = new();
+        IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            // First, update the quote details
+            Quote? quote = await _dbContext.Quotes.Include(x => x.Contact).FirstOrDefaultAsync(q => q.Id == quoteId);
+            if (quote is null)
+            {
+                await transaction.RollbackAsync();
+                return res.SetError(ErrorType.BadRequest, "Quote not found.");
+            }
+
+            QuoteStatusHistory quoteStatusHistory = new()
+            {
+                QuoteId = quote.Id,
+                StatusIdNew = (int)QuoteStatusEnum.Sent,
+                StatusIdOld = quote.StatusId,
+                ModifiedByUserId = httpContext.UserId(),
+                DateChanged = DateTime.UtcNow,
+                Quote = quote
+            };
+            _dbContext.QuoteStatusHistories.Add(quoteStatusHistory);
+
+            quote.StatusId = (int)QuoteStatusEnum.Sent;
+            quote.DateSentToClient = DateTime.UtcNow;
+            quote.ModifiedByUserId = httpContext.UserId();
+            quote.QuoteSentByUserId = httpContext.UserId();
+
+            await _dbContext.SaveChangesAsync();
+
+            // Then, generate the quote PDF and send the email to the client
+            Result<QuoteDetailsDto> quoteDetailsResult = await GetQuoteDetails(quoteId);
+            if (!quoteDetailsResult.IsSuccess || quoteDetailsResult.Value is null)
+            {
+                await transaction.RollbackAsync();
+                return res.SetError(ErrorType.InternalError, "Failed to get the quote details for PDF generation.");
+            }
+
+            byte[] quoteAsPdf = _pdfGenerationService.CreateQuotePdf(quoteDetailsResult.Value);
+            (byte[], string) attachment = (quoteAsPdf, $"Quote_{quote.QuoteReference}.pdf");
+
+            bool emailResult = await _emailService.SendEmail([quote.Contact!.Email], "PRS Quote", "", [attachment]);
+            if (!emailResult)
+            {
+                await transaction.RollbackAsync();
+                return res.SetError(ErrorType.InternalError, "Failed to send the email for the quote. Please retry");
+            }
+
+            await transaction.CommitAsync();
+            return res.SetValue(quoteId);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Failed to send the quote to the client. Quote ID: {QuoteId}", quoteId);
+            return res.SetError(ErrorType.InternalError, "Failed to send the quote to the client");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<QuotePdfDto>> GetQuotePdf(int quoteId)
+    {
+        Result<QuotePdfDto> res = new();
+        try
+        {
+            Quote? quote = await _dbContext.Quotes.FirstOrDefaultAsync(q => q.Id == quoteId);
+            if (quote is null)
+                return res.SetError(ErrorType.BadRequest, "Quote not found.");
+
+            Result<QuoteDetailsDto> quoteDetailsResult = await GetQuoteDetails(quoteId);
+            if (!quoteDetailsResult.IsSuccess || quoteDetailsResult.Value is null)
+                return res.SetError(ErrorType.InternalError, "Failed to get the quote details for PDF generation.");
+
+            byte[] quoteAsPdf = _pdfGenerationService.CreateQuotePdf(quoteDetailsResult.Value);
+            QuotePdfDto quotePdfDto = new() { FileName = $"Quote_{quote.QuoteReference}.pdf", Data = quoteAsPdf };
+
+            return res.SetValue(quotePdfDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed ato generate the quote PDF. QUote ID:{quoteId}", quoteId);
             return res.SetError(ErrorType.InternalError, "Failed to delete the quoting template");
         }
     }

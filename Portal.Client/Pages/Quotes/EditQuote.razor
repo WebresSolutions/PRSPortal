@@ -42,8 +42,8 @@
                             <h5 class="form-section-title border-bottom py-2">Details</h5>
                             <div class="quotes-template-field quotes-template-field-type grey-background p-3 border-grey border-rad">
                                 <div>
-                                    <label for="quote-ref-override">Reference (optional)</label>
-                                    <MudTextField id="quote-ref-override" @bind-Value="_model.QuoteReferenceNumber" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="Override display reference" />
+                                    <label for="quote-ref-override">Reference Number</label>
+                                    <MudTextField id="quote-ref-override" Disabled=true @bind-Value="_model.QuoteReferenceNumber" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="Override display reference" />
                                 </div>
                                 <div>
                                     <label for="quote-status">Status</label>

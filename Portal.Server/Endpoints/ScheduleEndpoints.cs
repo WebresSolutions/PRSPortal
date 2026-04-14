@@ -19,7 +19,7 @@ public static class ScheduleEndpoints
     /// Registers schedule-related API endpoints with the application
     /// </summary>
     /// <param name="app">The web application to register endpoints with</param>
-    public static void AddScheduleEndpoints(this WebApplication app, string tags, bool reqAuth = true)
+    public static WebApplication AddScheduleEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/schedule").WithTags(tags);
 
@@ -161,5 +161,7 @@ public static class ScheduleEndpoints
             appGroup.RequireAuthorization();
         else
             appGroup.AllowAnonymous();
+
+        return app;
     }
 }

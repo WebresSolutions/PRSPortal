@@ -64,8 +64,6 @@ public partial class Job
 
     public virtual ICollection<JobNote> JobNotes { get; set; } = new List<JobNote>();
 
-    public virtual ICollection<JobQuote> JobQuotes { get; set; } = new List<JobQuote>();
-
     public virtual ICollection<JobStatusHistory> JobStatusHistories { get; set; } = new List<JobStatusHistory>();
 
     public virtual ICollection<JobTask> JobTasks { get; set; } = new List<JobTask>();

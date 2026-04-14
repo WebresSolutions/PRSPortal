@@ -403,6 +403,64 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
     }
 
     [Fact]
+    public async Task Get_quote_pdf_returns_payload_for_existing_quote()
+    {
+        int quoteId = await CreateQuote();
+
+        QuotePdfDto? pdf = await _client.GetFromJsonAsync<QuotePdfDto>($"/api/quotes/{quoteId}/pdf");
+
+        Assert.NotNull(pdf);
+        Assert.False(string.IsNullOrWhiteSpace(pdf.FileName));
+        Assert.EndsWith(".pdf", pdf.FileName, StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith("Quote_", pdf.FileName, StringComparison.Ordinal);
+        File.WriteAllBytes("quote_test_output.pdf", pdf.Data);
+        Assert.NotEmpty(pdf.Data);
+    }
+
+    [Fact]
+    public async Task Get_quote_pdf_returns_bad_request_for_invalid_route_id()
+    {
+        HttpResponseMessage response = await _client.GetAsync("/api/quotes/0/pdf");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_quote_pdf_returns_bad_request_for_unknown_quote()
+    {
+        HttpResponseMessage response = await _client.GetAsync("/api/quotes/999999/pdf");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Send_quote_to_client_returns_ok_and_marks_quote_sent()
+    {
+        int quoteId = await CreateQuote();
+
+        using HttpRequestMessage request = new(HttpMethod.Put, $"/api/quotes/{quoteId}/send");
+        HttpResponseMessage response = await _client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        int? returnedId = await response.Content.ReadFromJsonAsync<int?>();
+        Assert.Equal(quoteId, returnedId);
+
+        using IServiceScope scope = _factory.Services.CreateScope();
+        PrsDbContext db = scope.ServiceProvider.GetRequiredService<PrsDbContext>();
+        Data.Models.Quote? saved = await db.Quotes.AsNoTracking().FirstOrDefaultAsync(q => q.Id == quoteId);
+        Assert.NotNull(saved);
+        Assert.Equal((int)QuoteStatusEnum.Sent, saved.StatusId);
+        Assert.NotNull(saved.DateSentToClient);
+        Assert.Equal(1, saved.QuoteSentByUserId);
+    }
+
+    [Fact]
+    public async Task Send_quote_to_client_returns_bad_request_for_unknown_quote()
+    {
+        using HttpRequestMessage request = new(HttpMethod.Put, "/api/quotes/999999/send");
+        HttpResponseMessage response = await _client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Delete_quote_template_sets_deleted_at_and_excludes_from_get_list()
     {
         string uniqueName = $"Delete template test {Guid.NewGuid():N}";

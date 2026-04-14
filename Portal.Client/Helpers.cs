@@ -66,4 +66,16 @@ public static class Helpers
         using DotNetStreamReference steamRef = new(memeStream);
         await js.InvokeVoidAsync("downloadFileFromStream", fileName, steamRef);
     }
+
+    /// <summary>
+    /// Gets a data URL for a PDF file from binary data. 
+    /// For viewing PDFs in the browser without downloading, we can convert the binary data to a base64 string and create a data URL that can be used as the source for an <iframe> or <embed> element.
+    /// </summary>
+    /// <param name="pdfData">The binary data of the PDF file</param>
+    /// <returns>A data URL that can be used as the source for an <iframe> or <embed> element</returns>
+    public static string GetPDFUrl(byte[] pdfData)
+    {
+        string base64 = Convert.ToBase64String(pdfData);
+        return $"data:application/pdf;base64,{base64}";
+    }
 }

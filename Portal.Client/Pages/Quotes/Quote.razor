@@ -54,9 +54,8 @@ else
             <div class="quote-container">
                 <section class="">
                     <div class="quote-contact-address">
-                        <Card>
+                        <Card Title="Contact">
                             <ChildContent>
-                                <h5 class="quote-detail-card-title">Contact</h5>
                                 @if (_quote.Contact is { } c)
                                 {
                                     <div class="info-row">
@@ -80,9 +79,8 @@ else
                                 }
                             </ChildContent>
                         </Card>
-                        <Card>
+                        <Card Title="Site Address">
                             <ChildContent>
-                                <h5 class="quote-detail-card-title">Site address</h5>
                                 @if (_quote.Address is { } a)
                                 {
                                     <div class="info-row">
@@ -101,9 +99,8 @@ else
                             </ChildContent>
                         </Card>
                     </div>
-                    <Card>
+                    <Card Title="Linked Job">
                         <ChildContent>
-                            <h5 class="quote-detail-card-title">Linked job</h5>
                             @if (_quote.JobId is { } jobId && !string.IsNullOrWhiteSpace(_quote.JobNumber))
                             {
                                 <p class="mb-0">
@@ -116,12 +113,20 @@ else
                             }
                         </ChildContent>
                     </Card>
-                   
+                    @if (_quotePdf is not null)
+                    {
+                        <Card Title="PDF Preview">
+                            <ChildContent>
+                                <iframe title="Quote PDF preview"
+                                        class="quote-pdf-preview border-rad border-grey"
+                                        src="@(Helpers.GetPDFUrl(_quotePdf.Data))" />
+                            </ChildContent>
+                        </Card>
+                    }
                 </section>
                 <section>
-                    <Card CssClass="">
+                    <Card Title="Fees">
                         <ChildContent>
-                            <h5 class="quote-detail-card-title">Fee lines</h5>
                             @if (_quote.QuoteItems.Length == 0)
                             {
                                 <p class="text-muted small mb-0">No line items.</p>
@@ -156,9 +161,8 @@ else
                             }
                         </ChildContent>
                     </Card>
-                    <Card>
+                    <Card Title="Timeline">
                         <ChildContent>
-                            <h5 class="quote-detail-card-title">Timeline</h5>
                             <div class="info-row">
                                 <span class="info-label">Target delivery</span>
                                 <span class="info-value">@(_quote.TargetDeliveryDate is { } t ? t.ToLocalDateTimeString() : "—")</span>

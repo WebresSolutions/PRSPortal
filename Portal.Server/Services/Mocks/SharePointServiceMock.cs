@@ -2,7 +2,7 @@
 using Microsoft.Graph.Models;
 using Moq;
 using Portal.Server.Options;
-using Portal.Server.Services.Instances;
+using Portal.Server.Services.Instances.UtilityServices;
 namespace Portal.Server.Services.Mocks;
 
 

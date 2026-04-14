@@ -662,6 +662,7 @@ CREATE TABLE quote (
     date_sent_to_client TIMESTAMPTZ,
     target_delivery_date TIMESTAMPTZ,
     description TEXT,
+    quote_sent_by_user_id INT REFERENCES app_user(id),
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_by_user_id INT REFERENCES app_user(id),
@@ -675,6 +676,7 @@ CREATE INDEX idx_quote_status_id ON quote(status_id);
 CREATE INDEX idx_quote_contact_id ON quote(contact_id);
 CREATE INDEX idx_quote_created_by ON quote(created_by_user_id);
 CREATE INDEX idx_quote_modified_by ON quote(modified_by_user_id);
+CREATE INDEX idx_quote_sent_by ON quote(quote_sent_by_user_id);
 CREATE INDEX idx_quote_job_id ON quote(job_id);
 CREATE INDEX idx_quote_job_type_id ON quote(job_type_id);
 
@@ -748,25 +750,6 @@ CREATE INDEX idx_quote_history_id ON quote_status_history(quote_id);
 CREATE INDEX idx_quote_status_new ON quote_status_history(status_id_new);
 CREATE INDEX idx_quote_status_old ON quote_status_history(status_id_old);
 CREATE INDEX idx_quote_status_modified_by ON quote_status_history(modified_by_user_id);
-
--- ============================================================================
--- JOB QUOTES TABLE
--- ============================================================================
-
-CREATE TABLE job_quote (
-    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    job_id INT NOT NULL REFERENCES job(id),
-    legacy_id INT,
-    quote_id INT NOT NULL REFERENCES quote(id),
-    created_by_user_id INT NOT NULL REFERENCES app_user(id),
-    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMPTZ DEFAULT NULL
-);
-
-COMMENT ON TABLE job_quote IS 'Links quotes to jobs';
-CREATE INDEX idx_job_quote_job_id ON job_quote(job_id);
-CREATE INDEX idx_job_quote_quote_id ON job_quote(quote_id);
-CREATE INDEX idx_job_quote_created_by ON job_quote(created_by_user_id);
 
 -- ============================================================================
 -- QUOTE NOTES TABLE

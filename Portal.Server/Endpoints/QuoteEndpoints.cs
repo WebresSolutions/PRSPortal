@@ -8,7 +8,7 @@ namespace Portal.Server.Endpoints;
 
 public static class QuoteEndpoints
 {
-    public static void AddQuoteEndpoints(this WebApplication app, string tags, bool reqAuth = true)
+    public static WebApplication AddQuoteEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
         RouteGroupBuilder quoteEndpointGroup = app.MapGroup("/api/quotes").WithTags(tags);
 
@@ -35,9 +35,26 @@ public static class QuoteEndpoints
 
                 Result<QuoteDetailsDto> result = await quoteService.GetQuoteDetails(quoteId);
                 return EndpointsHelper.ProcessResult(result, "An error occurred while getting the quote details");
-            }).WithSummary("Get a quote by ID")
+            })
+            .WithSummary("Get a quote by ID")
             .WithDescription("Returns the details of a quote by its ID")
             .Produces<QuoteDetailsDto>();
+
+        quoteEndpointGroup.MapGet("{quoteId}/pdf",
+            async (
+                [FromServices] IQuoteService quoteService,
+                [FromRoute] int quoteId
+            ) =>
+            {
+                if (quoteId <= 0)
+                    return Results.BadRequest("Invalid quote ID");
+
+                Result<QuotePdfDto> result = await quoteService.GetQuotePdf(quoteId);
+                return EndpointsHelper.ProcessResult(result, "An error occurred while getting the quote PDF");
+            })
+            .WithSummary("Get a quote PDF by ID")
+            .WithDescription("Returns the PDF of a quote by its ID")
+            .Produces<QuotePdfDto>();
 
         quoteEndpointGroup.MapPost("",
             async (
@@ -62,6 +79,20 @@ public static class QuoteEndpoints
             ) =>
             {
                 Result<int> result = await quoteService.UpdateQuote(quoteUpdateDto, httpContext);
+                return EndpointsHelper.ProcessResult(result, "An error occurred while updating the quote");
+            })
+            .WithSummary("Update a quote")
+            .WithDescription("Updates an existing quote with the provided details")
+            .Produces<int>();
+
+        quoteEndpointGroup.MapPut("{quoteId}/send",
+            async (
+                [FromServices] IQuoteService quoteService,
+                [FromRoute] int quoteId,
+                HttpContext httpContext
+            ) =>
+            {
+                Result<int> result = await quoteService.SendQuoteToClient(quoteId, httpContext);
                 return EndpointsHelper.ProcessResult(result, "An error occurred while updating the quote");
             })
             .WithSummary("Update a quote")
@@ -131,5 +162,7 @@ public static class QuoteEndpoints
 
         if (reqAuth)
             quoteEndpointGroup.RequireAuthorization();
+
+        return app;
     }
 }

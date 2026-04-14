@@ -73,4 +73,22 @@ public interface IQuoteService
     /// <param name="quopteTemplateId">The unique identifier of the quoting template to delete.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the ID of the deleted quoting template.</returns>
     Task<Result<bool>> DeleteQuotingTemplate(int quopteTemplateId, HttpContext httpContext);
+
+    /// <summary>
+    /// Emails the quote to the client. This method will generate the quote document, attach it to an email, and send it to the client's email address. 
+    /// It will also log the email sending activity for auditing purposes.
+    /// </summary>
+    /// <param name="quoteId">The quote ID </param>
+    /// <param name="httpContext">The http context of the caller</param>
+    /// <returns>The Id of the quote.</returns>
+    Task<Result<int>> SendQuoteToClient(int quoteId, HttpContext httpContext);
+
+    /// <summary>
+    /// Generates a PDF document for the specified quote. This method will retrieve the quote details, 
+    /// format them into a PDF document, and return the PDF data along with the file name. 
+    /// The PDF can then be downloaded or emailed to clients as needed.
+    /// </summary>
+    /// <param name="quoteId">The unique identifier of the quote.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the PDF data and file name.</returns>
+    Task<Result<QuotePdfDto>> GetQuotePdf(int quoteId);
 }

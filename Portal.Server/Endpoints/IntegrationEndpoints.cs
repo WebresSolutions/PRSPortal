@@ -5,7 +5,7 @@ namespace Portal.Server.Endpoints;
 
 public static class IntegrationEndpoints
 {
-    public static void AddIntegrationEndpoints(this WebApplication app, string tags)
+    public static WebApplication AddIntegrationEndpoints(this WebApplication app, string tags)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/xero").WithTags(tags);
         // Xero OAuth callback - no auth; Xero redirects the browser here with ?code=...&state=...
@@ -42,5 +42,7 @@ public static class IntegrationEndpoints
             await xeroService.DisconnectAsync(cancellationToken);
             return Results.Ok();
         }).RequireAuthorization();
+
+        return app;
     }
 }

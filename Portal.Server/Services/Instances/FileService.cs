@@ -2,6 +2,7 @@
 using Portal.Data.Models;
 using Portal.Server.Helpers;
 using Portal.Server.Services.Interfaces;
+using Portal.Server.Services.Interfaces.UtilityServices;
 using Portal.Shared.DTO.File;
 using Portal.Shared.ResponseModels;
 

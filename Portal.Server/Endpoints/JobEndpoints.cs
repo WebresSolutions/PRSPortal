@@ -18,7 +18,7 @@ public static class JobEndpoints
     /// Registers job-related API endpoints with the application
     /// </summary>
     /// <param name="app">The web application to register endpoints with</param>
-    public static void AddJobEndpoints(this WebApplication app, string tags, bool reqAuth = true)
+    public static WebApplication AddJobEndpoints(this WebApplication app, string tags, bool reqAuth = true)
     {
         RouteGroupBuilder appGroup = app.MapGroup("/api/jobs").WithTags(tags);
 
@@ -206,6 +206,8 @@ public static class JobEndpoints
             appGroup.RequireAuthorization();
         else
             appGroup.AllowAnonymous();
+
+        return app;
     }
 
 }
