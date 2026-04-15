@@ -1,4 +1,6 @@
-﻿namespace Portal.Server.Services.Interfaces.UtilityServices;
+﻿using Portal.Shared.DTO.Quote;
+
+namespace Portal.Server.Services.Interfaces.UtilityServices;
 
 public interface IEmailService
 {
@@ -16,5 +18,5 @@ public interface IEmailService
     /// array and the file name. Can be empty if no attachments are needed.</param>
     /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the method
     /// completes execution.</returns>
-    Task<bool> SendEmail(string[] to, string subject, string body, (byte[] content, string fileName)[] attachments);
+    Task<bool> SendQuoteEmail(string[] to, string subject, QuoteDetailsDto details, (byte[] content, string fileName)[] attachments);
 }

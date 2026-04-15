@@ -600,7 +600,7 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
             byte[] quoteAsPdf = _pdfGenerationService.CreateQuotePdf(quoteDetailsResult.Value);
             (byte[], string) attachment = (quoteAsPdf, $"Quote_{quote.QuoteReference}.pdf");
 
-            bool emailResult = await _emailService.SendEmail([quote.Contact!.Email], "PRS Quote", "", [attachment]);
+            bool emailResult = await _emailService.SendQuoteEmail([quote.Contact!.Email], "PRS Quote", quoteDetailsResult.Value, [attachment]);
             if (!emailResult)
             {
                 await transaction.RollbackAsync();

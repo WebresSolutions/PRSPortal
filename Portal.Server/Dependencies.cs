@@ -5,7 +5,6 @@ using Microsoft.Identity.Web;
 using Portal.Data;
 using Portal.Server.Options;
 using Portal.Server.Services.Instances;
-using Portal.Server.Services.Instances.Utilities;
 using Portal.Server.Services.Instances.UtilityServices;
 using Portal.Server.Services.Interfaces;
 using Portal.Server.Services.Interfaces.UtilityServices;
@@ -70,6 +69,8 @@ public static class Dependencies
         });
         // Injects in memory cache
         builder.Services.AddMemoryCache();
+
+        #region Singleton and Transient Services.
         // This is the acconting api from xero
         builder.Services.AddTransient<ISharePointService>(provider =>
         {
@@ -86,13 +87,15 @@ public static class Dependencies
             EmailOptions options = provider.GetRequiredService<IOptions<EmailOptions>>().Value;
             return new Smtp2GoApiService(options.ApiKey);
         });
-        builder.Services.AddScoped<IFileService, FileService>();
-        builder.Services.AddScoped<IPdfGenerationService, PdfGenerationService>();
         builder.Services.AddSingleton<IAccountingApi, AccountingApi>();
         builder.Services.AddSingleton<IPayrollAuApi, PayrollAuApi>();
-        builder.Services.AddSingleton<IEmailService, EmailService>();
+        builder.Services.AddTransient<IRazorViewRenderer, RazorViewRenderer>();
+        #endregion
 
         #region Scoped Services.
+        builder.Services.AddScoped<IFileService, FileService>();
+        builder.Services.AddScoped<IPdfGenerationService, PdfGenerationService>();
+        builder.Services.AddScoped<IEmailService, EmailService>();
         builder.Services.AddScoped<IXeroIntegrationService, XeroIntegrationService>();
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IScheduleService, ScheduleService>();
