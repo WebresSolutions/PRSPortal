@@ -28,7 +28,13 @@
             }
         }
     </div>
-    <ButtonIcon CssClass="mb-4 text-end" @onclick="@(() => _isEditing = !_isEditing)" Icon="bi bi-pencil" />
+    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                   Variant="Variant.Filled"
+                   Color="Color.Default"
+                   Class="mb-4 text-end"
+                   title="Toggle edit columns"
+                   aria-label="Toggle edit columns"
+                   OnClick="@(_ => _isEditing = !_isEditing)" />
 }
 
 <style>

@@ -18,7 +18,7 @@ public partial class JobStatus
 
     public string Colour { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedOn { get; set; }
 
     public bool IsActive { get; set; }
 

@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Options;
 using Portal.Data;
 using Portal.Data.Models;
 using Portal.Server.Helpers;
+using Portal.Server.Options;
 using Portal.Server.Services.Interfaces;
 using Portal.Server.Services.Interfaces.UtilityServices;
 using Portal.Shared;
@@ -13,11 +15,20 @@ using Portal.Shared.DTO.Contact;
 using Portal.Shared.DTO.Quote;
 using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
+using System.Security.Cryptography;
 
 namespace Portal.Server.Services.Instances;
 
-public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger, IEmailService _emailService, IPdfGenerationService _pdfGenerationService, IJobService _jobService) : IQuoteService
+public class QuoteService(
+    PrsDbContext _dbContext,
+    ILogger<QuoteService> _logger,
+    IEmailService _emailService,
+    IPdfGenerationService _pdfGenerationService,
+    IJobService _jobService,
+    IOptions<QuotingOptions> _IQuotingOptions) : IQuoteService
 {
+    private readonly QuotingOptions _quotingOptions = _IQuotingOptions.Value;
+
     /// <summary>Matches contact <c>tsvector</c>; queries use <c>websearch_to_tsquery</c>.</summary>
     private const string FullTextSearchConfig = "english";
 
@@ -66,6 +77,42 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get the quote details for Quote ID {QuoteId}.", quoteId);
+            return res.SetError(ErrorType.InternalError, "Failed to get the quote details.");
+        }
+    }
+
+    public async Task<Result<QuotePartialDetailsDto>> GetQuoteDetailsUnauthenticated(HttpContext httpContext, string quoteToken)
+    {
+        Result<QuotePartialDetailsDto> res = new();
+        try
+        {
+            string hashedToken = GetHash(quoteToken);
+            QuoteToken? quoteTokenEntity = await _dbContext.QuoteTokens
+                .Include(qt => qt.Quote)
+                .FirstOrDefaultAsync(qt => qt.Token == hashedToken);
+
+            if (quoteTokenEntity is null)
+            {
+                _logger.LogError("An invalid quote token was used to attempt to access quote details. Token hash: {TokenHash}", hashedToken);
+                return res.SetError(ErrorType.Unauthorized, "Invalid token.");
+            }
+
+            if (quoteTokenEntity.ExpiresAt < DateTime.UtcNow || quoteTokenEntity.UsedAt is not null)
+            {
+                _logger.LogError("A quote token has expired or has already been used. QuoteToken ID: {QuoteTokenId}, Quote ID: {QuoteId}", quoteTokenEntity.Id, quoteTokenEntity.QuoteId);
+                return res.SetError(ErrorType.Unauthorized, "Token has expired.");
+            }
+
+            quoteTokenEntity.Quote.ViewByClientAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
+
+
+
+            return res;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get the quote details for Quote Token {QuoteToken}.", quoteToken);
             return res.SetError(ErrorType.InternalError, "Failed to get the quote details.");
         }
     }
@@ -571,6 +618,12 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
                 return res.SetError(ErrorType.BadRequest, "Quote not found.");
             }
 
+            if (quote.Contact is null || !Regexes.IsValidEmail(quote.Contact.Email))
+            {
+                await transaction.RollbackAsync();
+                return res.SetError(ErrorType.BadRequest, $"The supplied contact email is invalid. Or the contact is not set. Email: {quote.Contact?.Email}");
+            }
+
             QuoteStatusHistory quoteStatusHistory = new()
             {
                 QuoteId = quote.Id,
@@ -599,12 +652,37 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
 
             byte[] quoteAsPdf = _pdfGenerationService.CreateQuotePdf(quoteDetailsResult.Value);
             (byte[], string) attachment = (quoteAsPdf, $"Quote_{quote.QuoteReference}.pdf");
+            (string, string) token = TokenGenerator();
 
-            bool emailResult = await _emailService.SendQuoteEmail([quote.Contact!.Email], "PRS Quote", quoteDetailsResult.Value, [attachment]);
+            DateTime now = DateTime.UtcNow;
+
+            if (await _dbContext.QuoteTokens.AnyAsync(q => q.QuoteId == quoteId))
+                await _dbContext.QuoteTokens.Where(q => q.QuoteId == quoteId).ExecuteDeleteAsync();
+
+            // Create a new token
+            QuoteToken quoteToken = new()
+            {
+                QuoteId = quote.Id,
+                Token = token.Item2,
+                CreatedOn = now,
+                ExpiresAt = now.AddDays(_quotingOptions.DayToAcceptFeeProposal),
+                UsedAt = null
+            };
+
+            await _dbContext.QuoteTokens.AddAsync(quoteToken);
+            await _dbContext.SaveChangesAsync();
+
+            bool emailResult = await _emailService.SendQuoteEmail(
+                [quote.Contact!.Email],
+                $"Fee proposal — {quote.QuoteReference}",
+                quoteDetailsResult.Value,
+                [attachment],
+                token.Item1);
+
             if (!emailResult)
             {
                 await transaction.RollbackAsync();
-                return res.SetError(ErrorType.InternalError, "Failed to send the email for the quote. Please retry");
+                return res.SetError(ErrorType.InternalError, "Failed to send the email for the quote. Please try again.");
             }
 
             await transaction.CommitAsync();
@@ -643,4 +721,24 @@ public class QuoteService(PrsDbContext _dbContext, ILogger<QuoteService> _logger
             return res.SetError(ErrorType.InternalError, "Failed to delete the quoting template");
         }
     }
+
+    /// <summary>
+    /// Generates a cryptographically secure random token and its SHA-256 hash, both encoded as Base64 strings.
+    /// </summary>
+    /// <remarks>The generated token is suitable for use in authentication scenarios where a secure,
+    /// unpredictable value is required. Both the token and its hash are returned to support scenarios where the raw
+    /// token is provided to a client and only the hash is stored or compared on the server.</remarks>
+    /// <returns>A tuple containing the generated token as a Base64-encoded string and its SHA-256 hash, also as a Base64-encoded
+    /// string.</returns>
+    private static (string, string) TokenGenerator()
+    {
+        byte[] data = [100];
+        RandomNumberGenerator.Fill(data);
+        string rawToken = Convert.ToBase64String(data);
+        string tokenHash = Convert.ToBase64String(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(rawToken)));
+
+        return (rawToken, tokenHash);
+    }
+
+    private static string GetHash(string token) => Convert.ToBase64String(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(token)));
 }

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Migration.Models;
 
+/// <summary>
+/// Placed widget on a dashboard: position, span, optional title, and JSON settings for the widget instance.
+/// </summary>
 public partial class DashboardItem
 {
     public int Id { get; set; }

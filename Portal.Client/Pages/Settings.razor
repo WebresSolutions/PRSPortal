@@ -82,7 +82,7 @@
                                         <span class="settings-type-primary">@t.ServiceName</span>
                                         <span class="settings-type-secondary">@(t.IsActive != false ? "Yes" : "No")</span>
                                         <span class="settings-type-actions">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Service", "Edit service type", t))" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" title="Edit" aria-label="Edit" OnClick="@(() => OpenEditTypeDialog("Service", "Edit service type", t))" />
                                         </span>
                                     </div>
                                 }
@@ -112,7 +112,7 @@
                                         <span class="settings-type-primary">@t.Name</span>
                                         <span class="settings-type-secondary">@(t.Description ?? "—")</span>
                                         <span class="settings-type-actions">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Timesheet", "Edit timesheet type", t))" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" title="Edit" aria-label="Edit" OnClick="@(() => OpenEditTypeDialog("Timesheet", "Edit timesheet type", t))" />
                                         </span>
                                     </div>
                                 }
@@ -143,7 +143,7 @@
                                         <span class="settings-type-primary">@t.Name</span>
                                         <span class="settings-type-secondary">@(t.Description ?? "—")</span>
                                         <span class="settings-type-actions">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Contact", "Edit contact type", t))" Disabled=true />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" title="Edit" aria-label="Edit" OnClick="@(() => OpenEditTypeDialog("Contact", "Edit contact type", t))" Disabled="true" />
                                         </span>
                                     </div>
                                 }
@@ -174,7 +174,7 @@
                                         <span class="settings-type-primary">@t.Name</span>
                                         <span class="settings-type-secondary">@t.Abbreviation</span>
                                         <span class="settings-type-actions">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("Job", "Edit job type", t))" Disabled=true />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" title="Edit" aria-label="Edit" OnClick="@(() => OpenEditTypeDialog("Job", "Edit job type", t))" Disabled="true" />
                                         </span>
                                     </div>
                                 }
@@ -257,7 +257,7 @@
                                             <span class="colour-hex">@t.colour</span>
                                         </div>
                                         <span class="settings-type-actions">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("JobColour", "Edit job colour", t))" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" title="Edit" aria-label="Edit" OnClick="@(() => OpenEditTypeDialog("JobColour", "Edit job colour", t))" />
                                         </span>
                                     </div>
                                 }
@@ -288,7 +288,7 @@
                                         <span class="settings-type-primary">@t.Name</span>
                                         <span class="settings-type-secondary">@(t.Description ?? "—")</span>
                                         <span class="settings-type-actions">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("File", "Edit file type", t))" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" title="Edit" aria-label="Edit" OnClick="@(() => OpenEditTypeDialog("File", "Edit file type", t))" />
                                         </span>
                                     </div>
                                 }
@@ -319,7 +319,7 @@
                                         <span class="settings-type-primary">@t.Name</span>
                                         <span class="settings-type-secondary">@(t.Description ?? "—")</span>
                                         <span class="settings-type-actions">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("JobTask", "Edit job task type", t))" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" title="Edit" aria-label="Edit" OnClick="@(() => OpenEditTypeDialog("JobTask", "Edit job task type", t))" />
                                         </span>
                                     </div>
                                 }
@@ -350,7 +350,7 @@
                                         <span class="settings-type-primary">@t.Name</span>
                                         <span class="settings-type-secondary">@(t.Description ?? "—")</span>
                                         <span class="settings-type-actions">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditTypeDialog("TechnicalContact", "Edit technical contact type", t))" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" title="Edit" aria-label="Edit" OnClick="@(() => OpenEditTypeDialog("TechnicalContact", "Edit technical contact type", t))" />
                                         </span>
                                     </div>
                                 }

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Migration.Models;
 
+/// <summary>
+/// Users assigned to work on a given schedule_track (planning roster line).
+/// </summary>
 public partial class ScheduleUser
 {
     public int Id { get; set; }

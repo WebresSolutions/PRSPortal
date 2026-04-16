@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Migration.Models;
 
+/// <summary>
+/// A calendar day or planning track for a job type, grouping schedule rows and schedule_user assignments.
+/// </summary>
 public partial class ScheduleTrack
 {
     public int Id { get; set; }

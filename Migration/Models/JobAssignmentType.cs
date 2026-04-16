@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Migration.Models;
 
+/// <summary>
+/// Lookup of how a user is assigned to a job (e.g. lead, member) for job_user.assignment_type_id.
+/// </summary>
 public partial class JobAssignmentType
 {
     public int Id { get; set; }

@@ -84,8 +84,14 @@
                     <TemplateColumn StickyRight="true" Title="Action" HeaderStyle="max-width: 130px">
                         <CellTemplate>
                             <div class="d-flex flex-row gap-1">
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/quotes/edit/{context.Item.Id}")" />
-                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => RemoveQuote(context.Item.Id))" />
+                                @if (context.Item.Status.StatusEnum is QuoteStatusEnum.New or QuoteStatusEnum.Draft)
+                                {   
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" title="Edit" Color="Color.Primary" Href="@($"/quotes/edit/{context.Item.Id}")" Variant="Variant.Outlined" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Title="Delete"
+                                                   Color="Color.Error"
+                                                   OnClick="@(() => RemoveQuote(context.Item.Id))" Variant="Variant.Outlined" />
+                                }
                             </div>
                         </CellTemplate>
                     </TemplateColumn>
@@ -126,8 +132,19 @@
                                     }
                                 </div>
                                 <div class="d-flex flex-row gap-1 align-items-start flex-shrink-0">
-                                    <ButtonIcon Icon="bi bi-pencil" Title="Edit template" OnClick="@(() => BeginEditTemplate(t))" Disabled="_templateFormBusy" />
-                                    <ButtonIcon Icon="bi bi-trash" Title="Delete template" CssClass="text-red" OnClick="@(() => DeleteQuotingTemplateAsync(t))" Disabled="_templateFormBusy" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Variant="Variant.Filled"
+                                                   title="Edit template"
+                                                   aria-label="Edit template"
+                                                   Disabled="_templateFormBusy"
+                                                   OnClick="@(() => BeginEditTemplate(t))" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Color="Color.Error"
+                                                   Variant="Variant.Filled"
+                                                   title="Delete template"
+                                                   aria-label="Delete template"
+                                                   Disabled="_templateFormBusy"
+                                                   OnClick="@(() => DeleteQuotingTemplateAsync(t))" />
                                 </div>
                             </div>
                         }
@@ -166,7 +183,7 @@
                         </div>
                         <div class="quotes-template-field quotes-template-field-type">
                             <label for="job-type" class="required-field-label">Type</label>
-                            <MudSelect name="job-type" T="JobTypeEnum" @bind-Value="_newTemplateJobType" Variant="Variant.Outlined" Class="w-100" Margin="Margin.Dense" >
+                            <MudSelect name="job-type" T="JobTypeEnum" @bind-Value="_newTemplateJobType" Variant="Variant.Outlined" Class="w-100" Margin="Margin.Dense">
                                 <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Construction">@JobTypeEnum.Construction.GetDisplayName()</MudSelectItem>
                                 <MudSelectItem T="JobTypeEnum" Value="JobTypeEnum.Surveying">@JobTypeEnum.Surveying.GetDisplayName()</MudSelectItem>
                             </MudSelect>
@@ -179,7 +196,14 @@
                                 <span class="quotes-template-fee-lines-title d-block">Default fee lines</span>
                                 <span class="text-muted small">Optional — add services with default prices, or save a name-only template.</span>
                             </div>
-                            <ButtonIcon Icon="bi bi-plus-lg" Text="Add line" CssClass="text-green" Title="Add default fee line" OnClick="AddNewTemplateLine" Disabled="_templateFormBusy" />
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Success"
+                                       StartIcon="@Icons.Material.Filled.Add"
+                                       title="Add default fee line"
+                                       Disabled="_templateFormBusy"
+                                       OnClick="AddNewTemplateLine">
+                                Add line
+                            </MudButton>
                         </div>
                         @if (_newTemplateLines.Count == 0)
                         {
@@ -202,7 +226,13 @@
                                                 }
                                             </MudSelect>
                                             <MudNumericField T="decimal" @bind-Value="line.DefaultPrice" Label="Default price" Variant="Variant.Outlined" Class="quotes-template-price-field" Margin="Margin.Dense" />
-                                            <ButtonIcon Icon="bi bi-trash" Title="Remove line" CssClass="text-red" OnClick="@(() => RemoveNewTemplateLine(line))" Disabled="_templateFormBusy" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                           Color="Color.Error"
+                                                           Variant="Variant.Filled"
+                                                           title="Remove line"
+                                                           aria-label="Remove line"
+                                                           Disabled="_templateFormBusy"
+                                                           OnClick="@(() => RemoveNewTemplateLine(line))" />
                                         </div>
                                         <MudTextField T="string" @bind-Value="line.Description" Label="Line description (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" />
                                     </div>
@@ -214,9 +244,23 @@
                     <div class="quotes-template-create-actions d-flex flex-wrap justify-content-end gap-2 mt-4 pt-3 border-top">
                         @if (_editingTemplateSnapshot is not null)
                         {
-                            <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" OnClick="CancelTemplateEdit" Disabled="_templateFormBusy" Text="Cancel" Title="Discard changes" />
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Error"
+                                       StartIcon="@Icons.Material.Filled.Close"
+                                       title="Discard changes"
+                                       Disabled="_templateFormBusy"
+                                       OnClick="CancelTemplateEdit">
+                                Cancel
+                            </MudButton>
                         }
-                        <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" OnClick="SaveQuotingTemplateAsync" Disabled="_templateFormBusy" Text=@(_templateFormBusy ? "Saving…" : (_editingTemplateSnapshot is null ? "Create template" : "Save changes")) Title=@(_editingTemplateSnapshot is null ? "Create quoting template" : "Save template changes") />
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Success"
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   title="@(_editingTemplateSnapshot is null ? "Create quoting template" : "Save template changes")"
+                                   Disabled="_templateFormBusy"
+                                   OnClick="SaveQuotingTemplateAsync">
+                            @(_templateFormBusy ? "Saving…" : (_editingTemplateSnapshot is null ? "Create template" : "Save changes"))
+                        </MudButton>
                     </div>
                 }
             </div>

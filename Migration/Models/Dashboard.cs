@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Migration.Models;
 
+/// <summary>
+/// Per-user dashboard layout definition (grid size, default flag, name).
+/// </summary>
 public partial class Dashboard
 {
     public int Id { get; set; }

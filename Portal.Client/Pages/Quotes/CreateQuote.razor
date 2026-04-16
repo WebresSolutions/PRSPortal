@@ -30,7 +30,13 @@
                             <ContactAutocomplete Placeholder="Select a contact" Name="job-contact"
                                                Value="_jobContact" ValueChanged="OnContactChanged"
                                                Clearable="false" Required="true" />
-                            <ButtonIcon Href="@_navigationManager.ToAbsoluteUri($"/contacts/create").ToString()" OpenInNewTab="true" Icon="bi bi-plus" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Add"
+                                           Variant="Variant.Filled"
+                                           title="Create contact in new tab"
+                                           aria-label="Create contact in new tab"
+                                           Href="@_navigationManager.ToAbsoluteUri($"/contacts/create").ToString()"
+                                           Target="_blank"
+                                           Rel="noopener noreferrer" />
                         </div>
 
                         <EditAddress Address="_model.Address" />
@@ -99,8 +105,19 @@
                                             </div>
                                             <div />
                                             <div class="d-flex align-items-center">
-                                                <ButtonIcon Icon="bi bi-check-lg" CssClass="text-green" Title="Save" OnClick="@(() => t.IsEditing = false)" />
-                                                <ButtonIcon Icon="bi bi-x-lg ms-2" CssClass="text-red ms-2" Title="Cancel" OnClick="@(() => t.IsEditing = false)" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Check"
+                                                               Color="Color.Success"
+                                                               Variant="Variant.Filled"
+                                                               title="Save"
+                                                               aria-label="Save"
+                                                               OnClick="@(() => t.IsEditing = false)" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                                               Color="Color.Error"
+                                                               Variant="Variant.Filled"
+                                                               Class="ms-2"
+                                                               title="Cancel"
+                                                               aria-label="Cancel"
+                                                               OnClick="@(() => t.IsEditing = false)" />
                                             </div>
                                         }
                                         else
@@ -110,8 +127,18 @@
                                             <span class="settings-type-primary">@t.Price.ToString("C", QuoteCurrencyCulture) +GST</span>
                                             <span class="settings-type-primary"></span>
                                             <span class="settings-type-actions">
-                                                <ButtonIcon Icon="bi bi-trash" Title="Remove" CssClass="text-red" OnClick="@(() => RemoveService(t))" />
-                                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => t.IsEditing = true)" CssClass="ms-2" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                               Color="Color.Error"
+                                                               Variant="Variant.Filled"
+                                                               title="Remove"
+                                                               aria-label="Remove"
+                                                               OnClick="@(() => RemoveService(t))" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                               Variant="Variant.Filled"
+                                                               Class="ms-2"
+                                                               title="Edit"
+                                                               aria-label="Edit"
+                                                               OnClick="@(() => t.IsEditing = true)" />
                                             </span>
                                         }
                                     </div>
@@ -145,7 +172,12 @@
                                                      AdornmentIcon="" />
                                 </div>
                                 <div class="d-flex align-items-center">
-                                    <ButtonIcon Icon="bi bi-plus" CssClass="text-green" Title="Remove" OnClick="@AddService" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Add"
+                                                   Color="Color.Success"
+                                                   Variant="Variant.Filled"
+                                                   title="Add fee line"
+                                                   aria-label="Add fee line"
+                                                   OnClick="@AddService" />
                                 </div>
                             </div>
                         </div>
@@ -263,8 +295,22 @@
                     </div>
 
                     <div class="d-flex flex-row gap-2 pt-2">
-                        <ButtonIcon Icon="bi bi-save" CssClass="" Text="Save Draft" OnClick="@(() => SaveQuote(QuoteStatusEnum.Draft))" Disabled="_submitting" Title="Create this quote" />
-                        <ButtonIcon Icon="bi bi-check2-circle" CssClass="text-green" Text="Create quote" OnClick="@(() => SaveQuote(QuoteStatusEnum.New))" Disabled="_submitting" Title="Create this quote" />
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Default"
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   title="Save as draft"
+                                   Disabled="_submitting"
+                                   OnClick="@(() => SaveQuote(QuoteStatusEnum.Draft))">
+                            Save Draft
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Success"
+                                   StartIcon="@Icons.Material.Filled.CheckCircle"
+                                   title="Create this quote"
+                                   Disabled="_submitting"
+                                   OnClick="@(() => SaveQuote(QuoteStatusEnum.New))">
+                            Create quote
+                        </MudButton>
                     </div>
                 </div>
             </div>

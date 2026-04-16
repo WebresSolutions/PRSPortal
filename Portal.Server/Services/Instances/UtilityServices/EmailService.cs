@@ -12,19 +12,31 @@ public class EmailService(
     IOptions<EmailOptions> _IEmailOptions,
     IApiService _smtp2GoService,
     ILogger<EmailService> _logger,
-    IRazorViewRenderer _IViewRenderer) : IEmailService
+    IRazorViewRenderer _IViewRenderer,
+    IWebHostEnvironment _environment) : IEmailService
 {
     EmailOptions _EmailOptions = _IEmailOptions.Value;
 
     ///<inheritdoc  />
-    public async Task<bool> SendQuoteEmail(string[] to, string subject, QuoteDetailsDto details, (byte[] content, string fileName)[] attachments)
+    public async Task<bool> SendQuoteEmail(string[] to, string subject, QuoteDetailsDto details, (byte[] content, string fileName)[] attachments, string? acceptanceToken = null)
     {
         try
         {
             if (!string.IsNullOrEmpty(_EmailOptions.ToEmailAddressOverride))
                 to = [_EmailOptions.ToEmailAddressOverride];
 
-            QuoteAcceptanceModel model = new() { AcceptQuoteUrl = "https://www.google.com", Token = "123456", Details = details };
+            string baseUrl = _EmailOptions.BaseUrl;
+            string acceptPath = $"/quotes/accept/{details.Id}";
+            string acceptUrl = string.IsNullOrEmpty(acceptanceToken)
+                ? $"{baseUrl}{acceptPath}"
+                : $"{baseUrl}{acceptPath}?token={Uri.EscapeDataString(acceptanceToken)}";
+
+            QuoteAcceptanceModel model = new()
+            {
+                AcceptQuoteUrl = acceptUrl,
+                Token = acceptanceToken ?? string.Empty,
+                Details = details,
+            };
             string view = "Views/Emails/QuoteAcceptanceEmail.cshtml";
             string emailBody = await _IViewRenderer.Render(view, model);
 
@@ -36,7 +48,15 @@ public class EmailService(
                 ApiKey = _EmailOptions.ApiKey,
             };
 
-            message.AddInlineImage("Assets/Images/PRS-Primary-Logo.png", "logo_data", "image/png");
+            string logoPath = Path.Combine(_environment.ContentRootPath, "Assets", "Images", "PRS-Primary-Logo.png");
+            message.AddInlineImage(logoPath, "image/png");
+
+            foreach ((byte[] content, string fileName) in attachments)
+            {
+                string mime = fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? "application/pdf" : "application/octet-stream";
+                message.AddAttachment(fileName, Convert.ToBase64String(content), mime);
+            }
+
             foreach (string emailTo in to)
             {
                 message.AddToAddress(emailTo);

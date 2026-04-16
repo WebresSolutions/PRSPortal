@@ -52,8 +52,10 @@
                     <TemplateColumn StickyLeft="true" Title="Action" HeaderStyle="max-width:80px">
                         <CellTemplate>
                             <div class="d-flex flex-row">
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/councils/edit/{context.Item.CouncilId}")" />
-                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" title="Edit" Color="Color.Primary" Href="@($"/councils/edit/{context.Item.CouncilId}")" Variant="Variant.Outlined" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Title="Delete"
+                                               Color="Color.Error" Variant="Variant.Outlined" />
                             </div>
                         </CellTemplate>
                     </TemplateColumn>

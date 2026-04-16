@@ -29,8 +29,16 @@
                 <StatusBadge SingleStatus="_jobTypeEnum" OnClick="@(() => SwapJobType())" />
                 <div class="header-controls">
                     <div class="d-flex flex-row gap-2 align-content-center">
-                        <ButtonIcon Icon="bi bi-arrow-left" Title="Previous week" OnClick="PreviousWeek" />
-                        <ButtonIcon Icon="bi bi-arrow-right" Title="Next week" OnClick="NextWeek" />
+                        <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft"
+                                       Variant="Variant.Filled"
+                                       title="Previous week"
+                                       aria-label="Previous week"
+                                       OnClick="PreviousWeek" />
+                        <MudIconButton Icon="@Icons.Material.Filled.ChevronRight"
+                                       Variant="Variant.Filled"
+                                       title="Next week"
+                                       aria-label="Next week"
+                                       OnClick="NextWeek" />
                     </div>
                 </div>
             </div>

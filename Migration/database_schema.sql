@@ -18,6 +18,8 @@ DROP TABLE IF EXISTS invoice;
 DROP TABLE IF EXISTS technical_contact;
 DROP TABLE IF EXISTS job_status_history;
 DROP TABLE IF EXISTS job_to_type;
+DROP TABLE IF EXISTS quote_acceptance;
+DROP TABLE IF EXISTS quote_token;
 DROP TABLE IF EXISTS quote_status_history;
 DROP TABLE IF EXISTS quote_template_item;
 DROP TABLE IF EXISTS quote_template;
@@ -108,6 +110,8 @@ CREATE TABLE contact_type (
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+COMMENT ON TABLE contact_type IS 'Lookup of contact categories (e.g. client, vendor, internal) used by contact.type_id.';
+
 -- ============================================================================
 -- JOB COLOUR TABLE
 -- ============================================================================
@@ -131,7 +135,7 @@ CREATE TABLE job_type (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     abbreviation VARCHAR(15) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 COMMENT ON TABLE job_type IS 'Type of job';
@@ -176,7 +180,7 @@ CREATE TABLE job_status (
     job_type_id INT NOT NULL REFERENCES job_type(id),
     name VARCHAR(100) NOT NULL,
     colour VARCHAR(12) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
@@ -197,6 +201,8 @@ CREATE TABLE technical_contact_type (
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+COMMENT ON TABLE technical_contact_type IS 'Lookup of technical contact roles or classifications for technical_contact.type_id.';
+
 -- ============================================================================
 -- USER JOB ASSIGNMENT TYPE
 -- ============================================================================
@@ -207,6 +213,8 @@ CREATE TABLE job_assignment_type(
     description VARCHAR(255) NOT NULL,
     is_active BOOL NOT NULL DEFAULT true
 );
+
+COMMENT ON TABLE job_assignment_type IS 'Lookup of how a user is assigned to a job (e.g. lead, member) for job_user.assignment_type_id.';
 
 -- ============================================================================
 -- JOB TASK TYPE TABLE (Many-to-One)
@@ -223,6 +231,8 @@ CREATE TABLE job_task_type(
 CREATE INDEX idx_job_task_type_name ON job_task_type(name);
 CREATE INDEX idx_job_task_type_job_type_id ON job_task_type(job_type_id);
 
+COMMENT ON TABLE job_task_type IS 'Per job_type catalog of task kinds or labels used when categorising job_task rows.';
+
 -- ============================================================================
 -- SERVICE CATALOG
 -- ============================================================================
@@ -237,6 +247,8 @@ CREATE INDEX idx_service_type_code ON service_type(code);
 CREATE INDEX idx_service_type_active ON service_type(is_active);
 CREATE INDEX idx_service_catalog_name ON service_type(service_name);
 
+COMMENT ON TABLE service_type IS 'Billable or quotable service catalog; referenced by quote_item and quote_template_item.';
+
 -- ============================================================================
 -- TIMESHEET ENTRY TABLE
 -- ============================================================================
@@ -247,6 +259,8 @@ CREATE TABLE timesheet_entry_type(
     description TEXT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
+
+COMMENT ON TABLE timesheet_entry_type IS 'Lookup of timesheet entry categories (e.g. office, field) for timesheet_entry.type_id.';
 
 -- ============================================================================
 -- SCHEDULE COLOUR TABLE
@@ -274,6 +288,8 @@ CREATE TABLE application_setting(
     CONSTRAINT application_settings_key_unique UNIQUE (key)
 );
 
+COMMENT ON TABLE application_setting IS 'Key-value application configuration; value is JSON for flexible structured settings.';
+
 -- ============================================================================
 -- Type Table For Notifications
 -- ============================================================================
@@ -283,6 +299,8 @@ CREATE TABLE notification_type(
     description VARCHAR(100),
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
+
+COMMENT ON TABLE notification_type IS 'Lookup of notification kinds for notification.notification_type_id.';
 
 -- ============================================================================
 -- ADDRESS TABLE
@@ -406,9 +424,12 @@ CREATE TABLE council_contact(
     modified_on TIMESTAMPTZ
 );
 
-create index idx_council_conact_council_id on council(id);
-create index idx_council_contact_contact_id on contact(id);
-create index idx_council_contact_address_id on address(id);
+COMMENT ON TABLE council_contact IS 'Links a contact person to a council with a specific address context (e.g. council liaison at a site).';
+
+CREATE INDEX idx_council_contact_council_id ON council_contact(council_id);
+CREATE INDEX idx_council_contact_contact_id ON council_contact(contact_id);
+CREATE INDEX idx_council_contact_address_id ON council_contact(address_id);
+CREATE INDEX idx_council_contact_created_by_user_id ON council_contact(created_by_user_id);
 
 -- FILE TABLE
 -- ============================================================================
@@ -509,7 +530,7 @@ CREATE TABLE job_to_type(
     PRIMARY KEY(job_id, job_type_id)
 );
 
-COMMENT ON TABLE job_to_type IS 'Jobs can have multiple types. ';
+COMMENT ON TABLE job_to_type IS 'Many-to-many: a job can be tagged with one or more job types (e.g. Construction and Survey).';
 CREATE INDEX idx_job_to_type_job ON job_to_type(job_id);
 CREATE INDEX  idx_job_to_type_type ON job_to_type(job_type_id);
 
@@ -533,6 +554,8 @@ CREATE INDEX technical_contacts_contact_id_idx ON technical_contact(contact_id);
 CREATE INDEX technical_contacts_job_id_idx ON technical_contact(job_id);
 CREATE INDEX technical_contacts_created_by_user_id_idx ON technical_contact(created_by_user_id);
 CREATE INDEX technical_contacts_modified_by_user_id_idx ON technical_contact(modified_by_user_id);
+
+COMMENT ON TABLE technical_contact IS 'Associates a contact with a job as a technical or specialist contact, with a type classification.';
 
 -- USER JOB TABLE (Many-to-Many)
 -- ============================================================================
@@ -574,7 +597,7 @@ CREATE TABLE job_note (
     deleted_at TIMESTAMPTZ DEFAULT NULL
 );
 
-COMMENT ON TABLE job_note IS 'Many-to-many relationship between users and jobs';
+COMMENT ON TABLE job_note IS 'Notes attached to a job; may be assigned to a user and flagged as action required.';
 COMMENT ON COLUMN job_note.deleted_at IS 'Soft delete TIMESTAMPTZ - NULL means to show';
 
 CREATE INDEX idx_job_note_user_id ON job_note(assigned_user_id);
@@ -624,6 +647,8 @@ CREATE INDEX idx_task_job_id ON job_task(job_id);
 CREATE INDEX idx_task_deleted_at ON job_task(deleted_at);
 CREATE INDEX idx_task_created_by ON job_task(created_by_user_id);
 
+COMMENT ON TABLE job_task IS 'Tasks or line items belonging to a job, including optional quoted price and invoice tracking dates.';
+
 -- ============================================================================
 -- INVOICE TABLE
 -- ============================================================================
@@ -646,6 +671,8 @@ CREATE INDEX idx_invoice_created_by ON invoice(created_by_user_id);
 CREATE INDEX idx_invoice_modified_by ON invoice(modified_by_user_id);
 CREATE INDEX idx_invoice_deleted_at ON invoice(deleted_at);
 
+COMMENT ON TABLE invoice IS 'Invoice header linked to contact and/or job with total price and audit fields.';
+
 -- QUOTE TABLE
 -- ============================================================================
 CREATE TABLE quote (
@@ -656,12 +683,14 @@ CREATE TABLE quote (
     contact_id INT REFERENCES contact(id),
     job_type_id INT NOT NULL REFERENCES job_type(id),
     job_id INT REFERENCES job(id),
-    quote_reference VARCHAR(50),
+    quote_reference VARCHAR(50) NOT NULL,
     total_price NUMERIC(12, 2),
     date_accepted TIMESTAMPTZ,
     date_sent_to_client TIMESTAMPTZ,
     target_delivery_date TIMESTAMPTZ,
+    view_by_client_at TIMESTAMPTZ,
     description TEXT,
+    quote_rejection_reason VARCHAR(2000),
     quote_sent_by_user_id INT REFERENCES app_user(id),
     created_by_user_id INT NOT NULL REFERENCES app_user(id),
     created_on TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -670,7 +699,11 @@ CREATE TABLE quote (
     deleted_at TIMESTAMPTZ DEFAULT NULL
 );
 
-COMMENT ON TABLE quote IS 'A quote for a job';
+COMMENT ON TABLE quote IS 'Fee proposal / quote for a contact and job type, with lifecycle dates and optional link to a job.';
+COMMENT ON COLUMN quote.date_accepted IS 'When the client accepted the proposal (may mirror quote_acceptance.accepted_at).';
+COMMENT ON COLUMN quote.date_sent_to_client IS 'When the proposal was emailed or otherwise sent to the client.';
+COMMENT ON COLUMN quote.view_by_client_at IS 'Optional last time the client opened the proposal via portal or tracking.';
+COMMENT ON COLUMN quote.deleted_at IS 'Soft delete; NULL means active quote.';
 CREATE INDEX idx_quote_address_id ON quote(address_id);
 CREATE INDEX idx_quote_status_id ON quote(status_id);
 CREATE INDEX idx_quote_contact_id ON quote(contact_id);
@@ -694,6 +727,9 @@ CREATE TABLE quote_item (
 
 CREATE INDEX idx_quote_item_quote_id ON quote_item(quote_id);
 CREATE INDEX idx_quote_item_service_id ON quote_item(service_id);
+
+COMMENT ON TABLE quote_item IS 'Line items on a quote: service snapshot, price, and optional link to service_type.';
+COMMENT ON COLUMN quote_item.service_name_snapshot IS 'Service label as shown on the quote at line creation time (denormalised from catalog).';
 
 -- ============================================================================
 -- QUOTE TEMPLATES (reusable default line sets for new quotes)
@@ -750,6 +786,60 @@ CREATE INDEX idx_quote_history_id ON quote_status_history(quote_id);
 CREATE INDEX idx_quote_status_new ON quote_status_history(status_id_new);
 CREATE INDEX idx_quote_status_old ON quote_status_history(status_id_old);
 CREATE INDEX idx_quote_status_modified_by ON quote_status_history(modified_by_user_id);
+
+-- ============================================================================
+-- QUOTE TOKENS TABLE
+-- ============================================================================
+CREATE TABLE quote_token(
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    quote_id INT NOT NULL REFERENCES quote,
+    token VARCHAR(255) NOT NULL,
+    created_on TIMESTAMPTZ NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_quote_token_quote_id ON quote_token(quote_id);
+CREATE INDEX idx_quote_token_token ON quote_token(token);
+
+COMMENT ON TABLE quote_token IS 'Secret or hashed token rows for client portal access to a quote (e.g. email link); expires and optional single-use via used_at.';
+COMMENT ON COLUMN quote_token.token IS 'Opaque token or stored hash, depending on application strategy; must match email link validation.';
+COMMENT ON COLUMN quote_token.expires_at IS 'After this instant the token must not grant access.';
+COMMENT ON COLUMN quote_token.used_at IS 'If set, token was consumed (e.g. one-time flow); leave NULL for multi-use view tokens.';
+
+-- ============================================================================
+-- QUOTE ACCEPTANCE (client acceptance via portal link — audit + optional signature)
+-- ============================================================================
+CREATE TABLE quote_acceptance (
+    id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    quote_id INT NOT NULL REFERENCES quote(id) ON DELETE CASCADE,
+    quote_token_id INT REFERENCES quote_token(id) ON DELETE SET NULL,
+    accepted_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    signatory_name VARCHAR(255),
+    signature_image BYTEA,
+    signature_content_type VARCHAR(100) NOT NULL DEFAULT 'image/png',
+    client_ip VARCHAR(45),
+    user_agent TEXT,
+    quote_reference_snapshot VARCHAR(50) NOT NULL,
+    quote_total_snapshot NUMERIC(12, 2) NOT NULL,
+    CONSTRAINT quote_acceptance_one_per_quote UNIQUE (quote_id),
+    CONSTRAINT quote_acceptance_signature_size CHECK (
+        signature_image IS NULL OR octet_length(signature_image) <= 524288
+    )
+);
+
+COMMENT ON TABLE quote_acceptance IS 'Record when a client accepted a fee proposal via token link; optional drawn signature image (bytea).';
+COMMENT ON COLUMN quote_acceptance.quote_token_id IS 'Which quote_token was validated at acceptance time; NULL if token row was purged.';
+COMMENT ON COLUMN quote_acceptance.signatory_name IS 'Optional typed full name in addition to or instead of signature_image.';
+COMMENT ON COLUMN quote_acceptance.signature_image IS 'Small raster signature (e.g. PNG); NULL if only typed name / checkbox acceptance.';
+COMMENT ON COLUMN quote_acceptance.quote_reference_snapshot IS 'Quote reference at time of acceptance for audit trail.';
+COMMENT ON COLUMN quote_acceptance.quote_total_snapshot IS 'Total price at time of acceptance for audit trail.';
+COMMENT ON COLUMN quote_acceptance.client_ip IS 'Client IP at acceptance (best effort; may reflect proxy if X-Forwarded-For is applied).';
+COMMENT ON COLUMN quote_acceptance.user_agent IS 'HTTP User-Agent header at acceptance for lightweight client audit context.';
+
+CREATE INDEX idx_quote_acceptance_quote_id ON quote_acceptance(quote_id);
+CREATE INDEX idx_quote_acceptance_accepted_at ON quote_acceptance(accepted_at);
+CREATE INDEX idx_quote_acceptance_quote_token_id ON quote_acceptance(quote_token_id);
 
 -- ============================================================================
 -- QUOTE NOTES TABLE
@@ -819,6 +909,8 @@ CREATE TABLE schedule_track(
 CREATE INDEX idx_schedule_track_job_type_id ON schedule_track(job_type_id);
 CREATE INDEX idx_schedule_track_created_by_user_id ON schedule_track(created_by_user_id);
 
+COMMENT ON TABLE schedule_track IS 'A calendar day or planning track for a job type, grouping schedule rows and schedule_user assignments.';
+
 -- ============================================================================
 -- SCHEDULE USERS TABLE
 -- ============================================================================
@@ -834,6 +926,8 @@ CREATE TABLE schedule_user(
 CREATE INDEX idx_schedule_users_schedule_track_id ON schedule_user(schedule_track_id);
 CREATE INDEX idx_schedule_users_user_id ON schedule_user(user_id);
 CREATE INDEX idx_schedule_users_created_by_id ON schedule_user(created_by_user_id);
+
+COMMENT ON TABLE schedule_user IS 'Users assigned to work on a given schedule_track (planning roster line).';
 
 -- SCHEDULE TABLE
 -- ============================================================================
@@ -879,6 +973,8 @@ CREATE TABLE dashboard(
     modified_on TIMESTAMPTZ
 );
 
+COMMENT ON TABLE dashboard IS 'Per-user dashboard layout definition (grid size, default flag, name).';
+
 -- Index for fast loading of a specific user's dashboards
 CREATE INDEX idx_user_dashboard_user ON dashboard(user_id);
 
@@ -911,6 +1007,8 @@ CREATE TABLE dashboard_item (
 CREATE INDEX idx_dashboard_item_dashboard_id ON dashboard_item(dashboard_id);
 CREATE INDEX idx_dashboard_item_content ON dashboard_item(content_id);
 
+COMMENT ON TABLE dashboard_item IS 'Placed widget on a dashboard: position, span, optional title, and JSON settings for the widget instance.';
+
 -- ============================================================================
 -- Holds the xero refresh token
 -- ============================================================================
@@ -924,6 +1022,8 @@ CREATE TABLE xero_access (
 CREATE INDEX idx_xero_access_expires ON xero_access(expires);
 CREATE INDEX idx_xero_access_token ON xero_access(token);
 
+COMMENT ON TABLE xero_access IS 'Stores Xero OAuth refresh token material and refresh/expiry metadata for accounting integration.';
+
 -- Holds notification informations
 -- ============================================================================
 CREATE TABLE notification(
@@ -936,3 +1036,5 @@ CREATE TABLE notification(
 
 CREATE INDEX idx_notification_type_id ON notification(notification_type_id);
 CREATE INDEX idx_user_id ON notification(user_id);
+
+COMMENT ON TABLE notification IS 'In-app or queued notifications per user with JSON payload and type classification.';

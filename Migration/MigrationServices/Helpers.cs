@@ -56,14 +56,14 @@ internal static class Helpers
     /// Converts a nullable DateTime to UTC, or returns current UTC time if null
     /// </summary>
     /// <param name="date">The nullable date to convert</param>
-    /// <returns>A DateTime in UTC, or current UTC time if input is null</returns>
-    public static DateTime GetValidDateWithTimezone(DateTime? date) => date.HasValue ? DateTime.SpecifyKind(date.Value, DateTimeKind.Utc) : DateTime.UtcNow;
+    /// <returns>A DateTime in UTC, or current UTC time if input is null</returns>oldJob.Created.HasValue ? oldJob.Created.Value.ToUniversalTime() : DateTime.UtcNow,
+    public static DateTime GetValidDateWithTimezone(DateTime? date) => date.HasValue ? date.Value.ToUniversalTime() : DateTime.UtcNow;
     /// <summary>
     /// Converts a nullable DateTime to UTC, preserving null values
     /// </summary>
     /// <param name="date">The nullable date to convert</param>
     /// <returns>A nullable DateTime in UTC, or null if input is null</returns>
-    public static DateTime? GetValidDateWithTimezoneNull(DateTime? date) => date.HasValue ? DateTime.SpecifyKind(date.Value, DateTimeKind.Utc) : null;
+    public static DateTime? GetValidDateWithTimezoneNull(DateTime? date) => date.HasValue ? date.Value.ToUniversalTime() : null;
 
     /// <summary>
     /// Truncates a string to a maximum length, logging a warning if truncation occurs

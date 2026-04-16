@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Portal.Data;
+using Portal.Data.Models;
 using Portal.Shared;
 using Portal.Shared.DataEnums;
 using Portal.Shared.DTO.Address;
@@ -450,6 +451,11 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
         Assert.Equal((int)QuoteStatusEnum.Sent, saved.StatusId);
         Assert.NotNull(saved.DateSentToClient);
         Assert.Equal(1, saved.QuoteSentByUserId);
+
+
+        QuoteToken? token = await db.QuoteTokens.FirstOrDefaultAsync(t => t.QuoteId == returnedId);
+        Assert.NotNull(token);
+        Assert.True(token.ExpiresAt > DateTime.UtcNow.AddDays(13));
     }
 
     [Fact]
@@ -492,6 +498,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
         Data.Models.QuoteTemplate? saved = await db.QuoteTemplates.AsNoTracking().FirstOrDefaultAsync(t => t.Id == created.Id);
         Assert.NotNull(saved);
         Assert.NotNull(saved.DeletedAt);
+
 
         QuoteTemplateDto[]? after = await _client.GetFromJsonAsync<QuoteTemplateDto[]>("/api/quotes/templates");
         Assert.NotNull(after);

@@ -8,7 +8,12 @@
     {
         <div class="card-header-simple">
             <h3>@HeaderTitle</h3>
-            <ButtonIcon Icon=@ButtonIcon CssClass="text-green" Title="Edit" OnClick="OnAddButtonClick" />
+            <MudIconButton Icon="@ActionIcon"
+                           title="Edit"
+                           aria-label="Edit"
+                           Color="Color.Success"
+                           Variant="Variant.Filled"
+                           OnClick="@(_ => OnAddButtonClick.InvokeAsync())" />
         </div>
     }
     @if (ShowHeaderWithTabs)
@@ -18,7 +23,12 @@
             <HeaderTabs Href="#" OnTabSelect="OnTabSelect" ShowAddButton="false" ShowBorderBottom="false" Tabs="Tabs" @ref="HeaderTabsRef" />
             @if (IsEventSet)
             {
-                <ButtonIcon Icon="@ButtonIcon" CssClass="text-green" Title="Edit" OnClick="TabButtonClick" />
+                <MudIconButton Icon="@ActionIcon"
+                               title="Edit"
+                               aria-label="Edit"
+                               Color="Color.Success"
+                               Variant="Variant.Filled"
+                               OnClick="@(_ => TabButtonClick.InvokeAsync())" />
             }
         </div>
     }
@@ -136,8 +146,9 @@
     [Parameter]
     public EventCallback<TabTypeEnum> ChangeTabs { get; set; }
 
+    /// <summary>MudBlazor filled icon for the header action (e.g. <see cref="Icons.Material.Filled.Add"/>).</summary>
     [Parameter]
-    public string ButtonIcon { get; set; } = "bi bi-plus";
+    public string ActionIcon { get; set; } = Icons.Material.Filled.Add;
 
     [Parameter]
     public bool Shadow { get; set; } = true;

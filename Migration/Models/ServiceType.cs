@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Migration.Models;
 
+/// <summary>
+/// Billable or quotable service catalog; referenced by quote_item and quote_template_item.
+/// </summary>
 public partial class ServiceType
 {
     public int Id { get; set; }

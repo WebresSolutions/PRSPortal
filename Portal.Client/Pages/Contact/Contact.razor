@@ -48,7 +48,11 @@ else
             <div class="header-right">
                 <ContactTypeBadge ContactType="@((ContactTypeEnum)_contact.ContactType)" />
                 <div class="header-actions">
-                    <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/contacts/edit/{ContactId}")" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Variant="Variant.Filled"
+                                   title="Edit"
+                                   aria-label="Edit"
+                                   Href="@($"/contacts/edit/{ContactId}")" />
                 </div>
             </div>
         </div>
@@ -185,8 +189,17 @@ else
                                     <TemplateColumn StickyLeft="true" Title="Action">
                                         <CellTemplate>
                                             <div class="d-flex flex-row gap-1">
-                                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{context.Item.JobId}")" />
-                                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => RemoveJob(context.Item.JobId))" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                               Variant="Variant.Filled"
+                                                               title="Edit"
+                                                               aria-label="Edit"
+                                                               Href="@($"/jobs/edit/{context.Item.JobId}")" />
+                                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                               Color="Color.Error"
+                                                               Variant="Variant.Filled"
+                                                               title="Delete"
+                                                               aria-label="Delete"
+                                                               OnClick="@(() => RemoveJob(context.Item.JobId))" />
                                             </div>
                                         </CellTemplate>
                                     </TemplateColumn>

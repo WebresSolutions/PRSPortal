@@ -54,8 +54,17 @@
                             }
                         </div>
                         <div class="timesheet-actions">
-                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenEditDialog(entry))" />
-                            <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => DeleteEntry(entry))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                           Variant="Variant.Filled"
+                                           title="Edit"
+                                           aria-label="Edit"
+                                           OnClick="@(() => OpenEditDialog(entry))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                           Color="Color.Error"
+                                           Variant="Variant.Filled"
+                                           title="Delete"
+                                           aria-label="Delete"
+                                           OnClick="@(() => DeleteEntry(entry))" />
                         </div>
                     </div>
                 }

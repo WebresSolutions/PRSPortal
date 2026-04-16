@@ -40,12 +40,26 @@
                         <div class="d-flex flex-row gap-1">
                             @if (context.Item.Deleted)
                             {
-                                <ButtonIcon OnClick="@(async () => await DeletedContact(context.Item))" Icon="bi bi-arrow-counterclockwise" CssClass="text-red" Title="Restore" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Undo"
+                                               Color="Color.Error"
+                                               Variant="Variant.Filled"
+                                               title="Restore"
+                                               aria-label="Restore"
+                                               OnClick="@(async () => await DeletedContact(context.Item))" />
                             }
                             else if (JobId is not null)
                             {
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => NewTechnicalContact(context.Item))" />
-                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => DeletedContact(context.Item))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                               Variant="Variant.Filled"
+                                               title="Edit"
+                                               aria-label="Edit"
+                                               OnClick="@(() => NewTechnicalContact(context.Item))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Variant="Variant.Filled"
+                                               title="Delete"
+                                               aria-label="Delete"
+                                               OnClick="@(() => DeletedContact(context.Item))" />
                             }
                         </div>
                     </CellTemplate>

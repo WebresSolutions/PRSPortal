@@ -84,8 +84,18 @@
                         }
                     </div>
                     <div class="form-actions">
-                        <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" Text="Save" ButtonType="submit" />
-                        <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" Href="/contacts" Text="Close" />
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Success"
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   ButtonType="ButtonType.Submit">
+                            Save
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.Close"
+                                   Href="/contacts">
+                            Close
+                        </MudButton>
                     </div>
                 </EditForm>
             }

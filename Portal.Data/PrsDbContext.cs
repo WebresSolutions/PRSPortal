@@ -66,6 +66,8 @@ public partial class PrsDbContext : DbContext
 
     public virtual DbSet<Quote> Quotes { get; set; }
 
+    public virtual DbSet<QuoteAcceptance> QuoteAcceptances { get; set; }
+
     public virtual DbSet<QuoteItem> QuoteItems { get; set; }
 
     public virtual DbSet<QuoteNote> QuoteNotes { get; set; }
@@ -77,6 +79,8 @@ public partial class PrsDbContext : DbContext
     public virtual DbSet<QuoteTemplate> QuoteTemplates { get; set; }
 
     public virtual DbSet<QuoteTemplateItem> QuoteTemplateItems { get; set; }
+
+    public virtual DbSet<QuoteToken> QuoteTokens { get; set; }
 
     public virtual DbSet<Schedule> Schedules { get; set; }
 
@@ -1286,6 +1290,7 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.TotalPrice)
                 .HasPrecision(12, 2)
                 .HasColumnName("total_price");
+            entity.Property(e => e.ViewByClientAt).HasColumnName("view_by_client_at");
 
             entity.HasOne(d => d.Address).WithMany(p => p.Quotes)
                 .HasForeignKey(d => d.AddressId)
@@ -1321,6 +1326,64 @@ public partial class PrsDbContext : DbContext
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("quote_status_id_fkey");
+        });
+
+        modelBuilder.Entity<QuoteAcceptance>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("quote_acceptance_pkey");
+
+            entity.ToTable("quote_acceptance", tb => tb.HasComment("Record when a client accepted a fee proposal via token link; optional drawn signature image (bytea)."));
+
+            entity.HasIndex(e => e.AcceptedAt, "idx_quote_acceptance_accepted_at");
+
+            entity.HasIndex(e => e.QuoteId, "idx_quote_acceptance_quote_id");
+
+            entity.HasIndex(e => e.QuoteTokenId, "idx_quote_acceptance_quote_token_id");
+
+            entity.HasIndex(e => e.QuoteId, "quote_acceptance_one_per_quote").IsUnique();
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.AcceptedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("accepted_at");
+            entity.Property(e => e.ClientIp)
+                .HasMaxLength(45)
+                .HasColumnName("client_ip");
+            entity.Property(e => e.QuoteId).HasColumnName("quote_id");
+            entity.Property(e => e.QuoteReferenceSnapshot)
+                .HasMaxLength(50)
+                .HasComment("Quote reference at time of acceptance for audit trail.")
+                .HasColumnName("quote_reference_snapshot");
+            entity.Property(e => e.QuoteTokenId)
+                .HasComment("Which quote_token was validated at acceptance time; NULL if token row was purged.")
+                .HasColumnName("quote_token_id");
+            entity.Property(e => e.QuoteTotalSnapshot)
+                .HasPrecision(12, 2)
+                .HasComment("Total price at time of acceptance for audit trail.")
+                .HasColumnName("quote_total_snapshot");
+            entity.Property(e => e.SignatoryName)
+                .HasMaxLength(255)
+                .HasComment("Optional typed full name in addition to or instead of signature_image.")
+                .HasColumnName("signatory_name");
+            entity.Property(e => e.SignatureContentType)
+                .HasMaxLength(100)
+                .HasDefaultValueSql("'image/png'::character varying")
+                .HasColumnName("signature_content_type");
+            entity.Property(e => e.SignatureImage)
+                .HasComment("Small raster signature (e.g. PNG); NULL if only typed name / checkbox acceptance.")
+                .HasColumnName("signature_image");
+            entity.Property(e => e.UserAgent).HasColumnName("user_agent");
+
+            entity.HasOne(d => d.Quote).WithOne(p => p.QuoteAcceptance)
+                .HasForeignKey<QuoteAcceptance>(d => d.QuoteId)
+                .HasConstraintName("quote_acceptance_quote_id_fkey");
+
+            entity.HasOne(d => d.QuoteToken).WithMany(p => p.QuoteAcceptances)
+                .HasForeignKey(d => d.QuoteTokenId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("quote_acceptance_quote_token_id_fkey");
         });
 
         modelBuilder.Entity<QuoteItem>(entity =>
@@ -1541,6 +1604,33 @@ public partial class PrsDbContext : DbContext
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("quote_template_item_service_id_fkey");
+        });
+
+        modelBuilder.Entity<QuoteToken>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("quote_token_pkey");
+
+            entity.ToTable("quote_token");
+
+            entity.HasIndex(e => e.QuoteId, "idx_quote_token_quote_id");
+
+            entity.HasIndex(e => e.Token, "idx_quote_token_token");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedOn).HasColumnName("created_on");
+            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+            entity.Property(e => e.QuoteId).HasColumnName("quote_id");
+            entity.Property(e => e.Token)
+                .HasMaxLength(255)
+                .HasColumnName("token");
+            entity.Property(e => e.UsedAt).HasColumnName("used_at");
+
+            entity.HasOne(d => d.Quote).WithMany(p => p.QuoteTokens)
+                .HasForeignKey(d => d.QuoteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("quote_token_quote_id_fkey");
         });
 
         modelBuilder.Entity<Schedule>(entity =>

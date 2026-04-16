@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Migration.Models;
 
 /// <summary>
-/// Many-to-many relationship between users and jobs
+/// Notes attached to a job; may be assigned to a user and flagged as action required.
 /// </summary>
 public partial class JobNote
 {

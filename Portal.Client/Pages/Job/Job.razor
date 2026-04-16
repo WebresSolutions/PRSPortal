@@ -28,7 +28,11 @@ else
                     <div class="header-right">
                         <StatusBadge StatusEnums="@_job.JobTypes" />
                         <div class="header-actions">
-                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href=@($"/jobs/edit/{JobId}") />
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                           Variant="Variant.Filled"
+                                           title="Edit"
+                                           aria-label="Edit"
+                                           Href="@($"/jobs/edit/{JobId}")" />
                         </div>
                     </div>
                 </div>

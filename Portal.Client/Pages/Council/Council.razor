@@ -33,7 +33,11 @@ else
             </div>
             <div class="header-right">
                 <div class="header-actions">
-                    <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/councils/edit/{CouncilId}")" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Variant="Variant.Filled"
+                                   title="Edit"
+                                   aria-label="Edit"
+                                   Href="@($"/councils/edit/{CouncilId}")" />
                 </div>
             </div>
         </div>
@@ -155,8 +159,17 @@ else
                                 <TemplateColumn StickyLeft="true" Title="Action" HeaderStyle="max-width: 130px">
                                     <CellTemplate>
                                         <div class="d-flex flex-row gap-1">
-                                            <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{context.Item.JobId}")" />
-                                            <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => RemoveJob(context.Item.JobId))" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                           Variant="Variant.Filled"
+                                                           title="Edit"
+                                                           aria-label="Edit"
+                                                           Href="@($"/jobs/edit/{context.Item.JobId}")" />
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                           Color="Color.Error"
+                                                           Variant="Variant.Filled"
+                                                           title="Delete"
+                                                           aria-label="Delete"
+                                                           OnClick="@(() => RemoveJob(context.Item.JobId))" />
                                         </div>
                                     </CellTemplate>
                                 </TemplateColumn>

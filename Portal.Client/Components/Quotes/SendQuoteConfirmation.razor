@@ -1,13 +1,13 @@
 ﻿@using Portal.Shared.DTO.Quote
 
-<section>
+<section class="p-3 border-grey grey-background ">
     <div>
         <p>Are you sure you want to send the quote <strong>@QuoteDetails.QuoteReference</strong> to <strong>@QuoteDetails.Contact?.Email</strong>?</p>
     </div>
     <div>
-        <div>
-            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@SendQuoteToCustomer" Disabled="@_sendingQuote">Yes</MudButton>
-            <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="@(Close)"> Disabled="@_sendingQuote"No</MudButton>
+        <div class="d-flex justify-content-center gap-2 ">
+            <MudButton Color="Color.Primary" StartIcon="@Icons.Material.Filled.Send" Variant="Variant.Filled" OnClick="@SendQuoteToCustomer" Disabled="@_sendingQuote">Send</MudButton>
+            <MudButton Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Close" Variant="Variant.Filled" OnClick="@(Close)" Disabled="@_sendingQuote">Cancel</MudButton>
         </div>
     </div>
 
@@ -34,7 +34,7 @@
         }
         else
         {
-            // Handle error
+            _snackbar.Add("Failed to send quote. Please try again.", Severity.Error);
         }
         _sendingQuote = false;
     }

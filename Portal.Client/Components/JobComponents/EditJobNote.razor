@@ -37,8 +37,18 @@
                 <small class="text-center">Modified By: @Note.Modifiedby</small>
             }
             <div class="action-buttons">
-                <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" OnClick="SaveNote" Text="Save" />
-                <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" OnClick="@(() => MudDialog?.Close(DialogResult.Ok(true)))" Text="Close" />
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Success"
+                           StartIcon="@Icons.Material.Filled.Save"
+                           OnClick="SaveNote">
+                    Save
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Close"
+                           OnClick="@(() => MudDialog?.Close(DialogResult.Ok(true)))">
+                    Close
+                </MudButton>
             </div>
         </div>
     </DialogContent>

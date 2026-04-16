@@ -44,6 +44,7 @@
 .mud-button-filled.mud-button-filled-secondary {
     border-radius: var(--border-rad);
     box-shadow: none;
+    background-color: var(--color-grey-dark) !important;
 }
 
 .mud-button-filled.mud-button-filled-default {

@@ -10,15 +10,15 @@ using Portal.Server.Services.Interfaces.UtilityServices;
 namespace Portal.Server.Services.Instances.UtilityServices;
 
 public class RazorViewRenderer(
-    IRazorViewEngine viewEngine,
-    ITempDataProvider tempDataProvider,
-    IServiceScopeFactory serviceScopeFactory
+    IRazorViewEngine _viewEngine,
+    ITempDataProvider _tempDataProvider,
+    IServiceScopeFactory _serviceScopeFactory
     ) : IRazorViewRenderer
 {
     ///<inheritdoc  />
     public async Task<string> Render<TModel>(string viewName, TModel model)
     {
-        using IServiceScope scope = serviceScopeFactory.CreateScope();
+        using IServiceScope scope = _serviceScopeFactory.CreateScope();
 
         DefaultHttpContext httpContext = new() { RequestServices = scope.ServiceProvider };
         ActionContext actionContext = new(httpContext, new RouteData(), new ActionDescriptor());
@@ -30,7 +30,7 @@ public class RazorViewRenderer(
             Model = model
         };
 
-        TempDataDictionary tempData = new(httpContext, tempDataProvider);
+        TempDataDictionary tempData = new(httpContext, _tempDataProvider);
 
         using StringWriter output = new();
 
@@ -57,13 +57,13 @@ public class RazorViewRenderer(
     /// <exception cref="InvalidOperationException"></exception>
     private IView FindView(ActionContext actionContext, string viewName)
     {
-        ViewEngineResult getViewResult = viewEngine.GetView(executingFilePath: null, viewPath: viewName, isMainPage: true);
+        ViewEngineResult getViewResult = _viewEngine.GetView(executingFilePath: null, viewPath: viewName, isMainPage: true);
         if (getViewResult.Success)
         {
             return getViewResult.View;
         }
 
-        ViewEngineResult findViewResult = viewEngine.FindView(actionContext, viewName, isMainPage: true);
+        ViewEngineResult findViewResult = _viewEngine.FindView(actionContext, viewName, isMainPage: true);
         if (findViewResult.Success)
         {
             return findViewResult.View;

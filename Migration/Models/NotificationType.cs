@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Migration.Models;
 
+/// <summary>
+/// Lookup of notification kinds for notification.notification_type_id.
+/// </summary>
 public partial class NotificationType
 {
     public int Id { get; set; }

@@ -56,6 +56,7 @@ public static class Dependencies
         builder.Services.Configure<XeroOptions>(builder.Configuration.GetSection("XeroSettings"));
         builder.Services.Configure<SharePointOptions>(builder.Configuration.GetSection("SharepointOptions"));
         builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("EmailOptions"));
+        builder.Services.Configure<QuotingOptions>(builder.Configuration.GetSection("QuotingOptions"));
 
         builder.WebHost.UseStaticWebAssets();
         builder.Services.AddControllersWithViews();

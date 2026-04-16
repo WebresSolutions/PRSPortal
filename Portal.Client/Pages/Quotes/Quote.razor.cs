@@ -70,7 +70,9 @@ public partial class Quote
 
     private async Task OnSendQuoteAsync(MouseEventArgs _)
     {
-        IDialogReference sendResult = await _dialog.ShowAsync<SendQuoteConfirmation>("Send Quote", new DialogParameters { ["QuoteDetails"] = _quote });
+
+
+        IDialogReference sendResult = await _dialog.ShowAsync<SendQuoteConfirmation>("Send Quote", new DialogParameters { ["QuoteDetails"] = _quote }, new() { NoHeader = true });
         if (sendResult.Result.IsCanceled)
             return;
 

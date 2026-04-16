@@ -16,11 +16,23 @@
         <div>
             @if (IsEventSet)
             {
-                <ButtonIcon Icon="bi bi-plus" Title="Add" CssClass="text-green" OnClick=@ButtonClick Text="Add" />
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Success"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           title="Add"
+                           OnClick="@(_ => ButtonClick.InvokeAsync())">
+                    Add
+                </MudButton>
             }
             else
             {
-                <ButtonIcon Icon="bi bi-plus" Title="Add" CssClass="text-green" Href="@Href" Text="Add" />
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Success"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           title="Add"
+                           Href="@Href">
+                    Add
+                </MudButton>
             }
 
         </div>

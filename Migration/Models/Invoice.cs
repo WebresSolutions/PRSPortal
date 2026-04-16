@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Migration.Models;
 
+/// <summary>
+/// Invoice header linked to contact and/or job with total price and audit fields.
+/// </summary>
 public partial class Invoice
 {
     public int Id { get; set; }

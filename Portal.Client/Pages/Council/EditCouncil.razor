@@ -63,8 +63,18 @@
                         }
                     </div>
                     <div class="form-actions">
-                        <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" OnClick="SubmitAsync" Text="Save" />
-                        <ButtonIcon Icon="bi bi-x-circle" CssClass="text-red" Href="/councils" Text="Close" />
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Success"
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   OnClick="SubmitAsync">
+                            Save
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Error"
+                                   StartIcon="@Icons.Material.Filled.Close"
+                                   Href="/councils">
+                            Close
+                        </MudButton>
                     </div>
                 </EditForm>
             }

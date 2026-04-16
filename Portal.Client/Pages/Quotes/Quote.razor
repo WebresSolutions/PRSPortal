@@ -34,18 +34,31 @@ else
                                                Size="Size.Small"
                                                Class="quote-send-header-btn"
                                                StartIcon="@Icons.Material.Filled.Send"
-                                               OnClick="@OnSendQuoteAsync">
+                                               OnClick="@OnSendQuoteAsync"
+                                                title="Send Quote">
                                         @(_quote.QuotesStatus.StatusEnum is QuoteStatusEnum.Rejected ? "Re-send to client" : "Send to client")
                                     </MudButton>
                                     <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                                    title="Edit quote"
                                                    aria-label="Edit quote"
                                                    Href="@($"/quotes/edit/{QuoteId}")"
-                                                   Color="Color.Primary"
-                                                   Variant="Variant.Outlined"
+                                                   Color="Color.Secondary"
+                                                   Variant="Variant.Filled"
                                                    Size="Size.Small"
                                                    Class="quote-header-edit-btn" />
                                 </div>
+                            }
+                            else if(_quote.QuotesStatus.StatusEnum is QuoteStatusEnum.Sent)
+                            {
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           Size="Size.Small"
+                                           Class="quote-send-header-btn"
+                                           StartIcon="@Icons.Material.Filled.Send"
+                                           OnClick="@OnSendQuoteAsync"
+                                           title="Send Quote">
+                                    Re-Send to client
+                                </MudButton>
                             }
                         </div>
                     </div>

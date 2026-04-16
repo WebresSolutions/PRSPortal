@@ -29,12 +29,26 @@
                                 <div class="note-buttons">
                                     @if (note.Deleted)
                                     {
-                                        <ButtonIcon OnClick="@(async () => await DeleteNoteAsync(note))" Icon="bi bi-arrow-counterclockwise" CssClass="text-red"></ButtonIcon>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Undo"
+                                                       Color="Color.Error"
+                                                       Variant="Variant.Filled"
+                                                       title="Restore"
+                                                       aria-label="Restore"
+                                                       OnClick="@(async () => await DeleteNoteAsync(note))" />
                                     }
                                     else
                                     {
-                                        <ButtonIcon OnClick="@(async () => await OpenDialogAsync(note))" Icon="bi bi-eye"></ButtonIcon>
-                                        <ButtonIcon OnClick="@(async () => await DeleteNoteAsync(note))" Icon="bi bi-trash" CssClass="text-red"></ButtonIcon>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                                       Variant="Variant.Filled"
+                                                       title="View"
+                                                       aria-label="View"
+                                                       OnClick="@(async () => await OpenDialogAsync(note))" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                       Color="Color.Error"
+                                                       Variant="Variant.Filled"
+                                                       title="Delete"
+                                                       aria-label="Delete"
+                                                       OnClick="@(async () => await DeleteNoteAsync(note))" />
                                     }
                                 </div>
                                 <div class="note-meta">

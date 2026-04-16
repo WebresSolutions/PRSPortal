@@ -22,8 +22,17 @@
                         <small>@file.FileName.Trim()..</small>
                     </div>
                     <div class="d-flex flex-column gap-1">
-                        <ButtonIcon Onclick="@(async () => await EditFile(file))" Icon="bi bi-eye-fill" />
-                        <ButtonIcon OnClick="@(() => DownloadFile(file.FileId))" Icon="bi bi-cloud-arrow-down-fill" Disabled="_disabled" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                       Variant="Variant.Filled"
+                                       title="View"
+                                       aria-label="View"
+                                       OnClick="@(async () => await EditFile(file))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.CloudDownload"
+                                       Variant="Variant.Filled"
+                                       title="Download"
+                                       aria-label="Download"
+                                       Disabled="_disabled"
+                                       OnClick="@(() => DownloadFile(file.FileId))" />
                     </div>
                 </div>
             }

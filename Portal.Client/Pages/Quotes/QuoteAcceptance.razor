@@ -1,7 +1,13 @@
-﻿
+﻿@page "/quotes/accept/{QuoteId:int}"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
 
-<h3>QuoteAcceptance</h3>
+<PageTitle>Accept fee proposal</PageTitle>
+
+<h1>Accept fee proposal</h1>
+<p>Quote reference: @QuoteId</p>
+<p style="color:#64748b;font-size:14px;max-width:36rem;">This page will let the client review and accept the fee proposal once the flow is implemented.</p>
 
 @code {
-
+    [Parameter] public int QuoteId { get; set; }
 }

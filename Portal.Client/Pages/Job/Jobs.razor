@@ -77,8 +77,11 @@
                     <TemplateColumn StickyRight="true" Title="Action" HeaderStyle="max-width: 130px">
                         <CellTemplate>
                             <div class="d-flex flex-row gap-1">
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/jobs/edit/{context.Item.JobId}")" />
-                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => RemoveJob(context.Item.JobId))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" title="Edit" Color="Color.Primary" Href="@($"/jobs/edit/{context.Item.JobId}")" Variant="Variant.Outlined" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Title="Delete"
+                                               Color="Color.Error"
+                                               OnClick="@(() => RemoveJob(context.Item.JobId))" Variant="Variant.Outlined" />
                             </div>
                         </CellTemplate>
                     </TemplateColumn>

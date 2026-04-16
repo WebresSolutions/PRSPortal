@@ -66,6 +66,8 @@ public partial class PrsDbContext : DbContext
 
     public virtual DbSet<Quote> Quotes { get; set; }
 
+    public virtual DbSet<QuoteAcceptance> QuoteAcceptances { get; set; }
+
     public virtual DbSet<QuoteItem> QuoteItems { get; set; }
 
     public virtual DbSet<QuoteNote> QuoteNotes { get; set; }
@@ -77,6 +79,8 @@ public partial class PrsDbContext : DbContext
     public virtual DbSet<QuoteTemplate> QuoteTemplates { get; set; }
 
     public virtual DbSet<QuoteTemplateItem> QuoteTemplateItems { get; set; }
+
+    public virtual DbSet<QuoteToken> QuoteTokens { get; set; }
 
     public virtual DbSet<Schedule> Schedules { get; set; }
 
@@ -131,8 +135,6 @@ public partial class PrsDbContext : DbContext
             entity.HasIndex(e => e.Suburb, "idx_address_suburb_trgm")
                 .HasMethod("gin")
                 .HasOperators(new[] { "gin_trgm_ops" });
-
-            entity.HasIndex(e => e.Id, "idx_council_contact_address_id");
 
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
@@ -310,7 +312,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("application_setting_pkey");
 
-            entity.ToTable("application_setting");
+            entity.ToTable("application_setting", tb => tb.HasComment("Key-value application configuration; value is JSON for flexible structured settings."));
 
             entity.HasIndex(e => e.Key, "application_settings_key_unique").IsUnique();
 
@@ -362,8 +364,6 @@ public partial class PrsDbContext : DbContext
             entity.HasIndex(e => e.SearchVector, "idx_contact_search_vector").HasMethod("gin");
 
             entity.HasIndex(e => e.TypeId, "idx_contact_type_id");
-
-            entity.HasIndex(e => e.Id, "idx_council_contact_contact_id");
 
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
@@ -434,7 +434,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("contact_type_pkey");
 
-            entity.ToTable("contact_type");
+            entity.ToTable("contact_type", tb => tb.HasComment("Lookup of contact categories (e.g. client, vendor, internal) used by contact.type_id."));
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CreatedOn)
@@ -457,8 +457,6 @@ public partial class PrsDbContext : DbContext
             entity.ToTable("council", tb => tb.HasComment("Council information"));
 
             entity.HasIndex(e => e.AddressId, "idx_council_address_id");
-
-            entity.HasIndex(e => e.Id, "idx_council_conact_council_id");
 
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
@@ -506,7 +504,15 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("council_contact_pkey");
 
-            entity.ToTable("council_contact");
+            entity.ToTable("council_contact", tb => tb.HasComment("Links a contact person to a council with a specific address context (e.g. council liaison at a site)."));
+
+            entity.HasIndex(e => e.AddressId, "idx_council_contact_address_id");
+
+            entity.HasIndex(e => e.ContactId, "idx_council_contact_contact_id");
+
+            entity.HasIndex(e => e.CouncilId, "idx_council_contact_council_id");
+
+            entity.HasIndex(e => e.CreatedByUserId, "idx_council_contact_created_by_user_id");
 
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
@@ -551,7 +557,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("dashboard_pkey");
 
-            entity.ToTable("dashboard");
+            entity.ToTable("dashboard", tb => tb.HasComment("Per-user dashboard layout definition (grid size, default flag, name)."));
 
             entity.HasIndex(e => e.UserId, "idx_user_dashboard_user");
 
@@ -600,7 +606,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("dashboard_item_pkey");
 
-            entity.ToTable("dashboard_item");
+            entity.ToTable("dashboard_item", tb => tb.HasComment("Placed widget on a dashboard: position, span, optional title, and JSON settings for the widget instance."));
 
             entity.HasIndex(e => e.ContentId, "idx_dashboard_item_content");
 
@@ -668,7 +674,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("invoice_pkey");
 
-            entity.ToTable("invoice");
+            entity.ToTable("invoice", tb => tb.HasComment("Invoice header linked to contact and/or job with total price and audit fields."));
 
             entity.HasIndex(e => e.ContactId, "idx_invoice_contact_id");
 
@@ -820,7 +826,7 @@ public partial class PrsDbContext : DbContext
                     j =>
                     {
                         j.HasKey("JobId", "JobTypeId").HasName("job_to_type_pkey");
-                        j.ToTable("job_to_type", tb => tb.HasComment("Jobs can have multiple types. "));
+                        j.ToTable("job_to_type", tb => tb.HasComment("Many-to-many: a job can be tagged with one or more job types (e.g. Construction and Survey)."));
                         j.HasIndex(new[] { "JobId" }, "idx_job_to_type_job");
                         j.HasIndex(new[] { "JobTypeId" }, "idx_job_to_type_type");
                         j.IndexerProperty<int>("JobId").HasColumnName("job_id");
@@ -832,7 +838,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("job_assignment_type_pkey");
 
-            entity.ToTable("job_assignment_type");
+            entity.ToTable("job_assignment_type", tb => tb.HasComment("Lookup of how a user is assigned to a job (e.g. lead, member) for job_user.assignment_type_id."));
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Description)
@@ -907,7 +913,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("job_note_pkey");
 
-            entity.ToTable("job_note", tb => tb.HasComment("Many-to-many relationship between users and jobs"));
+            entity.ToTable("job_note", tb => tb.HasComment("Notes attached to a job; may be assigned to a user and flagged as action required."));
 
             entity.HasIndex(e => e.CreatedByUserId, "idx_job_note_created_by");
 
@@ -970,9 +976,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Colour)
                 .HasMaxLength(12)
                 .HasColumnName("colour");
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
+                .HasColumnName("created_on");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("is_active");
@@ -1036,7 +1042,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("job_task_pkey");
 
-            entity.ToTable("job_task");
+            entity.ToTable("job_task", tb => tb.HasComment("Tasks or line items belonging to a job, including optional quoted price and invoice tracking dates."));
 
             entity.HasIndex(e => e.CreatedByUserId, "idx_task_created_by");
 
@@ -1092,7 +1098,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("job_task_type_pkey");
 
-            entity.ToTable("job_task_type");
+            entity.ToTable("job_task_type", tb => tb.HasComment("Per job_type catalog of task kinds or labels used when categorising job_task rows."));
 
             entity.HasIndex(e => e.JobTypeId, "idx_job_task_type_job_type_id");
 
@@ -1129,9 +1135,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.Abbreviation)
                 .HasMaxLength(15)
                 .HasColumnName("abbreviation");
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("created_at");
+                .HasColumnName("created_on");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasComment("Construction = Set out. Survey = CAD.")
@@ -1194,7 +1200,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("notification_pkey");
 
-            entity.ToTable("notification");
+            entity.ToTable("notification", tb => tb.HasComment("In-app or queued notifications per user with JSON payload and type classification."));
 
             entity.HasIndex(e => e.NotificationTypeId, "idx_notification_type_id");
 
@@ -1227,7 +1233,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("notification_type_pkey");
 
-            entity.ToTable("notification_type");
+            entity.ToTable("notification_type", tb => tb.HasComment("Lookup of notification kinds for notification.notification_type_id."));
 
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
@@ -1247,7 +1253,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("quote_pkey");
 
-            entity.ToTable("quote", tb => tb.HasComment("A quote for a job"));
+            entity.ToTable("quote", tb => tb.HasComment("Fee proposal / quote for a contact and job type, with lifecycle dates and optional link to a job."));
 
             entity.HasIndex(e => e.AddressId, "idx_quote_address_id");
 
@@ -1274,9 +1280,15 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.CreatedOn)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_on");
-            entity.Property(e => e.DateAccepted).HasColumnName("date_accepted");
-            entity.Property(e => e.DateSentToClient).HasColumnName("date_sent_to_client");
-            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(e => e.DateAccepted)
+                .HasComment("When the client accepted the proposal (may mirror quote_acceptance.accepted_at).")
+                .HasColumnName("date_accepted");
+            entity.Property(e => e.DateSentToClient)
+                .HasComment("When the proposal was emailed or otherwise sent to the client.")
+                .HasColumnName("date_sent_to_client");
+            entity.Property(e => e.DeletedAt)
+                .HasComment("Soft delete; NULL means active quote.")
+                .HasColumnName("deleted_at");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.JobId).HasColumnName("job_id");
             entity.Property(e => e.JobTypeId).HasColumnName("job_type_id");
@@ -1292,6 +1304,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.TotalPrice)
                 .HasPrecision(12, 2)
                 .HasColumnName("total_price");
+            entity.Property(e => e.ViewByClientAt)
+                .HasComment("Optional last time the client opened the proposal via portal or tracking.")
+                .HasColumnName("view_by_client_at");
 
             entity.HasOne(d => d.Address).WithMany(p => p.Quotes)
                 .HasForeignKey(d => d.AddressId)
@@ -1329,11 +1344,72 @@ public partial class PrsDbContext : DbContext
                 .HasConstraintName("quote_status_id_fkey");
         });
 
+        modelBuilder.Entity<QuoteAcceptance>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("quote_acceptance_pkey");
+
+            entity.ToTable("quote_acceptance", tb => tb.HasComment("Record when a client accepted a fee proposal via token link; optional drawn signature image (bytea)."));
+
+            entity.HasIndex(e => e.AcceptedAt, "idx_quote_acceptance_accepted_at");
+
+            entity.HasIndex(e => e.QuoteId, "idx_quote_acceptance_quote_id");
+
+            entity.HasIndex(e => e.QuoteTokenId, "idx_quote_acceptance_quote_token_id");
+
+            entity.HasIndex(e => e.QuoteId, "quote_acceptance_one_per_quote").IsUnique();
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.AcceptedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("accepted_at");
+            entity.Property(e => e.ClientIp)
+                .HasMaxLength(45)
+                .HasComment("Client IP at acceptance (best effort; may reflect proxy if X-Forwarded-For is applied).")
+                .HasColumnName("client_ip");
+            entity.Property(e => e.QuoteId).HasColumnName("quote_id");
+            entity.Property(e => e.QuoteReferenceSnapshot)
+                .HasMaxLength(50)
+                .HasComment("Quote reference at time of acceptance for audit trail.")
+                .HasColumnName("quote_reference_snapshot");
+            entity.Property(e => e.QuoteTokenId)
+                .HasComment("Which quote_token was validated at acceptance time; NULL if token row was purged.")
+                .HasColumnName("quote_token_id");
+            entity.Property(e => e.QuoteTotalSnapshot)
+                .HasPrecision(12, 2)
+                .HasComment("Total price at time of acceptance for audit trail.")
+                .HasColumnName("quote_total_snapshot");
+            entity.Property(e => e.SignatoryName)
+                .HasMaxLength(255)
+                .HasComment("Optional typed full name in addition to or instead of signature_image.")
+                .HasColumnName("signatory_name");
+            entity.Property(e => e.SignatureContentType)
+                .HasMaxLength(100)
+                .HasDefaultValueSql("'image/png'::character varying")
+                .HasColumnName("signature_content_type");
+            entity.Property(e => e.SignatureImage)
+                .HasComment("Small raster signature (e.g. PNG); NULL if only typed name / checkbox acceptance.")
+                .HasColumnName("signature_image");
+            entity.Property(e => e.UserAgent)
+                .HasComment("HTTP User-Agent header at acceptance for lightweight client audit context.")
+                .HasColumnName("user_agent");
+
+            entity.HasOne(d => d.Quote).WithOne(p => p.QuoteAcceptance)
+                .HasForeignKey<QuoteAcceptance>(d => d.QuoteId)
+                .HasConstraintName("quote_acceptance_quote_id_fkey");
+
+            entity.HasOne(d => d.QuoteToken).WithMany(p => p.QuoteAcceptances)
+                .HasForeignKey(d => d.QuoteTokenId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("quote_acceptance_quote_token_id_fkey");
+        });
+
         modelBuilder.Entity<QuoteItem>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("quote_item_pkey");
 
-            entity.ToTable("quote_item");
+            entity.ToTable("quote_item", tb => tb.HasComment("Line items on a quote: service snapshot, price, and optional link to service_type."));
 
             entity.HasIndex(e => e.QuoteId, "idx_quote_item_quote_id");
 
@@ -1347,6 +1423,7 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.ServiceId).HasColumnName("service_id");
             entity.Property(e => e.ServiceNameSnapshot)
                 .HasMaxLength(150)
+                .HasComment("Service label as shown on the quote at line creation time (denormalised from catalog).")
                 .HasColumnName("service_name_snapshot");
             entity.Property(e => e.Total)
                 .HasPrecision(12, 2)
@@ -1551,6 +1628,38 @@ public partial class PrsDbContext : DbContext
                 .HasConstraintName("quote_template_item_service_id_fkey");
         });
 
+        modelBuilder.Entity<QuoteToken>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("quote_token_pkey");
+
+            entity.ToTable("quote_token", tb => tb.HasComment("Secret or hashed token rows for client portal access to a quote (e.g. email link); expires and optional single-use via used_at."));
+
+            entity.HasIndex(e => e.QuoteId, "idx_quote_token_quote_id");
+
+            entity.HasIndex(e => e.Token, "idx_quote_token_token");
+
+            entity.Property(e => e.Id)
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedOn).HasColumnName("created_on");
+            entity.Property(e => e.ExpiresAt)
+                .HasComment("After this instant the token must not grant access.")
+                .HasColumnName("expires_at");
+            entity.Property(e => e.QuoteId).HasColumnName("quote_id");
+            entity.Property(e => e.Token)
+                .HasMaxLength(255)
+                .HasComment("Opaque token or stored hash, depending on application strategy; must match email link validation.")
+                .HasColumnName("token");
+            entity.Property(e => e.UsedAt)
+                .HasComment("If set, token was consumed (e.g. one-time flow); leave NULL for multi-use view tokens.")
+                .HasColumnName("used_at");
+
+            entity.HasOne(d => d.Quote).WithMany(p => p.QuoteTokens)
+                .HasForeignKey(d => d.QuoteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("quote_token_quote_id_fkey");
+        });
+
         modelBuilder.Entity<Schedule>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("schedule_pkey");
@@ -1639,7 +1748,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("schedule_track_pkey");
 
-            entity.ToTable("schedule_track");
+            entity.ToTable("schedule_track", tb => tb.HasComment("A calendar day or planning track for a job type, grouping schedule rows and schedule_user assignments."));
 
             entity.HasIndex(e => e.CreatedByUserId, "idx_schedule_track_created_by_user_id");
 
@@ -1678,7 +1787,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("schedule_user_pkey");
 
-            entity.ToTable("schedule_user");
+            entity.ToTable("schedule_user", tb => tb.HasComment("Users assigned to work on a given schedule_track (planning roster line)."));
 
             entity.HasIndex(e => e.CreatedByUserId, "idx_schedule_users_created_by_id");
 
@@ -1716,7 +1825,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("service_type_pkey");
 
-            entity.ToTable("service_type");
+            entity.ToTable("service_type", tb => tb.HasComment("Billable or quotable service catalog; referenced by quote_item and quote_template_item."));
 
             entity.HasIndex(e => e.ServiceName, "idx_service_catalog_name");
 
@@ -1764,7 +1873,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("technical_contact_pkey");
 
-            entity.ToTable("technical_contact");
+            entity.ToTable("technical_contact", tb => tb.HasComment("Associates a contact with a job as a technical or specialist contact, with a type classification."));
 
             entity.HasIndex(e => e.ContactId, "technical_contacts_contact_id_idx");
 
@@ -1817,7 +1926,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("technical_contact_type_pkey");
 
-            entity.ToTable("technical_contact_type");
+            entity.ToTable("technical_contact_type", tb => tb.HasComment("Lookup of technical contact roles or classifications for technical_contact.type_id."));
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CreatedOn)
@@ -1897,7 +2006,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("timesheet_entry_type_pkey");
 
-            entity.ToTable("timesheet_entry_type");
+            entity.ToTable("timesheet_entry_type", tb => tb.HasComment("Lookup of timesheet entry categories (e.g. office, field) for timesheet_entry.type_id."));
 
             entity.Property(e => e.Id)
                 .UseIdentityAlwaysColumn()
@@ -1915,7 +2024,7 @@ public partial class PrsDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("xero_access_pkey");
 
-            entity.ToTable("xero_access");
+            entity.ToTable("xero_access", tb => tb.HasComment("Stores Xero OAuth refresh token material and refresh/expiry metadata for accounting integration."));
 
             entity.HasIndex(e => e.Expires, "idx_xero_access_expires");
 

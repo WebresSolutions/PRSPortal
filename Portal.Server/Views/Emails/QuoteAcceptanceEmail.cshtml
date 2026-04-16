@@ -1,9 +1,72 @@
 ﻿@model Portal.Server.Views.ViewModels.QuoteAcceptanceModel
-
+@using System.Globalization
+@using Portal.Shared.DTO.Quote
 @{
-    ViewData["Title"] = "QuoteAcceptanceEmail";
+    ViewData["Title"] = "Fee proposal";
+    ViewData["EmailPreheader"] = $"Quote {Model.Details.QuoteReference} — review and accept online.";
     Layout = "~/Views/Shared/EmailLayout.cshtml";
+    var au = CultureInfo.GetCultureInfo("en-AU");
+    var contactName = Model.Details.Contact?.FullName?.Trim();
+    var greeting = string.IsNullOrEmpty(contactName) ? "Hello" : $"Hello {contactName}";
+    var items = Model.Details.QuoteItems ?? Array.Empty<QuoteItemDto>();
+    const int maxLines = 6;
+    var showItems = items.Take(maxLines).ToList();
+    var remaining = items.Length - showItems.Count;
 }
+<p style="margin:0 0 20px;font-size:15px;color:#334155;">@greeting,</p>
+<p style="margin:0 0 24px;font-size:15px;color:#334155;">
+    Please find your fee proposal below. You can review the full breakdown and <strong>accept the proposal securely online</strong> using the button. A PDF copy is also attached to this email.
+</p>
 
-<h1>QuoteAcceptanceEmail</h1>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 28px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+    <tr>
+        <td style="padding:16px 18px;background-color:#f8fafc;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Reference</td>
+        <td align="right" style="padding:16px 18px;background-color:#f8fafc;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#0f172a;">@Model.Details.QuoteReference</td>
+    </tr>
+    @if (!string.IsNullOrWhiteSpace(Model.Details.Description))
+    {
+        <tr>
+            <td colspan="2" style="padding:14px 18px;border-top:1px solid #e2e8f0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#475569;">
+                @Model.Details.Description
+            </td>
+        </tr>
+    }
+    @if (showItems.Count > 0)
+    {
+        <tr>
+            <td colspan="2" style="padding:0;border-top:1px solid #e2e8f0;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                    @foreach (var line in showItems)
+                    {
+                        <tr>
+                            <td style="padding:12px 18px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#334155;border-top:1px solid #f1f5f9;">@line.ServiceName</td>
+                            <td align="right" style="padding:12px 18px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#334155;border-top:1px solid #f1f5f9;white-space:nowrap;">@line.Price.ToString("C", au)</td>
+                        </tr>
+                    }
+                    @if (remaining > 0)
+                    {
+                        <tr>
+                            <td colspan="2" style="padding:10px 18px 14px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#64748b;border-top:1px solid #f1f5f9;font-style:italic;">+ @remaining more line item@(remaining == 1 ? "" : "s") in the portal</td>
+                        </tr>
+                    }
+                </table>
+            </td>
+        </tr>
+    }
+    <tr>
+        <td style="padding:16px 18px;border-top:2px solid #e2e8f0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;color:#0f172a;">Total (incl. GST as applicable)</td>
+        <td align="right" style="padding:16px 18px;border-top:2px solid #e2e8f0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;font-weight:700;color:#0c4a6e;">@Model.Details.TotalPrice.ToString("C", au)</td>
+    </tr>
+</table>
 
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 20px;">
+    <tr>
+        <td style="border-radius:8px;background-color:#0c4a6e;">
+            <a href="@Model.AcceptQuoteUrl" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:14px 28px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">
+                Review and accept fee proposal
+            </a>
+        </td>
+    </tr>
+</table>
+
+<p style="margin:0;font-size:13px;color:#64748b;">Thank you for your business.</p>

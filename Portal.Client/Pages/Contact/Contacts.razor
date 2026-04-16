@@ -71,8 +71,10 @@
                     <TemplateColumn StickyRight="true" Title="Action">
                         <CellTemplate>
                             <div class="d-flex flex-row gap-1">
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" Href="@($"/contacts/edit/{context.Item.ContactId}")" />
-                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" title="Edit" Color="Color.Primary" Href="@($"/contacts/edit/{context.Item.ContactId}")" Variant="Variant.Outlined" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Title="Delete"
+                                               Color="Color.Error" Variant="Variant.Outlined" />
                             </div>
                         </CellTemplate>
                     </TemplateColumn>

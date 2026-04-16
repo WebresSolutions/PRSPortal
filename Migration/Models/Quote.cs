@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Migration.Models;
 
 /// <summary>
-/// A quote for a job
+/// Fee proposal / quote for a contact and job type, with lifecycle dates and optional link to a job.
 /// </summary>
 public partial class Quote
 {
@@ -22,15 +22,26 @@ public partial class Quote
 
     public int? JobId { get; set; }
 
-    public string? QuoteReference { get; set; }
+    public string QuoteReference { get; set; } = null!;
 
     public decimal? TotalPrice { get; set; }
 
+    /// <summary>
+    /// When the client accepted the proposal (may mirror quote_acceptance.accepted_at).
+    /// </summary>
     public DateTime? DateAccepted { get; set; }
 
+    /// <summary>
+    /// When the proposal was emailed or otherwise sent to the client.
+    /// </summary>
     public DateTime? DateSentToClient { get; set; }
 
     public DateTime? TargetDeliveryDate { get; set; }
+
+    /// <summary>
+    /// Optional last time the client opened the proposal via portal or tracking.
+    /// </summary>
+    public DateTime? ViewByClientAt { get; set; }
 
     public string? Description { get; set; }
 
@@ -44,6 +55,9 @@ public partial class Quote
 
     public DateTime? ModifiedOn { get; set; }
 
+    /// <summary>
+    /// Soft delete; NULL means active quote.
+    /// </summary>
     public DateTime? DeletedAt { get; set; }
 
     public virtual Address? Address { get; set; }
@@ -58,6 +72,8 @@ public partial class Quote
 
     public virtual AppUser? ModifiedByUser { get; set; }
 
+    public virtual QuoteAcceptance? QuoteAcceptance { get; set; }
+
     public virtual ICollection<QuoteItem> QuoteItems { get; set; } = new List<QuoteItem>();
 
     public virtual ICollection<QuoteNote> QuoteNotes { get; set; } = new List<QuoteNote>();
@@ -65,6 +81,8 @@ public partial class Quote
     public virtual AppUser? QuoteSentByUser { get; set; }
 
     public virtual ICollection<QuoteStatusHistory> QuoteStatusHistories { get; set; } = new List<QuoteStatusHistory>();
+
+    public virtual ICollection<QuoteToken> QuoteTokens { get; set; } = new List<QuoteToken>();
 
     public virtual QuoteStatus Status { get; set; } = null!;
 }

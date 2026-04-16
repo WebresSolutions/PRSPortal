@@ -40,16 +40,20 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-center gap-1 mt-2">
-                    <ButtonIcon Icon="bi bi-save-fill"
-                                CssClass="text-green"
-                                Text="Save"
-                                ButtonType="submit"
-                                Disabled="@_saving" />
-                    <ButtonIcon Icon="bi bi-x-circle"
-                                CssClass="text-red"
-                                Disabled="@_saving"
-                                OnClick="@(() => base.MudDialog?.Close(DialogResult.Cancel()))"
-                                Text="Close" />
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Success"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               ButtonType="ButtonType.Submit"
+                               Disabled="@_saving">
+                        Save
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Error"
+                               StartIcon="@Icons.Material.Filled.Close"
+                               Disabled="@_saving"
+                               OnClick="@(() => base.MudDialog?.Close(DialogResult.Cancel()))">
+                        Close
+                    </MudButton>
                 </div>
             </EditForm>
         }

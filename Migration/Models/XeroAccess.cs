@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Migration.Models;
 
+/// <summary>
+/// Stores Xero OAuth refresh token material and refresh/expiry metadata for accounting integration.
+/// </summary>
 public partial class XeroAccess
 {
     public int Id { get; set; }

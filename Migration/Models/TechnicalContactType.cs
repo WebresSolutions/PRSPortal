@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Migration.Models;
 
+/// <summary>
+/// Lookup of technical contact roles or classifications for technical_contact.type_id.
+/// </summary>
 public partial class TechnicalContactType
 {
     public int Id { get; set; }

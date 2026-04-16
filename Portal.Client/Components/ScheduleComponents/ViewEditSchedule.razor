@@ -5,7 +5,11 @@
             <h4 class="">Schedule</h4>
             @if (!_loading && _schedule is not null)
             {
-                <ButtonIcon Icon="bi bi-pen" OnClick="@(() => _isEditing = !_isEditing)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                               Variant="Variant.Filled"
+                               title="Toggle edit"
+                               aria-label="Toggle edit"
+                               OnClick="@(() => _isEditing = !_isEditing)" />
             }
         </div>
         @if (_loading)
@@ -64,7 +68,12 @@
                 </p>
             </div>
             <div class="d-flex justify-content-center gap-2 flex-row mt-2">
-                <ButtonIcon Icon="bi bi-x" CssClass="text-red" OnClick="@(() => MudDialog?.Close(DialogResult.Cancel()))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Close"
+                               Color="Color.Error"
+                               Variant="Variant.Filled"
+                               title="Close"
+                               aria-label="Close"
+                               OnClick="@(() => MudDialog?.Close(DialogResult.Cancel()))" />
             </div>
         }
         else if (_schedule is not null && _isEditing)
@@ -115,8 +124,16 @@
                     <DataAnnotationsValidator/>
                 </div>
                 <div class="d-flex justify-content-center gap-2 flex-row mt-2">
-                    <ButtonIcon Icon="bi bi-save" ButtonType="submit" CssClass="text-green" />
-                    <ButtonIcon Icon="bi bi-x" CssClass="text-red" OnClick="@(() => MudDialog?.Close(DialogResult.Cancel()))" />
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Success"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               ButtonType="ButtonType.Submit" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                   Color="Color.Error"
+                                   Variant="Variant.Filled"
+                                   title="Cancel"
+                                   aria-label="Cancel"
+                                   OnClick="@(() => MudDialog?.Close(DialogResult.Cancel()))" />
                 </div>
             </EditForm>
         }

@@ -31,12 +31,20 @@
                         <div class="d-flex flex-row gap-1">
                             @if (context.Item.Deleted)
                             {
-                                <ButtonIcon Icon="bi bi-arrow-counterclockwise" CssClass="text-red" Title="Restore" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Undo"
+                                               Color="Color.Error"
+                                               Variant="Variant.Filled"
+                                               title="Restore"
+                                               aria-label="Restore" />
                             }
                             else
                             {
-                                <ButtonIcon Icon="bi bi-pencil" Title="Edit" />
-                                <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" title="Edit" aria-label="Edit" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               Variant="Variant.Filled"
+                                               title="Delete"
+                                               aria-label="Delete" />
                             }
                         </div>
                     </CellTemplate>

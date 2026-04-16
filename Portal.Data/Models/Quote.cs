@@ -22,7 +22,7 @@ public partial class Quote
 
     public int? JobId { get; set; }
 
-    public string? QuoteReference { get; set; }
+    public string QuoteReference { get; set; } = null!;
 
     public decimal? TotalPrice { get; set; }
 
@@ -31,6 +31,8 @@ public partial class Quote
     public DateTime? DateSentToClient { get; set; }
 
     public DateTime? TargetDeliveryDate { get; set; }
+
+    public DateTime? ViewByClientAt { get; set; }
 
     public string? Description { get; set; }
 
@@ -58,6 +60,8 @@ public partial class Quote
 
     public virtual AppUser? ModifiedByUser { get; set; }
 
+    public virtual QuoteAcceptance? QuoteAcceptance { get; set; }
+
     public virtual ICollection<QuoteItem> QuoteItems { get; set; } = new List<QuoteItem>();
 
     public virtual ICollection<QuoteNote> QuoteNotes { get; set; } = new List<QuoteNote>();
@@ -65,6 +69,8 @@ public partial class Quote
     public virtual AppUser? QuoteSentByUser { get; set; }
 
     public virtual ICollection<QuoteStatusHistory> QuoteStatusHistories { get; set; } = new List<QuoteStatusHistory>();
+
+    public virtual ICollection<QuoteToken> QuoteTokens { get; set; } = new List<QuoteToken>();
 
     public virtual QuoteStatus Status { get; set; } = null!;
 }

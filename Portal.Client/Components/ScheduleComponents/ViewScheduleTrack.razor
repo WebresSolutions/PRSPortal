@@ -4,9 +4,24 @@
 
 <div class="track-container border-rad border-grey">
     <div class="d-flex justify-content-end gap-1 mb-1">
-        <ButtonIcon Icon="bi bi-pen" Title="Edit" CssClass="text-green" OnClick="@(() => IsEditing = !IsEditing)" />
-        <ButtonIcon Icon="bi bi-plus" Title="Add" CssClass="text-green" OnClick="@(() => AddNewSchedule())" />
-        <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => Delete(Track.TrackId))" />
+        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                       Color="Color.Success"
+                       Variant="Variant.Filled"
+                       title="Edit"
+                       aria-label="Edit"
+                       OnClick="@(() => IsEditing = !IsEditing)" />
+        <MudIconButton Icon="@Icons.Material.Filled.Add"
+                       Color="Color.Success"
+                       Variant="Variant.Filled"
+                       title="Add"
+                       aria-label="Add"
+                       OnClick="@(() => AddNewSchedule())" />
+        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                       Color="Color.Error"
+                       Variant="Variant.Filled"
+                       title="Delete"
+                       aria-label="Delete"
+                       OnClick="@(() => Delete(Track.TrackId))" />
     </div>
     <div style="min-height: 60px" class="border-grey border-rad white-background p-2 mb-2">
         @if (IsEditing)
@@ -25,8 +40,19 @@
             </div>
 
             <div class="d-flex justify-content-center gap-1 mt-1">
-                <ButtonIcon Icon="bi bi-save-fill" CssClass="text-green" Text="Save" ButtonType="submit" OnClick="@(() => SaveAssignedUsers())" />
-                <ButtonIcon Icon="bi bi-x-circle" Text="Close" CssClass="text-red" OnClick="@(() => IsEditing = false)" />
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Success"
+                           StartIcon="@Icons.Material.Filled.Save"
+                           ButtonType="ButtonType.Submit"
+                           OnClick="@(() => SaveAssignedUsers())">
+                    Save
+                </MudButton>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Close"
+                           OnClick="@(() => IsEditing = false)">
+                    Close
+                </MudButton>
             </div>
         }
         else

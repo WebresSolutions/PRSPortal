@@ -107,10 +107,25 @@
                                 <div class="timesheet-actions">
                                     @if (entry.End is null)
                                     {
-                                        <ButtonIcon Icon="bi bi-stop-circle" Title="Stop" CssClass="pulse text-red" OnClick="@(() => StopEntry(entry))" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.StopCircle"
+                                                       Color="Color.Error"
+                                                       Variant="Variant.Filled"
+                                                       Class="pulse"
+                                                       title="Stop"
+                                                       aria-label="Stop"
+                                                       OnClick="@(() => StopEntry(entry))" />
                                     }
-                                    <ButtonIcon Icon="bi bi-pencil" Title="Edit" OnClick="@(() => OpenAddEntryDialog(entry))" />
-                                    <ButtonIcon Icon="bi bi-trash" Title="Delete" CssClass="text-red" OnClick="@(() => DeleteEntry(entry))" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Variant="Variant.Filled"
+                                                   title="Edit"
+                                                   aria-label="Edit"
+                                                   OnClick="@(() => OpenAddEntryDialog(entry))" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Color="Color.Error"
+                                                   Variant="Variant.Filled"
+                                                   title="Delete"
+                                                   aria-label="Delete"
+                                                   OnClick="@(() => DeleteEntry(entry))" />
                                 </div>
                             </div>
                         }

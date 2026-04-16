@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Migration.Models;
 
+/// <summary>
+/// Per job_type catalog of task kinds or labels used when categorising job_task rows.
+/// </summary>
 public partial class JobTaskType
 {
     public int Id { get; set; }
