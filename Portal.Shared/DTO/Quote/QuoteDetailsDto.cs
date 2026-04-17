@@ -20,6 +20,7 @@ public record QuoteDetailsDto(
     string? UpdatedBy,
     DateTime? TargetDeliveryDate,
     DateTime? DateSentToClient,
+    DateTime? AcceptedByClientAt,
     int? JobId,
     string? JobNumber,
     DateTime? ViewedByClientAt,

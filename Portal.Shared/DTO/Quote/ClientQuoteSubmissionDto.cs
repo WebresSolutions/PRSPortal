@@ -4,7 +4,7 @@ namespace Portal.Shared.DTO.Quote;
 
 public class ClientQuoteSubmissionDto
 {
-    public required QuoteStatusEnum Status { get; set; } = QuoteStatusEnum.Rejected;
+    public QuoteStatusEnum Status { get; set; }
     public bool AddressIsCorrect { get; set; }
     public bool ContactDetailsAreCorrect { get; set; }
     public string? ReasonForRejection { get; set; }

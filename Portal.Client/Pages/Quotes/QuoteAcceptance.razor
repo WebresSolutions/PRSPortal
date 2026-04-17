@@ -16,11 +16,21 @@
     {
         <Spinner />
     }
-    else if (!string.IsNullOrEmpty(_loadError))
+
+    @if (_loadError is not null)
     {
-        <MudAlert Severity="Severity.Error" Class="mt-4" Variant="Variant.Filled">@_loadError</MudAlert>
+        <Card>
+            <ChildContent>
+                <section class="error-section w-100">
+                    <small>
+                        Your link to view this quote has expired. Please check your inbox for a more recent link or contact <b>Peter Richards</b> for a new one.
+                    </small>
+                </section>
+            </ChildContent>
+        </Card>
     }
-    else if (_quoteDetails is not null)
+
+    @if (_quoteDetails is not null)
     {
         <div class="quote-detail-page quote-acceptance-page">
             <PageHeader>
@@ -32,6 +42,21 @@
                     </div>
                 </Content>
             </PageHeader>
+            @if (_quoteDetails.QuoteStatus is QuoteStatusEnum.Accepted or QuoteStatusEnum.Rejected)
+            {
+                <MudAlert Severity="@(_quoteDetails.QuoteStatus is QuoteStatusEnum.Accepted ? Severity.Success : Severity.Info)"
+                          Class="my-3 border-rad"
+                          Variant="Variant.Filled">
+                    @if (_quoteDetails.QuoteStatus is QuoteStatusEnum.Accepted)
+                    {
+                        <text>Thank you — this fee proposal has been accepted. We will be in touch regarding next steps.</text>
+                    }
+                    else
+                    {
+                        <text>This fee proposal has been declined. If you have any questions, please contact us.</text>
+                    }
+                </MudAlert>
+            }
             <div class="quote-container">
                 <section class="d-flex flex-column gap-2">
                     <Card Title="Contact">
@@ -99,60 +124,72 @@
                     {
                         <Card Title="Your response" CssClass="quote-acceptance-response-card">
                             <ChildContent>
-                                <p class="text-muted small mb-3">
-                                    Confirm the details below match what you expect, then accept or decline this fee proposal.
-                                </p>
-                                <MudStack Spacing="2">
-                                    <MudCheckBox T="bool" Color="Color.Primary" @bind-Value="_addressCorrect" Label="The property address on this fee proposal is correct" Disabled="_isSubmitting" />
-                                    <MudCheckBox T="bool" Color="Color.Primary" @bind-Value="_contactCorrect" Label="The contact details above are correct" Disabled="_isSubmitting" />
-                                    <MudTextField @bind-Value="_signedName"
-                                                  Label="Your name (optional)"
-                                                  Variant="Variant.Outlined"
-                                                  Margin="Margin.Dense"
-                                                  Disabled="_isSubmitting"
-                                                  HelperText="Shown on the acceptance record if you accept" />
-                                    <MudTextField @bind-Value="_rejectReason"
-                                                  Label="Reason for declining"
-                                                  Variant="Variant.Outlined"
-                                                  Margin="Margin.Dense"
-                                                  Lines="3"
-                                                  Disabled="_isSubmitting"
-                                                  HelperText="Required if you choose Reject" />
-                                </MudStack>
-                                <div class="quote-acceptance-actions">
-                                    <MudButton Variant="Variant.Outlined"
-                                               Color="Color.Dark"
-                                               Class="quote-acceptance-btn-reject"
-                                               Disabled="_isSubmitting"
-                                               OnClick="SubmitRejectAsync">
-                                        Reject
-                                    </MudButton>
-                                    <MudButton Variant="Variant.Filled"
-                                               Color="Color.Dark"
-                                               Class="quote-acceptance-btn-approve"
-                                               Disabled="_isSubmitting"
-                                               StartIcon="@Icons.Material.Filled.Check"
-                                               OnClick="SubmitApproveAsync">
-                                        Approve
-                                    </MudButton>
-                                </div>
+
+                                <MudToggleGroup T="QuoteStatusEnum?" @bind-Value="_chosenStatus" Class="mb-4" @ValueChanged=@(() => ClearValues())>
+                                    <MudToggleItem T="QuoteStatusEnum?" Value="@QuoteStatusEnum.Accepted" Text="Accept Quote" />
+                                    <MudToggleItem T="QuoteStatusEnum?" Value="@QuoteStatusEnum.Rejected" Text="Reject Quote" />
+                                </MudToggleGroup>
+                                
+                                @if (_chosenStatus is not null)
+                                {
+                                    @if (_chosenStatus is QuoteStatusEnum.Rejected)
+                                    {
+                                        <EditForm OnSubmit="SubmitRejectAsync" Model="_model">
+                                            <div>
+                                                <label>Reason for declining</label>
+                                                <MudTextField @bind-Value="_model.ReasonForRejection"
+                                                              Variant="Variant.Outlined"
+                                                              Margin="Margin.Dense"
+                                                              Lines="5"
+                                                              Disabled="_isSubmitting"
+                                                              HelperText="Required if you choose Reject" />
+                                            </div>
+                                            <div class="quote-acceptance-actions">
+                                                <MudButton Variant="Variant.Filled"
+                                                           Color="Color.Dark"
+                                                           Class="quote-acceptance-btn-reject"
+                                                           Disabled="_isSubmitting"
+                                                           ButtonType="ButtonType.Submit">
+                                                    Reject
+                                                </MudButton>
+                                            </div>
+                                        </EditForm>
+                                    }
+
+                                    @if (_chosenStatus is QuoteStatusEnum.Accepted)
+                                    {
+                                
+                                        <p class="text-muted small mb-3">
+                                            Confirm the details below match what you expect, then accept or decline this fee proposal.
+                                        </p>
+                                        <EditForm OnSubmit="SubmitApproveAsync" Model="_model">
+                                            <MudCheckBox T="bool" Color="Color.Primary" @bind-Value="_model.AddressIsCorrect" Label="The property address on this fee proposal is correct" Disabled="_isSubmitting" />
+                                            <MudCheckBox T="bool" Color="Color.Primary" @bind-Value="_model.ContactDetailsAreCorrect" Label="The contact details above are correct" Disabled="_isSubmitting" />
+                                            <div>
+                                                <label>Signed Name</label>
+                                                <MudTextField @bind-Value="_model.SignedName"
+                                                              Variant="Variant.Outlined"
+                                                              Margin="Margin.Dense"
+                                                              Disabled="_isSubmitting"
+                                                              HelperText="Shown on the acceptance record if you accept" Required="true" />
+                                            </div>
+                                   
+                                            <div class="quote-acceptance-actions">
+
+                                                <MudButton Variant="Variant.Filled"
+                                                           Color="Color.Success"
+                                                           Class="quote-acceptance-btn-approve"
+                                                           Disabled="@(_isSubmitting || _model.SignedName.IsWhiteSpace() || !_model.AddressIsCorrect || !_model.ContactDetailsAreCorrect)"
+                                                           StartIcon="@Icons.Material.Filled.Check"
+                                                           ButtonType="ButtonType.Submit">
+                                                    Approve
+                                                </MudButton>
+                                            </div>
+                                        </EditForm>
+                                    }
+                                }
                             </ChildContent>
                         </Card>
-                    }
-                    else if (_quoteDetails.QuoteStatus is QuoteStatusEnum.Accepted or QuoteStatusEnum.Rejected)
-                    {
-                        <MudAlert Severity="@(_quoteDetails.QuoteStatus is QuoteStatusEnum.Accepted ? Severity.Success : Severity.Info)"
-                                  Class="mt-3"
-                                  Variant="Variant.Filled">
-                            @if (_quoteDetails.QuoteStatus is QuoteStatusEnum.Accepted)
-                            {
-                                <text>Thank you — this fee proposal has been accepted. We will be in touch regarding next steps.</text>
-                            }
-                            else
-                            {
-                                <text>This fee proposal has been declined. If you have any questions, please contact us.</text>
-                            }
-                        </MudAlert>
                     }
                 </section>
                 <section>
@@ -207,132 +244,4 @@
     }
 </div>
 
-@code {
-    private static readonly CultureInfo QuoteCurrencyCulture = new("en-US");
 
-    [SupplyParameterFromQuery(Name = "token")]
-    [Parameter]
-    public string? Token { get; set; }
-
-    private QuotePartialDetailsDto? _quoteDetails;
-    private bool _isLoading = true;
-    private bool _isSubmitting;
-    private string? _loadError;
-    private string _pageQuoteRef = "PRS Portal";
-    private bool _addressCorrect = true;
-    private bool _contactCorrect = true;
-    private string _signedName = string.Empty;
-    private string _rejectReason = string.Empty;
-
-    private bool CanShowResponseActions =>
-        _quoteDetails is not null &&
-        _quoteDetails.QuoteStatus is QuoteStatusEnum.Sent or QuoteStatusEnum.ClientReview;
-
-    protected override async Task OnParametersSetAsync()
-    {
-        await base.OnParametersSetAsync();
-        _isLoading = true;
-        _quoteDetails = null;
-        _loadError = null;
-        _pageQuoteRef = "PRS Portal";
-        _addressCorrect = true;
-        _contactCorrect = true;
-        _signedName = string.Empty;
-        _rejectReason = string.Empty;
-        _isSubmitting = false;
-
-        if (string.IsNullOrWhiteSpace(Token))
-        {
-            _loadError = "Invalid link. No fee proposal token was supplied.";
-            _snackbar.Add(_loadError, Severity.Error);
-            _isLoading = false;
-            return;
-        }
-
-        string token = Token!.Trim();
-        Result<QuotePartialDetailsDto> res = await _apiService.GetPartialQuoteDetails(token);
-        if (res.IsSuccess && res.Value is not null)
-        {
-            _quoteDetails = res.Value;
-            _pageQuoteRef = res.Value.QuoteRef;
-        }
-        else
-        {
-            _loadError = res.ErrorDescription ?? "Could not load this fee proposal.";
-            _snackbar.Add(_loadError, Severity.Warning);
-        }
-
-        _isLoading = false;
-    }
-
-    private async Task SubmitApproveAsync()
-    {
-        if (_quoteDetails is null || string.IsNullOrWhiteSpace(Token))
-            return;
-
-        if (!_addressCorrect || !_contactCorrect)
-        {
-            _snackbar.Add("Please confirm that the address and contact details are correct before accepting.", Severity.Warning);
-            return;
-        }
-
-        await SubmitResponseAsync(new ClientQuoteSubmissionDto
-        {
-            Status = QuoteStatusEnum.Accepted,
-            AddressIsCorrect = _addressCorrect,
-            ContactDetailsAreCorrect = _contactCorrect,
-            SignedName = string.IsNullOrWhiteSpace(_signedName) ? null : _signedName.Trim(),
-            SignedDate = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture)
-        });
-    }
-
-    private async Task SubmitRejectAsync()
-    {
-        if (_quoteDetails is null || string.IsNullOrWhiteSpace(Token))
-            return;
-
-        if (string.IsNullOrWhiteSpace(_rejectReason))
-        {
-            _snackbar.Add("Please enter a reason for rejecting this fee proposal.", Severity.Warning);
-            return;
-        }
-
-        await SubmitResponseAsync(new ClientQuoteSubmissionDto
-        {
-            Status = QuoteStatusEnum.Rejected,
-            AddressIsCorrect = _addressCorrect,
-            ContactDetailsAreCorrect = _contactCorrect,
-            ReasonForRejection = _rejectReason.Trim()
-        });
-    }
-
-    private async Task SubmitResponseAsync(ClientQuoteSubmissionDto dto)
-    {
-        if (string.IsNullOrWhiteSpace(Token))
-            return;
-
-        _isSubmitting = true;
-        try
-        {
-            string token = Token.Trim();
-            Result<QuotePartialDetailsDto> res = await _apiService.SubmitClientQuote(token, dto);
-            if (res.IsSuccess && res.Value is not null)
-            {
-                _quoteDetails = res.Value;
-                _pageQuoteRef = res.Value.QuoteRef;
-                string msg = dto.Status is QuoteStatusEnum.Accepted
-                    ? "Fee proposal approved. Thank you."
-                    : "Fee proposal rejected. Your response has been recorded.";
-                _snackbar.Add(msg, Severity.Success);
-            }
-            else
-            {
-                _snackbar.Add(res.ErrorDescription ?? "Could not submit your response. Please try again.", Severity.Error);
-            }
-        }
-        finally
-        {
-            _isSubmitting = false;
-        }
-    }
-}

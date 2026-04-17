@@ -188,6 +188,13 @@ else
                                 <span class="info-label">Target delivery</span>
                                 <span class="info-value">@(_quote.TargetDeliveryDate is { } t ? t.ToLocalDateTimeString() : "—")</span>
                             </div>
+                            @if (_quote.QuotesStatus.StatusEnum is QuoteStatusEnum.Rejected or QuoteStatusEnum.Accepted)
+                            {
+                                <div class="info-row">
+                                    <span class="info-label">Client Response At</span>
+                                    <span class="info-value">@(_quote.AcceptedByClientAt is { } v ? v.ToLocalDateTimeString() : "—")</span>
+                                </div>
+                            }
                             @if (_quote.QuotesStatus.StatusEnum is QuoteStatusEnum.Sent or QuoteStatusEnum.Accepted)
                             {
                                 <div class="info-row">

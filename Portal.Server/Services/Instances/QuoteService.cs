@@ -70,6 +70,7 @@ public class QuoteService(
                     q.ModifiedByUser != null ? q.ModifiedByUser.DisplayName : null,
                     q.TargetDeliveryDate,
                     q.DateSentToClient,
+                    q.DateAccepted,
                     q.JobId,
                     q.Job != null ? q.Job.JobNumber : null,
                     q.ViewByClientAt,
@@ -211,7 +212,7 @@ public class QuoteService(
                 DateSentToClient = null,
                 TargetDeliveryDate = data.TargetDeliveryDate,
                 CreatedByUserId = httpContext.UserId(),
-                Address = address
+                Address = address,
             };
 
             await _dbContext.Quotes.AddAsync(newQuote);
@@ -257,6 +258,9 @@ public class QuoteService(
             if (quote is null)
                 return res.SetError(ErrorType.NotFound, "Quote not found.");
 
+            if ((QuoteStatusEnum)quote.StatusId is (QuoteStatusEnum.Accepted or QuoteStatusEnum.ClientReview or QuoteStatusEnum.Sent))
+                return res.SetError(ErrorType.BadRequest, "Cannot update a quote with the status of Accepted, Client Review or Sent");
+
             // Can only update the quote if it is new, draft or rejected. Once a quote is sent to the client, it cannot be updated.
             List<QuoteStatusEnum> validQuoteStatuses = [QuoteStatusEnum.Rejected, QuoteStatusEnum.New, QuoteStatusEnum.Draft];
 
@@ -272,6 +276,7 @@ public class QuoteService(
             quote.AddressId = updatedAddress.Id;
             quote.ContactId = data.ContactId;
             quote.JobTypeId = (int)data.JobType;
+            quote.TargetDeliveryDate = data.TargetDeliveryDate?.ToUniversalTime();
 
             if (quote.StatusId != (int)data.QuoteStatusId)
             {
@@ -329,6 +334,9 @@ public class QuoteService(
             quote.TotalPrice = data.QuoteItems.Sum(qi => qi.Price);
             quote.ModifiedOn = DateTime.UtcNow;
             quote.ModifiedByUserId = httpContext.UserId();
+
+            if (await _dbContext.QuoteTokens.AnyAsync(q => q.QuoteId == quote.Id))
+                await _dbContext.QuoteTokens.Where(q => q.QuoteId == quote.Id).ExecuteDeleteAsync();
 
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -707,7 +715,7 @@ public class QuoteService(
                 return res.SetError(ErrorType.InternalError, "Failed to get the quote details for PDF generation.");
             }
 
-            byte[] quoteAsPdf = _pdfGenerationService.CreateQuotePdf(quoteDetailsResult.Value);
+            byte[] quoteAsPdf = await _pdfGenerationService.CreateQuotePdf(quoteDetailsResult.Value);
             (byte[], string) attachment = (quoteAsPdf, $"Quote_{quote.QuoteReference}.pdf");
             (string, string) token = ComputeTokenAndHashToken();
 
@@ -852,7 +860,9 @@ public class QuoteService(
             if (!jobResult.IsSuccess)
                 return res.SetError(ErrorType.InternalError, "An error occured while creating the job for the quote.");
 
+            quoteTokenEntity.Quote.DateAccepted = DateTime.UtcNow;
             quoteTokenEntity.Quote.JobId = jobResult.Value;
+
             await _dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
         }
@@ -879,7 +889,7 @@ public class QuoteService(
             if (!quoteDetailsResult.IsSuccess || quoteDetailsResult.Value is null)
                 return res.SetError(ErrorType.InternalError, "Failed to get the quote details for PDF generation.");
 
-            byte[] quoteAsPdf = _pdfGenerationService.CreateQuotePdf(quoteDetailsResult.Value);
+            byte[] quoteAsPdf = await _pdfGenerationService.CreateQuotePdf(quoteDetailsResult.Value);
             QuotePdfDto quotePdfDto = new() { FileName = $"Quote_{quote.QuoteReference}.pdf", Data = quoteAsPdf };
 
             return res.SetValue(quotePdfDto);

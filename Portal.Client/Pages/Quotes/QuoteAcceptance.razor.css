@@ -141,6 +141,7 @@
     padding-top: 1rem;
     border-top: 1px solid #e2e8f0;
     align-items: center;
+    justify-content:center;
 }
 
 .quote-acceptance-btn-reject,
@@ -152,4 +153,14 @@
 
 .quote-acceptance-btn-approve {
     box-shadow: none;
+}
+
+.error-section {
+    background: #FFE0DD;
+    border: 1px solid #e03616;
+    border-radius: var(--border-rad);
+    padding: 40px;
+    color: #e03616;
+    width: fit-content;
+    text-align: center;
 }

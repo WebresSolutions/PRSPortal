@@ -3,7 +3,7 @@ using Portal.Shared.DTO.Quote;
 namespace Portal.Server.Services.Interfaces.UtilityServices;
 
 /// <summary>
-/// Generates PDF documents (PDFsharp, MIT). Suitable for Linux/Docker when fonts are installed on the image.
+/// Generates PDF documents using <see href="https://github.com/jhaygood86/PeachPDF">PeachPDF</see> (HTML to PDF, pure .NET).
 /// </summary>
 public interface IPdfGenerationService
 {
@@ -12,5 +12,5 @@ public interface IPdfGenerationService
     /// </summary>
     /// <param name="quoteDetailsDto">The details of the quote to include in the PDF.</param>
     /// <returns>A byte array representing the generated PDF document.</returns>
-    byte[] CreateQuotePdf(QuoteDetailsDto quoteDetailsDto);
+    Task<byte[]> CreateQuotePdf(QuoteDetailsDto quoteDetailsDto);
 }

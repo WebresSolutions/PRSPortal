@@ -46,6 +46,11 @@
     box-shadow: none;
     background-color: var(--color-grey-dark) !important;
 }
+.mud-button-filled.mud-button-filled-dark {
+    border-radius: var(--border-rad);
+    box-shadow: none;
+    background-color: var(--color-grey-dark) !important;
+}
 
 .mud-button-filled.mud-button-filled-default {
     border-radius: var(--border-rad);
@@ -103,4 +108,12 @@
 
 .mud-dialog .mud-dialog-title {
     padding: 0 !important;
+}
+
+.mud-toggle-group-outlined.mud-toggle-group-primary{
+    border-color: var(--color-primary) !important;
+}
+
+.mud-toggle-group-outlined.mud-toggle-group-horizontal:not(.mud-toggle-group-rtl) > .mud-toggle-item:not(:first-child).mud-toggle-item-delimiter, .mud-toggle-group-outlined.mud-toggle-group-horizontal:not(.mud-toggle-group-rtl) > :not(:first-child) .mud-toggle-item.mud-toggle-item-delimiter {
+    border-left-style: none !important; 
 }
