@@ -58,7 +58,7 @@ public class QuoteService(
                         ServiceTypeId = qi.ServiceId ?? 0,
                         ServiceName = qi.ServiceNameSnapshot ?? "",
                         Price = qi.Total,
-                        Description = qi.Notes
+                        Description = qi.Service!.Description
                     }).ToArray(),
                     q.JobTypeId,
                     new QuotesStatusTypeDto((QuoteStatusEnum)q.Status.Id, q.Status.Name, q.Status.Colour, q.Status.IsActive),

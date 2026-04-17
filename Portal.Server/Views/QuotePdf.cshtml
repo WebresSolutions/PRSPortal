@@ -1,0 +1,194 @@
+@model QuotePdfViewModel
+@using System.Globalization
+@{
+    CultureInfo au = CultureInfo.GetCultureInfo("en-AU");
+    string FirstName(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName))
+            return "Sir/Madam";
+        string[] parts = fullName.Trim().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length > 0 ? parts[0] : "Sir/Madam";
+    }
+    string FormatFeePlusGst(decimal amount) =>
+        "$" + amount.ToString("#,##0", CultureInfo.InvariantCulture) + "+GST";
+    string subject = Model.Quote.Address is not null ? Model.Quote.Address.ToDisplayString() : "YOUR PROPERTY";
+    string scopeText = string.IsNullOrWhiteSpace(Model.Quote.Description)
+        ? "Survey services as summarised in the fee summary and detailed scope of works following this letter."
+        : Model.Quote.Description!;
+    string[] exclusionLines =
+    [
+        "Unless specifically noted otherwise, our fee does not include:",
+        "• Title boundaries unless a Title Re-establishment Survey is completed;",
+        "• Additional boundary mark placement or reinstatement beyond the quoted scope;",
+        "• Physical locating of underground services by specialist methods;",
+        "• Return visits due to restricted or unavailable site access;",
+        "• Invert levels of drainage pits, pipes or underground drainage infrastructure unless specifically requested;",
+        "• Point cloud data, BIM/3D modelling, or other advanced digital deliverables;"
+    ];
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Quote @Model.Quote.QuoteReference</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Liberation Sans', Arial, sans-serif; font-size: 10pt; line-height: 1.35; color: #000; margin: 0; }
+        table { border-collapse: collapse; }
+        .muted { color: #555; font-size: 8.5pt; font-style: italic; }
+        .small { font-size: 8.5pt; }
+        .company { font-weight: bold; font-size: 11pt; }
+        .line { font-size: 9pt; }
+        .hline { border: 0; border-top: 1px solid #d3d3d3; margin: 12pt 0; }
+        .logo { max-width: 120pt; max-height: 52pt; }
+        .section { margin-bottom: 10pt; }
+        .page-break { break-before: page; page-break-before: always; }
+        h2 { font-size: 10pt; margin: 0 0 8pt 0; }
+        .mini-head .line { font-size: 8.5pt; }
+        .mini-head .company { font-size: 9pt; }
+        .mini-head .muted { font-size: 7.5pt; }
+        .fee-total { font-weight: bold; }
+        .scope-item { margin-bottom: 12pt; }
+        .scope-item h3 { font-size: 10pt; margin: 0 0 6pt 0; }
+        .survey-img { max-width: 100%; height: auto; margin-top: 8pt; }
+    </style>
+</head>
+<body>
+    <section class="section">
+        <table style="width:100%; margin-bottom:12pt;">
+            <tr>
+                <td style="vertical-align:top;width:1%;padding-right:16pt;">
+                    @if (Model.LogoUri is not null)
+                    {
+                        <img class="logo" src="@Model.LogoUri" alt="" />
+                    }
+                </td>
+                <td style="vertical-align:top;">
+                    <div class="company">PETER RICHARDS SURVEYING</div>
+                    <div class="line">T (03) 9432 6944</div>
+                    <div class="line">E mail@prs.au</div>
+                    <div class="line">W PRS.AU</div>
+                    <div class="line">ABN 11 070 127 552</div>
+                    <div class="line">45/7 Dalton Road</div>
+                    <div class="line">Thomastown VIC 3074</div>
+                    <div class="line">Suite 1 Level1, 20-30</div>
+                    <div class="line">Mollison Street</div>
+                    <div class="line">Abbotsford VIC 3067</div>
+                    <p class="muted">Liability limited by a scheme approved under Professional Standards Legislation</p>
+                </td>
+            </tr>
+        </table>
+        <hr class="hline" />
+
+        <p class="line">@Model.Quote.CreatedAt.ToString("d MMMM yyyy", au)     Quote Ref: @Model.Quote.QuoteReference</p>
+
+        @if (Model.Quote.Contact is not null)
+        {
+            <p class="line">Attention: @Model.Quote.Contact.FullName</p>
+            if (!string.IsNullOrWhiteSpace(Model.Quote.Contact.Phone))
+            {
+                <p class="line">Phone: @Model.Quote.Contact.Phone</p>
+            }
+            <p class="line">Email: @Model.Quote.Contact.Email</p>
+        }
+
+        <p class="line">Dear @FirstName(Model.Quote.Contact?.FullName),</p>
+        <p><strong>RE: @subject</strong></p>
+
+        <p>Thank you for the opportunity to provide our fee proposal for the proposed survey services at the above property. Our proposed scope of works and fees are set out below.</p>
+        <p>Please note: This fee proposal remains valid for 30 days from the date of issue. If acceptance is received after this time, our fees may be reviewed and revised prior to commencement.</p>
+
+        <p><strong>Project Scope:</strong></p>
+        <p>@scopeText</p>
+
+        <p><strong>Fee Summary</strong></p>
+        <table style="width:100%;">
+            @foreach (var item in Model.Quote.QuoteItems)
+            {
+                <tr>
+                    <td style="padding:3pt 0;width:62%;">@item.ServiceName</td>
+                    <td style="padding:3pt 0;text-align:right;width:38%;">@FormatFeePlusGst(item.Price)</td>
+                </tr>
+            }
+            <tr class="fee-total">
+                <td style="padding:6pt 0 3pt 0;">Total Fees (excluding disbursements)</td>
+                <td style="padding:6pt 0 3pt 0;text-align:right;">@FormatFeePlusGst(Model.Quote.TotalPrice)</td>
+            </tr>
+        </table>
+
+        <p>Disbursements: General disbursement costs for searching relevant survey information will be in addition to the cost above (these typically range in the vicinity of $50-$150+GST per property).</p>
+        <p>Scheduling of Survey: A site booking date will be scheduled upon receiving the attached Acceptance Form. Currently, our lead time is approximately one to two weeks to undertake site works. Survey plans are generally available within 7-8* business days following completion of site works.</p>
+        <p class="small">Timeframes above are estimates only and may vary depending on site conditions, access, project complexity, or matters arising during the survey, drafting and review process. Where additional time is required to ensure an accurate and professionally prepared outcome, we will make every reasonable effort to communicate any delay as soon as practicable.</p>
+
+        <p><strong>Acceptance:</strong></p>
+        <p>To accept this fee proposal, please fill out the Acceptance Form located within.</p>
+
+        <p>Yours Sincerely,</p>
+        <p><strong>Brodie Richards</strong><br />Managing Director<br />Licensed Surveyor</p>
+        <p class="muted">Please continue for detailed scope of works, exclusions and additional information</p>
+    </section>
+
+    <section class="section page-break mini-head">
+        <div class="company">PETER RICHARDS SURVEYING</div>
+        <div class="line">T (03) 9432 6944</div>
+        <div class="line">E mail@prs.au</div>
+        <div class="line">W PRS.AU</div>
+        <div class="line">ABN 11 070 127 552</div>
+        <div class="line">45/7 Dalton Road</div>
+        <div class="line">Thomastown VIC 3074</div>
+        <div class="line">Suite 1 Level1, 20-30</div>
+        <div class="line">Mollison Street</div>
+        <div class="line">Abbotsford VIC 3067</div>
+        <p class="muted">Liability limited by a scheme approved under Professional Standards Legislation</p>
+        <h2>Scope of Works:</h2>
+        @foreach (var item in Model.Quote.QuoteItems)
+        {
+            var detail = string.IsNullOrWhiteSpace(item.Description) ? "As agreed for this service." : item.Description!;
+            <div class="scope-item">
+                <h3 style="margin-bottom: 0; padding-bottom: 0;">@item.ServiceName</h3>
+                <p>@Html.Raw(detail)</p>
+            </div>
+        }
+    </section>
+
+    <section class="section page-break mini-head">
+        <div class="company">PETER RICHARDS SURVEYING</div>
+        <div class="line">T (03) 9432 6944</div>
+        <div class="line">E mail@prs.au</div>
+        <div class="line">W PRS.AU</div>
+        <div class="line">ABN 11 070 127 552</div>
+        <div class="line">45/7 Dalton Road</div>
+        <div class="line">Thomastown VIC 3074</div>
+        <div class="line">Suite 1 Level1, 20-30</div>
+        <div class="line">Mollison Street</div>
+        <div class="line">Abbotsford VIC 3067</div>
+        <p class="muted">Liability limited by a scheme approved under Professional Standards Legislation</p>
+        <h2>Exclusions:</h2>
+        @foreach (var line in exclusionLines)
+        {
+            <p>@line</p>
+        }
+        <h2>Additional Information</h2>
+        <p>Payment Terms: Payment is due within 14 days of receiving the tax invoice and prior to the release of any plans.</p>
+    </section>
+
+    <section class="section page-break mini-head">
+        <div class="company">PETER RICHARDS SURVEYING</div>
+        <div class="line">T (03) 9432 6944</div>
+        <div class="line">E mail@prs.au</div>
+        <div class="line">W PRS.AU</div>
+        <div class="line">ABN 11 070 127 552</div>
+        <div class="line">45/7 Dalton Road</div>
+        <div class="line">Thomastown VIC 3074</div>
+        <div class="line">Suite 1 Level1, 20-30</div>
+        <div class="line">Mollison Street</div>
+        <div class="line">Abbotsford VIC 3067</div>
+        <p class="muted">Liability limited by a scheme approved under Professional Standards Legislation</p>
+        <h2>Proposed Survey Area</h2>
+        @if (Model.SurveyImageUri is not null)
+        {
+            <p><img class="survey-img" src="@Model.SurveyImageUri" alt="" /></p>
+        }
+    </section>
+</body>
+</html>

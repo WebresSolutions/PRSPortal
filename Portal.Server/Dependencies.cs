@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
@@ -60,6 +61,10 @@ public static class Dependencies
 
         builder.WebHost.UseStaticWebAssets();
         builder.Services.AddControllersWithViews();
+        builder.Services.Configure<RazorViewEngineOptions>(options =>
+        {
+            options.ViewLocationFormats.Insert(0, "/Views/{0}.cshtml");
+        });
         builder.Services.AddRazorPages();
 
         builder.Services.AddQuartz();
