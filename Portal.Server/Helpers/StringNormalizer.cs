@@ -26,6 +26,14 @@ public static class StringNormalizer
         return trimmed;
     }
 
+    public static string TrimAndTruncateNotNull(string value, int? maxLength = null)
+    {
+        string trimmed = value.Trim();
+        if (maxLength.HasValue && trimmed.Length > maxLength.Value)
+            return trimmed[..maxLength.Value];
+        return trimmed;
+    }
+
     /// <summary>
     /// Recursively normalizes all string properties on the given object:
     /// trims whitespace and truncates using [MaxLength] when present.
@@ -36,7 +44,9 @@ public static class StringNormalizer
     {
         if (obj is null)
             return;
-        NormalizeInternal(obj, new HashSet<object>(ReferenceEqualityComparer.Instance));
+
+        HashSet<object> x = new(ReferenceEqualityComparer.Instance);
+        NormalizeInternal(obj, x);
     }
 
     private static void NormalizeInternal(object obj, HashSet<object> visited)

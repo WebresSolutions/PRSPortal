@@ -20,9 +20,10 @@ INSERT INTO job_assignment_type(id, name, description) VALUES(2, 'Responsible Te
 INSERT INTO quote_status(id, name, colour) VALUES (1, 'Draft', '#DBD3D8');
 INSERT INTO quote_status(id, name, colour) VALUES (2, 'New', '#81C14B');
 INSERT INTO quote_status(id, name, colour) VALUES (3, 'Sent', '#9FBBCC');
-INSERT INTO quote_status(id, name, colour) VALUES (4, 'Lost', '#FFE900'); 
-INSERT INTO quote_status(id, name, colour) VALUES (5, 'Rejected', '#D56062');
-INSERT INTO quote_status(id, name, colour) VALUES (6, 'Accepted', '#2E933C');
+INSERT INTO quote_status(id, name, colour) VALUES (4, 'Client Review', '#7D8CC4');
+INSERT INTO quote_status(id, name, colour) VALUES (5, 'Lost', '#FFE900');
+INSERT INTO quote_status(id, name, colour) VALUES (6, 'Rejected', '#D56062');
+INSERT INTO quote_status(id, name, colour) VALUES (7, 'Accepted', '#2E933C');
 
 INSERT INTO file_type(job_type_id, name, description) VALUES
     -- Construction job SharePoint folders (job_type.id = 1)
@@ -86,8 +87,66 @@ INSERT INTO job_task_type (job_type_id, name, description) VALUES
 INSERT INTO notification_type (name, description) VALUES ('General', 'A general notification for a user.');
 
 INSERT INTO service_type (code, service_name, description) VALUES
-    ('TITLE-REEST', 'Title Re-establishment Survey', ''),
-    ('FEATURE-AHD', 'Feature & AHD Level Survey', ''),
-    ('NEIGH-SITE', 'Neighbourhood Site Description', ''),
-    ('INTERNAL-SURVEY', 'Internal Building Survey', ''),
-    ('EVLEVATION-PLAN', 'Elevations Plan', '');
+    ('TITLE-REEST', 'Title Re-establishment Survey',
+    '<p>Undertake a Title Re-establishment Survey to determine and mark the title boundaries of the subject land.</p>
+    <ul>
+        <li>Research current survey information.</li>
+        <li>Undertake field Survey (including marking of title boundaries).</li>
+        <li>Preparation of Plan of Title Re-establishment Survey detailing:
+            <ul>
+                <li>Lot boundaries and dimensions (including boundary marks placed)</li>
+                <li>Location of easements</li>
+                <li>Relationship of occupation/fencing to title boundaries.</li>
+            </ul>
+        </li>
+        <li>Preparation of a written report detailing title particulars (including covenants and easements), methodology, and key findings of the Title Re-establishment Survey.</li>
+        <li>Preparation of &ldquo;Record of Having Re-established a Parcel&rdquo;, as per Regulation 16 of the Surveying (Cadastral Surveys) Regulations 2025</li>
+    </ul>'),
+
+    ('FEATURE-AHD', 'Feature & AHD Level Survey', '<p>Undertake a Feature &amp; AHD Level Survey to document existing site features and levels for design, planning and construction purposes.</p>
+    <ul>
+        <li>Connect survey to Australian Height Datum (A.H.D) and place Temporary Benchmark (T.B.M) for future construction purposes.</li>
+        <li>Connect survey into MGA2020 survey control marks and orient survey to MGA2020 bearings.</li>
+        <li>Measure levels and contours (0.2m intervals) across site.</li>
+        <li>Measure spot levels on adjoining properties within 1m of fence/boundary (note: only where accessible).</li>
+        <li>Locate existing buildings, sheds and garages (inc. floor level and building heights).</li>
+        <li>Locate windows on the existing buildings (inc. head and sill heights).</li>
+        <li>Location of significant trees (3m or taller) and details of approximate height, spread and trunk dimensions.</li>
+        <li>Locate fences (including materials and height), significant features (including driveways and hard surfaces) and visible services on the subject site.</li>
+        <li>Search Before You Dig (BYD) data and overlay underground assets within 9m of property (quality level D only)</li>
+        <li>Locate Road details including back &amp; invert of kerb, visible services &amp; crossovers directly in front of the subject site.</li>
+        <li>Locate adjoining dwellings within 9m of site, including:
+            <ul>
+                <li>Building setbacks</li>
+                <li>Windows facing the subject site (inc. head &amp; sill heights)</li>
+                <li>Top of gutter</li>
+                <li>Ridges, parapets, chimneys etc.</li>
+                <li>Floor level (measured at front door thresholds only if easily accessible).</li>
+            </ul>
+        </li>
+        <li>Measure location and setbacks of further surrounding dwellings (three properties either side).</li>
+        <li>Show location of private open space and pools (where unable to survey, aerial imagery will be used).</li>
+        <li>Supply photos of site.</li>
+        <li>Provide 3D triangle file for surface/contours to allow integration into compatible software.</li>
+        <li>Preparation of Plan of Feature Survey (digital copy provided in PDF and DWG format).</li>
+    </ul>'),
+    ('NEIGH-SITE', 'Neighbourhood Site Description', '<p>Provide a Neighbourhood Site Description of the surrounding area (within 50m of the site) to assist with design response and planning documentation for the proposed development.</p>
+    <ul>
+        <li>Measure and record surrounding buildings within the immediate neighbourhood context, including dwelling type, building siting and visible setbacks to street frontages.</li>
+        <li>Identify roof forms of surrounding dwellings and buildings, where visible from accessible vantage points and aerial imagery.</li>
+        <li>Show relevant site characteristics, adjoining context and local amenity features on the plan.</li>
+        <li>Capture photographs of surrounding properties to document the existing neighbourhood and streetscape character.</li>
+    </ul>'),
+    ('INTERNAL-SURVEY', 'Internal Building Survey', '<p>Undertake an internal building survey of the existing dwelling to capture the principal internal layout and visible built elements for design and documentation purposes.</p>
+    <ul>
+        <li>Undertake an internal survey of the existing dwelling, including principal room dimensions, wall layouts, window locations and ceiling heights.</li>
+        <li>Locate and record visible fixed internal elements relevant to the building layout, including cabinetry, bulkheads and other permanent built features where reasonably accessible.</li>
+        <li>Prepare a plan showing the internal layout and measurements based on the surveyed information above.</li>
+        <li>Supply digital copies of the completed plan via e-mail.</li>
+    </ul>'),
+    ('EVLEVATION-PLAN', 'Elevations Plan', '<p>Prepare elevation drawings of the existing building to document the external built form and visible f&ccedil;ade elements for design and documentation purposes.</p>
+    <ul>
+        <li>Record visible external elements including windows, doors, frames, chimneys, vents, roof details and other relevant building features.</li>
+        <li>Prepare four elevation plans of the existing building, being the external faces of the building on all four sides.</li>
+        <li>Supply digital copies of the completed elevation drawings via e-mail.</li>
+    </ul>');

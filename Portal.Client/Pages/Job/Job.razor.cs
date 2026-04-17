@@ -24,7 +24,7 @@ public partial class Job
         _breadCrumbService.SetBreadCrumbItems(
            [
                 new("Jobs", href: "/jobs", disabled: false),
-                new($"#{_job?.JobNumber ?? "Job"}", href: $"/jobs/{JobId}", disabled: true)
+                new($"{_job?.JobNumber ?? "Job"}", href: $"/jobs/{JobId}", disabled: true)
            ]);
         IsLoading = false;
     }

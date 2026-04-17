@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Portal.Data.Models;
 
+/// <summary>
+/// Lookup of timesheet entry categories (e.g. office, field) for timesheet_entry.type_id.
+/// </summary>
 public partial class TimesheetEntryType
 {
     public int Id { get; set; }

@@ -143,12 +143,13 @@ public partial class Jobs : IDisposable
     /// </summary>
     /// <param name="state">The current grid state containing pagination and sorting information</param>
     /// <returns>A GridData object containing the current page of facilities and total count</returns>
-    private async Task<GridData<ListJobDto>> LoadJobs(GridState<ListJobDto> state)
+    private async Task<GridData<ListJobDto>> LoadJobs(GridState<ListJobDto> state, CancellationToken cancellationToken)
     {
         IsLoading = true;
 
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             int apiPageNumber = state.Page;
             int apiPageSize = state.PageSize;
             apiPageNumber++;
@@ -195,6 +196,14 @@ public partial class Jobs : IDisposable
                 _snackbar?.Add("Error", Severity.Error);
                 return new GridData<ListJobDto>() { Items = [], TotalItems = 0 };
             }
+        }
+        catch (TaskCanceledException)
+        {
+            return new GridData<ListJobDto>
+            {
+                Items = [],
+                TotalItems = 0
+            };
         }
         catch (Exception)
         {
@@ -251,7 +260,7 @@ public partial class Jobs : IDisposable
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task RemoveJob(int jobId)
     {
-        bool? confirm = await _dialog.ShowMessageBox(
+        bool? confirm = await _dialog.ShowMessageBoxAsync(
             "Confirm Delete",
             "Are you sure you want to delete this Job?",
             yesText: "Delete",

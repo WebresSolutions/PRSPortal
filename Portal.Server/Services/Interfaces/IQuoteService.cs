@@ -1,4 +1,5 @@
 using Portal.Shared.DTO.Quote;
+using Portal.Shared.DTO.Quote.PartailQuote;
 using Portal.Shared.ResponseModels;
 
 namespace Portal.Server.Services.Interfaces;
@@ -28,6 +29,15 @@ public interface IQuoteService
     /// <param name="quoteId">The unique identifier of the quote to retrieve details for.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the details of the quote.</returns>
     Task<Result<QuoteDetailsDto>> GetQuoteDetails(int quoteId);
+
+    /// <summary>
+    /// Gets the details of a specific quote by its unique token without requiring authentication. 
+    /// This method is intended for scenarios where clients need to access quote details without logging in, such as when viewing a quote through a shared link.
+    /// </summary>
+    /// <param name="httpContext">The Http Context</param>
+    /// <param name="quoteToken">The token for viewing a quote</param>
+    /// <returns>The partial restricted quote details</returns>
+    Task<Result<QuotePartialDetailsDto>> GetQuoteDetailsUnauthenticated(HttpContext httpContext, string quoteToken);
 
     /// <summary>
     /// Updates a quote.
@@ -91,4 +101,5 @@ public interface IQuoteService
     /// <param name="quoteId">The unique identifier of the quote.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the PDF data and file name.</returns>
     Task<Result<QuotePdfDto>> GetQuotePdf(int quoteId);
+    Task<Result<QuotePartialDetailsDto>> SubmitQuoteResponse(string quoteToken, ClientQuoteSubmissionDto data, HttpContext httpContext);
 }

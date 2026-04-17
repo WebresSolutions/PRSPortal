@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Portal.Data.Models;
 
+/// <summary>
+/// Lookup of contact categories (e.g. client, vendor, internal) used by contact.type_id.
+/// </summary>
 public partial class ContactType
 {
     public int Id { get; set; }

@@ -30,12 +30,12 @@ public static class DBHelpers
             Address existingAddress = await context.Addresses.FirstOrDefaultAsync(a => a.Id == address.Id)
                 ?? throw new Exception("Address not found.");
 
-            existingAddress.Street = address.Street;
-            existingAddress.Suburb = address.Suburb;
+            existingAddress.Street = StringNormalizer.TrimAndTruncateNotNull(address.Street, 255);
+            existingAddress.Suburb = StringNormalizer.TrimAndTruncateNotNull(address.Suburb, 255);
             existingAddress.StateId = address.StateId;
-            existingAddress.PostCode = address.PostCode;
+            existingAddress.PostCode = StringNormalizer.TrimAndTruncateNotNull(address.PostCode, 4);
             existingAddress.StateId = address.StateId;
-            existingAddress.Country = address.Country;
+            existingAddress.Country = address.Country.Trim();
             existingAddress.ModifiedByUserId = userId;
             existingAddress.ModifiedOn = address.ModifiedOn;
             existingAddress.Geohash = address.Geohash;

@@ -140,14 +140,6 @@ a.btn-link {
     font-size: 20px;
 }
 
-ul {
-    padding-left: 0 !important;
-}
-
-    ul > li {
-        list-style: none;
-    }
-
 .text-red {
     color: red;
 }

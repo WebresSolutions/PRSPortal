@@ -22,16 +22,21 @@ public enum QuoteStatusEnum
     /// <summary>
     /// Construction job type
     /// </summary>
+    [Display(Name = "Client Review")]
+    ClientReview = 4,
+    /// <summary>
+    /// Construction job type
+    /// </summary>
     [Display(Name = "Lost")]
-    Lost = 4,
+    Lost = 5,
     /// <summary>
     /// Construction job type
     /// </summary>
     [Display(Name = "Rejected")]
-    Rejected = 5,
+    Rejected = 6,
     /// <summary>
     /// Construction job type
     /// </summary>
     [Display(Name = "Accepted")]
-    Accepted = 6
+    Accepted = 7
 }

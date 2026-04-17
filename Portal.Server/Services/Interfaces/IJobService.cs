@@ -62,12 +62,13 @@ public interface IJobService
     Task<Result<JobDetailsDto>> UpdateJob(HttpContext httpContext, JobUpdateDto updateJobDto);
 
     /// <summary>
-    /// Create a new job with the specified details and return the unique identifier of the created job. The method accepts a
+    /// Create a new job with the specified details and return the unique identifier of the created job.
     /// </summary>
-    /// <param name="httpContext">TThe http context</param>
-    /// <param name="jobCreationDto"></param>
-    /// <returns></returns>
-    Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto jobCreationDto);
+    /// <param name="httpContext">The HTTP context.</param>
+    /// <param name="jobCreationDto">Job creation payload.</param>
+    /// <param name="manageTransaction">When true (default), begins and commits a database transaction. When false, uses the caller's ambient EF Core transaction (no nested transaction).</param>
+    /// <returns>The new job id or an error.</returns>
+    Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto jobCreationDto, bool manageTransaction = true);
 
     /// <summary>
     /// Will soft delete a job

@@ -1298,6 +1298,9 @@ public partial class PrsDbContext : DbContext
             entity.Property(e => e.QuoteReference)
                 .HasMaxLength(50)
                 .HasColumnName("quote_reference");
+            entity.Property(e => e.QuoteRejectionReason)
+                .HasMaxLength(2000)
+                .HasColumnName("quote_rejection_reason");
             entity.Property(e => e.QuoteSentByUserId).HasColumnName("quote_sent_by_user_id");
             entity.Property(e => e.StatusId).HasColumnName("status_id");
             entity.Property(e => e.TargetDeliveryDate).HasColumnName("target_delivery_date");

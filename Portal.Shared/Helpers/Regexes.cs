@@ -1,11 +1,11 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Portal.Server.Helpers;
+namespace Portal.Shared.Helpers;
 
 public static class Regexes
 {
-    public static bool IsValidEmail(string email)
+    public static bool IsValidEmail(string? email)
     {
         if (string.IsNullOrWhiteSpace(email))
             return false;

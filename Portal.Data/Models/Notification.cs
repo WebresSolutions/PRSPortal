@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Portal.Data.Models;
 
+/// <summary>
+/// In-app or queued notifications per user with JSON payload and type classification.
+/// </summary>
 public partial class Notification
 {
     public int Id { get; set; }

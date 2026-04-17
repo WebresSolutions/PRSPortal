@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Portal.Data.Models;
 
+/// <summary>
+/// Tasks or line items belonging to a job, including optional quoted price and invoice tracking dates.
+/// </summary>
 public partial class JobTask
 {
     public int Id { get; set; }

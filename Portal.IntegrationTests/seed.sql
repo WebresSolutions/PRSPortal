@@ -91,12 +91,13 @@ INSERT INTO service_type (code, service_name, description) VALUES
     ('INTERNAL-SURVEY', 'Internal Building Survey', ''),
     ('EVLEVATION-PLAN', 'Elevations Plan', '');
 
-INSERT INTO quote_status(id, name, colour) VALUES (1, 'Draft', '#cccccc');
-INSERT INTO quote_status(id, name, colour) VALUES (2, 'New', '#fffff');
-INSERT INTO quote_status(id, name, colour) VALUES (3, 'Sent', '#0d9488');
-INSERT INTO quote_status(id, name, colour) VALUES (4, 'Lost', '#dc2626');
-INSERT INTO quote_status(id, name, colour) VALUES (5, 'Rejected', '#ea580c');
-INSERT INTO quote_status(id, name, colour) VALUES (6, 'Accepted', '#16a34a');
+INSERT INTO quote_status(id, name, colour) VALUES (1, 'Draft', '#DBD3D8');
+INSERT INTO quote_status(id, name, colour) VALUES (2, 'New', '#81C14B');
+INSERT INTO quote_status(id, name, colour) VALUES (3, 'Sent', '#9FBBCC');
+INSERT INTO quote_status(id, name, colour) VALUES (4, 'Client Review', '#9FBBCC');
+INSERT INTO quote_status(id, name, colour) VALUES (5, 'Lost', '#FFE900');
+INSERT INTO quote_status(id, name, colour) VALUES (6, 'Rejected', '#D56062');
+INSERT INTO quote_status(id, name, colour) VALUES (7, 'Accepted', '#2E933C');
 
 INSERT INTO states(id, name, abbreviation) VALUES (1, 'New South Wales', 'NSW');
 INSERT INTO states(id, name, abbreviation) VALUES (2, 'Queensland', 'QLD');

@@ -8,6 +8,7 @@ using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Integration;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Quote;
+using Portal.Shared.DTO.Quote.PartailQuote;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
 using Portal.Shared.DTO.TimeSheet;
@@ -23,7 +24,7 @@ namespace Portal.Client.Services.Instances;
 public class ApiService : IApiService
 {
     private readonly HttpClient _httpClient;
-
+    private readonly HttpClient _anonymousHttpClient;
     private readonly NavigationManager _navigationManager;
 
     public ApiService(IHttpClientFactory httpClientFactory, IConfiguration configuration, NavigationManager navigationManager)
@@ -33,8 +34,10 @@ public class ApiService : IApiService
 
         _httpClient = httpClientFactory.CreateClient(httpClientName);
         _navigationManager = navigationManager;
+        _anonymousHttpClient = httpClientFactory.CreateClient("Anonymous");
     }
 
+    #region Jobs 
     /// <inheritdoc />
     public async Task<Result<PagedResponse<ListJobDto>>> GetAllJobs(JobFilterDto filter)
     {
@@ -363,6 +366,9 @@ public class ApiService : IApiService
         }
         return res;
     }
+    #endregion
+
+    #region Schedule
     /// <inheritdoc />
     public async Task<Result<List<ScheduleTrackDto>>> GetIndividualSchedule(DateOnly date, JobTypeEnum jobType)
     {
@@ -583,6 +589,8 @@ public class ApiService : IApiService
         }
         return res;
     }
+    #endregion
+
     /// <inheritdoc />
     public async Task<Result<SystemSettingDto>> GetSystemSettings()
     {
@@ -744,6 +752,8 @@ public class ApiService : IApiService
         }
         return res;
     }
+
+    #region Contacts
     /// <inheritdoc />
     public async Task<Result<PagedResponse<ListContactDto>>> GetAllContacts(ContactFilterDto filter)
     {
@@ -876,6 +886,7 @@ public class ApiService : IApiService
         }
         return res;
     }
+    #endregion
 
     #region QUOTES
     /// <inheritdoc />
@@ -1192,6 +1203,64 @@ public class ApiService : IApiService
         }
         return res;
     }
+    /// <inheritdoc />
+    public async Task<Result<QuotePartialDetailsDto>> GetPartialQuoteDetails(string token)
+    {
+        Result<QuotePartialDetailsDto> res = new();
+        try
+        {
+            string encodedToken = Uri.EscapeDataString(token);
+            HttpResponseMessage response = await _anonymousHttpClient.GetAsync($"api/client/partialquote?token={encodedToken}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                QuotePartialDetailsDto? dto = await response.Content.ReadFromJsonAsync<QuotePartialDetailsDto>();
+                if (dto is not null)
+                    res.Value = dto;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to get quote details";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<QuotePartialDetailsDto>> SubmitClientQuote(string token, ClientQuoteSubmissionDto submission)
+    {
+        Result<QuotePartialDetailsDto> res = new();
+        try
+        {
+            string encodedToken = Uri.EscapeDataString(token);
+            HttpResponseMessage response = await _anonymousHttpClient.PutAsJsonAsync(
+                $"api/client/submitquote?token={encodedToken}",
+                submission);
+
+            if (response.IsSuccessStatusCode)
+            {
+                QuotePartialDetailsDto? dto = await response.Content.ReadFromJsonAsync<QuotePartialDetailsDto>();
+                if (dto is not null)
+                    res.Value = dto;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to submit your response";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
     #endregion
     /// <inheritdoc />
     public async Task<Result<JobNoteDto[]>> GetUserNotes(bool includeDeleted = false, bool? actionRequired = null)
@@ -1361,6 +1430,34 @@ public class ApiService : IApiService
         }
         return res;
     }
+    /// <inheritdoc />
+    public async Task<Result<bool>> DeleteTimeSheetEntry(TimeSheetDto entry)
+    {
+        Result<bool> res = new();
+        try
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/timesheet/{entry.Id}");
+            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+                await NavigationToLoginPage();
+            if (response.IsSuccessStatusCode)
+            {
+                bool? data = await response.Content.ReadFromJsonAsync<bool>();
+                res.Value = data ?? false;
+            }
+            else
+            {
+                res.ConvertHttpResponseToError(response.StatusCode);
+                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to add timesheet entry";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        return res;
+    }
+
+    #region Settings
     /// <inheritdoc />
     public Task<Result<TimeTypeDto[]>> GetTimeSheetTypes() =>
         GetTypesAsync<TimeTypeDto>("api/types/timesheet", "timesheet types");
@@ -1542,6 +1639,8 @@ public class ApiService : IApiService
         }
         return res;
     }
+    #endregion
+
     #region INTEGRATION
     /// <inheritdoc />
     public async Task<Result<XeroAuthorizeResponse>> GetXeroAuthorizeUrl()
@@ -1620,33 +1719,6 @@ public class ApiService : IApiService
         return res;
     }
     #endregion
-
-    /// <inheritdoc />
-    public async Task<Result<bool>> DeleteTimeSheetEntry(TimeSheetDto entry)
-    {
-        Result<bool> res = new();
-        try
-        {
-            HttpResponseMessage response = await _httpClient.DeleteAsync($"api/timesheet/{entry.Id}");
-            if (response.StatusCode is System.Net.HttpStatusCode.Unauthorized)
-                await NavigationToLoginPage();
-            if (response.IsSuccessStatusCode)
-            {
-                bool? data = await response.Content.ReadFromJsonAsync<bool>();
-                res.Value = data ?? false;
-            }
-            else
-            {
-                res.ConvertHttpResponseToError(response.StatusCode);
-                res.ErrorDescription = await response.Content.ReadAsStringAsync() ?? "Failed to add timesheet entry";
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Exception: {ex.Message}");
-        }
-        return res;
-    }
     private Task NavigationToLoginPage()
     {
         string returnPath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);

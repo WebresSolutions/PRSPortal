@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.FileProviders;
 using Portal.Data;
 using Portal.Server.Controllers;
 using Portal.Server.Endpoints;
 using Portal.Server.Middleware;
 using Scalar.AspNetCore;
+using System.Threading.RateLimiting;
 
 namespace Portal.Server;
 
@@ -17,6 +19,18 @@ public class Program
     private static async Task Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.AddSlidingWindowLimiter("sliding-policy", opt =>
+            {
+                opt.PermitLimit = 100;
+                opt.Window = TimeSpan.FromMinutes(1);
+                opt.SegmentsPerWindow = 4; // 15-second segments
+                opt.QueueLimit = 2;
+                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            });
+        });
 
         Console.WriteLine($"Environment Name: '{builder.Environment.EnvironmentName}'");
 
@@ -76,6 +90,8 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
+        // Apply to middleware
+        app.UseRateLimiter();
         if (app.Environment.IsEnvironment("Testing"))
             app.UseMiddleware<TestUserContextMiddleware>();
         else
@@ -96,7 +112,8 @@ public class Program
             .AddTypesEndpoints("Types", enableAuth)
             .AddUserEndpoints("Users", enableAuth)
             .AddFileEndpoints("Files", enableAuth)
-            .AddQuoteEndpoints("Quotes", enableAuth);
+            .AddQuoteEndpoints("Quotes", enableAuth)
+            .AddClientEndpoints();
 
         // Only serve SPA index.html for non-API paths so /api/* returns JSON from endpoints, not HTML
         app.MapFallback(async (HttpContext context) =>

@@ -5,6 +5,7 @@ public class EmailOptions
     public required string ApiKey { get; set; }
     public required string FromEmailAddress { get; set; }
     public string? ToEmailAddressOverride { get; set; }
+    public bool SendEmail { get; set; }
 
     /// <summary>
     /// Optional absolute base URL of the client app (no trailing slash), e.g. https://portal.prs.au.

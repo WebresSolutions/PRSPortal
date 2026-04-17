@@ -5,6 +5,7 @@ using Portal.Shared.DTO.File;
 using Portal.Shared.DTO.Integration;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Quote;
+using Portal.Shared.DTO.Quote.PartailQuote;
 using Portal.Shared.DTO.Schedule;
 using Portal.Shared.DTO.Setting;
 using Portal.Shared.DTO.TimeSheet;
@@ -399,5 +400,8 @@ public interface IApiService
     Task<Result<JobTypeStatusDto[]>> GetJobStatuses();
     /// <summary>Saves job statuses in bulk (must include every job type; sequence unique per job type).</summary>
     Task<Result<JobTypeStatusDto[]>> SaveJobTypeStatuses(IEnumerable<JobTypeStatusDto> dtos);
+    Task<Result<QuotePartialDetailsDto>> GetPartialQuoteDetails(string token);
+    /// <summary>Submits accept or reject for a fee proposal using the anonymous client link token.</summary>
+    Task<Result<QuotePartialDetailsDto>> SubmitClientQuote(string token, ClientQuoteSubmissionDto submission);
     #endregion
 }

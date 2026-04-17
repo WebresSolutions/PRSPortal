@@ -3,6 +3,7 @@
 @using Portal.Shared.DTO.Contact
 @using Portal.Shared.ResponseModels
 @using Portal.Shared.Web
+@using System.Threading
 
 @page "/contacts"
 
@@ -28,7 +29,7 @@
         </TitleContent>
         <ChildContent>
             <MudDataGrid T="ListContactDto"
-                         ServerData="LoadContacts"
+                         ServerData="@((GridState<ListContactDto> state, CancellationToken ct) => LoadContacts(state, ct))"
                          Filterable="true"
                          SortMode="SortMode.Single"
                          Hover="true"

@@ -31,8 +31,14 @@ public partial class QuoteAcceptance
 
     public string SignatureContentType { get; set; } = null!;
 
+    /// <summary>
+    /// Client IP at acceptance (best effort; may reflect proxy if X-Forwarded-For is applied).
+    /// </summary>
     public string? ClientIp { get; set; }
 
+    /// <summary>
+    /// HTTP User-Agent header at acceptance for lightweight client audit context.
+    /// </summary>
     public string? UserAgent { get; set; }
 
     /// <summary>

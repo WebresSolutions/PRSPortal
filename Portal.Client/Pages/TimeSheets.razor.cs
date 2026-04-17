@@ -181,7 +181,7 @@ public partial class TimeSheets
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task DeleteEntry(TimeSheetDto entry)
     {
-        bool? confirm = await _dialog.ShowMessageBox(
+        bool? confirm = await _dialog.ShowMessageBoxAsync(
             "Confirm Delete",
             "Are you sure you want to delete this time entry?",
             yesText: "Delete",

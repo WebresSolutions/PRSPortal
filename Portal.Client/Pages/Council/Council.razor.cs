@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Portal.Shared;
+using System.Threading;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.DTO.Job;
 using Portal.Shared.ResponseModels;
@@ -78,10 +79,11 @@ public partial class Council : IDisposable
     /// </summary>
     /// <param name="state">The current grid state containing pagination and sorting information</param>
     /// <returns>A GridData object containing the current page of facilities and total count</returns>
-    private async Task<GridData<ListJobDto>> LoadJobs(GridState<ListJobDto> state)
+    private async Task<GridData<ListJobDto>> LoadJobs(GridState<ListJobDto> state, CancellationToken cancellationToken)
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             int apiPageNumber = state.Page;
             int apiPageSize = state.PageSize;
             apiPageNumber++;
@@ -142,7 +144,7 @@ public partial class Council : IDisposable
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task RemoveJob(int jobId)
     {
-        bool? confirm = await _dialog.ShowMessageBox(
+        bool? confirm = await _dialog.ShowMessageBoxAsync(
             "Confirm Delete",
             "Are you sure you want to delete this Job?",
             yesText: "Delete",

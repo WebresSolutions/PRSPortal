@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Portal.Data.Models;
 
 /// <summary>
-/// A quote for a job
+/// Fee proposal / quote for a contact and job type, with lifecycle dates and optional link to a job.
 /// </summary>
 public partial class Quote
 {
@@ -26,15 +26,26 @@ public partial class Quote
 
     public decimal? TotalPrice { get; set; }
 
+    /// <summary>
+    /// When the client accepted the proposal (may mirror quote_acceptance.accepted_at).
+    /// </summary>
     public DateTime? DateAccepted { get; set; }
 
+    /// <summary>
+    /// When the proposal was emailed or otherwise sent to the client.
+    /// </summary>
     public DateTime? DateSentToClient { get; set; }
 
     public DateTime? TargetDeliveryDate { get; set; }
 
+    /// <summary>
+    /// Optional last time the client opened the proposal via portal or tracking.
+    /// </summary>
     public DateTime? ViewByClientAt { get; set; }
 
     public string? Description { get; set; }
+
+    public string? QuoteRejectionReason { get; set; }
 
     public int? QuoteSentByUserId { get; set; }
 
@@ -46,6 +57,9 @@ public partial class Quote
 
     public DateTime? ModifiedOn { get; set; }
 
+    /// <summary>
+    /// Soft delete; NULL means active quote.
+    /// </summary>
     public DateTime? DeletedAt { get; set; }
 
     public virtual Address? Address { get; set; }

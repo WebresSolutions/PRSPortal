@@ -778,7 +778,7 @@ CREATE TABLE quote_status_history (
     status_id_old INT NOT NULL REFERENCES quote_status(id),
     status_id_new INT NOT NULL REFERENCES quote_status(id),
     date_changed TIMESTAMPTZ NOT NULL,
-    modified_by_user_id INT NOT NULL REFERENCES app_user(id)
+    modified_by_user_id INT REFERENCES app_user(id)
 );
 
 COMMENT ON TABLE quote_status_history IS 'Track the status history of the quote.';

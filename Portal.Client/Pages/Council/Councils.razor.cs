@@ -1,5 +1,6 @@
 using MudBlazor;
 using Portal.Shared;
+using System.Threading;
 using Portal.Shared.DTO.Councils;
 using Portal.Shared.ResponseModels;
 using Portal.Shared.Web;
@@ -47,12 +48,13 @@ public partial class Councils
     /// </summary>
     /// <param name="state">The current grid state containing pagination and sorting information</param>
     /// <returns>A GridData object containing the current page of councils and total count</returns>
-    private async Task<GridData<CouncilPartialDto>> LoadCouncils(GridState<CouncilPartialDto> state)
+    private async Task<GridData<CouncilPartialDto>> LoadCouncils(GridState<CouncilPartialDto> state, CancellationToken cancellationToken)
     {
         IsLoading = true;
 
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             // Load all councils if not already loaded
             if (_allCouncils is null)
             {

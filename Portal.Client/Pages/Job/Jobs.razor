@@ -4,6 +4,7 @@
 @using Portal.Shared.DTO.Job
 @using Portal.Shared.ResponseModels
 @using Portal.Shared.Web
+@using System.Threading
 
 @page "/jobs"
 
@@ -15,11 +16,11 @@
                     <h2>Jobs</h2>
                 </div>
                 <div class="search-container ml-2">
-                    <MudTextField TextUpdateSuppression="false" T="string" @bind-Value="AddressSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { AddressSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
+                    <MudTextField T="string" @bind-Value="AddressSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Address" Adornment="Adornment.Start" TextChanged="(async (x) => { AddressSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
                                   AdornmentIcon="@Icons.Material.Filled.OtherHouses" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => { _filterState.AddressSearch = null; _ = OnSearch(); })"></MudTextField>
-                    <MudTextField TextUpdateSuppression="false" T="string" @bind-Value="JobNumberSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Job Number" Adornment="Adornment.Start" TextChanged="(async (x) => { JobNumberSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
+                    <MudTextField T="string" @bind-Value="JobNumberSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Job Number" Adornment="Adornment.Start" TextChanged="(async (x) => { JobNumberSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
                                   AdornmentIcon="@Icons.Material.Filled.Numbers" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => { _filterState.JobNumberSearch = null; _ = OnSearch(); })"></MudTextField>
-                    <MudTextField TextUpdateSuppression="false" T="string" @bind-Value="ContactSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Contact" Adornment="Adornment.Start" TextChanged="(async (x) => { ContactSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
+                    <MudTextField T="string" @bind-Value="ContactSearch" Immediate="true" DebounceInterval="1000" Placeholder="Search by Contact" Adornment="Adornment.Start" TextChanged="(async (x) => { ContactSearch = x; await OnSearch(); })" Variant="Variant.Outlined"
                                   AdornmentIcon="@Icons.Material.Filled.Group" IconSize="Size.Medium" Class="" Clearable="true" OnClearButtonClick="@(() => { _filterState.ContactSearch = null; _ = OnSearch(); })"></MudTextField>
                 </div>
             </div>
@@ -31,7 +32,7 @@
         </TitleContent>
         <ChildContent>
             <MudDataGrid T="ListJobDto"
-                         ServerData="LoadJobs"
+                         ServerData="@((GridState<ListJobDto> state, CancellationToken ct) => LoadJobs(state, ct))"
                          Filterable="true"
                          SortMode="SortMode.Single"
                          Loading="base.IsLoading"

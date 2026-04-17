@@ -116,7 +116,7 @@
                                 <div class="settings-type-list">
                                     <div class="settings-type-row settings-type-row--head settings-type-row--service">
                                         <span>Name</span>
-                                        <span>Description</span>
+                                        <span></span>
                                         <span>Cost</span>
                                         <span>Edit</span>
                                     </div>
@@ -144,7 +144,7 @@
                                                         </MudSelect>
                                                     </div>
                                                     <div class="settings-type-secondary">
-                                                        <MudTextField @bind-Value="t.Description" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="Description" />
+                                                        @* <MudTextField @bind-Value="t.Description" Variant="Variant.Outlined" Margin="Margin.Dense" Placeholder="Description" /> *@
                                                     </div>
                                                     <div class="settings-type-secondary">
                                                         <MudNumericField name="cost" T="decimal" @bind-Value="t.Price" Margin="Margin.Dense"
@@ -170,7 +170,7 @@
                                                 else
                                                 {
                                                     <span class="settings-type-secondary">@t.ServiceName</span>
-                                                    <span class="settings-type-secondary">@(t.Description)</span>
+                                                    <span class="settings-type-secondary"></span>
                                                     <span class="settings-type-primary">@t.Price.ToString("C", QuoteCurrencyCulture) +GST</span>
                                                     <span class="settings-type-primary"></span>
                                                     <span class="settings-type-actions">
@@ -293,10 +293,6 @@
                                             <div>
                                                 <span class="text-muted small">Service</span>
                                                 <span class="fw-semibold d-block">@line.ServiceName</span>
-                                            </div>
-                                            <div>
-                                                <span class="text-muted small">Description</span>
-                                                <span class="d-block">@(string.IsNullOrWhiteSpace(line.Description) ? "—" : line.Description)</span>
                                             </div>
                                             <div class="fw-semibold pt-1">
                                                 @line.Price.ToString("C", QuoteCurrencyCulture) <span class="text-muted small fw-normal">+GST</span>

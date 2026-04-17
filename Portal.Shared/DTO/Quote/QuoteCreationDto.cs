@@ -1,5 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using Portal.Shared.DTO.Address;
+using System.ComponentModel.DataAnnotations;
 
 namespace Portal.Shared.DTO.Quote;
 
@@ -38,6 +38,8 @@ public class QuoteCreationDto
     /// </summary>
     [Required]
     public required AddressDto Address { get; set; }
-
+    /// <summary>
+    /// List of quote line items
+    /// </summary>
     public List<QuoteItemDto> QuoteItems { get; set; } = [];
 }

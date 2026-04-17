@@ -253,136 +253,159 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
     }
 
     /// <inheritdoc/>
-    public async Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto data)
+    public async Task<Result<int>> CreateJob(HttpContext httpContext, JobCreationDto data, bool manageTransaction = true)
     {
+        if (!manageTransaction)
+        {
+            try
+            {
+                return await CreateJobCoreAsync(httpContext, data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create job");
+                return new Result<int>().SetError(ErrorType.InternalError, "Failed to create job");
+            }
+        }
+
         await using IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync();
-        Result<int> result = new();
         try
         {
-            // Validation
-            if (await _dbContext.Contacts.FirstOrDefaultAsync(x => x.Id == data.ContactId) is null)
-                return result.SetError(ErrorType.BadRequest, "Invalid contact id supplied.");
+            Result<int> result = await CreateJobCoreAsync(httpContext, data);
+            if (!result.IsSuccess)
+                return result;
 
-            if (data.CouncilId is not null && await _dbContext.Councils.FirstOrDefaultAsync(x => x.Id == data.CouncilId) is null)
-                return result.SetError(ErrorType.BadRequest, "Invalid council id supplied.");
-
-            if (data.JobColourId is not null && await _dbContext.JobColours.FirstOrDefaultAsync(x => x.Id == data.JobColourId) is null)
-                return result.SetError(ErrorType.BadRequest, "Invalid job colour id supplied.");
-
-            if (!await _dbContext.AppUsers.AnyAsync(a => a.Id == data.ResponsibleTeamMember))
-                return result.SetError(ErrorType.BadRequest, "Invalid user Id provided");
-
-            if (!await JobAssignmentLookupIsCompleteAsync())
-                return result.SetError(ErrorType.BadRequest, "Job assignment types are missing. Seed job_assignment_type with ids 1 (Current Owner) and 2 (Responsible Team Member).");
-
-            DateTime now = DateTime.UtcNow;
-            DateTime? targetDeliveryDate = data.TargetDeliveryDate is not null ? DateTime.SpecifyKind(data.TargetDeliveryDate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
-            DateTime? latestClientUpdate = data.LatestClientUpdate is not null ? DateTime.SpecifyKind(data.LatestClientUpdate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
-
-            if (targetDeliveryDate is not null && targetDeliveryDate < now)
-                return result.SetError(ErrorType.BadRequest, "Target delivery date cannot be in the past.");
-
-            JobType? construction = await _dbContext.JobTypes.FindAsync(1);
-            JobType? survey = await _dbContext.JobTypes.FindAsync(2);
-
-            if (construction is null || survey is null)
-                throw new InvalidOperationException("job_type must contain id 1 (Construction) or 2 (Survey) before job_to_type.");
-
-            if (await _dbContext.JobStatuses.FindAsync(data.StatusId) is not JobStatus status)
-                return result.SetError(ErrorType.BadRequest, "Invalid job status.");
-
-
-            string jobNumber = await CreateJobNumber();
-            Job job = new()
-            {
-                ContactId = data.ContactId,
-                CouncilId = data.CouncilId,
-                JobColourId = data.JobColourId,
-                Details = data.Details,
-                CreatedByUserId = httpContext.UserId(),
-                CreatedOn = now,
-                JobNumber = jobNumber,
-                StatusId = data.StatusId,
-                Status = status,
-                TargetDeliveryDate = targetDeliveryDate,
-                LatestClientUpdate = latestClientUpdate
-            };
-
-            if (data.Address is not null)
-            {
-                if (data.Address.AddressId is not 0)
-                {
-                    if (await _dbContext.Addresses.FindAsync(data.Address.AddressId) is not Address address)
-                        return result.SetError(ErrorType.BadRequest, $"Could not find the address {data.Address.AddressId} associated with the new Job.");
-
-                    job.Address = address;
-                    job.AddressId = address.Id;
-                }
-                else
-                {
-
-                    Address address = new()
-                    {
-                        Street = data.Address.Street,
-                        PostCode = data.Address.PostCode,
-                        Suburb = data.Address.Suburb,
-                        StateId = (int?)data.Address.State ?? (int)StateEnum.VIC,
-                        CreatedByUserId = httpContext.UserId(),
-                        Country = "AUS",
-                        CreatedOn = now
-                    };
-
-                    if (data.Address.LatLng is not null)
-                    {
-                        Point latlng = new(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
-                        address.Geom = latlng;
-                    }
-                    await _dbContext.Addresses.AddAsync(address);
-                    await _dbContext.SaveChangesAsync();
-
-                    job.Address = address;
-                }
-            }
-            // Create the other objects first
-
-            await _dbContext.Jobs.AddAsync(job);
-            await _dbContext.SaveChangesAsync();
-
-            // Add the job types
-            foreach (JobTypeEnum typeEnum in data.JobType.Distinct())
-            {
-                JobType type = typeEnum is JobTypeEnum.Construction ? construction : survey;
-                job.JobTypes.Add(type);
-            }
-
-            // Add the Job Users
-            if (data.ResponsibleTeamMember is not null)
-            {
-                JobUser[] jobUsers = [
-                    new() { AssignmentTypeId = (int)JobAssignementTypeEnum.Responsible,
-                    UserId = data.ResponsibleTeamMember.Value,
-                    JobId = job.Id,
-                    Job = job,
-                    CreatedByUserId = httpContext.UserId(),
-                    CreatedOn = now
-                    }];
-                await _dbContext.JobUsers.AddRangeAsync(jobUsers);
-            }
-
-            await _dbContext.SaveChangesAsync();
-
-            // Create the sharepoint data structure in a background task
-            await FileHelper.CreateJobSharepointStructure(_schedulerFactory, job.Id);
-            // Commit the values to the database
             await transaction.CommitAsync();
-            return result.SetValue(job.Id);
+            return result;
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
             _logger.LogError(ex, "Failed to create job");
-            return result.SetError(ErrorType.InternalError, "Failed to create job");
+            return new Result<int>().SetError(ErrorType.InternalError, "Failed to create job");
         }
+    }
+
+    /// <summary>
+    /// Persists a new job using the current <see cref="DbContext"/> transaction scope (if any). Does not begin or commit a transaction.
+    /// </summary>
+    private async Task<Result<int>> CreateJobCoreAsync(HttpContext httpContext, JobCreationDto data)
+    {
+        Result<int> result = new();
+
+        if (await _dbContext.Contacts.FirstOrDefaultAsync(x => x.Id == data.ContactId) is null)
+            return result.SetError(ErrorType.BadRequest, "Invalid contact id supplied.");
+
+        if (data.CouncilId is not null && await _dbContext.Councils.FirstOrDefaultAsync(x => x.Id == data.CouncilId) is null)
+            return result.SetError(ErrorType.BadRequest, "Invalid council id supplied.");
+
+        if (data.JobColourId is not null && await _dbContext.JobColours.FirstOrDefaultAsync(x => x.Id == data.JobColourId) is null)
+            return result.SetError(ErrorType.BadRequest, "Invalid job colour id supplied.");
+
+        if (data.ResponsibleTeamMember is not null
+            && !await _dbContext.AppUsers.AnyAsync(a => a.Id == data.ResponsibleTeamMember.Value))
+            return result.SetError(ErrorType.BadRequest, "Invalid user Id provided");
+
+        if (!await JobAssignmentLookupIsCompleteAsync())
+            return result.SetError(ErrorType.BadRequest, "Job assignment types are missing. Seed job_assignment_type with ids 1 (Current Owner) and 2 (Responsible Team Member).");
+
+        DateTime now = DateTime.UtcNow;
+        DateTime? targetDeliveryDate = data.TargetDeliveryDate is not null ? DateTime.SpecifyKind(data.TargetDeliveryDate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
+        DateTime? latestClientUpdate = data.LatestClientUpdate is not null ? DateTime.SpecifyKind(data.LatestClientUpdate!.Value.ToUniversalTime(), DateTimeKind.Utc) : null;
+
+        if (targetDeliveryDate is not null && targetDeliveryDate < now)
+            return result.SetError(ErrorType.BadRequest, "Target delivery date cannot be in the past.");
+
+        JobType? construction = await _dbContext.JobTypes.FindAsync(1);
+        JobType? survey = await _dbContext.JobTypes.FindAsync(2);
+
+        if (construction is null || survey is null)
+            throw new InvalidOperationException("job_type must contain id 1 (Construction) or 2 (Survey) before job_to_type.");
+
+        if (await _dbContext.JobStatuses.FindAsync(data.StatusId) is not JobStatus status)
+            return result.SetError(ErrorType.BadRequest, "Invalid job status.");
+
+        string jobNumber = await CreateJobNumber();
+        Job job = new()
+        {
+            ContactId = data.ContactId,
+            CouncilId = data.CouncilId,
+            JobColourId = data.JobColourId,
+            Details = data.Details?.Trim(),
+            CreatedByUserId = httpContext.UserId(),
+            CreatedOn = now,
+            JobNumber = jobNumber,
+            StatusId = data.StatusId,
+            Status = status,
+            TargetDeliveryDate = targetDeliveryDate,
+            LatestClientUpdate = latestClientUpdate
+        };
+
+        if (data.Address is not null)
+        {
+            if (data.Address.AddressId is not 0)
+            {
+                if (await _dbContext.Addresses.FindAsync(data.Address.AddressId) is not Address address)
+                    return result.SetError(ErrorType.BadRequest, $"Could not find the address {data.Address.AddressId} associated with the new Job.");
+
+                job.Address = address;
+                job.AddressId = address.Id;
+            }
+            else
+            {
+                data.Address.Street = StringNormalizer.TrimAndTruncateNotNull(data.Address.Street, 255);
+                data.Address.Suburb = StringNormalizer.TrimAndTruncateNotNull(data.Address.Suburb, 255);
+                data.Address.PostCode = StringNormalizer.TrimAndTruncateNotNull(data.Address.PostCode, 4);
+
+                Address address = new()
+                {
+                    Street = data.Address.Street,
+                    PostCode = data.Address.PostCode,
+                    Suburb = data.Address.Suburb,
+                    StateId = (int?)data.Address.State ?? (int)StateEnum.VIC,
+                    CreatedByUserId = httpContext.UserId(),
+                    Country = "AUS",
+                    CreatedOn = now
+                };
+
+                if (data.Address.LatLng is not null)
+                {
+                    Point latlng = new(new Coordinate(data.Address.LatLng.Latitude, data.Address.LatLng.Longitude));
+                    address.Geom = latlng;
+                }
+                await _dbContext.Addresses.AddAsync(address);
+                await _dbContext.SaveChangesAsync();
+
+                job.Address = address;
+            }
+        }
+
+        await _dbContext.Jobs.AddAsync(job);
+        await _dbContext.SaveChangesAsync();
+
+        foreach (JobTypeEnum typeEnum in data.JobType.Distinct())
+        {
+            JobType type = typeEnum is JobTypeEnum.Construction ? construction : survey;
+            job.JobTypes.Add(type);
+        }
+
+        if (data.ResponsibleTeamMember is not null)
+        {
+            JobUser[] jobUsers = [
+                new() { AssignmentTypeId = (int)JobAssignementTypeEnum.Responsible,
+                UserId = data.ResponsibleTeamMember.Value,
+                JobId = job.Id,
+                Job = job,
+                CreatedByUserId = httpContext.UserId(),
+                CreatedOn = now
+                }];
+            await _dbContext.JobUsers.AddRangeAsync(jobUsers);
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        await FileHelper.CreateJobSharepointStructure(_schedulerFactory, job.Id);
+        return result.SetValue(job.Id);
     }
 
     /// <inheritdoc/>
@@ -467,6 +490,13 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                     job.CouncilId = data.CouncilId;
                     job.Council = council;
                 }
+            }
+
+            if (data.Address is not null)
+            {
+                data.Address.Street = StringNormalizer.TrimAndTruncateNotNull(data.Address.Street, 255);
+                data.Address.Suburb = StringNormalizer.TrimAndTruncateNotNull(data.Address.Suburb, 255);
+                data.Address.PostCode = StringNormalizer.TrimAndTruncateNotNull(data.Address.PostCode, 4);
             }
 
             if (job.Address is not null && data.Address is not null)
@@ -608,7 +638,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
                 JobId = note.JobId,
                 Job = job,
                 AssignedUserId = note.AssignedUser?.userId,
-                Note = note.Content,
+                Note = note.Content.Trim(),
                 CreatedByUserId = httpContext.UserId(),
                 CreatedOn = DateTime.UtcNow,
                 ActionRequired = note.ActionRequired
@@ -642,7 +672,7 @@ public class JobService(PrsDbContext _dbContext, ILogger<JobService> _logger, IF
             if (note.AssignedUser is not null && await _dbContext.AppUsers.FirstOrDefaultAsync(x => x.Id == note.AssignedUser.userId) is not AppUser user)
                 return result.SetError(ErrorType.BadRequest, "Invalid assigned user Id supplied");
 
-            jobNote.Note = note.Content ?? jobNote.Note;
+            jobNote.Note = note.Content.Trim() ?? jobNote.Note.Trim();
             jobNote.ActionRequired = note.ActionRequired;
             jobNote.AssignedUserId = note.AssignedUser?.userId;
             jobNote.ModifiedByUserId = httpContext.UserId();

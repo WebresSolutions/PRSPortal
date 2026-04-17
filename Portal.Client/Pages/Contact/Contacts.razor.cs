@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Portal.Shared;
+using System.Threading;
 using Portal.Shared.DTO;
 using Portal.Shared.DTO.Contact;
 using Portal.Shared.ResponseModels;
@@ -179,12 +180,13 @@ public partial class Contacts
     /// </summary>
     /// <param name="state">The current grid state containing pagination and sorting information</param>
     /// <returns>A GridData object containing the current page of contacts and total count</returns>
-    private async Task<GridData<ListContactDto>> LoadContacts(GridState<ListContactDto> state)
+    private async Task<GridData<ListContactDto>> LoadContacts(GridState<ListContactDto> state, CancellationToken cancellationToken)
     {
         IsLoading = true;
 
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             int apiPageNumber = state.Page;
             int apiPageSize = state.PageSize;
             apiPageNumber++;

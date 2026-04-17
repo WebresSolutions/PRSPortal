@@ -1,13 +1,338 @@
-﻿@page "/quotes/accept/{QuoteId:int}"
-@using Microsoft.AspNetCore.Authorization
+﻿@page "/quotes/accept"
 @attribute [AllowAnonymous]
+@layout BareLayout
 
-<PageTitle>Accept fee proposal</PageTitle>
+@using Microsoft.AspNetCore.Authorization
+@using Portal.Shared.DataEnums
+@using Portal.Shared.DTO.Quote
+@using Portal.Shared.DTO.Quote.PartailQuote
+@using Portal.Shared.ResponseModels
+@using System.Globalization
 
-<h1>Accept fee proposal</h1>
-<p>Quote reference: @QuoteId</p>
-<p style="color:#64748b;font-size:14px;max-width:36rem;">This page will let the client review and accept the fee proposal once the flow is implemented.</p>
+<PageTitle>Fee proposal · @_pageQuoteRef</PageTitle>
+
+<div class="container">
+    @if (_isLoading)
+    {
+        <Spinner />
+    }
+    else if (!string.IsNullOrEmpty(_loadError))
+    {
+        <MudAlert Severity="Severity.Error" Class="mt-4" Variant="Variant.Filled">@_loadError</MudAlert>
+    }
+    else if (_quoteDetails is not null)
+    {
+        <div class="quote-detail-page quote-acceptance-page">
+            <PageHeader>
+                <Content>
+                    <div class="quote-detail-header-title">
+
+                        <h2 class="mb-1">Quote <span class="colour-secondary">#@_quoteDetails.QuoteRef</span></h2>
+                        <p class="text-muted small mb-0">Fee Proposal</p>
+                    </div>
+                </Content>
+            </PageHeader>
+            <div class="quote-container">
+                <section class="d-flex flex-column gap-2">
+                    <Card Title="Contact">
+                        <ChildContent>
+                            <div class="info-row">
+                                <span class="info-label">Name</span>
+                                <span class="info-value">@_quoteDetails.Contact.FullName</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Phone</span>
+                                <span class="info-value">
+                                    @if (string.IsNullOrWhiteSpace(_quoteDetails.Contact.Phone))
+                                    {
+                                        <text>—</text>
+                                    }
+                                    else
+                                    {
+                                        <a class="prs-link" href="@($"tel:{_quoteDetails.Contact.Phone}")">@_quoteDetails.Contact.Phone</a>
+                                    }
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email</span>
+                                <span class="info-value">
+                                    @if (string.IsNullOrWhiteSpace(_quoteDetails.Contact.Email))
+                                    {
+                                        <text>—</text>
+                                    }
+                                    else
+                                    {
+                                        <a class="prs-link" href="@($"mailto:{_quoteDetails.Contact.Email}")">@_quoteDetails.Contact.Email</a>
+                                    }
+                                </span>
+                            </div>
+                        </ChildContent>
+                    </Card>
+                    <Card Title="Site Address">
+                        <ChildContent>
+                            @if (_quoteDetails.Address is { } a)
+                            {
+                                <div class="info-row">
+                                    <span class="info-label">Street</span>
+                                    <span class="info-value">@(string.IsNullOrWhiteSpace(a.Street) ? "—" : a.Street)</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Suburb</span>
+                                    <span class="info-value">@a.Suburb</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">State</span>
+                                    <span class="info-value">@a.State</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Post Code</span>
+                                    <span class="info-value">@a.PostCode</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted small mb-0">No address on file.</p>
+                            }
+                        </ChildContent>
+                    </Card>
+                    @if (CanShowResponseActions)
+                    {
+                        <Card Title="Your response" CssClass="quote-acceptance-response-card">
+                            <ChildContent>
+                                <p class="text-muted small mb-3">
+                                    Confirm the details below match what you expect, then accept or decline this fee proposal.
+                                </p>
+                                <MudStack Spacing="2">
+                                    <MudCheckBox T="bool" Color="Color.Primary" @bind-Value="_addressCorrect" Label="The property address on this fee proposal is correct" Disabled="_isSubmitting" />
+                                    <MudCheckBox T="bool" Color="Color.Primary" @bind-Value="_contactCorrect" Label="The contact details above are correct" Disabled="_isSubmitting" />
+                                    <MudTextField @bind-Value="_signedName"
+                                                  Label="Your name (optional)"
+                                                  Variant="Variant.Outlined"
+                                                  Margin="Margin.Dense"
+                                                  Disabled="_isSubmitting"
+                                                  HelperText="Shown on the acceptance record if you accept" />
+                                    <MudTextField @bind-Value="_rejectReason"
+                                                  Label="Reason for declining"
+                                                  Variant="Variant.Outlined"
+                                                  Margin="Margin.Dense"
+                                                  Lines="3"
+                                                  Disabled="_isSubmitting"
+                                                  HelperText="Required if you choose Reject" />
+                                </MudStack>
+                                <div class="quote-acceptance-actions">
+                                    <MudButton Variant="Variant.Outlined"
+                                               Color="Color.Dark"
+                                               Class="quote-acceptance-btn-reject"
+                                               Disabled="_isSubmitting"
+                                               OnClick="SubmitRejectAsync">
+                                        Reject
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Filled"
+                                               Color="Color.Dark"
+                                               Class="quote-acceptance-btn-approve"
+                                               Disabled="_isSubmitting"
+                                               StartIcon="@Icons.Material.Filled.Check"
+                                               OnClick="SubmitApproveAsync">
+                                        Approve
+                                    </MudButton>
+                                </div>
+                            </ChildContent>
+                        </Card>
+                    }
+                    else if (_quoteDetails.QuoteStatus is QuoteStatusEnum.Accepted or QuoteStatusEnum.Rejected)
+                    {
+                        <MudAlert Severity="@(_quoteDetails.QuoteStatus is QuoteStatusEnum.Accepted ? Severity.Success : Severity.Info)"
+                                  Class="mt-3"
+                                  Variant="Variant.Filled">
+                            @if (_quoteDetails.QuoteStatus is QuoteStatusEnum.Accepted)
+                            {
+                                <text>Thank you — this fee proposal has been accepted. We will be in touch regarding next steps.</text>
+                            }
+                            else
+                            {
+                                <text>This fee proposal has been declined. If you have any questions, please contact us.</text>
+                            }
+                        </MudAlert>
+                    }
+                </section>
+                <section>
+                    <Card Title="Fees">
+                        <ChildContent>
+                            @if (_quoteDetails.LineItems.Length == 0)
+                            {
+                                <p class="text-muted small mb-0">No line items.</p>
+                            }
+                            else
+                            {
+                                <div class="quote-detail-lines border-rad border-grey overflow-hidden">
+                                    <div class="quote-detail-lines-head d-none d-md-grid">
+                                        <span>Service</span>
+                                        <span>Description</span>
+                                        <span class="text-md-end">Amount (+GST)</span>
+                                    </div>
+                                    @foreach (QuoteLineItemPartialDto line in _quoteDetails.LineItems)
+                                    {
+                                        <div class="quote-detail-line-row">
+                                            <div>
+                                                <span class="d-md-none text-muted small">Service</span>
+                                                <span class="fw-semibold d-block">@line.Name</span>
+                                            </div>
+                                            <div>
+                                                <span class="d-md-none text-muted small"></span>
+                                                <span class="d-block"></span>
+                                            </div>
+                                            <div class="text-md-end fw-semibold">@line.Price.ToString("C", QuoteCurrencyCulture)</div>
+                                        </div>
+                                    }
+                                    <div class="quote-detail-lines-total">
+                                        <span class="fw-semibold">Total (ex. GST)</span>
+                                        <span class="fw-semibold">@_quoteDetails.Total.ToString("C", QuoteCurrencyCulture)</span>
+                                    </div>
+                                </div>
+                            }
+
+                            <section class="mt-2 suggestions-section">
+                                <small>
+                                    Please note: This fee proposal remains valid until <b>@_quoteDetails.ValidUntilDate.ToString("dd/MM/yyyy").</b> If acceptance is received after this time,
+                                    our fees may be reviewed and revised prior to commencement.
+                                </small>
+                            </section>
+                        </ChildContent>
+                    </Card>
+                </section>
+            </div>
+
+           
+        </div>
+    }
+</div>
 
 @code {
-    [Parameter] public int QuoteId { get; set; }
+    private static readonly CultureInfo QuoteCurrencyCulture = new("en-US");
+
+    [SupplyParameterFromQuery(Name = "token")]
+    [Parameter]
+    public string? Token { get; set; }
+
+    private QuotePartialDetailsDto? _quoteDetails;
+    private bool _isLoading = true;
+    private bool _isSubmitting;
+    private string? _loadError;
+    private string _pageQuoteRef = "PRS Portal";
+    private bool _addressCorrect = true;
+    private bool _contactCorrect = true;
+    private string _signedName = string.Empty;
+    private string _rejectReason = string.Empty;
+
+    private bool CanShowResponseActions =>
+        _quoteDetails is not null &&
+        _quoteDetails.QuoteStatus is QuoteStatusEnum.Sent or QuoteStatusEnum.ClientReview;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        _isLoading = true;
+        _quoteDetails = null;
+        _loadError = null;
+        _pageQuoteRef = "PRS Portal";
+        _addressCorrect = true;
+        _contactCorrect = true;
+        _signedName = string.Empty;
+        _rejectReason = string.Empty;
+        _isSubmitting = false;
+
+        if (string.IsNullOrWhiteSpace(Token))
+        {
+            _loadError = "Invalid link. No fee proposal token was supplied.";
+            _snackbar.Add(_loadError, Severity.Error);
+            _isLoading = false;
+            return;
+        }
+
+        string token = Token!.Trim();
+        Result<QuotePartialDetailsDto> res = await _apiService.GetPartialQuoteDetails(token);
+        if (res.IsSuccess && res.Value is not null)
+        {
+            _quoteDetails = res.Value;
+            _pageQuoteRef = res.Value.QuoteRef;
+        }
+        else
+        {
+            _loadError = res.ErrorDescription ?? "Could not load this fee proposal.";
+            _snackbar.Add(_loadError, Severity.Warning);
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task SubmitApproveAsync()
+    {
+        if (_quoteDetails is null || string.IsNullOrWhiteSpace(Token))
+            return;
+
+        if (!_addressCorrect || !_contactCorrect)
+        {
+            _snackbar.Add("Please confirm that the address and contact details are correct before accepting.", Severity.Warning);
+            return;
+        }
+
+        await SubmitResponseAsync(new ClientQuoteSubmissionDto
+        {
+            Status = QuoteStatusEnum.Accepted,
+            AddressIsCorrect = _addressCorrect,
+            ContactDetailsAreCorrect = _contactCorrect,
+            SignedName = string.IsNullOrWhiteSpace(_signedName) ? null : _signedName.Trim(),
+            SignedDate = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture)
+        });
+    }
+
+    private async Task SubmitRejectAsync()
+    {
+        if (_quoteDetails is null || string.IsNullOrWhiteSpace(Token))
+            return;
+
+        if (string.IsNullOrWhiteSpace(_rejectReason))
+        {
+            _snackbar.Add("Please enter a reason for rejecting this fee proposal.", Severity.Warning);
+            return;
+        }
+
+        await SubmitResponseAsync(new ClientQuoteSubmissionDto
+        {
+            Status = QuoteStatusEnum.Rejected,
+            AddressIsCorrect = _addressCorrect,
+            ContactDetailsAreCorrect = _contactCorrect,
+            ReasonForRejection = _rejectReason.Trim()
+        });
+    }
+
+    private async Task SubmitResponseAsync(ClientQuoteSubmissionDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(Token))
+            return;
+
+        _isSubmitting = true;
+        try
+        {
+            string token = Token.Trim();
+            Result<QuotePartialDetailsDto> res = await _apiService.SubmitClientQuote(token, dto);
+            if (res.IsSuccess && res.Value is not null)
+            {
+                _quoteDetails = res.Value;
+                _pageQuoteRef = res.Value.QuoteRef;
+                string msg = dto.Status is QuoteStatusEnum.Accepted
+                    ? "Fee proposal approved. Thank you."
+                    : "Fee proposal rejected. Your response has been recorded.";
+                _snackbar.Add(msg, Severity.Success);
+            }
+            else
+            {
+                _snackbar.Add(res.ErrorDescription ?? "Could not submit your response. Please try again.", Severity.Error);
+            }
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
 }

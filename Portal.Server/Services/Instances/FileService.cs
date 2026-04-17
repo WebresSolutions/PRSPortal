@@ -92,11 +92,11 @@ public class FileService : IFileService
                 AppFile newfile = new()
                 {
                     Title = file.Title,
-                    FileName = file.FileName,
+                    FileName = file.FileName.Trim(),
                     FileHash = fileHash,
                     ExternalId = savedFile,
                     FileTypeId = file.FileTypeId,
-                    Description = file.Description,
+                    Description = file.Description?.Trim(),
                     FilePath = "",
                     FileExtension = "",
                     ContentSize = file.Content.Length,

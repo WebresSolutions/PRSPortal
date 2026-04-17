@@ -8,62 +8,65 @@
 
 <MudDialog>
     <DialogContent>
-        <h4 class="header-border">@Title</h4>
-        <div class="border-rad grey-background p-4">
-            @if (TypeName == "Job")
-            {
-                <div class="d-flex flex-column gap-1">
-                    <div>
-                        <label>Name</label>
-                        <MudTextField @bind-Value="_name" Variant="Variant.Outlined" Class="mb-2" />
+        <section class="edit-type-container">
+            <h4 class="header-border">@Title</h4>
+            <div class="border-rad grey-background p-4">
+                @if (TypeName == "Job")
+                {
+                    <div class="d-flex flex-column gap-1">
+                        <div>
+                            <label>Name</label>
+                            <MudTextField @bind-Value="_name" Variant="Variant.Outlined" Class="mb-2" />
+                        </div>
+                        <div>
+                            <label>Abbreviation</label>
+                            <MudTextField @bind-Value="_abbreviation" Variant="Variant.Outlined" />
+                        </div>
                     </div>
-                    <div>
-                        <label>Abbreviation</label>
-                        <MudTextField @bind-Value="_abbreviation" Variant="Variant.Outlined" />
+                }
+                else if (TypeName == "JobColour")
+                {
+                    <MudColorPicker ShowToolbar="true" Label="Colour" Variant="Variant.Outlined"
+                                    ColorPickerView="ColorPickerView.GridCompact" ColorPickerMode="ColorPickerMode.HEX"
+                                    Value="@_colourHex" TextChanged="@OnColourChanged" />
+                }
+                else if (TypeName == "Service")
+                {
+                    <div class="d-flex flex-column gap-1">
+                        <div>
+                            <label>Code</label>
+                            <MudTextField @bind-Value="_code" Variant="Variant.Outlined" Class="mb-2" HelperText="Optional; must be unique if set" />
+                        </div>
+                        <div>
+                            <label>Service Name</label>
+                            <MudTextField @bind-Value="_serviceName" Variant="Variant.Outlined" Class="mb-2" />
+                        </div>
+                        <div>
+                            <label>Active</label>
+                            <MudSwitch @bind-Value="_isActive" Color="Color.Primary" Class="mb-2" />
+                        </div>
+                        <div>
+                            <label>Description</label>
+                            <MudTextField @bind-Value="_description" Variant="Variant.Outlined" Lines="3" />
+                            @((MarkupString)_description)
+                        </div>
                     </div>
-                </div>
-            }
-            else if (TypeName == "JobColour")
-            {
-                <MudColorPicker ShowToolbar="true" Label="Colour" Variant="Variant.Outlined"
-                                ColorPickerView="ColorPickerView.GridCompact" ColorPickerMode="ColorPickerMode.HEX"
-                                Value="@_colourHex" TextChanged="@OnColourChanged" />
-            }
-            else if (TypeName == "Service")
-            {
-                <div class="d-flex flex-column gap-1">
-                    <div>
-                        <label>Code</label>
-                        <MudTextField @bind-Value="_code" Variant="Variant.Outlined" Class="mb-2" HelperText="Optional; must be unique if set" />
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-1">
+                        <div>
+                            <label>Name</label>
+                            <MudTextField @bind-Value="_name" Variant="Variant.Outlined" Class="mb-2" />
+                        </div>
+                        <div>
+                            <label>Description</label>
+                            <MudTextField @bind-Value="_description" Variant="Variant.Outlined" Lines="2" />
+                        </div>
                     </div>
-                    <div>
-                        <label>Service Name</label>
-                        <MudTextField @bind-Value="_serviceName" Variant="Variant.Outlined" Class="mb-2" />
-                    </div>
-                    <div>
-                        <label>Active</label>
-                        <MudSwitch @bind-Value="_isActive" Color="Color.Primary" Class="mb-2" />
-                    </div>
-                    <div>
-                        <label>Description</label>
-                        <MudTextField @bind-Value="_description" Variant="Variant.Outlined" Lines="3" />
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="d-flex flex-column gap-1">
-                    <div>
-                        <label>Name</label>
-                        <MudTextField @bind-Value="_name" Variant="Variant.Outlined" Class="mb-2" />
-                    </div>
-                    <div>
-                        <label>Description</label>
-                        <MudTextField @bind-Value="_description" Variant="Variant.Outlined" Lines="2" />
-                    </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+        </section>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -207,3 +210,8 @@
             Snackbar.Add(error, MudBlazor.Severity.Error);
     }
 }
+<style>
+    .edit-type-container{
+        width: 350px;
+    }
+</style>

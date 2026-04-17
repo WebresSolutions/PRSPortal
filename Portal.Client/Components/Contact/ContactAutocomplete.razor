@@ -57,8 +57,8 @@
         ? $"Only the first {MaxItems} items are shown"
         : MoreItemsHint!;
 
-    private string FormatItem(ListContactDto e) =>
-        ToStringFunc is not null ? (ToStringFunc(e) ?? "") : (e.ToString() ?? "");
+    private string FormatItem(ListContactDto? e) =>
+        ToStringFunc is not null ? (ToStringFunc(e) ?? "") : (e?.ToString() ?? "");
 
     private async Task<IEnumerable<ListContactDto>> SearchAsync(string search, CancellationToken token)
     {

@@ -21,4 +21,6 @@ public record QuoteDetailsDto(
     DateTime? TargetDeliveryDate,
     DateTime? DateSentToClient,
     int? JobId,
-    string? JobNumber);
+    string? JobNumber,
+    DateTime? ViewedByClientAt,
+    QuoteHistoryDto[] QuoteHistory);

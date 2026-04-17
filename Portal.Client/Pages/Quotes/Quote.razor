@@ -26,7 +26,7 @@ else
                     <div class="quote-detail-header-aside">
                         <div class="quote-detail-header-toolbar">
                             <QuoteStatusBadge SingleStatus="_quote.QuotesStatus" />
-                            @if (_quote.QuotesStatus.StatusEnum is QuoteStatusEnum.Draft or QuoteStatusEnum.New or QuoteStatusEnum.Rejected)
+                            @if (_quote.QuotesStatus.StatusEnum is (QuoteStatusEnum.Draft or QuoteStatusEnum.New or QuoteStatusEnum.Rejected))
                             {
                                 <div class="quote-detail-header-actions">
                                     <MudButton Variant="Variant.Filled"
@@ -102,7 +102,15 @@ else
                                     </div>
                                     <div class="info-row">
                                         <span class="info-label">Suburb</span>
-                                        <span class="info-value">@a.Suburb @a.State @a.PostCode</span>
+                                        <span class="info-value">@a.Suburb</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">State</span>
+                                        <span class="info-value">@a.State</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Post Code</span>
+                                        <span class="info-value">@a.PostCode</span>
                                     </div>
                                 }
                                 else
@@ -160,8 +168,8 @@ else
                                                 <span class="fw-semibold d-block">@line.ServiceName</span>
                                             </div>
                                             <div>
-                                                <span class="d-md-none text-muted small">Description</span>
-                                                <span class="d-block">@(string.IsNullOrWhiteSpace(line.Description) ? "—" : line.Description)</span>
+                                                <span class="d-md-none text-muted small"></span>
+                                                <span class="d-block"></span>
                                             </div>
                                             <div class="text-md-end fw-semibold">@line.Price.ToString("C", QuoteCurrencyCulture)</div>
                                         </div>
@@ -180,6 +188,13 @@ else
                                 <span class="info-label">Target delivery</span>
                                 <span class="info-value">@(_quote.TargetDeliveryDate is { } t ? t.ToLocalDateTimeString() : "—")</span>
                             </div>
+                            @if (_quote.QuotesStatus.StatusEnum is QuoteStatusEnum.Sent or QuoteStatusEnum.Accepted)
+                            {
+                                <div class="info-row">
+                                    <span class="info-label">Viewed by client</span>
+                                    <span class="info-value">@(_quote.ViewedByClientAt is { } v ? v.ToLocalDateTimeString() : "—")</span>
+                                </div>
+                            }
                             <div class="info-row">
                                 <span class="info-label">Sent to client</span>
                                 <span class="info-value">@(_quote.DateSentToClient is { } s ? s.ToLocalDateTimeString() : "—")</span>
@@ -195,6 +210,22 @@ else
                                     <span class="info-value">@updated.ToLocalDateTimeString() · @(_quote.UpdatedBy ?? "—")</span>
                                 </div>
                             }
+                        </ChildContent>
+                    </Card>
+                    <Card Title="History">
+                        <ChildContent>
+                            <div class="activity-list" style="max-height: 500px; overflow: scroll;">
+                                @foreach (var history in _quote.QuoteHistory)
+                                {
+                                    <div class="activity-item border-grey d-flex flex-row justify-content-between">
+                                        <div>
+                                            <div class="activity-title">@history.DateChanged.ToLocalDateTimeString()</div>
+                                            <div class="activity-time">@history.ModifiedByUserName</div>
+                                        </div>
+                                        <QuoteStatusBadge SingleStatus="@history.Status" />
+                                    </div>
+                                }
+                            </div>
                         </ChildContent>
                     </Card>
                 </section>

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Portal.Data.Models;
 
+/// <summary>
+/// Links a contact person to a council with a specific address context (e.g. council liaison at a site).
+/// </summary>
 public partial class CouncilContact
 {
     public int Id { get; set; }

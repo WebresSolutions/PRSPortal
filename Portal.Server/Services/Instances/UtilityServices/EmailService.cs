@@ -22,20 +22,22 @@ public class EmailService(
     {
         try
         {
+            if (!_EmailOptions.SendEmail)
+                return true;
+
             if (!string.IsNullOrEmpty(_EmailOptions.ToEmailAddressOverride))
                 to = [_EmailOptions.ToEmailAddressOverride];
 
-            string baseUrl = _EmailOptions.BaseUrl;
-            string acceptPath = $"/quotes/accept/{details.Id}";
-            string acceptUrl = string.IsNullOrEmpty(acceptanceToken)
-                ? $"{baseUrl}{acceptPath}"
-                : $"{baseUrl}{acceptPath}?token={Uri.EscapeDataString(acceptanceToken)}";
+            string tokenSegment = Uri.EscapeDataString(acceptanceToken ?? string.Empty);
+            string acceptPath = $"/quotes/accept?token={tokenSegment}";
+            string baseUrl = _EmailOptions.BaseUrl.TrimEnd('/');
+            string acceptUrl = $"{baseUrl}{acceptPath}";
 
             QuoteAcceptanceModel model = new()
             {
                 AcceptQuoteUrl = acceptUrl,
                 Token = acceptanceToken ?? string.Empty,
-                Details = details,
+                Details = details
             };
             string view = "Views/Emails/QuoteAcceptanceEmail.cshtml";
             string emailBody = await _IViewRenderer.Render(view, model);
@@ -58,9 +60,7 @@ public class EmailService(
             }
 
             foreach (string emailTo in to)
-            {
                 message.AddToAddress(emailTo);
-            }
 
             EmailResponse res = await _smtp2GoService.SendEmail(message);
 

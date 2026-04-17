@@ -119,7 +119,7 @@ public partial class Settings
             [nameof(EditJobStatusesDialog.ApiService)] = _apiService,
             [nameof(EditJobStatusesDialog.Snackbar)] = _snackbar
         };
-        DialogOptions options = new() { CloseOnEscapeKey = true, NoHeader = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+        DialogOptions options = new() { CloseOnEscapeKey = true, NoHeader = true, MaxWidth = MaxWidth.ExtraLarge, FullWidth = true };
         IDialogReference dialog = await _dialog.ShowAsync<EditJobStatusesDialog>("Job statuses", parameters, options);
         DialogResult? result = await dialog.Result;
         if (result is { Canceled: false })

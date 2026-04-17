@@ -17,7 +17,7 @@ public partial class JobType
 
     public string Abbreviation { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedOn { get; set; }
 
     public virtual ICollection<FileType> FileTypes { get; set; } = new List<FileType>();
 

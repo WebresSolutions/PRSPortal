@@ -42,7 +42,7 @@ public partial class Quotes : IDisposable
     #region Private Fields
     private PagedResponse<QuoteListDto>? _pagedResponse;
     private readonly int _rowsPerPage = 25;
-    private MudDataGrid<QuoteListDto>? _grid;
+    private MudDataGrid<QuoteListDto> _grid;
     private SessionSearchData _filterState = new();
     private QuoteTemplateDto[] _quotingTemplates = [];
     private ServiceTypeDto[] _serviceTypesForTemplates = [];
@@ -170,12 +170,13 @@ public partial class Quotes : IDisposable
         return nameof(QuoteListDto.Id);
     }
 
-    private async Task<GridData<QuoteListDto>> LoadQuotes(GridState<QuoteListDto> state)
+    private async Task<GridData<QuoteListDto>> LoadQuotes(GridState<QuoteListDto> state, CancellationToken? cancellationToken = null)
     {
         IsLoading = true;
 
         try
         {
+            cancellationToken?.ThrowIfCancellationRequested();
             int apiPageNumber = state.Page;
             int apiPageSize = state.PageSize;
             apiPageNumber++;
@@ -315,7 +316,7 @@ public partial class Quotes : IDisposable
 
     private async Task DeleteQuotingTemplateAsync(QuoteTemplateDto template)
     {
-        bool? confirm = await _dialog.ShowMessageBox(
+        bool? confirm = await _dialog.ShowMessageBoxAsync(
             "Delete quoting template",
             $"Delete template \"{template.Name}\"? This cannot be undone.",
             yesText: "Delete",
@@ -433,7 +434,7 @@ public partial class Quotes : IDisposable
 
     private async Task RemoveQuote(int quoteId)
     {
-        bool? confirm = await _dialog.ShowMessageBox(
+        bool? confirm = await _dialog.ShowMessageBoxAsync(
             "Confirm Delete",
             "Are you sure you want to delete this quote?",
             yesText: "Delete",

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Portal.Data.Models;
 
+/// <summary>
+/// Associates a contact with a job as a technical or specialist contact, with a type classification.
+/// </summary>
 public partial class TechnicalContact
 {
     public int Id { get; set; }

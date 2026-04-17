@@ -243,7 +243,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
                 return res.SetError(ErrorType.BadRequest, "Abbreviation is required");
             if (dto.Id == 0)
             {
-                JobType e = new() { Name = name, Abbreviation = abbreviation, CreatedAt = DateTime.UtcNow };
+                JobType e = new() { Name = name, Abbreviation = abbreviation, CreatedOn = DateTime.UtcNow };
                 await _dbContext.JobTypes.AddAsync(e);
                 await _dbContext.SaveChangesAsync();
                 res.SetValue(new JobTypeDto(e.Id, e.Name, e.Abbreviation));
@@ -507,7 +507,7 @@ public class TypesService(PrsDbContext _dbContext, ILogger<TypesService> _logger
                     {
                         Name = statusName,
                         Colour = colour,
-                        CreatedAt = DateTime.UtcNow,
+                        CreatedOn = DateTime.UtcNow,
                         Sequence = status.Sequence,
                         JobTypeId = status.JobTypeId,
                         IsActive = status.IsActive

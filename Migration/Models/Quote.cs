@@ -45,6 +45,8 @@ public partial class Quote
 
     public string? Description { get; set; }
 
+    public string? QuoteRejectionReason { get; set; }
+
     public int? QuoteSentByUserId { get; set; }
 
     public int CreatedByUserId { get; set; }

@@ -66,6 +66,10 @@ public class Program
                 return handler;
             });
 
+        // Unauthenticated API calls (e.g. quote acceptance link) must not use the MSAL handler.
+        builder.Services.AddHttpClient("Anonymous")
+            .ConfigureHttpClient(client => client.BaseAddress = new Uri(baseUri));
+
         // 2. Register the authorized HttpClient as the default
         builder.Services.AddScoped(provider =>
         {

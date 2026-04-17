@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
+using Nextended.Core.Extensions;
 using Portal.Data;
 using Portal.Data.Models;
 using Portal.Server.Helpers;
@@ -12,10 +14,14 @@ using Portal.Shared.DataEnums;
 using Portal.Shared.DTO;
 using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Contact;
+using Portal.Shared.DTO.Job;
 using Portal.Shared.DTO.Quote;
+using Portal.Shared.DTO.Quote.PartailQuote;
 using Portal.Shared.DTO.Types;
+using Portal.Shared.Helpers;
 using Portal.Shared.ResponseModels;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Portal.Server.Services.Instances;
 
@@ -65,7 +71,15 @@ public class QuoteService(
                     q.TargetDeliveryDate,
                     q.DateSentToClient,
                     q.JobId,
-                    q.Job != null ? q.Job.JobNumber : null
+                    q.Job != null ? q.Job.JobNumber : null,
+                    q.ViewByClientAt,
+                    q.QuoteStatusHistories.OrderByDescending(qsh => qsh.DateChanged)
+                        .Select(qsh => new QuoteHistoryDto(qsh.QuoteId,
+                            new QuotesStatusTypeDto(
+                                (QuoteStatusEnum)qsh.StatusIdNew, qsh.StatusIdNewNavigation.Name, qsh.StatusIdNewNavigation.Colour, true),
+                                qsh.DateChanged,
+                                qsh.ModifiedByUser.DisplayName))
+                        .ToArray()
                 ))
                 .FirstOrDefaultAsync();
 
@@ -81,12 +95,15 @@ public class QuoteService(
         }
     }
 
-    public async Task<Result<QuotePartialDetailsDto>> GetQuoteDetailsUnauthenticated(HttpContext httpContext, string quoteToken)
+    /// <inheritdoc/>
+    public async Task<Result<QuotePartialDetailsDto>> GetQuoteDetailsUnauthenticated(
+        HttpContext httpContext,
+        string quoteToken)
     {
         Result<QuotePartialDetailsDto> res = new();
         try
         {
-            string hashedToken = GetHash(quoteToken);
+            string hashedToken = ComputeHash(quoteToken);
             QuoteToken? quoteTokenEntity = await _dbContext.QuoteTokens
                 .Include(qt => qt.Quote)
                 .FirstOrDefaultAsync(qt => qt.Token == hashedToken);
@@ -102,11 +119,45 @@ public class QuoteService(
                 _logger.LogError("A quote token has expired or has already been used. QuoteToken ID: {QuoteTokenId}, Quote ID: {QuoteId}", quoteTokenEntity.Id, quoteTokenEntity.QuoteId);
                 return res.SetError(ErrorType.Unauthorized, "Token has expired.");
             }
-
             quoteTokenEntity.Quote.ViewByClientAt = DateTime.UtcNow;
+
+            if (quoteTokenEntity.Quote.StatusId is (int)QuoteStatusEnum.Sent)
+            {
+                // Add the new history and set as client review.
+                QuoteStatusHistory quoteStatusHistory = new()
+                {
+                    QuoteId = quoteTokenEntity.QuoteId,
+                    StatusIdNew = (int)QuoteStatusEnum.ClientReview,
+                    StatusIdOld = quoteTokenEntity.Quote.StatusId,
+                    ModifiedByUserId = httpContext.UserId(),
+                    DateChanged = DateTime.UtcNow,
+                    Quote = quoteTokenEntity.Quote
+                };
+                _dbContext.QuoteStatusHistories.Add(quoteStatusHistory);
+                quoteTokenEntity.Quote.StatusId = (int)QuoteStatusEnum.ClientReview;
+            }
+
             await _dbContext.SaveChangesAsync();
 
+            QuotePartialDetailsDto quote = await _dbContext
+                .Quotes
+                .Where(x => x.Id == quoteTokenEntity.QuoteId)
+                .Select(q =>
+                    new QuotePartialDetailsDto(
+                        (QuoteStatusEnum)q.StatusId,
+                         quoteTokenEntity.ExpiresAt,
+                        q.QuoteReference,
+                        q.TotalPrice ?? 0,
+                        new ListContactDto(q.Contact!.Id, q.Contact.FullName, q.Contact.Email, q.Contact.Phone, null, null, (ContactTypeEnum)q.Contact.TypeId),
+                        new AddressDto(q.Address!.Id, (StateEnum)q.Address.StateId!, q.Address.StateId ?? 3, q.Address.Suburb, q.Address.Street, q.Address.PostCode),
+                        q.QuoteItems
+                            .Select(x =>
+                                new QuoteLineItemPartialDto(x.ServiceNameSnapshot, x.Total, x.Service!.Description ?? ""))
+                            .ToArray()
+                         ))
+                .FirstAsync();
 
+            res.SetValue(quote);
 
             return res;
         }
@@ -151,7 +202,7 @@ public class QuoteService(
             Quote newQuote = new()
             {
                 QuoteReference = quoteReference,
-                Description = data.Description,
+                Description = data.Description?.Trim(),
                 StatusId = data.QuoteStatusId,
                 TotalPrice = data.QuoteItems.Sum(qi => qi.Price),
                 ContactId = data.ContactId,
@@ -169,11 +220,10 @@ public class QuoteService(
             QuoteItem[] quoteItems = [.. data.QuoteItems.Select(qi => new QuoteItem
             {
                 QuoteId = newQuote.Id,
-                Notes = qi.Description,
+                Notes = qi.Description?.Trim(),
                 Total = qi.Price,
                 ServiceId = qi.ServiceTypeId,
-                ServiceNameSnapshot = serviceTypes.First(st => st.Id == qi.ServiceTypeId).ServiceName,
-
+                ServiceNameSnapshot = serviceTypes.First(st => st.Id == qi.ServiceTypeId).ServiceName
             })];
 
             await _dbContext.QuoteItems.AddRangeAsync(quoteItems);
@@ -221,13 +271,24 @@ public class QuoteService(
             quote.Address = updatedAddress;
             quote.AddressId = updatedAddress.Id;
             quote.ContactId = data.ContactId;
-            quote.StatusId = (int)data.QuoteStatusId;
             quote.JobTypeId = (int)data.JobType;
 
-            if (data.Description is not null && data.Description.Length > 4000)
-                quote.Description = data.Description[..4000].Trim();
-            else
-                quote.Description = data.Description;
+            if (quote.StatusId != (int)data.QuoteStatusId)
+            {
+                quote.StatusId = (int)data.QuoteStatusId;
+                QuoteStatusHistory quoteStatusHistory = new()
+                {
+                    QuoteId = quote.Id,
+                    StatusIdNew = (int)data.QuoteStatusId,
+                    StatusIdOld = quote.StatusId,
+                    ModifiedByUserId = httpContext.UserId(),
+                    DateChanged = DateTime.UtcNow,
+                    Quote = quote
+                };
+                _dbContext.QuoteStatusHistories.Add(quoteStatusHistory);
+            }
+
+            quote.Description = StringNormalizer.TrimAndTruncate(quote.Description, 4000);
 
             int[] serviceIds = [.. data.QuoteItems.Select(qi => qi.ServiceTypeId)];
             List<ServiceType> serviceTypes = await _dbContext.ServiceTypes.ToListAsync();
@@ -412,8 +473,8 @@ public class QuoteService(
             QuoteTemplate qt = new()
             {
                 CreatedByUserId = httpContext.UserId(),
-                Description = data.Description,
-                Name = data.Name,
+                Description = StringNormalizer.TrimAndTruncate(data.Description, 4000),
+                Name = StringNormalizer.TrimAndTruncateNotNull(data.Name, 150),
                 DeletedAt = null,
                 CreatedOn = DateTime.UtcNow,
                 IsActive = true,
@@ -438,7 +499,7 @@ public class QuoteService(
             QuoteTemplateItem[] quoteTemplateItems = [.. data.QuoteTemplateItems.Select(qti => new QuoteTemplateItem
             {
                 QuoteTemplateId = qt.Id,
-                Description = qti.Description,
+                Description = qti.Description?.Trim(),
                 DefaultPrice = qti.DefaultPrice,
                 ServiceId = qti.ServiceTypeId,
                 ServiceNameSnapshot = serviceTypesForPayload.First(st => st.Id == qti.ServiceTypeId).ServiceName,
@@ -503,11 +564,7 @@ public class QuoteService(
             qt.ModifiedByUserId = httpContext.UserId();
             qt.IsActive = data.IsActive;
             qt.ModifiedOn = DateTime.UtcNow;
-
-            if (data.Description is not null && data.Description.Length > 4000)
-                qt.Description = data.Description[..4000].Trim();
-            else
-                qt.Description = data.Description;
+            qt.Description = StringNormalizer.TrimAndTruncate(qt.Description, 4000);
 
             // Update Existing Quote Items and add new ones
             QuoteTemplateItem[] existingQuoteItems = [.. qt.QuoteTemplateItems.Where(qi => data.QuoteTemplateItems.Any(qid => qid.Id == qi.Id))];
@@ -517,7 +574,7 @@ public class QuoteService(
                 QuoteTemplateItemDto dto = data.QuoteTemplateItems.First(qid => qid.Id == item.Id);
                 item.ServiceNameSnapshot = dto.ServiceName;
                 item.ServiceId = dto.ServiceTypeId;
-                item.Description = dto.Description;
+                item.Description = dto.Description?.Trim();
                 item.DefaultPrice = dto.DefaultPrice;
             }
 
@@ -527,7 +584,7 @@ public class QuoteService(
                 .Select(qi => new QuoteTemplateItem
                 {
                     QuoteTemplateId = qt.Id,
-                    Description = qi.Description,
+                    Description = qi.Description?.Trim(),
                     ServiceId = qi.ServiceTypeId,
                     ServiceNameSnapshot = serviceNameById[qi.ServiceTypeId],
                     DefaultPrice = qi.DefaultPrice
@@ -652,7 +709,7 @@ public class QuoteService(
 
             byte[] quoteAsPdf = _pdfGenerationService.CreateQuotePdf(quoteDetailsResult.Value);
             (byte[], string) attachment = (quoteAsPdf, $"Quote_{quote.QuoteReference}.pdf");
-            (string, string) token = TokenGenerator();
+            (string, string) token = ComputeTokenAndHashToken();
 
             DateTime now = DateTime.UtcNow;
 
@@ -696,6 +753,118 @@ public class QuoteService(
         }
     }
 
+    public async Task<Result<QuotePartialDetailsDto>> SubmitQuoteResponse(
+        string quoteToken,
+        ClientQuoteSubmissionDto data,
+        HttpContext httpContext)
+    {
+        Result<QuotePartialDetailsDto> res = new();
+        await using IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            if (quoteToken.IsNullOrEmpty())
+                return res.SetError(ErrorType.BadRequest, "Invalid token provided.");
+
+            if (data.Status is not (QuoteStatusEnum.Accepted or QuoteStatusEnum.Rejected))
+                return res.SetError(ErrorType.BadRequest, "Invalid Response type provided");
+
+            string hashedToken = ComputeHash(quoteToken);
+            QuoteToken? quoteTokenEntity = await _dbContext.QuoteTokens
+                .Include(qt => qt.Quote)
+                .FirstOrDefaultAsync(qt => qt.Token == hashedToken);
+
+            if (quoteTokenEntity is null)
+            {
+                _logger.LogError("An invalid quote token was used to attempt to access quote details. Token hash: {TokenHash}", hashedToken);
+                return res.SetError(ErrorType.Unauthorized, "Invalid token.");
+            }
+
+            if ((QuoteStatusEnum)quoteTokenEntity.Quote.StatusId is (QuoteStatusEnum.Accepted or QuoteStatusEnum.Rejected))
+                return res.SetError(ErrorType.BadRequest, "Quote has already been submitted. Please wait for a response from Peter Richards Surveying.");
+
+            if (quoteTokenEntity.ExpiresAt < DateTime.UtcNow || quoteTokenEntity.UsedAt is not null)
+            {
+                _logger.LogError("A quote token has expired or has already been used. QuoteToken ID: {QuoteTokenId}, Quote ID: {QuoteId}", quoteTokenEntity.Id, quoteTokenEntity.QuoteId);
+                return res.SetError(ErrorType.Unauthorized, "Token has expired.");
+            }
+
+            int previousStatusId = quoteTokenEntity.Quote.StatusId;
+
+            if (data.Status is QuoteStatusEnum.Rejected)
+            {
+                if (string.IsNullOrEmpty(data.ReasonForRejection))
+                    return res.SetError(ErrorType.BadRequest, "When rejecting a fee proposal please provide a reason.");
+
+                quoteTokenEntity.Quote.QuoteRejectionReason = StringNormalizer.TrimAndTruncate(data.ReasonForRejection);
+                quoteTokenEntity.Quote.StatusId = (int)QuoteStatusEnum.Rejected;
+            }
+            if (data.Status is QuoteStatusEnum.Accepted)
+            {
+                if (string.IsNullOrEmpty(data.SignedName))
+                    return res.SetError(ErrorType.BadRequest, "To accept the quote you must sign.");
+
+                if (!data.AddressIsCorrect || !data.ContactDetailsAreCorrect)
+                    return res.SetError(ErrorType.BadRequest, "To accept the quote the address and contact details must be correct.");
+
+                QuoteAcceptance quoteAcceptance = new()
+                {
+                    QuoteId = quoteTokenEntity.QuoteId,
+                    Quote = quoteTokenEntity.Quote,
+                    QuoteTokenId = quoteTokenEntity.Id,
+                    AcceptedAt = DateTime.UtcNow,
+                    SignatoryName = data.SignedName,
+                    ClientIp = httpContext.Connection.RemoteIpAddress?.ToString(),
+                    QuoteTotalSnapshot = quoteTokenEntity.Quote.TotalPrice ?? 0,
+                    QuoteReferenceSnapshot = quoteTokenEntity.Quote.QuoteReference ?? string.Empty,
+                    SignatureContentType = "image/png",
+                };
+
+                await _dbContext.QuoteAcceptances.AddAsync(quoteAcceptance);
+                quoteTokenEntity.Quote.StatusId = (int)QuoteStatusEnum.Accepted;
+            }
+
+            QuoteStatusHistory quoteStatusHistory = new()
+            {
+                QuoteId = quoteTokenEntity.QuoteId,
+                StatusIdNew = (int)data.Status,
+                StatusIdOld = previousStatusId,
+                ModifiedByUserId = httpContext.UserId(),
+                DateChanged = DateTime.UtcNow,
+            };
+            _dbContext.QuoteStatusHistories.Add(quoteStatusHistory);
+            await _dbContext.SaveChangesAsync();
+
+            List<JobStatus> jobStatuses = await _dbContext.JobStatuses.Where(x => x.JobTypeId == quoteTokenEntity.Quote.JobTypeId).ToListAsync();
+            int jobStatusStart = jobStatuses.MinBy(x => x.Sequence)!.Id;
+
+            JobCreationDto job = new()
+            {
+                Address = new() { AddressId = quoteTokenEntity.Quote.AddressId ?? 0 },
+                ContactId = quoteTokenEntity.Quote.ContactId ?? 0,
+                JobType = [(JobTypeEnum)quoteTokenEntity.Quote.JobTypeId],
+                Details = quoteTokenEntity.Quote.Description,
+                StatusId = jobStatusStart,
+                TargetDeliveryDate = quoteTokenEntity.Quote.TargetDeliveryDate,
+                LatestClientUpdate = DateTime.UtcNow
+            };
+
+            Result<int> jobResult = await _jobService.CreateJob(httpContext, job, manageTransaction: false);
+            if (!jobResult.IsSuccess)
+                return res.SetError(ErrorType.InternalError, "An error occured while creating the job for the quote.");
+
+            quoteTokenEntity.Quote.JobId = jobResult.Value;
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to submit quote response");
+            return res.SetError(ErrorType.InternalError, "Failed to send the quote to the client");
+        }
+
+        return await GetQuoteDetailsUnauthenticated(httpContext, quoteToken);
+    }
+
     /// <inheritdoc />
     public async Task<Result<QuotePdfDto>> GetQuotePdf(int quoteId)
     {
@@ -723,22 +892,23 @@ public class QuoteService(
     }
 
     /// <summary>
-    /// Generates a cryptographically secure random token and its SHA-256 hash, both encoded as Base64 strings.
+    /// Generates a cryptographically secure random token (Base64url) and the SHA-256 hash of that exact string (standard Base64).
     /// </summary>
-    /// <remarks>The generated token is suitable for use in authentication scenarios where a secure,
-    /// unpredictable value is required. Both the token and its hash are returned to support scenarios where the raw
-    /// token is provided to a client and only the hash is stored or compared on the server.</remarks>
-    /// <returns>A tuple containing the generated token as a Base64-encoded string and its SHA-256 hash, also as a Base64-encoded
-    /// string.</returns>
-    private static (string, string) TokenGenerator()
+    /// <remarks>
+    /// Base64url avoids <c>+</c>, <c>/</c>, and padding <c>=</c> from standard Base64, so the raw token is safe in URL paths and query
+    /// strings without extra encoding. Call sites should still use <see cref="UriBuilder"/> or <c>QueryHelpers.AddQueryString</c> when
+    /// composing URLs. 32 bytes (256 bits) of entropy before encoding.
+    /// </remarks>
+    private static (string RawToken, string TokenHash) ComputeTokenAndHashToken()
     {
-        byte[] data = [100];
+        Span<byte> data = stackalloc byte[32];
         RandomNumberGenerator.Fill(data);
-        string rawToken = Convert.ToBase64String(data);
-        string tokenHash = Convert.ToBase64String(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(rawToken)));
-
+        string rawToken = WebEncoders.Base64UrlEncode(data);
+        byte[] hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
+        string tokenHash = Convert.ToBase64String(hashBytes);
         return (rawToken, tokenHash);
     }
 
-    private static string GetHash(string token) => Convert.ToBase64String(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(token)));
+    private static string ComputeHash(string token) =>
+        Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
 }

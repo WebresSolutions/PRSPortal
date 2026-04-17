@@ -5,6 +5,7 @@
 @using Portal.Shared.DTO.Job
 @using Portal.Shared.DTO.Address
 @using Portal.Shared.Helpers
+@using System.Threading
 
 <PageTitle>Council @(_council?.CouncilName ?? CouncilId.ToString()) - PRS Portal</PageTitle>
 
@@ -128,7 +129,7 @@ else
                 <Card ShowHeaderWithTabs="true" OnTabSelect="ChangeTabs" HeaderTitle="Jobs" Tabs="[TabTypeEnum.All, TabTypeEnum.Deleted]" OnAddButtonClick="@(() => _navigationManager.NavigateTo("/jobs/edit/"))">
                     <ChildContent>
                         <MudDataGrid T="ListJobDto"
-                                     ServerData="LoadJobs"
+                                     ServerData="@((GridState<ListJobDto> state, CancellationToken ct) => LoadJobs(state, ct))"
                                      Filterable="false"
                                      SortMode="SortMode.Single"
                                      Loading="base.IsLoading"

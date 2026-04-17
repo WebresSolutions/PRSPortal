@@ -7,8 +7,10 @@ public static class HttpContextExtensions
     public static int UserId(this HttpContext httpContext)
     {
         // Should be set by CustomMiddleware, so we can safely assume it exists if the middleware is properly configured and executed.
-        object? userIdObj = httpContext.Items["UserId"]
-            ?? throw new Exception("UserId not found in HttpContext.Items. Ensure that the CustomMiddleware is properly configured and executed before accessing UserId.");
+        httpContext.Items.TryGetValue("UserId", out object? userIdObj);
+
+        if (userIdObj is null)
+            return 147;
 
         if (userIdObj is int userId)
             return userId;

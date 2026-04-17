@@ -4,7 +4,6 @@ using Portal.Data;
 using Portal.Data.Models;
 using Portal.Shared;
 using Portal.Shared.DataEnums;
-using Portal.Shared.DTO.Address;
 using Portal.Shared.DTO.Quote;
 using Portal.Shared.DTO.Types;
 using Portal.Shared.ResponseModels;
@@ -33,7 +32,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
     [Fact]
     public async Task Create_quote_sums_sample_service_prices_and_persists_line_items()
     {
-        int quoteId = await CreateQuote();
+        int quoteId = await StaticHelpers.CreateQuote(_client);
 
         using IServiceScope scope = _factory.Services.CreateScope();
         PrsDbContext dbContext = scope.ServiceProvider.GetRequiredService<PrsDbContext>();
@@ -58,7 +57,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
     [Fact]
     public async Task Get_quote_details_returns_quote_with_line_items()
     {
-        int quoteId = await CreateQuote();
+        int quoteId = await StaticHelpers.CreateQuote(_client);
         QuoteDetailsDto? quoteDetails = await _client.GetFromJsonAsync<QuoteDetailsDto>($"/api/quotes/{quoteId}");
         Assert.NotNull(quoteDetails);
         Assert.Equal(quoteId, quoteDetails.Id);
@@ -75,7 +74,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
     [Fact]
     public async Task Update_quote_removes_line_items_not_in_payload_and_recalculates_total()
     {
-        int quoteId = await CreateQuote();
+        int quoteId = await StaticHelpers.CreateQuote(_client);
         QuoteDetailsDto? before = await _client.GetFromJsonAsync<QuoteDetailsDto>($"/api/quotes/{quoteId}");
         Assert.NotNull(before);
         Assert.Equal(3, before.QuoteItems.Length);
@@ -98,7 +97,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
     [Fact]
     public async Task Update_quote_adds_new_line_item_and_recalculates_total()
     {
-        int quoteId = await CreateQuote();
+        int quoteId = await StaticHelpers.CreateQuote(_client);
         QuoteDetailsDto? before = await _client.GetFromJsonAsync<QuoteDetailsDto>($"/api/quotes/{quoteId}");
         Assert.NotNull(before);
 
@@ -128,7 +127,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
     [Fact]
     public async Task Update_quote_updates_existing_line_amounts_and_recalculates_total()
     {
-        int quoteId = await CreateQuote();
+        int quoteId = await StaticHelpers.CreateQuote(_client);
         QuoteDetailsDto? before = await _client.GetFromJsonAsync<QuoteDetailsDto>($"/api/quotes/{quoteId}");
         Assert.NotNull(before);
 
@@ -151,8 +150,8 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
     [Fact]
     public async Task Get_quotes_all()
     {
-        int quoteId1 = await CreateQuote();
-        int quoteId2 = await CreateQuote();
+        int quoteId1 = await StaticHelpers.CreateQuote(_client);
+        int quoteId2 = await StaticHelpers.CreateQuote(_client);
 
         QuoteFilterDto quoteFilterDto = new()
         {
@@ -360,7 +359,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
     [Fact]
     public async Task Delete_quote_sets_deleted_at_and_returns_true()
     {
-        int quoteId = await CreateQuote();
+        int quoteId = await StaticHelpers.CreateQuote(_client);
 
         HttpResponseMessage response = await _client.DeleteAsync($"/api/quotes/{quoteId}");
         response.EnsureSuccessStatusCode();
@@ -381,7 +380,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
     [Fact]
     public async Task Delete_quote_second_time_returns_bad_request()
     {
-        int quoteId = await CreateQuote();
+        int quoteId = await StaticHelpers.CreateQuote(_client);
         HttpResponseMessage first = await _client.DeleteAsync($"/api/quotes/{quoteId}");
         first.EnsureSuccessStatusCode();
 
@@ -406,7 +405,7 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
     [Fact]
     public async Task Get_quote_pdf_returns_payload_for_existing_quote()
     {
-        int quoteId = await CreateQuote();
+        int quoteId = await StaticHelpers.CreateQuote(_client);
 
         QuotePdfDto? pdf = await _client.GetFromJsonAsync<QuotePdfDto>($"/api/quotes/{quoteId}/pdf");
 
@@ -433,9 +432,23 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
     }
 
     [Fact]
+    public async Task Get_quote_partial_without_token_query_returns_bad_request()
+    {
+        HttpResponseMessage response = await _client.GetAsync("/api/quotes/partial");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_quote_partial_with_blank_token_returns_bad_request()
+    {
+        HttpResponseMessage response = await _client.GetAsync("/api/quotes/partial?token=");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Send_quote_to_client_returns_ok_and_marks_quote_sent()
     {
-        int quoteId = await CreateQuote();
+        int quoteId = await StaticHelpers.CreateQuote(_client);
 
         using HttpRequestMessage request = new(HttpMethod.Put, $"/api/quotes/{quoteId}/send");
         HttpResponseMessage response = await _client.SendAsync(request);
@@ -543,44 +556,6 @@ public sealed class QuoteEndpointTests(IntegrationTestFixture fixture)
         QuoteTemplateDto? body = await response.Content.ReadFromJsonAsync<QuoteTemplateDto>();
         Assert.NotNull(body);
         return body;
-    }
-
-    private async Task<int> CreateQuote()
-    {
-        ServiceTypeDto[] serviceTypes = (await _client.GetFromJsonAsync<ServiceTypeDto[]>("/api/types/service"))!;
-
-        int titleReestablishmentServiceId = serviceTypes.First(x => x.ServiceName == "Title Re-establishment Survey").Id;
-        int featureAndAhdLevelServiceId = serviceTypes.First(x => x.ServiceName == "Feature & AHD Level Survey").Id;
-        int neighbourhoodSiteDescriptionServiceId = serviceTypes.First(x => x.ServiceName == "Neighbourhood Site Description").Id;
-
-        QuoteCreationDto request = new()
-        {
-            QuoteTypeId = 2,
-            QuoteStatusId = 1,
-            ContactId = 1,
-            Description = "Pricing verification quote",
-            TargetDeliveryDate = DateTime.UtcNow.Date.AddDays(14),
-            Address = new AddressDto
-            {
-                Street = "117-131 CAPEL STREET",
-                Suburb = "NORTH MELBOURNE",
-                PostCode = "3051",
-                State = StateEnum.VIC
-            },
-            QuoteItems =
-            [
-                new QuoteItemDto { ServiceTypeId = titleReestablishmentServiceId, Price = 2550.00m },
-                new QuoteItemDto { ServiceTypeId = featureAndAhdLevelServiceId, Price = 2150.00m },
-                new QuoteItemDto { ServiceTypeId = neighbourhoodSiteDescriptionServiceId, Price = 1200.00m }
-            ]
-        };
-
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/quotes", request);
-        response.EnsureSuccessStatusCode();
-
-        int? quoteId = await response.Content.ReadFromJsonAsync<int?>();
-        Assert.NotNull(quoteId);
-        return quoteId.Value;
     }
 
     private static List<QuoteItemDto> CloneQuoteItems(IEnumerable<QuoteItemDto> items) =>
