@@ -26,9 +26,9 @@ public sealed class PdfGenerationService(IWebHostEnvironment env, IRazorViewRend
     public async Task<byte[]> CreateQuotePdf(QuoteDetailsDto quote)
     {
         string? logoPath = TryResolveLogoPath();
-        string? logoUri = logoPath is not null ? ToFileUri(logoPath) : null;
+        string? logoUri = logoPath is not null ? ToImageDataUri(logoPath) : null;
         string? surveyPath = ResolveAssetPath(Path.Combine("images", "PRS-Primary-Logo.png"));
-        string? surveyUri = surveyPath is not null ? ToFileUri(surveyPath) : null;
+        string? surveyUri = surveyPath is not null ? ToImageDataUri(surveyPath) : null;
 
         QuotePdfViewModel model = new()
         {
@@ -77,6 +77,24 @@ public sealed class PdfGenerationService(IWebHostEnvironment env, IRazorViewRend
         return File.Exists(fallback) ? fallback : null;
     }
 
-    private static string ToFileUri(string path) =>
-        new Uri(Path.GetFullPath(path)).AbsoluteUri;
+    /// <summary>
+    /// PeachPDF resolves images from <c>data:</c> URIs reliably; <c>file://</c> often does not load in the HTML pipeline.
+    /// </summary>
+    private static string? ToImageDataUri(string path)
+    {
+        if (!File.Exists(path))
+            return null;
+
+        byte[] bytes = File.ReadAllBytes(path);
+        string mime = Path.GetExtension(path).ToLowerInvariant() switch
+        {
+            ".png" => "image/png",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            _ => "application/octet-stream",
+        };
+
+        return $"data:{mime};base64,{Convert.ToBase64String(bytes)}";
+    }
 }

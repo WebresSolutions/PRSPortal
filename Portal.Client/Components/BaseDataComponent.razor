@@ -27,8 +27,12 @@
     /// <returns>A task representing the asynchronous operation</returns>
     protected override async Task OnInitializedAsync()
     {
-        if (AuthenticationStateTask is not null)
+        if (AuthenticationStateTask is null)
         {
+            return;
+        }
+        else
+        {   
             AuthenticationState? authenticationState = await AuthenticationStateTask;
 
             if (authenticationState?.User?.Identity is null || !authenticationState.User.Identity.IsAuthenticated)
@@ -55,6 +59,7 @@
     {
         if (string.IsNullOrEmpty(baseRelativePath))
             return "/";
+
         return baseRelativePath.StartsWith('/') ? baseRelativePath : "/" + baseRelativePath;
     }
 }

@@ -33,14 +33,23 @@
     <title>Quote @Model.Quote.QuoteReference</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', 'Liberation Sans', Arial, sans-serif; font-size: 10pt; line-height: 1.35; color: #000; margin: 0; }
+        body { 
+            font-family: 'Segoe UI', 
+            'Liberation Sans', 
+            Arial, sans-serif; 
+            font-size: 8pt; 
+            line-height: 1; 
+            color: #000;
+            margin: 
+            0; 
+        }
         table { border-collapse: collapse; }
-        .muted { color: #555; font-size: 8.5pt; font-style: italic; }
-        .small { font-size: 8.5pt; }
+        .muted { color: #555; font-size: 8pt; font-style: italic; }
+        .small { font-size: 6pt; }
         .company { font-weight: bold; font-size: 11pt; }
-        .line { font-size: 9pt; }
+        .line { font-size: 8pt; }
         .hline { border: 0; border-top: 1px solid #d3d3d3; margin: 12pt 0; }
-        .logo { max-width: 120pt; max-height: 52pt; }
+        .logo { width: 120px;  }
         .section { margin-bottom: 10pt; }
         .page-break { break-before: page; page-break-before: always; }
         h2 { font-size: 10pt; margin: 0 0 8pt 0; }
@@ -60,21 +69,46 @@
                 <td style="vertical-align:top;width:1%;padding-right:16pt;">
                     @if (Model.LogoUri is not null)
                     {
-                        <img class="logo" src="@Model.LogoUri" alt="" />
+                        <img class="logo" src="@Html.Raw(Model.LogoUri)" alt="" />
                     }
                 </td>
                 <td style="vertical-align:top;">
-                    <div class="company">PETER RICHARDS SURVEYING</div>
-                    <div class="line">T (03) 9432 6944</div>
-                    <div class="line">E mail@prs.au</div>
-                    <div class="line">W PRS.AU</div>
-                    <div class="line">ABN 11 070 127 552</div>
-                    <div class="line">45/7 Dalton Road</div>
-                    <div class="line">Thomastown VIC 3074</div>
-                    <div class="line">Suite 1 Level1, 20-30</div>
-                    <div class="line">Mollison Street</div>
-                    <div class="line">Abbotsford VIC 3067</div>
-                    <p class="muted">Liability limited by a scheme approved under Professional Standards Legislation</p>
+                    <ul style="list-style:none">
+                        <li>
+                            <b class="company">PETER RICHARDS SURVEYING</b>
+                        </li>
+                        <li>
+                            T (03) 9432 6944
+                        </li>
+                        <li>
+                            E-mail@prs.au
+                        </li>
+                        <li>
+                            W PRS.AU
+                        </li>
+                    </ul>
+                </td>
+                <td style="vertical-align:top; text-align:start">
+                    <ul style="list-style:none">
+                        <li>
+                            <strong>ABN 11 070 127 552</strong>
+                        </li>
+                        <li>
+                            45/7 Dalton Road
+                        </li>
+                        <li>
+                            Thomastown VIC 3074
+                        </li>
+                        <li>
+                            Suite 1 Level 1, 20-30
+                        </li>
+                        <li>
+                            Mollison Street
+                        </li>
+                        <li>
+                            Abbotsford VIC 3067
+                        </li>
+                    </ul>
                 </td>
             </tr>
         </table>
@@ -102,7 +136,7 @@
         <p>@scopeText</p>
 
         <p><strong>Fee Summary</strong></p>
-        <table style="width:100%;">
+        <table style="width:100%; border: solid 1px black; padding: 10px">
             @foreach (var item in Model.Quote.QuoteItems)
             {
                 <tr>
@@ -187,7 +221,7 @@
         <h2>Proposed Survey Area</h2>
         @if (Model.SurveyImageUri is not null)
         {
-            <p><img class="survey-img" src="@Model.SurveyImageUri" alt="" /></p>
+            <p><img class="survey-img" src="@Html.Raw(Model.SurveyImageUri)" alt="" /></p>
         }
     </section>
 </body>

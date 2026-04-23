@@ -186,7 +186,7 @@ else
                         <ChildContent>
                             <div class="info-row">
                                 <span class="info-label">Target delivery</span>
-                                <span class="info-value">@(_quote.TargetDeliveryDate is { } t ? t.ToLocalDateTimeString() : "—")</span>
+                                <span class="info-value">@(_quote.TargetDeliveryDate is { } t ? t.ToLocalDateOnlyString() : "—")</span>
                             </div>
                             @if (_quote.QuotesStatus.StatusEnum is QuoteStatusEnum.Rejected or QuoteStatusEnum.Accepted)
                             {

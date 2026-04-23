@@ -39,6 +39,7 @@ public partial class Quote
     {
         try
         {
+            base.IsLoading = true;
             Result<QuoteDetailsDto> result = await _apiService.GetQuoteDetails(QuoteId);
             if (result.IsSuccess && result.Value is not null)
                 _quote = result.Value;
@@ -48,6 +49,7 @@ public partial class Quote
                 if (result.Error is not ErrorType.NotFound)
                     _snackbar?.Add(result.ErrorDescription ?? "Could not load quote.", Severity.Warning);
             }
+            base.IsLoading = false;
 
             Result<QuotePdfDto> pdfResult = await _apiService.GetQuotePdf(QuoteId);
             if (pdfResult.IsSuccess && pdfResult.Value is not null)
