@@ -192,6 +192,70 @@ public sealed class JobsEndpointTests
         Assert.NotNull(job.Address);
         TestHelpers.AssertAddressAreSame(dto.Address, job.Address);
     }
+
+    [Fact]
+    public async Task Create_job_returns_success_status_1000_times()
+    {
+        JobCreationDto dto = new()
+        {
+            JobType = [JobTypeEnum.Construction],
+            ContactId = 1,
+            Details = "Test",
+            StatusId = 1,
+            ResponsibleTeamMember = 2,
+            Address = new()
+            {
+                Street = "123",
+                State = Shared.StateEnum.NSW,
+                LatLng = new() { Latitude = 123, Longitude = 123 },
+                PostCode = "1234",
+                Suburb = "Coburg",
+            }
+        };
+
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/jobs", dto);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        int? newJobId = await response.Content.ReadFromJsonAsync<int?>();
+        Assert.NotNull(newJobId);
+        Assert.NotEqual(0, newJobId);
+
+        response = await _client.GetAsync($"/api/jobs/{newJobId}");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        JobDetailsDto? job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
+        Assert.NotNull(job);
+        Assert.Equal(dto.Details, job.Description);
+        Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
+        Assert.NotNull(job.JobNumber);
+        Assert.True(job.JobTypes.Contains(JobTypeEnum.Construction));
+        Assert.NotNull(job.Address);
+        TestHelpers.AssertAddressAreSame(dto.Address, job.Address);
+
+        for (int i = 0; i < 1000; i++)
+        {
+            response = await _client.PostAsJsonAsync("/api/jobs", dto);
+
+            if (i is 999)
+            {
+                int? thousandthJobId = await response.Content.ReadFromJsonAsync<int?>();
+                Assert.NotNull(thousandthJobId);
+                Assert.NotEqual(0, thousandthJobId);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+                response = await _client.GetAsync($"/api/jobs/{thousandthJobId}");
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                job = await response.Content.ReadFromJsonAsync<JobDetailsDto>();
+                break;
+            }
+        }
+
+
+        Assert.NotNull(job);
+        Assert.Equal(dto.Details, job.Description);
+        Assert.Equal(dto.ContactId, job.PrimaryContact?.ContactId);
+        Assert.NotNull(job.JobNumber);
+        Assert.True(job.JobTypes.Contains(JobTypeEnum.Construction));
+        Assert.NotNull(job.Address);
+    }
     [Fact]
     public async Task Create_job_bad_request()
     {

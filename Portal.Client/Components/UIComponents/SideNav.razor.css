@@ -112,8 +112,8 @@
     .nav-item ::deep a.active {
         background-color: var(--color-grey);
         color: var(--color-secondary) !important;
-        border-bottom: 2px solid var(--color-secondary-light);
-        transition: all ease-in-out 0.2s;
+        border-left: 2px solid var(--color-secondary-light);
+        transition: all ease-in-out 0.04s;
     }
 
     .nav-item ::deep a:hover {
